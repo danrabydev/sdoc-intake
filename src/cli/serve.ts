@@ -26,9 +26,11 @@ function clientDir(): string {
 
 function shellFile(): string {
   const dir = clientDir();
-  const named = join(dir, "cli.html");
-  if (existsSync(named)) return named;
-  return join(dir, "index.html");
+  for (const name of ["sdoc-intake.html", "cli.html", "index.html"]) {
+    const file = join(dir, name);
+    if (existsSync(file)) return file;
+  }
+  return join(dir, "sdoc-intake.html");
 }
 
 function insideClient(urlPath: string): string | null {

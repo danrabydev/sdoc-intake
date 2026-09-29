@@ -638,7 +638,9 @@ export function IntakeApp({
               {fsMode === "browser" && !folderReady ? (
                 <>
                   <p className="max-w-md text-sm text-muted">
-                    No server. Open a folder of .sdoc files. They stay on this computer. Chrome or Edge is required.
+                    {window.location.protocol === "file:"
+                      ? "This file is open from disk. Chrome will not grant a folder that way. Serve sdoc-intake.html over http or https, then open a folder of .sdoc files."
+                      : "No server. Open a folder of .sdoc files. They stay on this computer. Chrome or Edge is required."}
                   </p>
                   <button
                     type="button"
