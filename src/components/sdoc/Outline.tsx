@@ -15,7 +15,7 @@ export function Outline({
   onSelect: (uid: string) => void;
   onChange: (nodes: SDocNode[]) => void;
   onAddRootSection: () => void;
-  onFix: (uid?: string) => void;
+  onFix: (uid: string) => void;
   onSectionPrefix: (uid: string, value: string) => void;
 }) {
   const rows = flatten(document.nodes);
@@ -42,24 +42,13 @@ export function Outline({
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
         <p className="text-xs text-muted">Document outline</p>
-        <div className="flex items-center gap-2">
-          {prefixes.size > 0 ? (
-            <button
-              type="button"
-              onClick={() => onFix()}
-              className="min-h-9 rounded-md px-2 text-xs text-accent"
-            >
-              Fix prefixes
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={onAddRootSection}
-            className="min-h-9 rounded-md border border-line px-2 text-xs text-fg"
-          >
-            Section at root
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onAddRootSection}
+          className="min-h-9 rounded-md border border-line px-2 text-xs text-fg"
+        >
+          Section at root
+        </button>
       </div>
       <ul className="min-h-0 flex-1 overflow-y-auto py-1">
         {rows.length === 0 ? <li className="px-3 py-6 text-sm text-muted">No nodes yet.</li> : null}

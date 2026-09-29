@@ -421,7 +421,7 @@ export function IntakeApp({
     });
   }
 
-  async function applyPrefixFix(onlyUid?: string) {
+  async function applyPrefixFix(onlyUid: string) {
     const current = editorRef.current;
     if (!current?.document || current.parseFailed || saving) return;
     const renames = prefixRenames(current.document, current.siblingUids, onlyUid);
