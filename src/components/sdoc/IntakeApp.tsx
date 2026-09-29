@@ -4,7 +4,7 @@ import { openBrowserFolder, restoreBrowserFolder, subscribeBrowser } from "@/lib
 import { ApiError, createDir, createDoc, deleteDoc, getFile, getIndex, getTree, probeServer, putFile } from "@/lib/sdoc/client";
 import { explicitMode, FS_MODE_KEY, setActiveMode, type FsMode } from "@/lib/sdoc/fs-mode";
 import { buildGraph } from "@/lib/sdoc/graph";
-import { collectUids, fieldOf, flatten, mapAt, nextUid, nodeUid, placeNode, removeUid, requirementNode, sectionNode, sectionUidPrefix, usesLegacySections, withField, withRelations } from "@/lib/sdoc/model";
+import { applyUidRenames, collectUids, fieldOf, flatten, mapAt, nextUid, nodeUid, placeNode, prefixChainFor, prefixExpectations, prefixRenames, removeUid, requirementNode, sectionNode, sectionUidPrefix, usesLegacySections, withField, withRelations } from "@/lib/sdoc/model";
 import { textForWrite } from "@/lib/sdoc/serialize";
 import type { Relation, SDocDocument, SDocIssue, SDocNode } from "@/lib/sdoc/types";
 import { validate } from "@/lib/sdoc/validate";
@@ -382,10 +382,11 @@ export function IntakeApp({
   function addNode(kind: "REQUIREMENT" | "SECTION", where: "inside" | "after") {
     if (!editor?.document) return;
     const uids = [...editor.siblingUids, ...collectUids(editor.document)];
+    const chain = prefixChainFor(editor.document, selected || undefined, where === "inside");
     const id =
       kind === "SECTION"
-        ? nextUid(sectionUidPrefix(editor.document.prefix), uids)
-        : nextUid(editor.document.prefix || "REQ-", uids);
+        ? nextUid(sectionUidPrefix(chain || editor.document.prefix), uids)
+        : nextUid(chain || editor.document.prefix || "REQ-", uids);
     const node =
       kind === "SECTION"
         ? sectionNode(id, "New section", usesLegacySections(editor.document.nodes))
@@ -407,6 +408,81 @@ export function IntakeApp({
     mutate((document) => ({ ...document, nodes: [...document.nodes, node] }));
     setSelected(id);
     onSelect(editor.path, id);
+  }
+
+  function setSectionPrefix(uid: string, value: string) {
+    mutate((document) => {
+      const row = flatten(document.nodes).find((item) => nodeUid(item.node) === uid);
+      if (!row || row.node.tag !== "SECTION") return document;
+      return {
+        ...document,
+        nodes: mapAt(document.nodes, row.path, (node) => withField(node, "PREFIX", value.trim())),
+      };
+    });
+  }
+
+  async function applyPrefixFix(onlyUid?: string) {
+    const current = editorRef.current;
+    if (!current?.document || current.parseFailed || saving) return;
+    const renames = prefixRenames(current.document, current.siblingUids, onlyUid);
+    if (renames.size === 0) {
+      setNotice("Prefixes already match");
+      return;
+    }
+    const document = { ...current.document, nodes: applyUidRenames(current.document.nodes, renames) };
+    const gate = validate(textForWrite(document), {
+      siblingUids: current.siblingUids,
+      siblingEdges: current.siblingEdges,
+      mode: "write",
+      strict,
+      indexComplete: true,
+      file: current.path,
+    });
+    if (!gate.ok) {
+      setServerIssues(gate.errors);
+      setNotice("Fix other errors before renaming prefixes");
+      return;
+    }
+    setSaving(true);
+    selfWrite.current = true;
+    try {
+      const view = await putFile(current.path, { document }, strict, true);
+      const oldIds = new Set(renames.keys());
+      const files = new Set(
+        catalog
+          .filter(
+            (node) => node.file !== current.path && node.relations.some((relation) => oldIds.has(relation.value)),
+          )
+          .map((node) => node.file),
+      );
+      for (const file of files) {
+        const other = await getFile(file);
+        if (!other.document) continue;
+        await putFile(
+          file,
+          { document: { ...other.document, nodes: applyUidRenames(other.document.nodes, renames) } },
+          false,
+          false,
+        );
+      }
+      setEditor(editorFromView(view));
+      setSelected((uid) => renames.get(uid) ?? uid);
+      setServerIssues(null);
+      setNotice(`Renamed ${renames.size} ${renames.size === 1 ? "id" : "ids"}`);
+      await refreshLists();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setServerIssues(err.errors);
+        setNotice(err.message);
+      } else {
+        setNotice(err instanceof Error ? err.message : "Prefix rename failed");
+      }
+    } finally {
+      setSaving(false);
+      window.setTimeout(() => {
+        selfWrite.current = false;
+      }, 600);
+    }
   }
 
   function deleteSelected() {
@@ -665,6 +741,7 @@ export function IntakeApp({
               }}
               onInsert={addNode}
               onDelete={deleteSelected}
+              markedUids={editor.document ? prefixExpectations(editor.document) : undefined}
             />
           ) : (
             <div className="flex flex-1 flex-col items-start justify-center gap-3 px-6">
@@ -726,6 +803,10 @@ export function IntakeApp({
                 onSelect={(uid) => chooseUid(uid)}
                 onChange={(nodes) => mutate((document) => ({ ...document, nodes }))}
                 onAddRootSection={addRootSection}
+                onFix={(uid) => {
+                  void applyPrefixFix(uid);
+                }}
+                onSectionPrefix={setSectionPrefix}
               />
             </div>
           ) : null}

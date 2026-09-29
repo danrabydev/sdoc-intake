@@ -24,6 +24,7 @@ export function IntakeTable({
   onRelations,
   onInsert,
   onDelete,
+  markedUids,
 }: {
   document: SDocDocument;
   selected: string;
@@ -33,6 +34,7 @@ export function IntakeTable({
   onRelations: (path: number[], relations: Relation[]) => void;
   onInsert: (kind: "REQUIREMENT" | "SECTION", where: "inside" | "after") => void;
   onDelete: () => void;
+  markedUids?: ReadonlyMap<string, string>;
 }) {
   const rows = flatten(document.nodes);
   const selectedRow = rows.find((row) => fieldOf(row.node, "UID") === selected);
@@ -126,7 +128,10 @@ export function IntakeTable({
                       onChange={(event) => onField(row.path, "UID", event.target.value.replace(/\s+/g, ""))}
                       onKeyDown={(event) => enterNext(event, indexOnPage, "uid")}
                       onFocus={() => onSelect(uid)}
-                      className="w-full bg-transparent font-mono text-xs text-fg"
+                      title={markedUids?.get(uid) ? `Prefix should be ${markedUids.get(uid)}` : undefined}
+                      className={
+                        "w-full bg-transparent font-mono text-xs " + (markedUids?.has(uid) ? "text-accent" : "text-fg")
+                      }
                     />
                   </td>
                   <td className="px-2 py-1">
@@ -204,7 +209,11 @@ export function IntakeTable({
                     data-cell={`${indexOnPage}:uid`}
                     value={uid}
                     onChange={(event) => onField(row.path, "UID", event.target.value.replace(/\s+/g, ""))}
-                    className="mt-1 min-h-11 w-full rounded-md border border-line bg-bg px-2 font-mono text-sm text-fg"
+                    title={markedUids?.get(uid) ? `Prefix should be ${markedUids.get(uid)}` : undefined}
+                    className={
+                      "mt-1 min-h-11 w-full rounded-md border border-line bg-bg px-2 font-mono text-sm " +
+                      (markedUids?.has(uid) ? "text-accent" : "text-fg")
+                    }
                   />
                 </label>
                 <label className="mt-2 block text-xs text-muted">

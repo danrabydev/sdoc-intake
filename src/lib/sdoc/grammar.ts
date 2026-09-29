@@ -13,6 +13,7 @@ export function defaultElements(): GrammarElement[] {
       tag: "SECTION",
       fields: [
         { title: "UID", type: "String", required: false },
+        { title: "PREFIX", type: "String", required: false },
         { title: "TITLE", type: "String", required: true },
       ],
       relations: [],
@@ -73,6 +74,11 @@ export function ensureOrgGrammar(doc: SDocDocument): SDocDocument {
   }
   if (!grammar.elements.some((element) => element.tag === "SECTION")) {
     grammar.elements.splice(1, 0, defaultElements()[1]!);
+  }
+  const section = grammar.elements.find((element) => element.tag === "SECTION");
+  if (section && !section.fields.some((field) => field.title === "PREFIX")) {
+    const uidAt = section.fields.findIndex((field) => field.title === "UID");
+    section.fields.splice(uidAt + 1, 0, { title: "PREFIX", type: "String", required: false });
   }
   next.grammar = grammar;
   return next;

@@ -94,6 +94,104 @@ export function placeNode(
   return placed.found ? placed.nodes : [...nodes, created];
 }
 
+export function joinPrefix(parts: Array<string | undefined>): string {
+  let out = "";
+  for (const part of parts) {
+    const token = part?.trim() ?? "";
+    if (!token) continue;
+    out += token.endsWith("-") ? token : `${token}-`;
+  }
+  return out;
+}
+
+export function serialOf(uid: string): string | null {
+  return /(\d+)$/.exec(uid)?.[1] ?? null;
+}
+
+/** Document prefix plus each ancestor section PREFIX. A section token applies to its children, not itself. */
+export function nodePrefixChain(doc: SDocDocument, path: number[]): string {
+  const tokens: Array<string | undefined> = [doc.prefix];
+  let list = doc.nodes;
+  for (let depth = 0; depth < path.length - 1; depth += 1) {
+    const node = list[path[depth]!];
+    if (!node) break;
+    if (node.tag === "SECTION") tokens.push(fieldOf(node, "PREFIX"));
+    list = node.children;
+  }
+  return joinPrefix(tokens);
+}
+
+export function prefixChainFor(doc: SDocDocument, anchorUid: string | undefined, includeAnchor: boolean): string {
+  if (!anchorUid) return joinPrefix([doc.prefix]);
+  const row = flatten(doc.nodes).find((item) => nodeUid(item.node) === anchorUid);
+  if (!row) return joinPrefix([doc.prefix]);
+  const path = includeAnchor ? [...row.path, -1] : row.path;
+  return nodePrefixChain(doc, path.length === 0 ? [0] : path);
+}
+
+/** Requirements whose UID is not document-prefix plus ancestor section prefixes plus their serial. */
+export function prefixExpectations(doc: SDocDocument): Map<string, string> {
+  const expected = new Map<string, string>();
+  for (const row of flatten(doc.nodes)) {
+    if (row.node.tag === "SECTION") continue;
+    const uid = nodeUid(row.node);
+    const serial = uid ? serialOf(uid) : null;
+    if (!uid || !serial) continue;
+    const chain = nodePrefixChain(doc, row.path);
+    if (!chain) continue;
+    const next = chain + serial;
+    if (next !== uid) expected.set(uid, next);
+  }
+  return expected;
+}
+
+export function applyUidRenames(nodes: SDocNode[], renames: ReadonlyMap<string, string>): SDocNode[] {
+  const mapValue = (uid: string) => renames.get(uid) ?? uid;
+  const walk = (list: SDocNode[]): SDocNode[] =>
+    list.map((node) => ({
+      ...node,
+      fields: node.fields.map((field) =>
+        field.name === "UID" ? { ...field, value: mapValue(field.value) } : field,
+      ),
+      relations: node.relations.map((relation) => ({ ...relation, value: mapValue(relation.value) })),
+      children: walk(node.children),
+    }));
+  return walk(nodes);
+}
+
+/** Keep the serial. On a collision under the same chain, take the next free number. */
+export function prefixRenames(
+  doc: SDocDocument,
+  reserved: Iterable<string>,
+  onlyUid?: string,
+): Map<string, string> {
+  const expectations = prefixExpectations(doc);
+  const renames = new Map<string, string>();
+  const taken = new Set<string>(reserved);
+  for (const row of flatten(doc.nodes)) {
+    const uid = nodeUid(row.node);
+    if (!uid || expectations.has(uid)) continue;
+    taken.add(uid);
+  }
+  for (const [uid, wanted] of expectations) {
+    if (onlyUid && uid !== onlyUid) continue;
+    let assigned = wanted;
+    if (taken.has(assigned) || [...renames.values()].includes(assigned)) {
+      const serial = serialOf(wanted) ?? "1";
+      const chain = wanted.slice(0, wanted.length - serial.length);
+      let n = Number(serial);
+      const width = serial.length;
+      do {
+        n += 1;
+        assigned = chain + String(n).padStart(width, "0");
+      } while (taken.has(assigned) || [...renames.values()].includes(assigned));
+    }
+    taken.add(assigned);
+    if (assigned !== uid) renames.set(uid, assigned);
+  }
+  return renames;
+}
+
 export function sectionUidPrefix(documentPrefix: string | undefined): string {
   const base = (documentPrefix ?? "").trim();
   if (!base) return "SEC-";

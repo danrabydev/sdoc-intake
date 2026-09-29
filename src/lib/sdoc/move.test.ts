@@ -1,6 +1,44 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { fieldOf, indentNode, moveNode, outdentNode, outlineNumbers, reorderSibling, requirementNode, sectionNode } from "./model.ts";
+import {
+  applyUidRenames,
+  fieldOf,
+  indentNode,
+  moveNode,
+  outdentNode,
+  outlineNumbers,
+  prefixExpectations,
+  prefixRenames,
+  reorderSibling,
+  requirementNode,
+  sectionNode,
+  withField,
+} from "./model.ts";
+import type { SDocDocument } from "./types.ts";
+import { defaultGrammar } from "./grammar.ts";
+
+test("section prefix marks a requirement and a click-rename keeps the serial", () => {
+  const section = withField(sectionNode("SYS-SEC-1", "Occupant", true), "PREFIX", "PROT");
+  section.children = [
+    requirementNode("SYS-010", "Belt", ""),
+    requirementNode("SYS-PROT-010", "Same tail", ""),
+  ];
+  const doc: SDocDocument = {
+    title: "Sys",
+    prefix: "SYS-",
+    grammar: defaultGrammar(),
+    nodes: [section, requirementNode("SYS-020", "Root", "")],
+  };
+  const issues = prefixExpectations(doc);
+  assert.equal(issues.get("SYS-010"), "SYS-PROT-010");
+  assert.equal(issues.has("SYS-SEC-1"), false);
+  assert.equal(issues.has("SYS-020"), false);
+  const renames = prefixRenames(doc, []);
+  assert.equal(renames.get("SYS-010"), "SYS-PROT-011");
+  assert.equal(renames.has("SYS-020"), false);
+  const next = applyUidRenames(doc.nodes, renames);
+  assert.equal(fieldOf(next[0]!.children[0]!, "UID"), "SYS-PROT-011");
+});
 
 test("every outline item is numbered, and a section opens the next level", () => {
   const inner = sectionNode("SEC-2", "Inner", true);
