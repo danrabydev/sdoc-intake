@@ -22,7 +22,7 @@ export function IntakeTable({
   onSelect,
   onField,
   onRelations,
-  onAdd,
+  onInsert,
   onDelete,
 }: {
   document: SDocDocument;
@@ -31,11 +31,19 @@ export function IntakeTable({
   onSelect: (uid: string) => void;
   onField: (path: number[], name: string, value: string) => void;
   onRelations: (path: number[], relations: Relation[]) => void;
-  onAdd: () => void;
+  onInsert: (kind: "REQUIREMENT" | "SECTION", where: "inside" | "after") => void;
   onDelete: () => void;
 }) {
   const rows = flatten(document.nodes);
+  const selectedRow = rows.find((row) => fieldOf(row.node, "UID") === selected);
+  const intoSection = selectedRow?.node.tag === "SECTION" && selectedRow.node.composite;
   const [statementKey, setStatementKey] = useState("");
+
+  function allowsStatement(tag: string): boolean {
+    const element = document.grammar.elements.find((item) => item.tag === tag);
+    if (!element) return tag === "REQUIREMENT" || tag === "TEXT";
+    return element.fields.some((field) => field.title === "STATEMENT");
+  }
 
   function enterNext(event: KeyboardEvent<HTMLElement>, row: number, col: string) {
     if (event.key !== "Enter" || event.shiftKey || event.metaKey || event.ctrlKey) return;
@@ -47,7 +55,8 @@ export function IntakeTable({
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
         <p className="text-xs text-muted">
-          <span className="font-mono text-accent">{rows.length}</span> nodes · Enter moves down · Tab moves across
+          <span className="font-mono text-accent">{rows.length}</span> nodes
+          {intoSection ? " · new nodes go inside the section" : ""}
         </p>
         <div className="flex gap-2">
           <button
@@ -59,9 +68,26 @@ export function IntakeTable({
             <Trash2 className="size-4" aria-hidden="true" />
             Remove
           </button>
+          {intoSection ? (
+            <button
+              type="button"
+              onClick={() => onInsert("SECTION", "after")}
+              className="inline-flex min-h-11 items-center rounded-md border border-line px-2 text-xs text-muted"
+            >
+              After
+            </button>
+          ) : null}
           <button
             type="button"
-            onClick={onAdd}
+            onClick={() => onInsert("SECTION", intoSection ? "inside" : "after")}
+            className="inline-flex min-h-11 items-center gap-1 rounded-md border border-line px-2 text-xs text-fg"
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            Section
+          </button>
+          <button
+            type="button"
+            onClick={() => onInsert("REQUIREMENT", intoSection ? "inside" : "after")}
             className="inline-flex min-h-11 items-center gap-1 rounded-md bg-accent px-3 text-xs font-medium text-accent-fg"
           >
             <Plus className="size-4" aria-hidden="true" />
@@ -111,24 +137,32 @@ export function IntakeTable({
                       onChange={(event) => onField(row.path, "TITLE", event.target.value)}
                       onKeyDown={(event) => enterNext(event, indexOnPage, "title")}
                       onFocus={() => onSelect(uid)}
-                      className={`w-full bg-transparent text-xs text-fg ${INDENT[Math.min(row.depth, 3)]}`}
+                      className={
+                        "w-full bg-transparent text-xs text-fg " +
+                        INDENT[Math.min(row.depth, 3)] +
+                        (row.node.tag === "SECTION" ? " font-medium" : "")
+                      }
                     />
                   </td>
                   <td className="px-2 py-2 font-mono text-xs tracking-wide text-muted">{row.node.tag}</td>
                   <td className="px-2 py-1">
-                    <textarea
-                      data-cell={`${indexOnPage}:statement`}
-                      value={fieldOf(row.node, "STATEMENT")}
-                      aria-label="Statement"
-                      rows={statementKey === key ? 4 : 1}
-                      onFocus={() => {
-                        setStatementKey(key);
-                        onSelect(uid);
-                      }}
-                      onBlur={() => setStatementKey((current) => (current === key ? "" : current))}
-                      onChange={(event) => onField(row.path, "STATEMENT", event.target.value)}
-                      className="w-full resize-none bg-transparent text-xs leading-relaxed text-fg"
-                    />
+                    {allowsStatement(row.node.tag) ? (
+                      <textarea
+                        data-cell={`${indexOnPage}:statement`}
+                        value={fieldOf(row.node, "STATEMENT")}
+                        aria-label="Statement"
+                        rows={statementKey === key ? 4 : 1}
+                        onFocus={() => {
+                          setStatementKey(key);
+                          onSelect(uid);
+                        }}
+                        onBlur={() => setStatementKey((current) => (current === key ? "" : current))}
+                        onChange={(event) => onField(row.path, "STATEMENT", event.target.value)}
+                        className="w-full resize-none bg-transparent text-xs leading-relaxed text-fg"
+                      />
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
                   </td>
                   <td className="px-2 py-1" onClick={(event) => event.stopPropagation()}>
                     {row.node.tag === "REQUIREMENT" ? (
@@ -179,18 +213,23 @@ export function IntakeTable({
                     data-cell={`${indexOnPage}:title`}
                     value={fieldOf(row.node, "TITLE")}
                     onChange={(event) => onField(row.path, "TITLE", event.target.value)}
-                    className="mt-1 min-h-11 w-full rounded-md border border-line bg-bg px-2 text-sm text-fg"
+                    className={
+                      "mt-1 min-h-11 w-full rounded-md border border-line bg-bg px-2 text-sm text-fg " +
+                      (row.node.tag === "SECTION" ? "font-medium" : "")
+                    }
                   />
                 </label>
-                <label className="mt-2 block text-xs text-muted">
-                  Statement
-                  <textarea
-                    value={fieldOf(row.node, "STATEMENT")}
-                    rows={4}
-                    onChange={(event) => onField(row.path, "STATEMENT", event.target.value)}
-                    className="mt-1 w-full rounded-md border border-line bg-bg px-2 py-2 text-sm leading-relaxed text-fg"
-                  />
-                </label>
+                {allowsStatement(row.node.tag) ? (
+                  <label className="mt-2 block text-xs text-muted">
+                    Statement
+                    <textarea
+                      value={fieldOf(row.node, "STATEMENT")}
+                      rows={4}
+                      onChange={(event) => onField(row.path, "STATEMENT", event.target.value)}
+                      className="mt-1 w-full rounded-md border border-line bg-bg px-2 py-2 text-sm leading-relaxed text-fg"
+                    />
+                  </label>
+                ) : null}
                 {row.node.tag === "REQUIREMENT" ? (
                   <div className="mt-2">
                     <RelationTags
@@ -206,7 +245,7 @@ export function IntakeTable({
           })}
         </ul>
         {rows.length === 0 ? (
-          <p className="px-3 py-8 text-sm text-muted">No nodes yet. Add a requirement.</p>
+          <p className="px-3 py-8 text-sm text-muted">No nodes yet. Add a section or a requirement.</p>
         ) : null}
       </div>
     </div>

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { readFileSync } from "node:fs";
 import { after, test } from "node:test";
-import { collectUids } from "./model.ts";
+import { collectUids, insertInside, sectionNode } from "./model.ts";
 import { parse } from "./parse.ts";
 import { textForWrite } from "./serialize.ts";
 import { createFile, readFileView, saveFile, SdocError } from "./store.server.ts";
@@ -12,6 +12,47 @@ import { validate } from "./validate.ts";
 
 const sysText = readFileSync(new URL("../../../data/SYS.sdoc", import.meta.url), "utf8");
 const capText = readFileSync(new URL("../../../data/CAP.sdoc", import.meta.url), "utf8");
+
+test("sections nest and round-trip", () => {
+  const text = `[DOCUMENT]
+TITLE: Nest
+UID: DOC-NEST
+
+[SECTION]
+TITLE: Outer
+UID: SEC-1
+
+[SECTION]
+TITLE: Inner
+UID: SEC-2
+
+[REQUIREMENT]
+UID: REQ-001
+TITLE: Inside
+
+[/SECTION]
+[/SECTION]
+`;
+  const parsed = parse(text);
+  assert.equal(parsed.errors.length, 0, JSON.stringify(parsed.errors));
+  assert.ok(parsed.document);
+  assert.equal(parsed.document.nodes[0]?.tag, "SECTION");
+  assert.equal(parsed.document.nodes[0]?.children[0]?.tag, "SECTION");
+  assert.equal(parsed.document.nodes[0]?.children[0]?.children[0]?.tag, "REQUIREMENT");
+  const again = parse(textForWrite(parsed.document));
+  assert.equal(again.errors.length, 0, JSON.stringify(again.errors));
+  assert.equal(again.document?.nodes[0]?.children[0]?.children[0]?.tag, "REQUIREMENT");
+  const placed = insertInside(parsed.document.nodes, "SEC-2", sectionNode("SEC-3", "Deeper", true));
+  assert.equal(placed.found, true);
+  assert.equal(placed.nodes[0]?.children[0]?.children[1]?.tag, "SECTION");
+  const checked = validate(textForWrite({ ...parsed.document, nodes: placed.nodes }), {
+    mode: "write",
+    indexComplete: true,
+    file: "NEST.sdoc",
+  });
+  assert.equal(checked.ok, true, JSON.stringify(checked.errors, null, 2));
+  assert.match(textForWrite({ ...parsed.document, nodes: placed.nodes }), /\[SECTION\][\s\S]*\[SECTION\][\s\S]*\[SECTION\]/);
+});
 
 test("SYS and CAP parse, link, and survive a write pretty-print", () => {
   const sys = parse(sysText);

@@ -60,6 +60,65 @@ export function mapAt(
   });
 }
 
+export function insertInside(
+  nodes: SDocNode[],
+  parentUid: string,
+  created: SDocNode,
+): { nodes: SDocNode[]; found: boolean } {
+  let found = false;
+  const walk = (list: SDocNode[]): SDocNode[] =>
+    list.map((node) => {
+      if (!found && node.composite && fieldOf(node, "UID") === parentUid) {
+        found = true;
+        return { ...node, children: [...node.children, created] };
+      }
+      return { ...node, children: walk(node.children) };
+    });
+  const next = walk(nodes);
+  return { nodes: found ? next : nodes, found };
+}
+
+/** `inside` nests under the selected section. `after` inserts a sibling. */
+export function placeNode(
+  nodes: SDocNode[],
+  selectedUid: string | undefined,
+  created: SDocNode,
+  where: "inside" | "after",
+): SDocNode[] {
+  if (!selectedUid) return [...nodes, created];
+  if (where === "inside") {
+    const nested = insertInside(nodes, selectedUid, created);
+    if (nested.found) return nested.nodes;
+  }
+  const placed = insertAfter(nodes, selectedUid, created);
+  return placed.found ? placed.nodes : [...nodes, created];
+}
+
+export function sectionUidPrefix(documentPrefix: string | undefined): string {
+  const base = (documentPrefix ?? "").trim();
+  if (!base) return "SEC-";
+  return base.endsWith("-") ? `${base}SEC-` : `${base}-SEC-`;
+}
+
+export function usesLegacySections(nodes: SDocNode[]): boolean {
+  return flatten(nodes).some((row) => row.node.tag === "SECTION" && row.node.legacy);
+}
+
+export function sectionNode(uid: string, title: string, legacy: boolean): SDocNode {
+  return {
+    tag: "SECTION",
+    composite: true,
+    legacy,
+    line: 1,
+    fields: [
+      { name: "UID", value: uid, multiline: false, line: 1, col: 1 },
+      { name: "TITLE", value: title, multiline: false, line: 1, col: 1 },
+    ],
+    relations: [],
+    children: [],
+  };
+}
+
 export function insertAfter(
   nodes: SDocNode[],
   afterUid: string | undefined,

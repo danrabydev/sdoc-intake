@@ -4,7 +4,7 @@ import { openBrowserFolder, restoreBrowserFolder, subscribeBrowser } from "@/lib
 import { ApiError, createDoc, deleteDoc, getFile, getIndex, getTree, probeServer, putFile } from "@/lib/sdoc/client";
 import { explicitMode, FS_MODE_KEY, setActiveMode, type FsMode } from "@/lib/sdoc/fs-mode";
 import { buildGraph } from "@/lib/sdoc/graph";
-import { collectUids, fieldOf, flatten, insertAfter, mapAt, nextUid, nodeUid, removeUid, requirementNode, withField, withRelations } from "@/lib/sdoc/model";
+import { collectUids, fieldOf, flatten, mapAt, nextUid, nodeUid, placeNode, removeUid, requirementNode, sectionNode, sectionUidPrefix, usesLegacySections, withField, withRelations } from "@/lib/sdoc/model";
 import { textForWrite } from "@/lib/sdoc/serialize";
 import type { Relation, SDocDocument, SDocIssue, SDocNode } from "@/lib/sdoc/types";
 import { validate } from "@/lib/sdoc/validate";
@@ -30,6 +30,11 @@ function stripParents(nodes: SDocNode[], uid: string): SDocNode[] {
     relations: node.relations.filter((relation) => !(relation.type === "Parent" && relation.value === uid)),
     children: stripParents(node.children, uid),
   }));
+}
+
+function uidsUnder(node: SDocNode): string[] {
+  const own = nodeUid(node);
+  return [...(own ? [own] : []), ...node.children.flatMap(uidsUnder)];
 }
 
 function liveIndex(index: IndexNode[], editor: Editor | null): IndexNode[] {
@@ -370,34 +375,48 @@ export function IntakeApp({
     }
   }
 
-  function addRequirement() {
+  function addNode(kind: "REQUIREMENT" | "SECTION", where: "inside" | "after") {
     if (!editor?.document) return;
-    const id = nextUid(editor.document.prefix || "REQ-", [...editor.siblingUids, ...collectUids(editor.document)]);
-    const node = requirementNode(id, "New requirement", "");
-    mutate((document) => {
-      const placed = insertAfter(document.nodes, selected || undefined, node);
-      return { ...document, nodes: placed.nodes };
-    });
+    const uids = [...editor.siblingUids, ...collectUids(editor.document)];
+    const id =
+      kind === "SECTION"
+        ? nextUid(sectionUidPrefix(editor.document.prefix), uids)
+        : nextUid(editor.document.prefix || "REQ-", uids);
+    const node =
+      kind === "SECTION"
+        ? sectionNode(id, "New section", usesLegacySections(editor.document.nodes))
+        : requirementNode(id, "New requirement", "");
+    const anchor = selected || undefined;
+    mutate((document) => ({
+      ...document,
+      nodes: placeNode(document.nodes, anchor, node, where),
+    }));
     setSelected(id);
     onSelect(editor.path, id);
   }
 
   function deleteSelected() {
     if (!editor?.document || !selected) return;
+    const row = flatten(editor.document.nodes).find((item) => nodeUid(item.node) === selected);
+    const doomed = new Set(row ? uidsUnder(row.node) : [selected]);
     const incoming = catalog.filter(
       (node) =>
         node.file !== editor.path &&
-        node.relations.some((relation) => relation.type === "Parent" && relation.value === selected),
+        node.relations.some((relation) => relation.type === "Parent" && doomed.has(relation.value)),
     );
     if (incoming.length > 0) {
       const proceed = window.confirm(
-        `${incoming.map((node) => node.uid).join(", ")} parent-point at ${selected}. Remove it anyway?`,
+        `${incoming.map((node) => node.uid).join(", ")} parent-point at ${[...doomed].join(", ")}. Remove it anyway?`,
       );
       if (!proceed) return;
       setForceNext(true);
     }
     const uid = selected;
-    mutate((document) => ({ ...document, nodes: removeUid(stripParents(document.nodes, uid), uid).nodes }));
+    mutate((document) => {
+      let nodes = document.nodes;
+      for (const id of doomed) nodes = stripParents(nodes, id);
+      return { ...document, nodes: removeUid(nodes, uid).nodes };
+    });
     setSelected("");
   }
 
@@ -611,7 +630,7 @@ export function IntakeApp({
                   nodes: mapAt(document.nodes, path, (node) => withRelations(node, relations)),
                 }));
               }}
-              onAdd={addRequirement}
+              onInsert={addNode}
               onDelete={deleteSelected}
             />
           ) : (
