@@ -6,6 +6,7 @@ export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>) => ({
     file: typeof search.file === "string" ? search.file : "",
     uid: typeof search.uid === "string" ? search.uid : "",
+    mode: search.mode === "browser" || search.mode === "server" ? search.mode : undefined,
   }),
   loaderDeps: ({ search }) => ({ file: search.file }),
   loader: ({ deps }) => loadIntake({ data: { file: deps.file } }),
@@ -22,7 +23,11 @@ function Home() {
       file={search.file}
       uid={search.uid}
       onSelect={(nextFile, nextUid) => {
-        void navigate({ to: "/", search: { file: nextFile, uid: nextUid }, replace: true });
+        void navigate({
+          to: "/",
+          search: { file: nextFile, uid: nextUid, mode: search.mode },
+          replace: true,
+        });
       }}
     />
   );

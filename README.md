@@ -35,7 +35,14 @@ pnpm exec sdoc-intake ./data
 
 `pnpm dev` reads `./data` unless `SDOC_ROOT` is set. See `.env.example`.
 
-`SDOC_STRICTDOC_BIN` is an optional second check with the StrictDoc CLI. The app does not require it.
+`SDOC_STRICTDOC_BIN` is an optional second check with the StrictDoc CLI. The app does not require it. That check runs only in server mode.
+
+## Browser folder
+
+Host `dist/client` from `pnpm build:cli` as a static site, with no API. If `/api/health` does not answer, the page uses a folder on the visitor's computer (Chrome or Edge). The header flag switches **Server** and **This computer**. `?mode=browser` or `?mode=server` forces one, and the choice is remembered in that browser.
+
+Invalid SDoc is still refused before a write. The page can only see the folder the visitor picked.
+
 
 ## License
 

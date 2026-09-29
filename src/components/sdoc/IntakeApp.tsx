@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FileResponse, IndexNode, TreeFile } from "@/lib/sdoc/api-types";
-import { ApiError, createDoc, deleteDoc, getFile, getIndex, getTree, putFile } from "@/lib/sdoc/client";
+import { openBrowserFolder, restoreBrowserFolder, subscribeBrowser } from "@/lib/sdoc/browser-fs";
+import { ApiError, createDoc, deleteDoc, getFile, getIndex, getTree, probeServer, putFile } from "@/lib/sdoc/client";
+import { explicitMode, FS_MODE_KEY, setActiveMode, type FsMode } from "@/lib/sdoc/fs-mode";
 import { buildGraph } from "@/lib/sdoc/graph";
 import { collectUids, fieldOf, flatten, insertAfter, mapAt, nextUid, nodeUid, removeUid, requirementNode, withField, withRelations } from "@/lib/sdoc/model";
 import { textForWrite } from "@/lib/sdoc/serialize";
@@ -118,6 +120,9 @@ export function IntakeApp({
   const [draftError, setDraftError] = useState("");
   const [forceNext, setForceNext] = useState(false);
   const [serverIssues, setServerIssues] = useState<SDocIssue[] | null>(null);
+  const [fsMode, setFsMode] = useState<FsMode | null>(null);
+  const [folderReady, setFolderReady] = useState(false);
+  const [boot, setBoot] = useState(0);
   const editorRef = useRef<Editor | null>(null);
   const selectedRef = useRef(selected);
   const selfWrite = useRef(false);
@@ -149,32 +154,9 @@ export function IntakeApp({
 
   useEffect(() => {
     let cancel = false;
-    if (!editorRef.current) {
-      void (async () => {
-        try {
-          const listed = await refreshLists();
-          if (cancel) return;
-          const path = file || listed[0]?.path || "";
-          if (!path) return;
-          const view = await getFile(path);
-          if (cancel) return;
-          setEditor(editorFromView(view));
-          if (!selectedRef.current) setSelected(firstRequirement(view.document));
-          if (path !== file) onSelect(path, selectedRef.current || firstRequirement(view.document));
-        } catch (err) {
-          if (!cancel) setLoadError(err instanceof Error ? err.message : "Could not read the tree.");
-        }
-      })();
-    }
-    const source = new EventSource("/api/events");
-    source.onmessage = (event) => {
-      let data: { type?: string };
-      try {
-        data = JSON.parse(event.data) as { type?: string };
-      } catch {
-        return;
-      }
-      if (data.type !== "change") return;
+    let source: EventSource | null = null;
+    let stopWatch: () => void = () => undefined;
+    const onDiskChange = () => {
       void refreshLists().catch(() => undefined);
       if (selfWrite.current) return;
       const current = editorRef.current;
@@ -190,13 +172,93 @@ export function IntakeApp({
         })
         .catch(() => undefined);
     };
+    void (async () => {
+      const chosen =
+        explicitMode(window.location.search, window.localStorage.getItem(FS_MODE_KEY)) ??
+        ((await probeServer()) ? "server" : "browser");
+      if (cancel) return;
+      setActiveMode(chosen);
+      setFsMode(chosen);
+      if (chosen === "browser") {
+        const ready = await restoreBrowserFolder();
+        if (cancel) return;
+        setFolderReady(ready);
+        if (!ready) return;
+        stopWatch = subscribeBrowser(onDiskChange);
+      } else {
+        setFolderReady(true);
+      }
+      if (cancel) {
+        stopWatch();
+        return;
+      }
+      if (!editorRef.current) {
+        try {
+          const listed = await refreshLists();
+          if (!cancel) {
+            const path = file || listed[0]?.path || "";
+            if (path) {
+              const view = await getFile(path);
+              if (!cancel) {
+                setEditor(editorFromView(view));
+                if (!selectedRef.current) setSelected(firstRequirement(view.document));
+                if (path !== file) onSelect(path, selectedRef.current || firstRequirement(view.document));
+              }
+            }
+          }
+        } catch (err) {
+          if (!cancel) setLoadError(err instanceof Error ? err.message : "Could not read the tree.");
+        }
+      }
+      if (cancel || chosen !== "server") return;
+      source = new EventSource("/api/events");
+      source.onmessage = (event) => {
+        let data: { type?: string };
+        try {
+          data = JSON.parse(event.data) as { type?: string };
+        } catch {
+          return;
+        }
+        if (data.type === "change") onDiskChange();
+      };
+    })();
     return () => {
       cancel = true;
-      source.close();
+      source?.close();
+      stopWatch();
     };
-    // Mount only: later file switches go through openPath.
+    // Mount, and again after the folder flag changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [boot]);
+
+  function rememberMode(mode: FsMode) {
+    window.localStorage.setItem(FS_MODE_KEY, mode);
+    const url = new URL(window.location.href);
+    url.searchParams.set("mode", mode);
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  }
+
+  async function chooseMode(next: FsMode) {
+    if (next === "browser") {
+      try {
+        const opened = await openBrowserFolder();
+        if (!opened) return;
+      } catch (err) {
+        setNotice(err instanceof Error ? err.message : "Could not open the folder.");
+        return;
+      }
+    }
+    rememberMode(next);
+    setActiveMode(next);
+    setFsMode(next);
+    editorRef.current = null;
+    setEditor(null);
+    setFiles([]);
+    setIndex([]);
+    setLoadError("");
+    setNotice("");
+    setBoot((value) => value + 1);
+  }
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -398,10 +460,34 @@ export function IntakeApp({
       <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line px-3 py-2">
         <p className="font-mono text-xs tracking-widest text-accent">SDOC</p>
         <h1 className="text-sm font-semibold">Intake</h1>
-        <p className="text-xs text-muted">Edit the tree. Invalid SDoc is never written.</p>
-        {editor ? (
-          <p className="ml-auto truncate font-mono text-xs text-fg">{editor.path}</p>
-        ) : null}
+        <p className="text-xs text-muted">
+          {fsMode === "browser" ? "Files stay in the folder you pick." : "Edit the tree. Invalid SDoc is never written."}
+        </p>
+        <div className="ml-auto flex items-center gap-2">
+          <div className="flex rounded-md border border-line p-0.5" role="group" aria-label="Where documents live">
+            <button
+              type="button"
+              aria-pressed={fsMode === "server"}
+              onClick={() => void chooseMode("server")}
+              className={
+                "min-h-11 rounded px-2 text-xs " + (fsMode === "server" ? "bg-surface-2 text-fg" : "text-muted")
+              }
+            >
+              Server
+            </button>
+            <button
+              type="button"
+              aria-pressed={fsMode === "browser"}
+              onClick={() => void chooseMode("browser")}
+              className={
+                "min-h-11 rounded px-2 text-xs " + (fsMode === "browser" ? "bg-surface-2 text-fg" : "text-muted")
+              }
+            >
+              This computer
+            </button>
+          </div>
+          {editor ? <p className="max-w-48 truncate font-mono text-xs text-fg">{editor.path}</p> : null}
+        </div>
       </header>
       <div className="flex border-b border-line lg:hidden">
         {(
@@ -530,14 +616,31 @@ export function IntakeApp({
             />
           ) : (
             <div className="flex flex-1 flex-col items-start justify-center gap-3 px-6">
-              <p className="text-sm text-muted">No file open.</p>
-              <button
-                type="button"
-                onClick={() => setCreating(true)}
-                className="min-h-11 rounded-md bg-accent px-3 text-sm text-accent-fg"
-              >
-                New .sdoc
-              </button>
+              {fsMode === "browser" && !folderReady ? (
+                <>
+                  <p className="max-w-md text-sm text-muted">
+                    No server. Open a folder of .sdoc files. They stay on this computer. Chrome or Edge is required.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void chooseMode("browser")}
+                    className="min-h-11 rounded-md bg-accent px-3 text-sm text-accent-fg"
+                  >
+                    Open folder
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted">No file open.</p>
+                  <button
+                    type="button"
+                    onClick={() => setCreating(true)}
+                    className="min-h-11 rounded-md bg-accent px-3 text-sm text-accent-fg"
+                  >
+                    New .sdoc
+                  </button>
+                </>
+              )}
             </div>
           )}
         </section>

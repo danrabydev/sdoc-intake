@@ -1,15 +1,21 @@
 import type { FileResponse, GraphResponse, HealthResponse, IndexResponse, NodeResponse, TreeResponse } from "./api-types.ts";
+import { ApiError } from "./api-error.ts";
+import {
+  browserCreate,
+  browserDelete,
+  browserFile,
+  browserIndex,
+  browserPut,
+  browserTree,
+} from "./browser-fs.ts";
+import { activeMode } from "./fs-mode.ts";
 import type { SDocDocument, SDocIssue } from "./types.ts";
 
-export class ApiError extends Error {
-  readonly status: number;
-  readonly errors: SDocIssue[];
+export { ApiError };
+export type { SDocIssue };
 
-  constructor(status: number, message: string, errors: SDocIssue[] = []) {
-    super(message);
-    this.status = status;
-    this.errors = errors;
-  }
+function local(): boolean {
+  return activeMode() === "browser";
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -28,20 +34,34 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
+export async function probeServer(): Promise<boolean> {
+  try {
+    const res = await fetch("/api/health", {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(800),
+    });
+    if (!res.ok) return false;
+    const data = (await res.json()) as Partial<HealthResponse>;
+    return data.ok === true && typeof data.fileCount === "number";
+  } catch {
+    return false;
+  }
+}
+
 export function getHealth() {
   return request<HealthResponse>("/api/health");
 }
 
 export function getTree() {
-  return request<TreeResponse>("/api/tree");
+  return local() ? browserTree() : request<TreeResponse>("/api/tree");
 }
 
 export function getIndex() {
-  return request<IndexResponse>("/api/index");
+  return local() ? browserIndex() : request<IndexResponse>("/api/index");
 }
 
 export function getFile(path: string) {
-  return request<FileResponse>(`/api/file?path=${encodeURIComponent(path)}`);
+  return local() ? browserFile(path) : request<FileResponse>(`/api/file?path=${encodeURIComponent(path)}`);
 }
 
 export function putFile(
@@ -50,6 +70,7 @@ export function putFile(
   strict: boolean,
   force: boolean,
 ) {
+  if (local()) return browserPut(path, body, strict, force);
   const query = new URLSearchParams({ path });
   if (strict) query.set("strict", "1");
   if (force) query.set("force", "1");
@@ -57,10 +78,11 @@ export function putFile(
 }
 
 export function createDoc(body: { path: string; title: string; uid?: string; prefix?: string; root?: boolean }) {
-  return request<FileResponse>("/api/file", { method: "POST", body: JSON.stringify(body) });
+  return local() ? browserCreate(body) : request<FileResponse>("/api/file", { method: "POST", body: JSON.stringify(body) });
 }
 
 export function deleteDoc(path: string, force: boolean) {
+  if (local()) return browserDelete(path, force);
   const query = new URLSearchParams({ path });
   if (force) query.set("force", "1");
   return request<{ ok: boolean }>(`/api/file?${query}`, { method: "DELETE" });

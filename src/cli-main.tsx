@@ -19,9 +19,11 @@ function CliApp() {
       file={location.file}
       uid={location.uid}
       onSelect={(file, uid) => {
-        const next = new URLSearchParams();
+        const next = new URLSearchParams(window.location.search);
         if (file) next.set("file", file);
+        else next.delete("file");
         if (uid) next.set("uid", uid);
+        else next.delete("uid");
         const query = next.toString();
         window.history.replaceState(null, "", query ? `/?${query}` : "/");
         setLocation({ file, uid });
