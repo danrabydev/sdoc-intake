@@ -83,7 +83,7 @@ export function looksLikePreviewProcess(cmdline) {
   // The sandbox service runs scripts/preview-thumbnail.mjs in this box, and
   // this script can be running concurrently: neither is ever a target.
   if (/\bpreview[\w-]*\.mjs\b/.test(argv)) return false;
-  // The `npm run preview` wrapper (`npm-cli.js run preview`) and its vite child.
+  // The `pnpm run preview` wrapper and its vite child.
   // `preview` must be the whole script name: `run preview:stop`/`preview:restart`
   // are this tooling's own wrappers, and `vite build --outDir preview-dist` is
   // not a server.
@@ -177,7 +177,7 @@ function pgidOf(pid) {
 
 function killPid(pid, signal) {
   // restart() detaches the server into its own process group, so signal the
-  // group to reach `vite` under the `npm` wrapper. Only for a leader: `-pid` on
+  // group to reach `vite` under the `pnpm` wrapper. Only for a leader: `-pid` on
   // a pid that leads no group still reaches any unrelated group numbered pid.
   if (pgidOf(pid) === pid) {
     try {
@@ -297,7 +297,7 @@ async function restart() {
 
   mkdirSync(dirname(LOG_FILE), { recursive: true });
   const log = openSync(LOG_FILE, "a");
-  const child = spawn("npm", ["run", "preview"], {
+  const child = spawn("pnpm", ["run", "preview"], {
     cwd: ROOT,
     detached: true,
     stdio: ["ignore", log, log],
@@ -307,10 +307,10 @@ async function restart() {
 
   let failure = null;
   child.on("error", (err) => {
-    failure = `npm run preview could not be spawned: ${err.message}`;
+    failure = `pnpm run preview could not be spawned: ${err.message}`;
   });
   child.on("exit", (code, signal) => {
-    failure = `npm run preview exited early (${signal ?? `code ${code}`})`;
+    failure = `pnpm run preview exited early (${signal ?? `code ${code}`})`;
   });
 
   if (!(await waitForReady(() => failure))) {

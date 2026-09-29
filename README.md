@@ -7,8 +7,8 @@ Documents stay as files under `SDOC_ROOT` (default `./data`). There is no databa
 ## Run
 
 ```sh
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Optional environment (see `.env.example`):
