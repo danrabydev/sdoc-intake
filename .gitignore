@@ -1,0 +1,21 @@
+node_modules
+dist
+.output
+.vercel
+.tanstack
+coverage
+*.log
+.DS_Store
+
+# Local env. The example file is safe to publish.
+.env
+.env.*
+!.env.example
+
+# Local preview state. Auth-off flag is not a secret and is required to match dev.
+.grok/*
+!.grok/app-env.json
+
+# Local QA shots and research dumps (includes a StrictDoc grammar excerpt).
+screenshots
+artifacts

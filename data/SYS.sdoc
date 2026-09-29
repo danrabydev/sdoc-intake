@@ -1,0 +1,43 @@
+[DOCUMENT]
+TITLE: System Requirements
+UID: DOC-SYS
+VERSION: 0.1.0
+DATE: 2026-09-29
+CLASSIFICATION: Internal
+PREFIX: SYS-
+ROOT: True
+
+[[SECTION]]
+TITLE: Occupant protection
+UID: SYS-SEC-1
+
+[TEXT]
+STATEMENT: >>>
+System requirements for restraint and cabin isolation.
+<<<
+
+[REQUIREMENT]
+UID: SYS-010
+TITLE: Occupant restraint
+STATEMENT: >>>
+The vehicle shall restrain occupants during a frontal impact.
+<<<
+STATUS: Active
+
+[REQUIREMENT]
+UID: SYS-020
+TITLE: Child seat interface
+STATEMENT: >>>
+The vehicle shall provide LATCH anchors for child restraints.
+<<<
+STATUS: Active
+
+[[/SECTION]]
+
+[REQUIREMENT]
+UID: SYS-030
+TITLE: Cabin isolation
+STATEMENT: >>>
+The cargo area shall isolate an unrestrained large dog from the passenger cabin.
+<<<
+STATUS: Draft

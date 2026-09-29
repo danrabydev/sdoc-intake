@@ -1,0 +1,44 @@
+[DOCUMENT]
+TITLE: Capabilities
+UID: DOC-CAP
+VERSION: 0.1.0
+DATE: 2026-09-29
+CLASSIFICATION: Internal
+PREFIX: CAP-
+ROOT: False
+
+[REQUIREMENT]
+UID: CAP-010
+TITLE: Frontal restraint system
+STATEMENT: >>>
+Provide seat belts and pretensioners for the occupant restraint requirement.
+<<<
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: SYS-010
+
+[REQUIREMENT]
+UID: CAP-020
+TITLE: LATCH anchors
+STATEMENT: >>>
+Install lower anchors and tether points at each outboard rear seat.
+<<<
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Satisfies
+  VALUE: SYS-020
+
+[REQUIREMENT]
+UID: CAP-030
+TITLE: Cargo barrier
+STATEMENT: >>>
+Fit a barrier that keeps a large dog out of the seating rows.
+<<<
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Uses
+  VALUE: SYS-030
