@@ -123,13 +123,16 @@ export function Tree({
             <Folder className="size-4 shrink-0 text-accent" aria-hidden="true" />
             <span className="truncate text-sm">{node.name}</span>
           </button>
-          <div className="flex shrink-0 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100">
+          <div className="flex shrink-0 gap-1">
             <button
               type="button"
               aria-label={`New file in ${node.name}`}
               title="New file"
-              onClick={() => onCreateFile(node.path)}
-              className="inline-flex size-11 items-center justify-center text-muted"
+              onClick={(event) => {
+                event.stopPropagation();
+                onCreateFile(node.path);
+              }}
+              className="inline-flex size-11 items-center justify-center rounded-md border border-line bg-surface-2 text-fg"
             >
               <FilePlus className="size-4" aria-hidden="true" />
             </button>
@@ -137,8 +140,11 @@ export function Tree({
               type="button"
               aria-label={`New folder in ${node.name}`}
               title="New folder"
-              onClick={() => startFolder(node.path)}
-              className="inline-flex size-11 items-center justify-center text-muted"
+              onClick={(event) => {
+                event.stopPropagation();
+                startFolder(node.path);
+              }}
+              className="inline-flex size-11 items-center justify-center rounded-md border border-line bg-surface-2 text-fg"
             >
               <FolderPlus className="size-4" aria-hidden="true" />
             </button>
