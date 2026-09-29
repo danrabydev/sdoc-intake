@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FileResponse, IndexNode, TreeFile } from "@/lib/sdoc/api-types";
 import { openBrowserFolder, restoreBrowserFolder, subscribeBrowser } from "@/lib/sdoc/browser-fs";
-import { ApiError, createDoc, deleteDoc, getFile, getIndex, getTree, probeServer, putFile } from "@/lib/sdoc/client";
+import { ApiError, createDir, createDoc, deleteDoc, getFile, getIndex, getTree, probeServer, putFile } from "@/lib/sdoc/client";
 import { explicitMode, FS_MODE_KEY, setActiveMode, type FsMode } from "@/lib/sdoc/fs-mode";
 import { buildGraph } from "@/lib/sdoc/graph";
 import { collectUids, fieldOf, flatten, mapAt, nextUid, nodeUid, placeNode, removeUid, requirementNode, sectionNode, sectionUidPrefix, usesLegacySections, withField, withRelations } from "@/lib/sdoc/model";
@@ -103,12 +103,13 @@ export function IntakeApp({
   uid,
   onSelect,
 }: {
-  initial: { root: string; files: TreeFile[]; nodes: IndexNode[]; file: FileResponse | null };
+  initial: { root: string; files: TreeFile[]; dirs?: string[]; nodes: IndexNode[]; file: FileResponse | null };
   file: string;
   uid: string;
   onSelect: (file: string, uid: string) => void;
 }) {
   const [files, setFiles] = useState<TreeFile[]>(initial.files);
+  const [dirs, setDirs] = useState<string[]>(initial.dirs ?? []);
   const [root, setRoot] = useState(initial.root);
   const [index, setIndex] = useState<IndexNode[]>(initial.nodes);
   const [editor, setEditor] = useState<Editor | null>(initial.file ? editorFromView(initial.file) : null);
@@ -138,6 +139,7 @@ export function IntakeApp({
     const [tree, listed] = await Promise.all([getTree(), getIndex()]);
     setRoot(tree.root);
     setFiles(tree.files);
+    setDirs(tree.dirs ?? []);
     setIndex(listed.nodes);
     return tree.files;
   }
@@ -534,6 +536,7 @@ export function IntakeApp({
           <Tree
             root={root}
             files={files}
+            dirs={dirs}
             active={editor?.path ?? ""}
             onOpen={(path) => {
               void openPath(path)
@@ -542,9 +545,14 @@ export function IntakeApp({
                   setLoadError(err instanceof Error ? err.message : "Could not open the file.");
                 });
             }}
-            onCreate={() => {
+            onCreateFile={(folder) => {
               setDraftError("");
+              setDraft({ path: folder ? `${folder}/` : "", title: "", uid: "", prefix: "", root: false });
               setCreating(true);
+            }}
+            onCreateFolder={async (path) => {
+              await createDir(path);
+              await refreshLists();
             }}
             onDelete={(path) => {
               void removeFile(path);

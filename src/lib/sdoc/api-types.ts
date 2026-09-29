@@ -26,6 +26,7 @@ export interface TreeFile {
 export interface TreeResponse {
   root: string;
   files: TreeFile[];
+  dirs: string[];
 }
 
 export interface IndexResponse {

@@ -85,7 +85,12 @@ async function ensureRoot(): Promise<void> {
   await mkdir(sdocRoot(), { recursive: true });
 }
 
-async function walk(dir: string, root: string, out: { rel: string; abs: string }[]): Promise<void> {
+async function walk(
+  dir: string,
+  root: string,
+  out: { rel: string; abs: string }[],
+  dirs?: string[],
+): Promise<void> {
   let entries;
   try {
     entries = await readdir(dir, { withFileTypes: true });
@@ -96,7 +101,8 @@ async function walk(dir: string, root: string, out: { rel: string; abs: string }
     if (entry.name.startsWith(".") || SKIP_DIR.has(entry.name)) continue;
     const abs = join(dir, entry.name);
     if (entry.isDirectory()) {
-      await walk(abs, root, out);
+      dirs?.push(relative(root, abs).split(sep).join("/"));
+      await walk(abs, root, out, dirs);
       continue;
     }
     if (!entry.isFile() || !entry.name.endsWith(".sdoc") || entry.name.includes(".tmp-")) continue;
@@ -196,15 +202,46 @@ function toFileResponse(rel: string, text: string, all: CorpusFile[], mode: "rea
   };
 }
 
+export function resolveDir(input: string): { rel: string; abs: string } {
+  const cleaned = input.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+  const parts = cleaned.split("/");
+  if (
+    !cleaned ||
+    parts.some((part) => !part || part === "." || part === ".." || part.startsWith(".") || SKIP_DIR.has(part))
+  ) {
+    throw new SdocError(400, "Folder must stay inside the data root.");
+  }
+  if (cleaned.endsWith(".sdoc") || !/^[A-Za-z0-9._/-]+$/.test(cleaned)) {
+    throw new SdocError(400, "Folder name contains unsupported characters.");
+  }
+  const root = sdocRoot();
+  const abs = resolve(root, cleaned);
+  const back = relative(root, abs);
+  if (back.startsWith("..") || isAbsolute(back)) throw new SdocError(400, "Path escapes the data root.");
+  return { rel: cleaned, abs };
+}
+
+export async function createDir(input: string): Promise<{ ok: boolean; path: string }> {
+  const { rel, abs } = resolveDir(input);
+  await mkdir(abs, { recursive: true });
+  return { ok: true, path: rel };
+}
+
 export async function health(): Promise<{ ok: boolean; root: string; fileCount: number }> {
   const all = await corpus();
   return { ok: true, root: displayRoot(), fileCount: all.length };
 }
 
 export async function buildTree(): Promise<TreeResponse> {
+  await ensureRoot();
+  const rootPath = sdocRoot();
+  const found: { rel: string; abs: string }[] = [];
+  const dirs: string[] = [];
+  await walk(rootPath, rootPath, found, dirs);
   const all = await corpus();
   return {
     root: displayRoot(),
+    dirs: dirs.sort((a, b) => a.localeCompare(b)),
     files: all.map((file) => {
       const doc = file.parsed.document;
       return {

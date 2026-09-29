@@ -3,6 +3,7 @@ import {
   addNode,
   buildIndex,
   buildTree,
+  createDir,
   createFile,
   health,
   queryGraph,
@@ -178,6 +179,10 @@ export async function dispatch(request: Request): Promise<Response> {
     if (method === "GET" && head === "events") return events(request);
     if (method === "GET" && head === "graph") {
       return json(200, await queryGraph(url.searchParams.get("from") ?? "", Number(url.searchParams.get("depth") ?? "2")));
+    }
+    if (head === "dir" && method === "POST") {
+      const body = await readJson(request);
+      return json(201, await createDir(String(body.path ?? "")));
     }
     if (head === "file") return await fileRoute(method, url, request);
     if (head === "node") return await nodeRoute(method, parts.slice(1), url, request);

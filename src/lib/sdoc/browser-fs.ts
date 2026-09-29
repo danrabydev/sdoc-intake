@@ -52,6 +52,18 @@ export function browserFolderName(): string {
   return root?.name ?? "";
 }
 
+export function assertDirRel(input: string): string {
+  const cleaned = input.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+  const parts = cleaned.split("/");
+  if (!cleaned || parts.some((part) => !part || part === "." || part === ".." || part.startsWith("."))) {
+    throw new ApiError(400, "Folder must stay inside the picked folder.");
+  }
+  if (parts.some((part) => SKIP_DIR.has(part)) || cleaned.endsWith(".sdoc") || !/^[A-Za-z0-9._/-]+$/.test(cleaned)) {
+    throw new ApiError(400, "Folder name contains unsupported characters.");
+  }
+  return cleaned;
+}
+
 export function assertSdocRel(input: string): string {
   const cleaned = input.replace(/\\/g, "/").replace(/^\/+/, "");
   if (!cleaned || cleaned.includes("..") || cleaned.includes("\0") || !cleaned.endsWith(".sdoc")) {
@@ -131,11 +143,18 @@ export async function openBrowserFolder(): Promise<boolean> {
   }
 }
 
-async function walk(dir: DirHandle, prefix: string, out: { rel: string; handle: FileHandle }[]): Promise<void> {
+async function walk(
+  dir: DirHandle,
+  prefix: string,
+  out: { rel: string; handle: FileHandle }[],
+  dirs?: string[],
+): Promise<void> {
   for await (const [name, handle] of dir.entries()) {
     if (name.startsWith(".") || SKIP_DIR.has(name)) continue;
     if (handle.kind === "directory") {
-      await walk(handle, `${prefix}${name}/`, out);
+      const rel = `${prefix}${name}`;
+      dirs?.push(rel);
+      await walk(handle, `${rel}/`, out, dirs);
       continue;
     }
     if (handle.kind === "file" && name.endsWith(".sdoc") && !name.includes(".tmp-")) {
@@ -309,10 +328,23 @@ async function commit(rel: string, text: string, flags: { strict?: boolean; forc
   return toFileResponse(rel, text, fresh, "read");
 }
 
+export async function browserCreateDir(rel: string): Promise<{ ok: boolean; path: string }> {
+  const cleaned = assertDirRel(rel);
+  let dir = requireRoot();
+  for (const part of cleaned.split("/")) {
+    dir = await dir.getDirectoryHandle(part, { create: true });
+  }
+  return { ok: true, path: cleaned };
+}
+
 export async function browserTree(): Promise<TreeResponse> {
+  const found: { rel: string; handle: FileHandle }[] = [];
+  const dirs: string[] = [];
+  await walk(requireRoot(), "", found, dirs);
   const all = await corpus();
   return {
     root: browserFolderName(),
+    dirs: dirs.sort((a, b) => a.localeCompare(b)),
     files: all.map((file) => {
       const doc = file.parsed.document;
       return {

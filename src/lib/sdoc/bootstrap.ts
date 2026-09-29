@@ -4,6 +4,7 @@ import type { FileResponse, IndexNode, TreeFile } from "./api-types.ts";
 export interface IntakeBootstrap {
   root: string;
   files: TreeFile[];
+  dirs: string[];
   nodes: IndexNode[];
   file: FileResponse | null;
 }
@@ -25,5 +26,5 @@ export const loadIntake = createServerFn({ method: "GET" })
         file = null;
       }
     }
-    return { root: tree.root, files: tree.files, nodes: index.nodes, file };
+    return { root: tree.root, files: tree.files, dirs: tree.dirs, nodes: index.nodes, file };
   });

@@ -2,6 +2,7 @@ import type { FileResponse, GraphResponse, HealthResponse, IndexResponse, NodeRe
 import { ApiError } from "./api-error.ts";
 import {
   browserCreate,
+  browserCreateDir,
   browserDelete,
   browserFile,
   browserIndex,
@@ -75,6 +76,12 @@ export function putFile(
   if (strict) query.set("strict", "1");
   if (force) query.set("force", "1");
   return request<FileResponse>(`/api/file?${query}`, { method: "PUT", body: JSON.stringify(body) });
+}
+
+export function createDir(path: string) {
+  return local()
+    ? browserCreateDir(path)
+    : request<{ ok: boolean; path: string }>("/api/dir", { method: "POST", body: JSON.stringify({ path }) });
 }
 
 export function createDoc(body: { path: string; title: string; uid?: string; prefix?: string; root?: boolean }) {
