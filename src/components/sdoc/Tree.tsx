@@ -64,6 +64,8 @@ export function Tree({
 }) {
   const tree = buildExplorer(files, dirs, root);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [hot, setHot] = useState<string | null>(null);
+  const [pinned, setPinned] = useState<string | null>(null);
   const [draftParent, setDraftParent] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
   const [draftError, setDraftError] = useState("");
@@ -107,23 +109,34 @@ export function Tree({
   function FolderRow({ node, depth }: { node: DirNode; depth: number }) {
     const open = !collapsed.has(node.path);
     const drafting = draftParent === node.path;
+    const showActions = !drafting && (hot === node.path || pinned === node.path);
     return (
       <li>
         <div
-          className="group flex min-h-11 items-center gap-1 rounded-md pr-1"
+          className="relative flex min-h-11 items-center rounded-md"
           style={{ paddingLeft: `${depth * 12 + 4}px` }}
+          onPointerEnter={() => setHot(node.path)}
+          onPointerLeave={() => setHot((current) => (current === node.path ? null : current))}
         >
           <button
             type="button"
-            onClick={() => toggle(node.path)}
-            className="inline-flex min-h-11 min-w-0 flex-1 items-center gap-1 text-left text-fg"
+            onClick={() => {
+              setPinned(node.path);
+              toggle(node.path);
+            }}
+            className="inline-flex min-h-11 min-w-0 flex-1 items-center gap-1 pr-1 text-left text-fg"
             aria-expanded={open}
           >
             <ChevronRight className={"size-4 shrink-0 text-muted " + (open ? "rotate-90" : "")} aria-hidden="true" />
             <Folder className="size-4 shrink-0 text-accent" aria-hidden="true" />
-            <span className="truncate text-sm">{node.name}</span>
+            <span className={"truncate text-sm " + (showActions ? "pr-14" : "")}>{node.name}</span>
           </button>
-          <div className="flex shrink-0 gap-1">
+          <div
+            className={
+              "absolute right-0.5 top-1/2 flex -translate-y-1/2 " +
+              (showActions ? "" : "pointer-events-none opacity-0")
+            }
+          >
             <button
               type="button"
               aria-label={`New file in ${node.name}`}
@@ -132,9 +145,9 @@ export function Tree({
                 event.stopPropagation();
                 onCreateFile(node.path);
               }}
-              className="inline-flex size-11 items-center justify-center rounded-md border border-line bg-surface-2 text-fg"
+              className="inline-flex size-7 items-center justify-center rounded text-muted hover:bg-surface-2 hover:text-fg"
             >
-              <FilePlus className="size-4" aria-hidden="true" />
+              <FilePlus className="size-3.5" aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -144,9 +157,9 @@ export function Tree({
                 event.stopPropagation();
                 startFolder(node.path);
               }}
-              className="inline-flex size-11 items-center justify-center rounded-md border border-line bg-surface-2 text-fg"
+              className="inline-flex size-7 items-center justify-center rounded text-muted hover:bg-surface-2 hover:text-fg"
             >
-              <FolderPlus className="size-4" aria-hidden="true" />
+              <FolderPlus className="size-3.5" aria-hidden="true" />
             </button>
           </div>
         </div>
