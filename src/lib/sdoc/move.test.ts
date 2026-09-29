@@ -1,6 +1,21 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { fieldOf, indentNode, moveNode, outdentNode, reorderSibling, requirementNode, sectionNode } from "./model.ts";
+import { fieldOf, indentNode, moveNode, outdentNode, reorderSibling, requirementNode, sectionNode, sectionNumbers } from "./model.ts";
+
+test("section numbers skip requirements", () => {
+  const inner = sectionNode("SEC-2", "Inner", true);
+  inner.children = [requirementNode("REQ-002", "Deep", "")];
+  const outer = sectionNode("SEC-1", "Outer", true);
+  outer.children = [requirementNode("REQ-001", "One", ""), inner];
+  const second = sectionNode("SEC-3", "Next", true);
+  const labels = sectionNumbers([outer, requirementNode("REQ-009", "Loose", ""), second]);
+  assert.equal(labels.get("0"), "1");
+  assert.equal(labels.get("0.0"), undefined);
+  assert.equal(labels.get("0.1"), "1.1");
+  assert.equal(labels.get("0.1.0"), undefined);
+  assert.equal(labels.get("1"), undefined);
+  assert.equal(labels.get("2"), "2");
+});
 
 test("a section moves to the root with its children", () => {
   const inner = sectionNode("SEC-2", "Inner", true);
