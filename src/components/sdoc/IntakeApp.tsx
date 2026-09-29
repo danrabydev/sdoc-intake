@@ -573,10 +573,23 @@ export function IntakeApp({
                   className="mt-1 min-h-11 w-full bg-transparent text-sm text-fg"
                 />
               </label>
-              <p className="pb-2 font-mono text-xs text-muted">
-                {editor.document.prefix ? `Prefix ${editor.document.prefix}` : "No prefix"}
-                {editor.document.root === false ? " · ROOT false" : editor.document.root ? " · ROOT true" : ""}
-              </p>
+              <label className="text-xs text-muted">
+                Prefix
+                <input
+                  value={editor.document.prefix ?? ""}
+                  onChange={(event) => {
+                    const prefix = event.target.value;
+                    mutate((document) => ({ ...document, prefix: prefix.length > 0 ? prefix : undefined }));
+                  }}
+                  placeholder="SYS-"
+                  className="mt-1 min-h-11 w-28 bg-transparent font-mono text-sm text-fg"
+                />
+              </label>
+              {editor.document.root === undefined ? null : (
+                <p className="pb-2 font-mono text-xs text-muted">
+                  {editor.document.root === false ? "ROOT false" : "ROOT true"}
+                </p>
+              )}
               <button
                 type="button"
                 onClick={() => setFlat((value) => !value)}
