@@ -158,6 +158,134 @@ export function removeUid(nodes: SDocNode[], uid: string): { nodes: SDocNode[]; 
   return { nodes: walk(nodes), removed };
 }
 
+function listAt(nodes: SDocNode[], path: number[]): SDocNode[] {
+  let list = nodes;
+  for (const index of path) list = list[index]?.children ?? [];
+  return list;
+}
+
+function replaceList(nodes: SDocNode[], path: number[], next: SDocNode[]): SDocNode[] {
+  if (path.length === 0) return next;
+  const [index, ...rest] = path;
+  return nodes.map((node, i) => (i === index ? { ...node, children: replaceList(node.children, rest, next) } : node));
+}
+
+function rowOf(nodes: SDocNode[], uid: string): FlatRow | undefined {
+  return flatten(nodes).find((row) => nodeUid(row.node) === uid);
+}
+
+export function takeNode(nodes: SDocNode[], uid: string): { nodes: SDocNode[]; taken: SDocNode | null } {
+  let taken: SDocNode | null = null;
+  const walk = (list: SDocNode[]): SDocNode[] => {
+    const out: SDocNode[] = [];
+    for (const node of list) {
+      if (!taken && fieldOf(node, "UID") === uid) {
+        taken = node;
+        continue;
+      }
+      out.push(taken ? node : { ...node, children: walk(node.children) });
+    }
+    return out;
+  };
+  return { nodes: walk(nodes), taken };
+}
+
+function holdsUid(node: SDocNode, uid: string): boolean {
+  return fieldOf(node, "UID") === uid || node.children.some((child) => holdsUid(child, uid));
+}
+
+export type MoveTarget = { where: "root" } | { where: "inside" | "before" | "after"; uid: string };
+
+/** Move a node. A section keeps its children. A node cannot move into itself. */
+export function moveNode(nodes: SDocNode[], uid: string, target: MoveTarget): { nodes: SDocNode[]; ok: boolean } {
+  if (!uid) return { nodes, ok: false };
+  if (target.where !== "root" && target.uid === uid) return { nodes, ok: false };
+  const { nodes: rest, taken } = takeNode(nodes, uid);
+  if (!taken) return { nodes, ok: false };
+  if (target.where !== "root" && holdsUid(taken, target.uid)) return { nodes, ok: false };
+  if (target.where === "root") return { nodes: [...rest, taken], ok: true };
+  if (target.where === "inside") {
+    let found = false;
+    const walk = (list: SDocNode[]): SDocNode[] =>
+      list.map((node) => {
+        if (!found && node.composite && fieldOf(node, "UID") === target.uid) {
+          found = true;
+          return { ...node, children: [...node.children, taken] };
+        }
+        return { ...node, children: walk(node.children) };
+      });
+    const next = walk(rest);
+    return found ? { nodes: next, ok: true } : { nodes, ok: false };
+  }
+  let found = false;
+  const walk = (list: SDocNode[]): SDocNode[] => {
+    const out: SDocNode[] = [];
+    for (const node of list) {
+      const current = { ...node, children: walk(node.children) };
+      if (!found && fieldOf(node, "UID") === target.uid) {
+        found = true;
+        if (target.where === "before") out.push(taken);
+        out.push(current);
+        if (target.where === "after") out.push(taken);
+      } else {
+        out.push(current);
+      }
+    }
+    return out;
+  };
+  const next = walk(rest);
+  return found ? { nodes: next, ok: true } : { nodes, ok: false };
+}
+
+export function reorderSibling(nodes: SDocNode[], uid: string, direction: -1 | 1): SDocNode[] {
+  const row = rowOf(nodes, uid);
+  if (!row) return nodes;
+  const parentPath = row.path.slice(0, -1);
+  const index = row.path[row.path.length - 1] ?? 0;
+  const list = listAt(nodes, parentPath);
+  const nextIndex = index + direction;
+  if (nextIndex < 0 || nextIndex >= list.length) return nodes;
+  const copy = list.slice();
+  const [item] = copy.splice(index, 1);
+  copy.splice(nextIndex, 0, item!);
+  return replaceList(nodes, parentPath, copy);
+}
+
+export function indentNode(nodes: SDocNode[], uid: string): { nodes: SDocNode[]; ok: boolean } {
+  const row = rowOf(nodes, uid);
+  if (!row) return { nodes, ok: false };
+  const index = row.path[row.path.length - 1] ?? 0;
+  if (index === 0) return { nodes, ok: false };
+  const parentPath = row.path.slice(0, -1);
+  const list = listAt(nodes, parentPath);
+  const previous = list[index - 1];
+  const item = list[index];
+  if (!previous?.composite || !item) return { nodes, ok: false };
+  const copy = list.slice();
+  copy.splice(index, 1);
+  copy[index - 1] = { ...previous, children: [...previous.children, item] };
+  return { nodes: replaceList(nodes, parentPath, copy), ok: true };
+}
+
+export function outdentNode(nodes: SDocNode[], uid: string): { nodes: SDocNode[]; ok: boolean } {
+  const row = rowOf(nodes, uid);
+  if (!row || row.path.length < 2) return { nodes, ok: false };
+  const parentPath = row.path.slice(0, -1);
+  const grandPath = row.path.slice(0, -2);
+  const parentIndex = parentPath[parentPath.length - 1] ?? 0;
+  const index = row.path[row.path.length - 1] ?? 0;
+  const containing = listAt(nodes, grandPath);
+  const parent = containing[parentIndex];
+  const item = parent?.children[index];
+  if (!parent || !item) return { nodes, ok: false };
+  const children = parent.children.slice();
+  children.splice(index, 1);
+  const copy = containing.slice();
+  copy[parentIndex] = { ...parent, children };
+  copy.splice(parentIndex + 1, 0, item);
+  return { nodes: replaceList(nodes, grandPath, copy), ok: true };
+}
+
 export function collectUids(doc: SDocDocument): string[] {
   const uids: string[] = [];
   if (doc.uid) uids.push(doc.uid);

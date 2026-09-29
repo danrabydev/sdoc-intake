@@ -10,6 +10,7 @@ import type { Relation, SDocDocument, SDocIssue, SDocNode } from "@/lib/sdoc/typ
 import { validate } from "@/lib/sdoc/validate";
 import { Graph } from "@/components/sdoc/Graph";
 import { IntakeTable } from "@/components/sdoc/IntakeTable";
+import { Outline } from "@/components/sdoc/Outline";
 import { Tree } from "@/components/sdoc/Tree";
 import { ValidationBar } from "@/components/sdoc/ValidationBar";
 
@@ -117,6 +118,7 @@ export function IntakeApp({
   const [strict, setStrict] = useState(false);
   const [flat, setFlat] = useState(false);
   const [pane, setPane] = useState<"files" | "intake" | "trace">("intake");
+  const [drawer, setDrawer] = useState<"trace" | "outline">("outline");
   const [depth, setDepth] = useState(2);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
@@ -393,6 +395,16 @@ export function IntakeApp({
       ...document,
       nodes: placeNode(document.nodes, anchor, node, where),
     }));
+    setSelected(id);
+    onSelect(editor.path, id);
+  }
+
+  function addRootSection() {
+    if (!editor?.document) return;
+    const uids = [...editor.siblingUids, ...collectUids(editor.document)];
+    const id = nextUid(sectionUidPrefix(editor.document.prefix), uids);
+    const node = sectionNode(id, "New section", usesLegacySections(editor.document.nodes));
+    mutate((document) => ({ ...document, nodes: [...document.nodes, node] }));
     setSelected(id);
     onSelect(editor.path, id);
   }
@@ -687,17 +699,54 @@ export function IntakeApp({
           )}
         </section>
         <aside className={paneClass("trace", "border-line lg:border-l")}>
-          <Graph
-            graph={graph}
-            focus={selected}
-            depth={depth}
-            onDepth={setDepth}
-            onPick={(next) => {
-              const node = catalog.find((item) => item.uid === next && item.tag !== "DOCUMENT");
-              chooseUid(next, node?.file);
-              setPane("intake");
-            }}
-          />
+          <div className="flex border-b border-line">
+            {(
+              [
+                ["outline", "Outline"],
+                ["trace", "Trace"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setDrawer(id)}
+                className={
+                  "min-h-11 flex-1 text-xs " + (drawer === id ? "border-b-2 border-accent text-fg" : "text-muted")
+                }
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {drawer === "outline" && editor?.document && !editor.parseFailed ? (
+            <div className="min-h-0 flex-1">
+              <Outline
+                document={editor.document}
+                selected={selected}
+                onSelect={(uid) => chooseUid(uid)}
+                onChange={(nodes) => mutate((document) => ({ ...document, nodes }))}
+                onAddRootSection={addRootSection}
+              />
+            </div>
+          ) : null}
+          {drawer === "outline" && (!editor?.document || editor.parseFailed) ? (
+            <p className="px-3 py-6 text-sm text-muted">Open a document to change its outline.</p>
+          ) : null}
+          {drawer === "trace" ? (
+            <div className="min-h-0 flex-1">
+              <Graph
+                graph={graph}
+                focus={selected}
+                depth={depth}
+                onDepth={setDepth}
+                onPick={(next) => {
+                  const node = catalog.find((item) => item.uid === next && item.tag !== "DOCUMENT");
+                  chooseUid(next, node?.file);
+                  setPane("intake");
+                }}
+              />
+            </div>
+          ) : null}
         </aside>
       </div>
       <ValidationBar
