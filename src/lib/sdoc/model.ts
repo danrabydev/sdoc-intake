@@ -286,21 +286,15 @@ export function outdentNode(nodes: SDocNode[], uid: string): { nodes: SDocNode[]
   return { nodes: replaceList(nodes, grandPath, copy), ok: true };
 }
 
-/** Outline numbers for sections only: 1, 1.1, 1.1.1. Other nodes do not increment. */
-export function sectionNumbers(nodes: SDocNode[]): Map<string, string> {
+/** Outline numbers for every node: 1, 1.1, 1.1.1. Nesting follows the tree, which sections create. */
+export function outlineNumbers(nodes: SDocNode[]): Map<string, string> {
   const labels = new Map<string, string>();
   const walk = (list: SDocNode[], prefix: number[], path: number[]) => {
-    let count = 0;
     list.forEach((node, index) => {
+      const nums = [...prefix, index + 1];
       const here = [...path, index];
-      if (node.tag === "SECTION") {
-        count += 1;
-        const nums = [...prefix, count];
-        labels.set(here.join("."), nums.join("."));
-        walk(node.children, nums, here);
-      } else {
-        walk(node.children, prefix, here);
-      }
+      labels.set(here.join("."), nums.join("."));
+      walk(node.children, nums, here);
     });
   };
   walk(nodes, [], []);

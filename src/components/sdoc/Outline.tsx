@@ -1,4 +1,4 @@
-import { fieldOf, flatten, indentNode, moveNode, nodeUid, outdentNode, reorderSibling, sectionNumbers } from "@/lib/sdoc/model";
+import { fieldOf, flatten, indentNode, moveNode, nodeUid, outdentNode, outlineNumbers, reorderSibling } from "@/lib/sdoc/model";
 import type { SDocDocument, SDocNode } from "@/lib/sdoc/types";
 
 export function Outline({
@@ -15,7 +15,7 @@ export function Outline({
   onAddRootSection: () => void;
 }) {
   const rows = flatten(document.nodes);
-  const numbers = sectionNumbers(document.nodes);
+  const numbers = outlineNumbers(document.nodes);
   const row = rows.find((item) => nodeUid(item.node) === selected);
   const index = row ? row.path[row.path.length - 1] ?? 0 : -1;
   const parentPath = row ? row.path.slice(0, -1) : [];
@@ -63,8 +63,8 @@ export function Outline({
                 }
                 style={{ paddingLeft: `${item.depth * 12 + 8}px` }}
               >
-                <span className="w-12 shrink-0 font-mono text-[10px] tabular-nums text-accent">
-                  {number ?? item.node.tag.slice(0, 3)}
+                <span className="w-14 shrink-0 font-mono text-[10px] tabular-nums text-accent">
+                  {number ?? ""}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-xs text-fg">{title}</span>
                 <span className="shrink-0 font-mono text-[10px] text-muted">{uid}</span>
