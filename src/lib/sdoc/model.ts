@@ -129,17 +129,18 @@ export function prefixChainFor(doc: SDocDocument, anchorUid: string | undefined,
   return nodePrefixChain(doc, path.length === 0 ? [0] : path);
 }
 
-/** Requirements whose UID is not document-prefix plus ancestor section prefixes plus their serial. */
+/** A requirement is off when its UID does not start with the prefix chain. The suggested id keeps the number, without leading zeros. */
 export function prefixExpectations(doc: SDocDocument): Map<string, string> {
   const expected = new Map<string, string>();
   for (const row of flatten(doc.nodes)) {
     if (row.node.tag === "SECTION") continue;
     const uid = nodeUid(row.node);
-    const serial = uid ? serialOf(uid) : null;
-    if (!uid || !serial) continue;
+    if (!uid) continue;
     const chain = nodePrefixChain(doc, row.path);
-    if (!chain) continue;
-    const next = chain + serial;
+    if (!chain || uid.startsWith(chain)) continue;
+    const raw = serialOf(uid);
+    const serial = raw !== null ? String(Number(raw)) : "";
+    const next = serial ? chain + serial : chain.slice(0, -1);
     if (next !== uid) expected.set(uid, next);
   }
   return expected;
@@ -180,10 +181,9 @@ export function prefixRenames(
       const serial = serialOf(wanted) ?? "1";
       const chain = wanted.slice(0, wanted.length - serial.length);
       let n = Number(serial);
-      const width = serial.length;
       do {
         n += 1;
-        assigned = chain + String(n).padStart(width, "0");
+        assigned = chain + String(n);
       } while (taken.has(assigned) || [...renames.values()].includes(assigned));
     }
     taken.add(assigned);
@@ -428,14 +428,12 @@ export function nextUid(prefix: string, uids: Iterable<string>): string {
   const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const re = new RegExp(`^${escaped}(\\d+)$`);
   let max = 0;
-  let width = 3;
   for (const uid of uids) {
     const match = re.exec(uid);
     if (!match?.[1]) continue;
-    width = Math.max(width, match[1].length);
     max = Math.max(max, Number(match[1]));
   }
-  return base + String(max + 1).padStart(width, "0");
+  return base + String(max + 1);
 }
 
 export function requirementNode(uid: string, title = "", statement = ""): SDocNode {

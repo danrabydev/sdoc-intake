@@ -5,6 +5,7 @@ import {
   fieldOf,
   indentNode,
   moveNode,
+  nextUid,
   outdentNode,
   outlineNumbers,
   prefixExpectations,
@@ -21,7 +22,8 @@ test("section prefix marks a requirement and a click-rename keeps the serial", (
   const section = withField(sectionNode("SYS-SEC-1", "Occupant", true), "PREFIX", "PROT");
   section.children = [
     requirementNode("SYS-010", "Belt", ""),
-    requirementNode("SYS-PROT-010", "Same tail", ""),
+    requirementNode("SYS-PROT-10", "Same tail", ""),
+    requirementNode("SYS-PROT-10-2", "Longer", ""),
   ];
   const doc: SDocDocument = {
     title: "Sys",
@@ -30,14 +32,20 @@ test("section prefix marks a requirement and a click-rename keeps the serial", (
     nodes: [section, requirementNode("SYS-020", "Root", "")],
   };
   const issues = prefixExpectations(doc);
-  assert.equal(issues.get("SYS-010"), "SYS-PROT-010");
+  assert.equal(issues.get("SYS-010"), "SYS-PROT-10");
   assert.equal(issues.has("SYS-SEC-1"), false);
   assert.equal(issues.has("SYS-020"), false);
+  assert.equal(issues.has("SYS-PROT-10-2"), false);
   const renames = prefixRenames(doc, []);
-  assert.equal(renames.get("SYS-010"), "SYS-PROT-011");
+  assert.equal(renames.get("SYS-010"), "SYS-PROT-11");
   assert.equal(renames.has("SYS-020"), false);
   const next = applyUidRenames(doc.nodes, renames);
-  assert.equal(fieldOf(next[0]!.children[0]!, "UID"), "SYS-PROT-011");
+  assert.equal(fieldOf(next[0]!.children[0]!, "UID"), "SYS-PROT-11");
+});
+
+test("new ids do not pad zeros", () => {
+  assert.equal(nextUid("SYS-", ["SYS-001", "SYS-9"]), "SYS-10");
+  assert.equal(nextUid("REQ-", []), "REQ-1");
 });
 
 test("every outline item is numbered, and a section opens the next level", () => {
