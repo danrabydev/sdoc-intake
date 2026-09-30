@@ -25,7 +25,7 @@
 import { APP_ENV_ROUTE } from "./app-env-plugin.mjs";
 import { isMainModule, mergeAppEnv, projectRoot, readAppEnv } from "./with-app-env.mjs";
 
-const DEFAULT_DEV_URL = "http://127.0.0.1:8080";
+const DEFAULT_DEV_URL = "http://127.0.0.1:8087";
 
 /** True unless VITE_AUTH_ENABLED is the string "false". This app keeps that flag off. */
 export function authEnabledFromEnvValue(value) {

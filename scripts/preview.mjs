@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Owns :8081, the built-output QA preview.
+ * Owns :8087, the built-output QA preview.
  *
  * `vite preview` is strictPort, so a preview left over from an earlier turn
  * both fails the next start and keeps serving the previous build's output.
@@ -23,7 +23,7 @@ import {
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-const PREVIEW_PORT = 8081;
+const PREVIEW_PORT = 8087;
 const PREVIEW_URL = `http://127.0.0.1:${PREVIEW_PORT}/`;
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");

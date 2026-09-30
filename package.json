@@ -24,7 +24,7 @@
     }
   },
   "scripts": {
-    "dev": "node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 8080",
+    "dev": "node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 8087",
     "build": "node scripts/with-app-env.mjs vite build",
     "build:cli": "node scripts/with-app-env.mjs vite build --config vite.cli.config.ts && node scripts/inline-html.mjs && node scripts/with-app-env.mjs vite build --config vite.cli-server.config.ts && node scripts/stage-npm.mjs",
     "publish:cli": "pnpm build:cli && pnpm publish --access public --no-git-checks ./release",

@@ -43,10 +43,10 @@ at `/workspace`. The user is in the Grok chat UI and can **only** chat and watch
 a **live preview** — no shell, no terminal, no `/workspace` — and you never see
 their machine.
 
-- A preview proxy auto-discovers whatever you serve on **`0.0.0.0:8080`** and
+- A preview proxy auto-discovers whatever you serve on **`0.0.0.0:8087`** and
   streams it into the live preview, which updates as you edit and save. It is
   the user's **entire** view of your work: success = app **running on
-  `0.0.0.0:8080`**, **verified by you**, dev server **left up**.
+  `0.0.0.0:8087`**, **verified by you**, dev server **left up**.
 - Never treat the user as a local developer with Docker, ports or a terminal
   (§ "Communication rules"), and **speak in product terms** — ports, paths,
   `localhost`, "container", tool names and `curl` are noise to them.
@@ -110,7 +110,7 @@ it with the same priority as this file.
 ### Where you are
 
 - **`/workspace`** is the project root; Linux container, **Node 22**.
-- The app **must listen on `0.0.0.0:8080`** — the preview proxy prefers a server
+- The app **must listen on `0.0.0.0:8087`** — the preview proxy prefers a server
   bound on all interfaces. Don't bind loopback-only; don't pick another port.
 - The sandbox may be stopped or replaced; **`/workspace/startup.sh`** is the
   restart contract you own.
@@ -128,10 +128,10 @@ back the dev server and anything else the preview needs. **Rules
    you first bring the preview up; don't claim the app runs without it.
 3. **Keep it in sync:** start command, port, env or workers change → update it
    the same turn.
-4. **Idempotent and non-blocking:** probe `http://127.0.0.1:8080/`, exit 0 if
+4. **Idempotent and non-blocking:** probe `http://127.0.0.1:8087/`, exit 0 if
    healthy, start only what is down, and background it so the script returns
    fast.
-5. **Bind the preview** on **`0.0.0.0:8080`**, and keep **no secrets** that
+5. **Bind the preview** on **`0.0.0.0:8087`**, and keep **no secrets** that
    shouldn't live in the workspace snapshot.
 6. **Start the app with `npm run dev` — never `vite` / `npx vite` directly**,
    here or during a turn. Only the npm scripts run Vite through
@@ -296,11 +296,11 @@ changes. Revive, reboot-wipe and the `startup.sh` worked example:
 8. **Verify the PRODUCTION build, not just dev.** Dev (Vite) can render while
    the deployed Vercel build is blank. Once `npm run build` (step 5) succeeds,
    serve the built output with `npm run preview:restart` (loopback
-   `127.0.0.1:8081`) and re-run the smoke script with the dev verdict as
+   `127.0.0.1:8087`) and re-run the smoke script with the dev verdict as
    `--baseline`. Watch for
    `Failed to load module script … MIME type "text/html"`.
    **If you edited source after kicking off the build, re-run `npm run build`
-   first, then `npm run preview:restart`** — it frees `:8081` first, so you
+   first, then `npm run preview:restart`** — it frees `:8087` first, so you
    never smoke the previous build's output. A clean, non-diverging JSON is
    enough. Mobile (~390×844) is already covered by the combined smoke pass.
 9. Give a brief, **user-facing** summary — what you built and what to try in the
@@ -310,7 +310,7 @@ changes. Revive, reboot-wipe and the `startup.sh` worked example:
 ### Browser QA (the user is not your QA)
 
 You drive the browser yourself, in the sandbox, against
-`http://127.0.0.1:8080`. **Always write QA screenshots under
+`http://127.0.0.1:8087`. **Always write QA screenshots under
 `/workspace/screenshots/`, never `/tmp`**. Interactive checks: step 7.
 
 ### Communication rules (avoid confusing the user)
