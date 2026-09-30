@@ -24,11 +24,20 @@ function fileTitle(file: string, nodes: IndexNode[]): string {
   return title || base || file;
 }
 
-/** One flowchart of every document. Sections and requirements sit in a file group. */
+/** One flowchart of linked nodes. A node with no Parent or Child link is left out. */
 export function flowSource(nodes: IndexNode[], focus: string): { source: string; hits: Map<string, FlowHit> } {
   const hits = new Map<string, FlowHit>();
-  const shown = nodes.filter((node) => node.uid && SHOWN.has(node.tag));
-  const files = [...new Set(nodes.map((node) => node.file).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const candidates = nodes.filter((node) => node.uid && SHOWN.has(node.tag));
+  const linked = new Set<string>();
+  for (const node of candidates) {
+    for (const relation of node.relations) {
+      if (relation.type === "File" || !relation.value) continue;
+      linked.add(node.uid);
+      linked.add(relation.value);
+    }
+  }
+  const shown = candidates.filter((node) => linked.has(node.uid));
+  const files = [...new Set(shown.map((node) => node.file).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   if (files.length === 0) return { source: "", hits };
 
   const idOf = new Map<string, string>();
@@ -43,11 +52,6 @@ export function flowSource(nodes: IndexNode[], focus: string): { source: string;
         if (a.tag !== b.tag) return a.tag === "SECTION" ? -1 : 1;
         return a.uid.localeCompare(b.uid);
       });
-    if (members.length === 0) {
-      const emptyId = `empty_${group}`;
-      lines.push(`    ${emptyId}["No sections or requirements"]`);
-      lines.push(`    class ${emptyId} quiet`);
-    }
     for (const node of members) {
       const id = `n_${slug(file)}_${slug(node.uid)}`;
       idOf.set(`${file}\n${node.uid}`, id);

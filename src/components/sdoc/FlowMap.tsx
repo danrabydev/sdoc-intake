@@ -84,7 +84,7 @@ export function FlowMap({
         <p className="text-xs text-muted">
           {documents === 0
             ? "No documents."
-            : `${documents} documents. Sections and requirements. Arrows are Parent links.`}
+            : "Nodes with a Parent or Child link. Arrows are Parent links."}
         </p>
       </div>
       <div className="min-h-0 flex-1 overflow-auto p-4">
