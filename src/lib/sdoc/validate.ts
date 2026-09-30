@@ -12,6 +12,17 @@ import type {
 } from "./types.ts";
 
 const UID_RE = /^[A-Za-z0-9._-]+$/;
+const LIST_ITEM = /^( *)(?:[-*+]|\d{1,3}[.)]|\([A-Za-z0-9]+\)|[A-Za-z][.)])\s+\S/;
+
+/** First content line, relative to the field, whose list item is not preceded by a blank line. */
+export function tightListOffset(value: string): number | null {
+  const lines = value.split("\n");
+  for (let index = 0; index < lines.length; index += 1) {
+    if (!LIST_ITEM.test(lines[index] ?? "")) continue;
+    if (index > 0 && (lines[index - 1] ?? "").trim() !== "") return index;
+  }
+  return null;
+}
 
 export function validate(text: string, options: ValidateOptions = {}): ValidateResult {
   const parsed = parse(text);
@@ -188,6 +199,20 @@ function checkNode(
         severity: "error",
         uid: uid || undefined,
       });
+    }
+    if (field.multiline) {
+      const tight = tightListOffset(field.value);
+      if (tight !== null) {
+        errors.push({
+          line: field.line + 1 + tight,
+          col: 1,
+          path: `${path}.${field.name}`,
+          message: "Lists in a literal block must be double spaced.",
+          severity: "error",
+          code: "list-spacing",
+          uid: uid || undefined,
+        });
+      }
     }
     if (spec?.type === "Integer" && !/^-?\d+$/.test(field.value)) {
       errors.push({

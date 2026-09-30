@@ -263,6 +263,27 @@ RELATIONS:
   }
 });
 
+test("lists in a literal block must be double spaced", () => {
+  const tight = `[DOCUMENT]
+TITLE: Lists
+
+[REQUIREMENT]
+UID: REQ-1
+TITLE: Tight
+STATEMENT: >>>
+- one
+- two
+<<<
+`;
+  const blocked = validate(tight, { mode: "write", indexComplete: true });
+  assert.equal(blocked.ok, false);
+  assert.ok(blocked.errors.some((issue) => issue.code === "list-spacing"));
+
+  const spaced = tight.replace("- one\n- two", "- one\n\n- two");
+  const allowed = validate(spaced, { mode: "write", indexComplete: true });
+  assert.equal(allowed.ok, true, JSON.stringify(allowed.errors));
+});
+
 after(() => {
   delete process.env.SDOC_ROOT;
 });
