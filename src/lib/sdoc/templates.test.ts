@@ -23,3 +23,24 @@ test("the ASD STIG V6R4 template parses as 286 rules", () => {
   }
   assert.deepEqual(severity, { High: 34, Medium: 230, Low: 22 });
 });
+
+test("the NIST 800-53 template parses the Rev 5 catalog", () => {
+  const text = readFileSync(new URL("../../../templates/nist/sp-800-53-rev5.sdoc", import.meta.url), "utf8");
+  const parsed = parse(text);
+  assert.equal(parsed.errors.length, 0, JSON.stringify(parsed.errors.slice(0, 5)));
+  assert.ok(parsed.document);
+  const rows = flatten(parsed.document.nodes);
+  const rules = rows.filter((row) => row.node.tag === "REQUIREMENT");
+  const families = rows.filter((row) => row.node.tag === "SECTION");
+  assert.equal(families.length, 20);
+  assert.equal(rules.length, 1196);
+  const ac1 = rules.find((row) => nodeUid(row.node) === "AC-1");
+  assert.ok(ac1);
+  assert.match(fieldOf(ac1.node, "STATEMENT"), /Develop, document, and disseminate/);
+  assert.equal(fieldOf(ac1.node, "BASELINE"), "Low");
+  const enhancement = rules.find((row) => nodeUid(row.node) === "AC-2.1");
+  assert.ok(enhancement);
+  assert.match(fieldOf(enhancement.node, "TITLE"), /AC-2\(1\)/);
+  const withdrawn = rules.filter((row) => fieldOf(row.node, "COMMENT").startsWith("Withdrawn"));
+  assert.equal(withdrawn.length, 182);
+});
