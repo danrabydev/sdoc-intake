@@ -8,6 +8,7 @@ import { applyUidRenames, collectUids, fieldOf, flatten, mapAt, nextUid, nodeUid
 import { textForWrite } from "@/lib/sdoc/serialize";
 import type { Relation, SDocDocument, SDocIssue, SDocNode } from "@/lib/sdoc/types";
 import { validate } from "@/lib/sdoc/validate";
+import { FlowMap } from "@/components/sdoc/FlowMap";
 import { Graph } from "@/components/sdoc/Graph";
 import { IntakeTable } from "@/components/sdoc/IntakeTable";
 import { Outline } from "@/components/sdoc/Outline";
@@ -116,7 +117,7 @@ export function IntakeApp({
   const [editor, setEditor] = useState<Editor | null>(initial.file ? editorFromView(initial.file) : null);
   const [selected, setSelected] = useState(uid || firstRequirement(initial.file?.document ?? null));
   const [strict, setStrict] = useState(false);
-  const [flat, setFlat] = useState(false);
+  const [center, setCenter] = useState<"table" | "nodes" | "flow">("table");
   const [pane, setPane] = useState<"files" | "intake" | "trace">("intake");
   const [drawer, setDrawer] = useState<"trace" | "outline">("outline");
   const [depth, setDepth] = useState(2);
@@ -146,7 +147,7 @@ export function IntakeApp({
     return tree.files;
   }
 
-  async function openPath(path: string, nextUid = "", options?: { discard?: boolean }) {
+  async function openPath(path: string, nextUid = "", options?: { discard?: boolean; keepView?: boolean }) {
     const current = editorRef.current;
     if (current?.dirty && current.path !== path && !options?.discard) {
       if (!window.confirm("Discard unsaved edits?")) return;
@@ -156,7 +157,7 @@ export function IntakeApp({
     setSelected(nextUid);
     setForceNext(false);
     setServerIssues(null);
-    setFlat(false);
+    if (!options?.keepView) setCenter("table");
     setNotice("");
     onSelect(path, nextUid);
   }
@@ -365,7 +366,7 @@ export function IntakeApp({
 
   function chooseUid(next: string, path?: string) {
     if (path && editor && path !== editor.path) {
-      void openPath(path, next, { discard: false }).then(() => setPane("intake"));
+      void openPath(path, next, { discard: false, keepView: center === "flow" }).then(() => setPane("intake"));
       return;
     }
     setSelected(next);
@@ -678,16 +679,38 @@ export function IntakeApp({
                   {editor.document.root === false ? "ROOT false" : "ROOT true"}
                 </p>
               )}
-              <button
-                type="button"
-                onClick={() => setFlat((value) => !value)}
-                className="min-h-11 rounded-md border border-line px-2 text-xs text-muted"
-              >
-                {flat ? "This file" : "All nodes"}
-              </button>
+              <div className="flex rounded-md border border-line p-0.5" role="group" aria-label="Center view">
+                {(
+                  [
+                    ["table", "This file"],
+                    ["nodes", "All nodes"],
+                    ["flow", "Flow"],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={center === id}
+                    onClick={() => setCenter(id)}
+                    className={
+                      "min-h-11 rounded px-2 text-xs " + (center === id ? "bg-surface-2 text-fg" : "text-muted")
+                    }
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
           ) : null}
-          {flat ? (
+          {center === "flow" ? (
+            <FlowMap
+              nodes={catalog}
+              focus={selected}
+              onPick={(uid, path) => {
+                chooseUid(uid, path);
+              }}
+            />
+          ) : center === "nodes" ? (
             <ul className="min-h-0 flex-1 overflow-y-auto">
               {catalog
                 .filter((node) => node.tag !== "DOCUMENT")
