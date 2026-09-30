@@ -4,7 +4,8 @@ export type FieldType =
   | "MultiLineString"
   | "Integer"
   | "Boolean"
-  | "Choice";
+  | "Choice"
+  | "SingleChoice";
 
 export type RelationType = "Parent" | "Child" | "File";
 
@@ -12,11 +13,13 @@ export interface GrammarField {
   title: string;
   type: FieldType;
   required: boolean;
+  options?: string[];
 }
 
 export interface GrammarRelation {
   type: RelationType;
   role?: string;
+  reverseRole?: string;
 }
 
 export interface GrammarElement {

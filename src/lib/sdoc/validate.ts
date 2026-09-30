@@ -199,6 +199,20 @@ function checkNode(
         uid: uid || undefined,
       });
     }
+    if (spec?.type === "SingleChoice" && field.value.trim() !== "") {
+      const options = spec.options ?? [];
+      if (!options.includes(field.value.trim())) {
+        errors.push({
+          line: field.line,
+          col: field.col,
+          path: `${path}.${field.name}`,
+          message: `${field.name} must be one of ${options.join(", ") || "(none)"}.`,
+          severity: "error",
+          code: "choice",
+          uid: uid || undefined,
+        });
+      }
+    }
     if (spec?.type === "Boolean" && field.value !== "True" && field.value !== "False") {
       errors.push({
         line: field.line,

@@ -8,14 +8,17 @@ export function RelationTags({
   relations,
   index,
   selfUid,
+  roles,
   onChange,
 }: {
   relations: Relation[];
   index: IndexNode[];
   selfUid: string;
+  roles?: readonly string[];
   onChange: (relations: Relation[]) => void;
 }) {
-  const [role, setRole] = useState<(typeof ORG_ROLES)[number]>("Refines");
+  const choices = roles && roles.length > 0 ? roles : ORG_ROLES;
+  const [role, setRole] = useState(choices[0] ?? "Refines");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -75,11 +78,11 @@ export function RelationTags({
             </label>
             <select
               id={`role-${selfUid || "row"}`}
-              value={role}
-              onChange={(event) => setRole(event.target.value as (typeof ORG_ROLES)[number])}
+              value={choices.includes(role) ? role : (choices[0] ?? "")}
+              onChange={(event) => setRole(event.target.value)}
               className="min-h-11 rounded-md border border-line bg-bg px-1 font-mono text-xs text-fg lg:min-h-8"
             >
-              {ORG_ROLES.map((item) => (
+              {choices.map((item) => (
                 <option key={item} value={item}>
                   {item}
                 </option>

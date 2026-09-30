@@ -37,6 +37,12 @@ export function requirementElement(): GrammarElement {
   };
 }
 
+export function elementRoles(elements: GrammarElement[], tag: string): string[] {
+  const found = elements.find((element) => element.tag === tag);
+  const roles = (found?.relations ?? []).flatMap((relation) => (relation.role ? [relation.role] : []));
+  return [...new Set(roles)];
+}
+
 function orgRelations(): GrammarElement["relations"] {
   const relations: GrammarElement["relations"] = [
     { type: "Parent" },

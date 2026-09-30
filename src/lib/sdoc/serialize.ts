@@ -48,7 +48,8 @@ function serializeElement(element: GrammarElement): string[] {
   const lines = [`- TAG: ${element.tag}`, "  FIELDS:"];
   for (const field of element.fields) {
     lines.push(`  - TITLE: ${field.title}`);
-    lines.push(`    TYPE: ${field.type}`);
+    const options = field.type === "SingleChoice" && field.options?.length ? `(${field.options.join(", ")})` : "";
+    lines.push(`    TYPE: ${field.type}${options}`);
     lines.push(`    REQUIRED: ${field.required ? "True" : "False"}`);
   }
   if (element.relations.length > 0) {
@@ -56,6 +57,7 @@ function serializeElement(element: GrammarElement): string[] {
     for (const relation of element.relations) {
       lines.push(`  - TYPE: ${relation.type}`);
       if (relation.role) lines.push(`    ROLE: ${relation.role}`);
+      if (relation.reverseRole) lines.push(`    REVERSE_ROLE: ${relation.reverseRole}`);
     }
   }
   return lines;

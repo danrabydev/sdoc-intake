@@ -13,6 +13,56 @@ import { validate } from "./validate.ts";
 const sysText = readFileSync(new URL("../../../data/SYS.sdoc", import.meta.url), "utf8");
 const capText = readFileSync(new URL("../../../data/CAP.sdoc", import.meta.url), "utf8");
 
+test("SingleChoice options and REVERSE_ROLE round-trip", () => {
+  const text = `[DOCUMENT]
+TITLE: Choices
+
+[GRAMMAR]
+ELEMENTS:
+- TAG: REQUIREMENT
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: False
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: PRIORITY
+    TYPE: SingleChoice(Low, Medium, High)
+    REQUIRED: False
+  RELATIONS:
+  - TYPE: Parent
+    ROLE: Refines
+    REVERSE_ROLE: Refined by
+
+[REQUIREMENT]
+UID: REQ-1
+TITLE: Parent
+PRIORITY: Low
+
+[REQUIREMENT]
+UID: REQ-2
+TITLE: Child
+PRIORITY: Urgent
+RELATIONS:
+- TYPE: Parent
+  VALUE: REQ-1
+  ROLE: Refines
+`;
+  const parsed = parse(text);
+  assert.equal(parsed.errors.length, 0, JSON.stringify(parsed.errors));
+  const field = parsed.document?.grammar.elements[0]?.fields.find((item) => item.title === "PRIORITY");
+  assert.deepEqual(field?.options, ["Low", "Medium", "High"]);
+  assert.equal(parsed.document?.grammar.elements[0]?.relations[0]?.reverseRole, "Refined by");
+  const again = parse(textForWrite(parsed.document!));
+  assert.equal(again.errors.length, 0, JSON.stringify(again.errors));
+  assert.match(textForWrite(parsed.document!), /TYPE: SingleChoice\(Low, Medium, High\)/);
+  assert.match(textForWrite(parsed.document!), /REVERSE_ROLE: Refined by/);
+  const checked = validate(text, { mode: "write", indexComplete: true });
+  assert.equal(checked.ok, false);
+  assert.ok(checked.errors.some((issue) => issue.code === "choice"));
+});
+
 test("sections nest and round-trip", () => {
   const text = `[DOCUMENT]
 TITLE: Nest

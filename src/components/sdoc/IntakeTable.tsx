@@ -1,9 +1,50 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 import type { IndexNode } from "@/lib/sdoc/api-types";
+import { elementRoles } from "@/lib/sdoc/grammar";
 import { fieldOf, flatten } from "@/lib/sdoc/model";
-import type { Relation, SDocDocument } from "@/lib/sdoc/types";
+import type { Relation, SDocDocument, SDocNode } from "@/lib/sdoc/types";
 import { RelationTags } from "@/components/sdoc/RelationTags";
+
+function ChoiceFields({
+  node,
+  path,
+  document,
+  onField,
+}: {
+  node: SDocNode;
+  path: number[];
+  document: SDocDocument;
+  onField: (path: number[], name: string, value: string) => void;
+}) {
+  const specs =
+    document.grammar.elements
+      .find((element) => element.tag === node.tag)
+      ?.fields.filter((field) => field.type === "SingleChoice" && (field.options?.length ?? 0) > 0) ?? [];
+  if (specs.length === 0) return null;
+  return (
+    <div className="mt-1 flex flex-wrap gap-2">
+      {specs.map((spec) => (
+        <label key={spec.title} className="text-[10px] text-muted">
+          {spec.title}
+          <select
+            value={fieldOf(node, spec.title)}
+            aria-label={spec.title}
+            onChange={(event) => onField(path, spec.title, event.target.value)}
+            className="ml-1 min-h-8 rounded-md border border-line bg-bg px-1 font-mono text-xs text-fg"
+          >
+            <option value="">—</option>
+            {(spec.options ?? []).map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+      ))}
+    </div>
+  );
+}
 
 const INDENT = ["pl-2", "pl-6", "pl-10", "pl-14"] as const;
 
@@ -148,6 +189,7 @@ export function IntakeTable({
                         (row.node.tag === "SECTION" ? " font-medium" : "")
                       }
                     />
+                    <ChoiceFields node={row.node} path={row.path} document={document} onField={onField} />
                   </td>
                   <td className="px-2 py-2 font-mono text-xs tracking-wide text-muted">{row.node.tag}</td>
                   <td className="px-2 py-1">
@@ -175,6 +217,7 @@ export function IntakeTable({
                         relations={row.node.relations}
                         index={index}
                         selfUid={uid}
+                        roles={elementRoles(document.grammar.elements, row.node.tag)}
                         onChange={(relations) => onRelations(row.path, relations)}
                       />
                     ) : (
@@ -227,6 +270,7 @@ export function IntakeTable({
                       (row.node.tag === "SECTION" ? "font-medium" : "")
                     }
                   />
+                  <ChoiceFields node={row.node} path={row.path} document={document} onField={onField} />
                 </label>
                 {allowsStatement(row.node.tag) ? (
                   <label className="mt-2 block text-xs text-muted">
@@ -245,6 +289,7 @@ export function IntakeTable({
                       relations={row.node.relations}
                       index={index}
                       selfUid={uid}
+                      roles={elementRoles(document.grammar.elements, row.node.tag)}
                       onChange={(relations) => onRelations(row.path, relations)}
                     />
                   </div>

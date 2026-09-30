@@ -37,6 +37,7 @@ const FIELD_TYPES = new Set<FieldType>([
   "Integer",
   "Boolean",
   "Choice",
+  "SingleChoice",
 ]);
 
 export interface ParseResult {
@@ -244,6 +245,14 @@ function parseGrammar(scanner: Scanner, errors: SDocIssue[]): Grammar {
   let field: GrammarField | null = null;
   let relation: Grammar["elements"][number]["relations"][number] | null = null;
   let mode: "none" | "fields" | "relations" | "properties" = "none";
+  let optionsOpen = false;
+
+  const finishField = () => {
+    if (field?.type === "SingleChoice" && (!field.options || field.options.length === 0)) {
+      errors.push(issue(scanner.lineNo, 1, "grammar", `SingleChoice field ${field.title} needs options.`));
+    }
+    optionsOpen = false;
+  };
 
   while (scanner.current !== null) {
     const raw = scanner.current;
@@ -255,6 +264,7 @@ function parseGrammar(scanner: Scanner, errors: SDocIssue[]): Grammar {
     if (trimmed.startsWith("[")) break;
     const tag = /^\s*-\s+TAG:\s*(\S+)\s*$/.exec(raw);
     if (tag) {
+      finishField();
       current = { tag: tag[1]!, fields: [], relations: [] };
       grammar.elements.push(current);
       field = null;
@@ -264,12 +274,14 @@ function parseGrammar(scanner: Scanner, errors: SDocIssue[]): Grammar {
       continue;
     }
     if (/^\s*FIELDS:\s*$/.test(raw)) {
+      finishField();
       mode = "fields";
       field = null;
       scanner.next();
       continue;
     }
     if (/^\s*RELATIONS:\s*$/.test(raw)) {
+      finishField();
       mode = "relations";
       relation = null;
       scanner.next();
@@ -287,6 +299,7 @@ function parseGrammar(scanner: Scanner, errors: SDocIssue[]): Grammar {
     if (mode === "fields") {
       const title = /^\s*-\s+TITLE:\s*(.+)\s*$/.exec(raw);
       if (title) {
+        finishField();
         if (!current) {
           errors.push(issue(scanner.lineNo, 1, "grammar", "Field declared before TAG."));
         } else {
@@ -296,11 +309,24 @@ function parseGrammar(scanner: Scanner, errors: SDocIssue[]): Grammar {
         scanner.next();
         continue;
       }
-      const type = /^\s*TYPE:\s*(\S+)\s*$/.exec(raw);
+      const type = /^\s*TYPE:\s*([A-Za-z]+)(?:\(([^)]*)\))?\s*$/.exec(raw);
       if (type && field) {
+        optionsOpen = false;
         const value = type[1] as FieldType;
         if (!FIELD_TYPES.has(value)) {
           errors.push(issue(scanner.lineNo, 1, "grammar", `Unknown field TYPE ${type[1]}.`));
+        } else if (value === "SingleChoice") {
+          const options = (type[2] ?? "")
+            .split(",")
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0);
+          if (options.length === 0) {
+            field.type = "SingleChoice";
+            field.options = [];
+          } else {
+            field.type = "SingleChoice";
+            field.options = options;
+          }
         } else {
           field.type = value;
         }
@@ -309,7 +335,20 @@ function parseGrammar(scanner: Scanner, errors: SDocIssue[]): Grammar {
       }
       const required = /^\s*REQUIRED:\s*(True|False)\s*$/.exec(raw);
       if (required && field) {
+        optionsOpen = false;
         field.required = required[1] === "True";
+        scanner.next();
+        continue;
+      }
+      if (/^\s*OPTIONS:\s*$/.test(raw) && field) {
+        optionsOpen = true;
+        field.options = field.options ?? [];
+        scanner.next();
+        continue;
+      }
+      const option = /^\s+-\s+(.+?)\s*$/.exec(raw);
+      if (option && field && optionsOpen && !/^\s*TITLE:/.test(option[1]!)) {
+        field.options = [...(field.options ?? []), option[1]!.trim()];
         scanner.next();
         continue;
       }
@@ -336,10 +375,21 @@ function parseGrammar(scanner: Scanner, errors: SDocIssue[]): Grammar {
         scanner.next();
         continue;
       }
+      const reverse = /^\s*REVERSE_ROLE:\s*(.+)\s*$/.exec(raw);
+      if (reverse && relation) {
+        if (!relation.role) {
+          errors.push(issue(scanner.lineNo, 1, "grammar", "REVERSE_ROLE requires ROLE."));
+        } else {
+          relation.reverseRole = reverse[1]!.trim();
+        }
+        scanner.next();
+        continue;
+      }
     }
     errors.push(issue(scanner.lineNo, 1, "grammar", `Unrecognized grammar line: ${trimmed}`));
     scanner.next();
   }
+  finishField();
   return grammar;
 }
 
