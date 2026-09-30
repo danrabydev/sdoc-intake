@@ -11,10 +11,10 @@ After the package is published:
 ```sh
 npx sdoc-intake
 npx sdoc-intake ./requirements
-npx sdoc-intake ./requirements/SYS.sdoc --port 4173
+npx sdoc-intake ./requirements/SYS.sdoc --port 8087
 ```
 
-The path is a directory of `.sdoc` files, or one `.sdoc` file. A file opens in the editor and its folder is the document root, so sibling documents stay visible. With no path, the current directory is the root. The editor listens on `http://127.0.0.1:4173`.
+The path is a directory of `.sdoc` files, or one `.sdoc` file. A file opens in the editor and its folder is the document root, so sibling documents stay visible. With no path, the current directory is the root. The editor listens on `http://127.0.0.1:8087`.
 
 Requires Node 22 or newer.
 

@@ -6,14 +6,14 @@ export const CLI_VERSION = "0.1.0";
 export const HELP = `sdoc-intake — edit a StrictDoc tree in the browser
 
 Usage
-  sdoc-intake [path] [--port 4173] [--host 127.0.0.1]
+  sdoc-intake [path] [--port 8087] [--host 127.0.0.1]
 
 path is a directory of .sdoc files, or one .sdoc file.
 When it is a file, that file opens and its folder is the document root.
 When omitted, the current directory is the document root.
 
 Options
-  -p, --port <n>   Port to listen on (default 4173)
+  -p, --port <n>   Port to listen on (default 8087)
       --host <h>   Host to bind (default 127.0.0.1)
       --root <dir> Document root. Same as passing a directory.
       --no-watch   Do not reload when files change on disk
@@ -51,7 +51,7 @@ function takeValue(argv: string[], index: number, flag: string): { value: string
 }
 
 export function parseArgs(argv: string[], cwd: string): ParseResult {
-  let port = 4173;
+  let port = 8087;
   let host = "127.0.0.1";
   let watch = true;
   let rootFlag: string | null = null;

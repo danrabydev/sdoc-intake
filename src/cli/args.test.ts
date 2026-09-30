@@ -16,7 +16,7 @@ test("no path uses the current directory", () => {
   if (!result.ok || !("args" in result)) return;
   assert.equal(result.args.root, cwd);
   assert.equal(result.args.openFile, null);
-  assert.equal(result.args.port, 4173);
+  assert.equal(result.args.port, 8087);
   assert.equal(result.args.host, "127.0.0.1");
   assert.equal(result.args.watch, true);
 });
