@@ -1,8 +1,8 @@
 [DOCUMENT]
-TITLE: System Requirements
-UID: PRODUCT-SYS
-PREFIX: SYS-
-ROOT: True
+TITLE: Platform Requirements
+UID: PLAT-SYS
+PREFIX: PLAT-SYS-
+ROOT: False
 
 [GRAMMAR]
 ELEMENTS:
@@ -14,9 +14,6 @@ ELEMENTS:
 - TAG: SECTION
   FIELDS:
   - TITLE: UID
-    TYPE: String
-    REQUIRED: False
-  - TITLE: PREFIX
     TYPE: String
     REQUIRED: False
   - TITLE: TITLE
@@ -56,45 +53,14 @@ ELEMENTS:
     ROLE: ConformsTo
 
 [[SECTION]]
-UID: SYS-SEC-002
+UID: PLAT-SYS-SEC-001
 TITLE: New section
 
 [REQUIREMENT]
-UID: SYS-031
+UID: PLAT-SYS-001
 TITLE: New requirement
 RELATIONS:
 - TYPE: Parent
   ROLE: Refines
-  VALUE: CTRL-NIST-001
-
-[[SECTION]]
-UID: SYS-SEC-003
-TITLE: Authentication
-PREFIX: AUTHz
-
-[REQUIREMENT]
-UID: SYS-AUTHz-032
-TITLE: Single Sign-On
-
-[REQUIREMENT]
-UID: SYS-AUTHz-033
-TITLE: New requirement
-
-[REQUIREMENT]
-UID: SYS-AUTHz-034
-TITLE: New requirement
-
-[REQUIREMENT]
-UID: SYS-AUTH-035
-TITLE: New requirement
-
-[REQUIREMENT]
-UID: SYS-AUTH-036
-TITLE: New requirement
-[[/SECTION]]
-
-[[SECTION]]
-UID: SYS-SEC-004
-TITLE: New section
-[[/SECTION]]
+  VALUE: SYS-031
 [[/SECTION]]

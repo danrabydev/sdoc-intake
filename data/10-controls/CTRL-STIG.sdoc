@@ -37,7 +37,7 @@ ELEMENTS:
     TYPE: String
     REQUIRED: False
   - TITLE: STATUS
-    TYPE: String
+    TYPE: SingleChoice(Draft, Active, Approved)
     REQUIRED: False
   RELATIONS:
   - TYPE: Parent

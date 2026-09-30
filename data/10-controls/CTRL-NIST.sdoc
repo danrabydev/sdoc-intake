@@ -37,7 +37,7 @@ ELEMENTS:
     TYPE: String
     REQUIRED: False
   - TITLE: STATUS
-    TYPE: String
+    TYPE: SingleChoice(Draft, Active, Approved)
     REQUIRED: False
   RELATIONS:
   - TYPE: Parent
@@ -51,3 +51,7 @@ ELEMENTS:
     ROLE: Uses
   - TYPE: Parent
     ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: CTRL-NIST-001
+TITLE: New requirement

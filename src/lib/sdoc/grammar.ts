@@ -31,7 +31,7 @@ export function requirementElement(): GrammarElement {
       { title: "STATEMENT", type: "String", required: false },
       { title: "RATIONALE", type: "String", required: false },
       { title: "COMMENT", type: "String", required: false },
-      { title: "STATUS", type: "String", required: false },
+      { title: "STATUS", type: "SingleChoice", required: false, options: ["Draft", "Active", "Approved"] },
     ],
     relations: orgRelations(),
   };

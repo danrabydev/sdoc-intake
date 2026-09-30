@@ -6,43 +6,55 @@ import { fieldOf, flatten } from "@/lib/sdoc/model";
 import type { Relation, SDocDocument, SDocNode } from "@/lib/sdoc/types";
 import { RelationTags } from "@/components/sdoc/RelationTags";
 
-function ChoiceFields({
+function choiceFields(document: SDocDocument, tag: string) {
+  return (
+    document.grammar.elements
+      .find((element) => element.tag === tag)
+      ?.fields.filter((field) => field.type === "SingleChoice" && (field.options?.length ?? 0) > 0) ?? []
+  );
+}
+
+function choiceColumns(document: SDocDocument) {
+  const seen = new Map<string, string[]>();
+  for (const element of document.grammar.elements) {
+    for (const field of element.fields) {
+      if (field.type === "SingleChoice" && field.options?.length && !seen.has(field.title)) {
+        seen.set(field.title, field.options);
+      }
+    }
+  }
+  return [...seen.entries()].map(([title, options]) => ({ title, options }));
+}
+
+function ChoiceSelect({
   node,
   path,
-  document,
+  title,
+  options,
   onField,
 }: {
   node: SDocNode;
   path: number[];
-  document: SDocDocument;
+  title: string;
+  options: string[];
   onField: (path: number[], name: string, value: string) => void;
 }) {
-  const specs =
-    document.grammar.elements
-      .find((element) => element.tag === node.tag)
-      ?.fields.filter((field) => field.type === "SingleChoice" && (field.options?.length ?? 0) > 0) ?? [];
-  if (specs.length === 0) return null;
+  const value = fieldOf(node, title);
   return (
-    <div className="mt-1 flex flex-wrap gap-2">
-      {specs.map((spec) => (
-        <label key={spec.title} className="text-[10px] text-muted">
-          {spec.title}
-          <select
-            value={fieldOf(node, spec.title)}
-            aria-label={spec.title}
-            onChange={(event) => onField(path, spec.title, event.target.value)}
-            className="ml-1 min-h-8 rounded-md border border-line bg-bg px-1 font-mono text-xs text-fg"
-          >
-            <option value="">—</option>
-            {(spec.options ?? []).map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </label>
+    <select
+      value={options.includes(value) ? value : ""}
+      aria-label={title}
+      onClick={(event) => event.stopPropagation()}
+      onChange={(event) => onField(path, title, event.target.value)}
+      className="min-h-11 w-full rounded-md border border-line bg-bg px-2 text-sm text-fg"
+    >
+      <option value="">—</option>
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
       ))}
-    </div>
+    </select>
   );
 }
 
@@ -78,6 +90,7 @@ export function IntakeTable({
   markedUids?: ReadonlyMap<string, string>;
 }) {
   const rows = flatten(document.nodes);
+  const choices = choiceColumns(document);
   const selectedRow = rows.find((row) => fieldOf(row.node, "UID") === selected);
   const intoSection = selectedRow?.node.tag === "SECTION" && selectedRow.node.composite;
   const [statementKey, setStatementKey] = useState("");
@@ -145,6 +158,11 @@ export function IntakeTable({
               <th className="w-1/6 px-2 py-2 font-medium">UID</th>
               <th className="w-1/5 px-2 py-2 font-medium">Title</th>
               <th className="w-24 px-2 py-2 font-medium">Tag</th>
+              {choices.map((spec) => (
+                <th key={spec.title} className="w-36 px-2 py-2 font-medium">
+                  {spec.title}
+                </th>
+              ))}
               <th className="px-2 py-2 font-medium">Statement</th>
               <th className="w-1/4 px-2 py-2 font-medium">Relations</th>
             </tr>
@@ -189,9 +207,26 @@ export function IntakeTable({
                         (row.node.tag === "SECTION" ? " font-medium" : "")
                       }
                     />
-                    <ChoiceFields node={row.node} path={row.path} document={document} onField={onField} />
                   </td>
                   <td className="px-2 py-2 font-mono text-xs tracking-wide text-muted">{row.node.tag}</td>
+                  {choices.map((spec) => {
+                    const field = choiceFields(document, row.node.tag).find((item) => item.title === spec.title);
+                    return (
+                      <td key={spec.title} className="px-2 py-1">
+                        {field ? (
+                          <ChoiceSelect
+                            node={row.node}
+                            path={row.path}
+                            title={field.title}
+                            options={field.options ?? []}
+                            onField={onField}
+                          />
+                        ) : (
+                          <span className="text-muted">—</span>
+                        )}
+                      </td>
+                    );
+                  })}
                   <td className="px-2 py-1">
                     {allowsStatement(row.node.tag) ? (
                       <textarea
@@ -270,8 +305,21 @@ export function IntakeTable({
                       (row.node.tag === "SECTION" ? "font-medium" : "")
                     }
                   />
-                  <ChoiceFields node={row.node} path={row.path} document={document} onField={onField} />
                 </label>
+                {choiceFields(document, row.node.tag).map((field) => (
+                  <label key={field.title} className="mt-2 block text-xs text-muted">
+                    {field.title}
+                    <div className="mt-1">
+                      <ChoiceSelect
+                        node={row.node}
+                        path={row.path}
+                        title={field.title}
+                        options={field.options ?? []}
+                        onField={onField}
+                      />
+                    </div>
+                  </label>
+                ))}
                 {allowsStatement(row.node.tag) ? (
                   <label className="mt-2 block text-xs text-muted">
                     Statement
