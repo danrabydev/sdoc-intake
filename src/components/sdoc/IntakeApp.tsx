@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FileResponse, GrammarResponse, IndexNode, TreeFile } from "@/lib/sdoc/api-types";
 import { openBrowserFolder, restoreBrowserFolder, subscribeBrowser } from "@/lib/sdoc/browser-fs";
 import { ApiError, createDir, createDoc, createGrammar, deleteDoc, getFile, getGrammar, getIndex, getTree, probeServer, putFile, putGrammar } from "@/lib/sdoc/client";
@@ -6,18 +6,19 @@ import { explicitMode, FS_MODE_KEY, setActiveMode, type FsMode } from "@/lib/sdo
 import { resolveGrammarPath, defaultElements } from "@/lib/sdoc/grammar";
 import { buildGraph } from "@/lib/sdoc/graph";
 import { applyUidRenames, collectUids, fieldOf, flatten, grammarNode, insertRelative, joinPrefix, mapAt, nextUid, nodePrefixChain, nodeUid, prefixExpectations, prefixRenames, removeAt, removeUid, resolveSelection, sectionUidPrefix, selectionKey, usesLegacySections, withField, withRelations } from "@/lib/sdoc/model";
-import { parseGrammarFile } from "@/lib/sdoc/parse";
+import { parse, parseGrammarFile } from "@/lib/sdoc/parse";
 import { detachGrammar, serializeGrammarFile, textForWrite } from "@/lib/sdoc/serialize";
 import type { Grammar, Relation, SDocDocument, SDocIssue, SDocNode } from "@/lib/sdoc/types";
 import { validate } from "@/lib/sdoc/validate";
+import { DropdownMenuItem, EditorChromePortal } from "@/components/editor";
 import { FlowMap } from "@/components/sdoc/FlowMap";
 import { GrammarEditor } from "@/components/sdoc/GrammarEditor";
 import { Graph } from "@/components/sdoc/Graph";
-import { IntakeTable } from "@/components/sdoc/IntakeTable";
+import { IntakeShell } from "@/components/sdoc/IntakeShell";
+import { IntakeTable, NodeForm } from "@/components/sdoc/IntakeTable";
 import { Outline } from "@/components/sdoc/Outline";
 import { Tree } from "@/components/sdoc/Tree";
 import { ValidationBar } from "@/components/sdoc/ValidationBar";
-import { Workspace } from "@/components/sdoc/Workspace";
 
 interface Editor {
   path: string;
@@ -141,9 +142,13 @@ export function IntakeApp({
   const [editor, setEditor] = useState<Editor | null>(initial.file ? editorFromView(initial.file) : null);
   const [selected, setSelected] = useState(uid || firstRequirement(initial.file?.document ?? null));
   const [strict, setStrict] = useState(false);
-  const [center, setCenter] = useState<"table" | "nodes" | "flow" | "grammar">("table");
-  const [pane, setPane] = useState<"files" | "intake" | "trace">("intake");
-  const [wide, setWide] = useState(false);
+  const [center, setCenter] = useState<"table" | "nodes" | "flow" | "grammar" | "text">("table");
+  const [panelOpen, setPanelOpen] = useState<Record<string, boolean>>(() => {
+    const narrow = typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
+    return { explorer: !narrow, inspector: !narrow };
+  });
+  const [bottomOpen, setBottomOpen] = useState(false);
+  const [bottomTab, setBottomTab] = useState("problems");
   const [drawer, setDrawer] = useState<"trace" | "outline">("outline");
   const [depth, setDepth] = useState(2);
   const [saving, setSaving] = useState(false);
@@ -214,13 +219,11 @@ export function IntakeApp({
     onSelect(path, nextUid);
   }
 
-  useLayoutEffect(() => {
-    const query = window.matchMedia("(min-width: 1024px)");
-    const apply = () => setWide(query.matches);
-    apply();
-    query.addEventListener("change", apply);
-    return () => query.removeEventListener("change", apply);
-  }, []);
+  function revealEditor() {
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
+      setPanelOpen((current) => ({ ...current, explorer: false, inspector: false }));
+    }
+  }
 
   useEffect(() => {
     let cancel = false;
@@ -353,8 +356,50 @@ export function IntakeApp({
     setNotice("");
     setEditor((current) => {
       if (!current?.document || current.parseFailed) return current;
-      return { ...current, document: fn(current.document), dirty: true };
+      const document = fn(current.document);
+      return { ...current, document, text: textForWrite(document), dirty: true };
     });
+  }
+
+  function editSource(text: string) {
+    const current = editorRef.current;
+    if (!current) return;
+    setNotice("");
+    if (current.kind === "sgra") {
+      const parsed = parseGrammarFile(text);
+      const failed = !parsed.grammar || parsed.errors.some((issue) => issue.severity === "error");
+      setServerIssues(failed ? parsed.errors : null);
+      setEditor({
+        ...current,
+        text,
+        grammar: parsed.grammar ?? current.grammar,
+        parseFailed: failed,
+        dirty: true,
+      });
+      return;
+    }
+    const parsed = parse(text);
+    const failed = !parsed.document || parsed.errors.some((issue) => issue.severity === "error");
+    setServerIssues(failed ? parsed.errors : null);
+    setEditor({
+      ...current,
+      text,
+      parseFailed: failed,
+      document: failed ? current.document : parsed.document,
+      grammar: parsed.document?.grammar ?? current.grammar,
+      dirty: true,
+    });
+  }
+
+  function selectView(next: "table" | "nodes" | "flow" | "grammar" | "text") {
+    if (next === "text") {
+      setEditor((current) => {
+        if (!current || current.kind === "sgra" || current.parseFailed || !current.document) return current;
+        const text = textForWrite(current.document);
+        return text === current.text ? current : { ...current, text };
+      });
+    }
+    setCenter(next);
   }
 
   const catalog = useMemo(() => liveIndex(index, editor), [index, editor]);
@@ -382,6 +427,9 @@ export function IntakeApp({
   }, [editor, strict, grammarTexts]);
   const issues = serverIssues ?? checked?.errors ?? [];
   const canSave = Boolean(editor?.dirty && checked?.ok && !serverIssues && !saving);
+  const blocking = issues.filter((issue) => issue.severity === "error" || (strict && issue.code === "missing-parent"));
+  const errorCount = blocking.length;
+  const warningCount = issues.length - errorCount;
   const graph = useMemo(() => buildGraph(catalog, selected, depth), [catalog, selected, depth]);
 
   async function save() {
@@ -474,7 +522,7 @@ export function IntakeApp({
 
   function chooseUid(next: string, path?: string) {
     if (path && editor && path !== editor.path) {
-      void openPath(path, next, { discard: false, keepView: center === "flow" }).then(() => setPane("intake"));
+      void openPath(path, next, { discard: false, keepView: center === "flow" }).then(() => revealEditor());
       return;
     }
     setSelected(next);
@@ -489,11 +537,10 @@ export function IntakeApp({
   }
 
   function chooseRow(key: string) {
-    if (key.startsWith("#")) {
-      setSelected(key);
-      return;
-    }
-    chooseUid(key);
+    if (key.startsWith("#")) setSelected(key);
+    else chooseUid(key);
+    setBottomTab("node");
+    setBottomOpen(true);
   }
 
   function addNode(tag: string, where: "inside" | "after") {
@@ -754,7 +801,7 @@ export function IntakeApp({
         setCenter("grammar");
         setSelected("");
         onSelect(view.path, "");
-        setPane("intake");
+        revealEditor();
       } catch (err) {
         setDraftError(err instanceof Error ? err.message : "Could not create the grammar file.");
       }
@@ -778,53 +825,101 @@ export function IntakeApp({
       setEditor(editorFromView(view));
       setSelected("");
       onSelect(view.path, "");
-      setPane("intake");
+      revealEditor();
     } catch (err) {
       setDraftError(err instanceof Error ? err.message : "Could not create the file.");
     }
   }
 
+  const views = [
+    ["table", "This file"],
+    ["text", "Text"],
+    ["grammar", "Grammar"],
+    ["nodes", "All nodes"],
+    ["flow", "Flow"],
+  ] as const;
+
+  function startCreate(kind: "sdoc" | "sgra") {
+    setDraftError("");
+    setDraft({ path: "", title: "", uid: "", prefix: "", root: false, kind });
+    setCreating(true);
+  }
+
   return (
     <main className="flex h-dvh flex-col overflow-hidden bg-bg text-fg">
-      <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line px-3 py-2">
-        <p className="font-mono text-xs tracking-widest text-accent">SDOC</p>
-        <h1 className="text-sm font-semibold">Intake</h1>
-        <p className="text-xs text-muted">
-          {fsMode === "browser" ? "Files stay in the folder you pick." : "Edit the tree. Invalid SDoc is never written."}
-        </p>
-        <div className="ml-auto flex items-center gap-2">
-          <div className="flex rounded-md border border-line p-0.5" role="group" aria-label="Where documents live">
-            <button
-              type="button"
-              aria-pressed={fsMode === "server"}
-              onClick={() => void chooseMode("server")}
-              className={
-                "min-h-11 rounded px-2 text-xs " + (fsMode === "server" ? "bg-surface-2 text-fg" : "text-muted")
-              }
-            >
-              Server
-            </button>
-            <button
-              type="button"
-              aria-pressed={fsMode === "browser"}
-              onClick={() => void chooseMode("browser")}
-              className={
-                "min-h-11 rounded px-2 text-xs " + (fsMode === "browser" ? "bg-surface-2 text-fg" : "text-muted")
-              }
-            >
-              This computer
-            </button>
-          </div>
-          {editor ? <p className="max-w-48 truncate font-mono text-xs text-fg">{editor.path}</p> : null}
-        </div>
-      </header>
       {loadError ? <p className="border-b border-line px-3 py-2 text-sm text-danger">{loadError}</p> : null}
       <div className="relative min-h-0 flex-1">
         <div className="absolute inset-0">
-        <Workspace
-          wide={wide}
-          pane={pane}
-          onPane={setPane}
+        <IntakeShell
+          panelOpen={panelOpen}
+          onPanelOpenChange={(id, open) => setPanelOpen((current) => (current[id] === open ? current : { ...current, [id]: open }))}
+          bottomOpen={bottomOpen}
+          onBottomOpenChange={setBottomOpen}
+          bottomTab={bottomTab}
+          onBottomTabChange={setBottomTab}
+          onSave={() => {
+            void save();
+          }}
+          canSave={canSave && !saving}
+          breadcrumb={
+            <p className="min-w-0 truncate font-mono text-xs text-muted">
+              {editor?.path ?? "No file"}
+              {editor?.dirty ? <span className="text-accent"> · unsaved</span> : null}
+            </p>
+          }
+          statusBar={
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {editor?.external ? (
+                <span className="text-fg">
+                  File changed on disk.{" "}
+                  <button
+                    type="button"
+                    className="underline"
+                    onClick={() => {
+                      if (!editor) return;
+                      void (editor.kind === "sgra" ? getGrammar(editor.path) : getFile(editor.path)).then((view) => {
+                        setEditor(editor.kind === "sgra" ? editorFromGrammar(view as GrammarResponse) : editorFromView(view as FileResponse));
+                      });
+                    }}
+                  >
+                    Load disk copy
+                  </button>
+                </span>
+              ) : null}
+              <button
+                type="button"
+                className="min-h-7 text-left"
+                onClick={() => {
+                  setBottomTab("problems");
+                  setBottomOpen(true);
+                }}
+              >
+                <span className={errorCount > 0 ? "text-danger" : "text-ok"}>
+                  {errorCount} {errorCount === 1 ? "error" : "errors"}
+                </span>
+                <span className="text-muted">
+                  {" "}
+                  · {warningCount} {warningCount === 1 ? "warning" : "warnings"}
+                </span>
+              </button>
+              <label className="inline-flex min-h-7 items-center gap-2 text-muted">
+                <input type="checkbox" checked={strict} onChange={(event) => setStrict(event.target.checked)} />
+                Strict parents
+              </label>
+              {editor?.dirty ? <span className="text-accent">Unsaved</span> : null}
+              {notice ? <span className="text-ok">{notice}</span> : null}
+              <button
+                type="button"
+                onClick={() => {
+                  void save();
+                }}
+                disabled={!canSave || saving}
+                className="ml-auto min-h-7 rounded-md bg-accent px-3 text-xs font-medium text-accent-fg disabled:opacity-40"
+              >
+                {saving ? "Saving" : "Save"}
+              </button>
+            </div>
+          }
           files={
         <div className="flex h-full min-h-0 flex-col">
           <Tree
@@ -834,7 +929,7 @@ export function IntakeApp({
             active={editor?.path ?? ""}
             onOpen={(path) => {
               void openPath(path)
-                .then(() => setPane("intake"))
+                .then(() => revealEditor())
                 .catch((err: unknown) => {
                   setLoadError(err instanceof Error ? err.message : "Could not open the file.");
                 });
@@ -855,6 +950,7 @@ export function IntakeApp({
         </div>
           }
           editor={
+        <>
         <div className="flex h-full min-h-0 flex-col overflow-hidden bg-bg">
           {editor?.document && !editor.parseFailed ? (
             <div className="flex flex-wrap items-end gap-2 border-b border-line px-3 py-2">
@@ -886,31 +982,17 @@ export function IntakeApp({
                   {editor.document.root === false ? "ROOT false" : "ROOT true"}
                 </p>
               )}
-              <div className="flex rounded-md border border-line p-0.5" role="group" aria-label="Center view">
-                {(
-                  [
-                    ["table", "This file"],
-                    ["grammar", "Grammar"],
-                    ["nodes", "All nodes"],
-                    ["flow", "Flow"],
-                  ] as const
-                ).map(([id, label]) => (
-                  <button
-                    key={id}
-                    type="button"
-                    aria-pressed={center === id}
-                    onClick={() => setCenter(id)}
-                    className={
-                      "min-h-11 rounded px-2 text-xs " + (center === id ? "bg-surface-2 text-fg" : "text-muted")
-                    }
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
             </div>
           ) : null}
-          {editor?.kind === "sgra" ? (
+          {center === "text" && editor ? (
+            <textarea
+              value={editor.text}
+              onChange={(event) => editSource(event.target.value)}
+              aria-label="File source"
+              spellCheck={false}
+              className="min-h-0 w-full flex-1 resize-none bg-bg p-3 font-mono text-xs leading-relaxed text-fg"
+            />
+          ) : editor?.kind === "sgra" ? (
             editor.parseFailed || !editor.grammar ? (
               <div className="flex min-h-0 flex-1 flex-col">
                 <p className="border-b border-line px-3 py-2 text-sm text-danger">
@@ -918,11 +1000,7 @@ export function IntakeApp({
                 </p>
                 <textarea
                   value={editor.text}
-                  onChange={(event) => {
-                    const text = event.target.value;
-                    setServerIssues(null);
-                    setEditor((current) => (current ? { ...current, text, dirty: true } : current));
-                  }}
+                  onChange={(event) => editSource(event.target.value)}
                   className="min-h-0 w-full flex-1 resize-none bg-bg p-3 font-mono text-xs leading-relaxed text-fg"
                   spellCheck={false}
                 />
@@ -995,25 +1073,7 @@ export function IntakeApp({
             <IntakeTable
               document={editor.document}
               selected={selected}
-              index={catalog}
               onSelect={(next) => chooseRow(next)}
-              onField={(path, name, value) => {
-                mutate((document) => ({
-                  ...document,
-                  nodes: mapAt(document.nodes, path, (node) => withField(node, name, value)),
-                }));
-                if (name === "UID") {
-                  const next = value.trim();
-                  setSelected(next || `#${path.join(".")}`);
-                  if (editor) onSelect(editor.path, next);
-                }
-              }}
-              onRelations={(path, relations: Relation[]) => {
-                mutate((document) => ({
-                  ...document,
-                  nodes: mapAt(document.nodes, path, (node) => withRelations(node, relations)),
-                }));
-              }}
               onInsert={addNode}
               onDelete={deleteSelected}
               markedUids={editor.document ? prefixExpectations(editor.document) : undefined}
@@ -1040,10 +1100,7 @@ export function IntakeApp({
                   <p className="text-sm text-muted">No file open.</p>
                   <button
                     type="button"
-                    onClick={() => {
-                      setDraft({ path: "", title: "", uid: "", prefix: "", root: false, kind: "sdoc" });
-                      setCreating(true);
-                    }}
+                    onClick={() => startCreate("sdoc")}
                     className="min-h-11 rounded-md bg-accent px-3 text-sm text-accent-fg"
                   >
                     New .sdoc
@@ -1053,6 +1110,104 @@ export function IntakeApp({
             </div>
           )}
         </div>
+        <EditorChromePortal slot="menuFile">
+          <>
+            <DropdownMenuItem onSelect={() => startCreate("sdoc")}>New document</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => startCreate("sgra")}>New grammar</DropdownMenuItem>
+          </>
+        </EditorChromePortal>
+        <EditorChromePortal slot="menuView">
+          <>
+            {views.map(([id, label]) => (
+              <DropdownMenuItem key={id} onSelect={() => selectView(id)}>
+                {center === id ? "✓ " : ""}
+                {label}
+              </DropdownMenuItem>
+            ))}
+          </>
+        </EditorChromePortal>
+        <EditorChromePortal slot="menuTools">
+          <DropdownMenuItem onSelect={() => setStrict((value) => !value)}>
+            {strict ? "✓ " : ""}
+            Strict parents
+          </DropdownMenuItem>
+        </EditorChromePortal>
+        <EditorChromePortal slot="viewMode">
+          <div className="flex rounded-md border border-line p-0.5" role="group" aria-label="Center view">
+            {views.map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={center === id}
+                onClick={() => selectView(id)}
+                className={"h-7 rounded px-2 text-xs " + (center === id ? "bg-surface-2 text-fg" : "text-muted")}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </EditorChromePortal>
+        <EditorChromePortal slot="actions">
+          <div className="flex rounded-md border border-line p-0.5" role="group" aria-label="Where documents live">
+            <button
+              type="button"
+              aria-pressed={fsMode === "server"}
+              onClick={() => void chooseMode("server")}
+              className={"h-7 rounded px-2 text-xs " + (fsMode === "server" ? "bg-surface-2 text-fg" : "text-muted")}
+            >
+              Server
+            </button>
+            <button
+              type="button"
+              aria-pressed={fsMode === "browser"}
+              onClick={() => void chooseMode("browser")}
+              className={"h-7 rounded px-2 text-xs " + (fsMode === "browser" ? "bg-surface-2 text-fg" : "text-muted")}
+            >
+              This computer
+            </button>
+          </div>
+        </EditorChromePortal>
+        <EditorChromePortal slot="node">
+          {editor?.document && !editor.parseFailed ? (
+            <NodeForm
+              document={editor.document}
+              row={flatten(editor.document.nodes).find((row) => selectionKey(row.node, row.path) === selected)}
+              index={catalog}
+              markedUids={prefixExpectations(editor.document)}
+              onField={(path, name, value) => {
+                mutate((document) => ({
+                  ...document,
+                  nodes: mapAt(document.nodes, path, (node) => withField(node, name, value)),
+                }));
+                if (name === "UID") {
+                  const next = value.trim();
+                  setSelected(next || `#${path.join(".")}`);
+                  if (editor) onSelect(editor.path, next);
+                }
+              }}
+              onRelations={(path, relations: Relation[]) => {
+                mutate((document) => ({
+                  ...document,
+                  nodes: mapAt(document.nodes, path, (node) => withRelations(node, relations)),
+                }));
+              }}
+            />
+          ) : (
+            <p className="px-1 text-xs text-muted">Open a document and select a node.</p>
+          )}
+        </EditorChromePortal>
+        <EditorChromePortal slot="problems">
+          <ValidationBar
+            issues={issues}
+            onJump={(issue) => {
+              if (issue.uid) chooseUid(issue.uid, issue.file);
+              setBottomOpen(true);
+              setBottomTab("problems");
+              revealEditor();
+            }}
+          />
+        </EditorChromePortal>
+        </>
           }
           inspector={
         <div className="flex h-full min-h-0 flex-col bg-surface">
@@ -1103,7 +1258,7 @@ export function IntakeApp({
                 onPick={(next) => {
                   const node = catalog.find((item) => item.uid === next && item.tag !== "DOCUMENT");
                   chooseUid(next, node?.file);
-                  setPane("intake");
+                  revealEditor();
                 }}
               />
             </div>
@@ -1113,29 +1268,8 @@ export function IntakeApp({
         />
         </div>
       </div>
-      <ValidationBar
-        issues={issues}
-        strict={strict}
-        dirty={Boolean(editor?.dirty)}
-        saving={saving}
-        external={Boolean(editor?.external)}
-        notice={notice}
-        canSave={canSave}
-        onStrict={setStrict}
-        onSave={() => {
-          void save();
-        }}
-        onJump={(issue) => {
-          if (issue.uid) chooseUid(issue.uid, issue.file);
-          setPane("intake");
-        }}
-        onReload={() => {
-          if (!editor) return;
-          void getFile(editor.path).then((view) => setEditor(editorFromView(view)));
-        }}
-      />
       {creating ? (
-        <div className="fixed inset-0 z-30 flex items-end justify-center bg-bg/80 p-4 sm:items-center">
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-bg/80 p-4 sm:items-center">
           <form
             className="w-full max-w-md rounded-lg border border-line bg-surface p-4"
             onSubmit={(event) => {

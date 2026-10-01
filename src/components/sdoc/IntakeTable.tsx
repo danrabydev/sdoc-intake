@@ -1,6 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Group, Panel, Separator } from "react-resizable-panels";
 import type { IndexNode } from "@/lib/sdoc/api-types";
 import { elementLinks, fallbackTag, tagLabel } from "@/lib/sdoc/grammar";
 import { fieldOf, flatten, outlineNumbers, selectionKey } from "@/lib/sdoc/model";
@@ -107,20 +106,14 @@ function FieldControl({
 export function IntakeTable({
   document,
   selected,
-  index,
   onSelect,
-  onField,
-  onRelations,
   onInsert,
   onDelete,
   markedUids,
 }: {
   document: SDocDocument;
   selected: string;
-  index: IndexNode[];
   onSelect: (uid: string) => void;
-  onField: (path: number[], name: string, value: string) => void;
-  onRelations: (path: number[], relations: Relation[]) => void;
   onInsert: (tag: string, where: "inside" | "after") => void;
   onDelete: () => void;
   markedUids?: ReadonlyMap<string, string>;
@@ -184,12 +177,8 @@ export function IntakeTable({
           </button>
         </div>
       </div>
-      <div className="relative min-h-0 flex-1">
-        <div className="absolute inset-0">
-        <Group id="sdoc-nodes" orientation="vertical" className="h-full" resizeTargetMinimumSize={{ coarse: 20, fine: 8 }}>
-          <Panel id="list" className="h-full min-h-0" defaultSize="38%" minSize="6rem" style={{ overflow: "hidden" }}>
-            <div className="h-full overflow-auto">
-              <table className="sdoc-nodes text-xs">
+      <div className="min-h-0 flex-1 overflow-auto">
+        <table className="sdoc-nodes text-xs">
                 <thead className="sticky top-0 z-10 bg-surface text-muted">
                   <tr className="border-b border-line">
                     <th className="shrink px-2 py-2 font-medium">#</th>
@@ -234,30 +223,15 @@ export function IntakeTable({
                   })}
                 </tbody>
               </table>
-              {rows.length === 0 ? (
-                <p className="px-3 py-8 text-sm text-muted">No nodes yet. Add an element from the grammar.</p>
-              ) : null}
-            </div>
-          </Panel>
-          <Separator className="sdoc-sash" />
-          <Panel id="fields" className="h-full min-h-0" defaultSize="62%" minSize="10rem" style={{ overflow: "hidden" }}>
-            <NodeForm
-              document={document}
-              row={selectedRow}
-              index={index}
-              markedUids={markedUids}
-              onField={onField}
-              onRelations={onRelations}
-            />
-          </Panel>
-        </Group>
-        </div>
+            {rows.length === 0 ? (
+              <p className="px-3 py-8 text-sm text-muted">No nodes yet. Add an element from the grammar.</p>
+            ) : null}
       </div>
     </div>
   );
 }
 
-function NodeForm({
+export function NodeForm({
   document,
   row,
   index,
