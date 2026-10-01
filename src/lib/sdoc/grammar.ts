@@ -1,4 +1,4 @@
-import type { Grammar, GrammarElement, SDocDocument } from "./types.ts";
+import type { Grammar, GrammarElement, RelationType, SDocDocument } from "./types.ts";
 
 export const ORG_ROLES = ["Refines", "Satisfies", "Uses", "ConformsTo"] as const;
 
@@ -42,6 +42,34 @@ export function elementRoles(elements: GrammarElement[], tag: string): string[] 
   const found = elements.find((element) => element.tag === tag);
   const roles = (found?.relations ?? []).flatMap((relation) => (relation.role ? [relation.role] : []));
   return [...new Set(roles)];
+}
+
+/** Relations the editor can attach. Prefer named roles. Keep the grammar's TYPE. */
+export function elementLinks(elements: GrammarElement[], tag: string): { type: RelationType; role?: string }[] {
+  const found = elements.find((element) => element.tag === tag);
+  const source = found?.relations ?? [];
+  const named = source.filter((relation) => relation.role);
+  const list = named.length > 0 ? named : source;
+  const seen = new Set<string>();
+  const links: { type: RelationType; role?: string }[] = [];
+  for (const relation of list) {
+    const key = `${relation.type}:${relation.role ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    links.push({ type: relation.type, role: relation.role });
+  }
+  return links;
+}
+
+export function tagLabel(tag: string): string {
+  if (/^[A-Z0-9]+$/.test(tag)) return tag.charAt(0) + tag.slice(1).toLowerCase();
+  return tag;
+}
+
+/** Default element when the user has not picked one. TEXT stays last: it is first in most grammars. */
+export function fallbackTag(tags: readonly string[], prefer: readonly string[]): string {
+  for (const tag of prefer) if (tags.includes(tag)) return tag;
+  return tags.find((tag) => tag !== "TEXT") ?? tags[0] ?? "";
 }
 
 function orgRelations(): GrammarElement["relations"] {

@@ -2,23 +2,32 @@ import { X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { IndexNode } from "@/lib/sdoc/api-types";
 import { ORG_ROLES } from "@/lib/sdoc/grammar";
-import type { Relation } from "@/lib/sdoc/types";
+import type { Relation, RelationType } from "@/lib/sdoc/types";
 
 export function RelationTags({
   relations,
   index,
   selfUid,
   roles,
+  links,
   onChange,
 }: {
   relations: Relation[];
   index: IndexNode[];
   selfUid: string;
   roles?: readonly string[];
+  links?: readonly { type: RelationType; role?: string }[];
   onChange: (relations: Relation[]) => void;
 }) {
-  const choices = roles && roles.length > 0 ? roles : ORG_ROLES;
-  const [role, setRole] = useState(choices[0] ?? "Refines");
+  const specs =
+    links && links.length > 0
+      ? links
+      : (roles && roles.length > 0 ? roles : ORG_ROLES).map((role) => ({ type: "Parent" as const, role }));
+  const keyOf = (spec: { type: RelationType; role?: string }) => `${spec.type}:${spec.role ?? ""}`;
+  const labelOf = (spec: { type: RelationType; role?: string }) =>
+    spec.role ? (spec.type === "Parent" ? spec.role : `${spec.type} ${spec.role}`) : spec.type;
+  const [picked, setPicked] = useState(keyOf(specs[0] ?? { type: "Parent", role: "Refines" }));
+  const spec = specs.find((item) => keyOf(item) === picked) ?? specs[0];
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -35,12 +44,18 @@ export function RelationTags({
   }, [index, query, selfUid]);
 
   function add(uid: string) {
-    if (relations.some((relation) => relation.type === "Parent" && relation.value === uid && (relation.role ?? "") === role)) {
+    const next = spec ?? { type: "Parent" as const, role: "Refines" };
+    if (
+      relations.some(
+        (relation) =>
+          relation.type === next.type && relation.value === uid && (relation.role ?? "") === (next.role ?? ""),
+      )
+    ) {
       setOpen(false);
       setQuery("");
       return;
     }
-    onChange([...relations, { type: "Parent", role, value: uid, line: 1 }]);
+    onChange([...relations, { type: next.type, role: next.role, value: uid, line: 1 }]);
     setQuery("");
     setOpen(false);
   }
@@ -78,13 +93,13 @@ export function RelationTags({
             </label>
             <select
               id={`role-${selfUid || "row"}`}
-              value={choices.includes(role) ? role : (choices[0] ?? "")}
-              onChange={(event) => setRole(event.target.value)}
+              value={specs.some((item) => keyOf(item) === picked) ? picked : keyOf(specs[0] ?? { type: "Parent" })}
+              onChange={(event) => setPicked(event.target.value)}
               className="min-h-11 rounded-md border border-line bg-bg px-1 font-mono text-xs text-fg lg:min-h-8"
             >
-              {choices.map((item) => (
-                <option key={item} value={item}>
-                  {item}
+              {specs.map((item) => (
+                <option key={keyOf(item)} value={keyOf(item)}>
+                  {labelOf(item)}
                 </option>
               ))}
             </select>

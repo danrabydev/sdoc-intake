@@ -1,4 +1,4 @@
-import type { Relation, SDocDocument, SDocNode } from "./types.ts";
+import type { GrammarElement, Relation, SDocDocument, SDocNode } from "./types.ts";
 
 export interface FlatRow {
   node: SDocNode;
@@ -92,6 +92,51 @@ export function placeNode(
   }
   const placed = insertAfter(nodes, selectedUid, created);
   return placed.found ? placed.nodes : [...nodes, created];
+}
+
+/** Selection id. Nodes without a UID use a path key so TEXT can still be chosen. */
+export function selectionKey(node: SDocNode, path: number[]): string {
+  const uid = nodeUid(node);
+  return uid || `#${path.join(".")}`;
+}
+
+export function resolveSelection(nodes: SDocNode[], key: string): FlatRow | undefined {
+  if (!key) return undefined;
+  if (key.startsWith("#")) {
+    const path = key.slice(1);
+    return flatten(nodes).find((row) => row.path.join(".") === path && nodeUid(row.node) === "");
+  }
+  return flatten(nodes).find((row) => nodeUid(row.node) === key);
+}
+
+/** Insert relative to a path. Non-composite targets cannot contain children, so `inside` becomes `after`. */
+export function insertRelative(
+  nodes: SDocNode[],
+  path: number[],
+  created: SDocNode,
+  where: "inside" | "after",
+): SDocNode[] {
+  const target = nodeAt(nodes, path);
+  if (!target) return [...nodes, created];
+  if (where === "inside" && target.composite) {
+    return mapAt(nodes, path, (node) => ({ ...node, children: [...node.children, created] }));
+  }
+  const parentPath = path.slice(0, -1);
+  const index = path[path.length - 1] ?? 0;
+  const list = listAt(nodes, parentPath).slice();
+  list.splice(index + 1, 0, created);
+  return replaceList(nodes, parentPath, list);
+}
+
+export function removeAt(nodes: SDocNode[], path: number[]): SDocNode[] {
+  if (path.length === 0) return nodes;
+  const parentPath = path.slice(0, -1);
+  const index = path[path.length - 1] ?? 0;
+  const list = listAt(nodes, parentPath);
+  if (!list[index]) return nodes;
+  const copy = list.slice();
+  copy.splice(index, 1);
+  return replaceList(nodes, parentPath, copy);
 }
 
 export function joinPrefix(parts: Array<string | undefined>): string {
@@ -254,6 +299,17 @@ export function removeUid(nodes: SDocNode[], uid: string): { nodes: SDocNode[]; 
     return out;
   };
   return { nodes: walk(nodes), removed };
+}
+
+function nodeAt(nodes: SDocNode[], path: number[]): SDocNode | undefined {
+  let list = nodes;
+  let node: SDocNode | undefined;
+  for (const index of path) {
+    node = list[index];
+    if (!node) return undefined;
+    list = node.children;
+  }
+  return node;
 }
 
 function listAt(nodes: SDocNode[], path: number[]): SDocNode[] {
@@ -453,6 +509,51 @@ export function requirementNode(uid: string, title = "", statement = ""): SDocNo
     tag: "REQUIREMENT",
     composite: false,
     legacy: false,
+    line: 1,
+    fields,
+    relations: [],
+    children: [],
+  };
+}
+
+/** A new node for a grammar element. Required fields get a stand-in so the row can be saved. */
+export function grammarNode(element: GrammarElement, uid: string, legacySection: boolean): SDocNode {
+  const fields: SDocNode["fields"] = [];
+  const put = (name: string, value: string) => {
+    if (!value) return;
+    fields.push({ name, value, multiline: value.includes("\n"), line: 1, col: 1 });
+  };
+  const label = element.tag.charAt(0) + element.tag.slice(1).toLowerCase();
+  for (const field of element.fields) {
+    if (field.title === "UID") {
+      if (uid) put("UID", uid);
+      continue;
+    }
+    if (field.title === "TITLE") {
+      put("TITLE", `New ${label}`);
+      continue;
+    }
+    if (!field.required) continue;
+    if ((field.type === "SingleChoice" || field.type === "Choice") && field.options?.[0]) {
+      put(field.title, field.options[0]);
+      continue;
+    }
+    if (field.type === "Integer") {
+      put(field.title, "0");
+      continue;
+    }
+    if (field.type === "Boolean") {
+      put(field.title, "False");
+      continue;
+    }
+    const prose = field.type === "MultiLineString" || field.title === "STATEMENT" || field.title === "DESCRIPTION";
+    put(field.title, prose ? "New." : "New");
+  }
+  const composite = element.composite === true || (element.composite === undefined && element.tag === "SECTION");
+  return {
+    tag: element.tag,
+    composite,
+    legacy: element.tag === "SECTION" && legacySection,
     line: 1,
     fields,
     relations: [],

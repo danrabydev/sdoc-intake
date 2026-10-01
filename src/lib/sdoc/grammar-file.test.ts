@@ -3,11 +3,101 @@ import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { relativeImport } from "./grammar.ts";
+import { elementLinks, fallbackTag, relativeImport, tagLabel } from "./grammar.ts";
+import { fieldOf, grammarNode, insertRelative, removeAt, selectionKey } from "./model.ts";
 import { parse, parseGrammarFile } from "./parse.ts";
 import { detachGrammar, textForWrite } from "./serialize.ts";
 import { createFile, createGrammar, moveDocumentGrammar, readFileView, readGrammar, saveGrammar } from "./store.server.ts";
 import { validate } from "./validate.ts";
+
+test("a grammar node uses the element, including composite and required fields", () => {
+  const release = grammarNode(
+    {
+      tag: "RELEASE",
+      fields: [
+        { title: "UID", type: "String", required: true },
+        { title: "TITLE", type: "String", required: true },
+        { title: "VERSION", type: "String", required: true },
+        { title: "CHANNEL", type: "SingleChoice", required: true, options: ["upkeep", "maintenance"] },
+        { title: "DESCRIPTION", type: "String", required: true },
+        { title: "STATUS", type: "SingleChoice", required: true, options: ["planned", "shipped", "deprecated"] },
+        { title: "DATE", type: "String", required: false },
+      ],
+      relations: [{ type: "Child", role: "Delivers" }],
+    },
+    "REL-1",
+    false,
+  );
+  assert.equal(release.tag, "RELEASE");
+  assert.equal(release.composite, false);
+  assert.equal(fieldOf(release, "UID"), "REL-1");
+  assert.equal(fieldOf(release, "TITLE"), "New Release");
+  assert.equal(fieldOf(release, "VERSION"), "New");
+  assert.equal(fieldOf(release, "CHANNEL"), "upkeep");
+  assert.equal(fieldOf(release, "DESCRIPTION"), "New.");
+  assert.equal(fieldOf(release, "STATUS"), "planned");
+  assert.equal(fieldOf(release, "DATE"), "");
+
+  const section = grammarNode(
+    {
+      tag: "SECTION",
+      composite: true,
+      fields: [
+        { title: "UID", type: "String", required: false },
+        { title: "TITLE", type: "String", required: true },
+      ],
+      relations: [],
+    },
+    "SEC-1",
+    true,
+  );
+  assert.equal(section.composite, true);
+  assert.equal(section.legacy, true);
+
+  const text = grammarNode(
+    { tag: "TEXT", fields: [{ title: "STATEMENT", type: "String", required: true }], relations: [] },
+    "",
+    false,
+  );
+  assert.equal(fieldOf(text, "UID"), "");
+  assert.equal(fieldOf(text, "STATEMENT"), "New.");
+  assert.equal(text.composite, false);
+  const nested = insertRelative([section], [0], text, "inside");
+  assert.equal(nested[0]?.children[0]?.tag, "TEXT");
+  assert.equal(selectionKey(nested[0]!.children[0]!, [0, 0]), "#0.0");
+  const removed = removeAt(nested, [0, 0]);
+  assert.equal(removed[0]?.children.length, 0);
+});
+
+test("links keep the grammar relation type and skip a bare parent when a role exists", () => {
+  const release = elementLinks(
+    [{ tag: "RELEASE", fields: [], relations: [{ type: "Child", role: "Delivers" }] }],
+    "RELEASE",
+  );
+  assert.deepEqual(release, [{ type: "Child", role: "Delivers" }]);
+  const requirement = elementLinks(
+    [
+      {
+        tag: "REQUIREMENT",
+        fields: [],
+        relations: [
+          { type: "Parent" },
+          { type: "Child" },
+          { type: "Parent", role: "Refines" },
+          { type: "Parent", role: "ConformsTo" },
+        ],
+      },
+    ],
+    "REQUIREMENT",
+  );
+  assert.deepEqual(requirement, [
+    { type: "Parent", role: "Refines" },
+    { type: "Parent", role: "ConformsTo" },
+  ]);
+  assert.equal(tagLabel("RELEASE"), "Release");
+  assert.equal(fallbackTag(["TEXT", "SECTION", "RELEASE"], ["REQUIREMENT", "RELEASE", "SECTION"]), "RELEASE");
+  assert.equal(fallbackTag(["TEXT", "SECTION", "REQUIREMENT"], ["REQUIREMENT", "RELEASE", "SECTION"]), "REQUIREMENT");
+});
 
 test("a section grammar element is composite", () => {
   const parsed = parseGrammarFile(`[GRAMMAR]

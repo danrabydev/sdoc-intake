@@ -5,7 +5,7 @@ import { ApiError, createDir, createDoc, createGrammar, deleteDoc, getFile, getG
 import { explicitMode, FS_MODE_KEY, setActiveMode, type FsMode } from "@/lib/sdoc/fs-mode";
 import { resolveGrammarPath, defaultElements } from "@/lib/sdoc/grammar";
 import { buildGraph } from "@/lib/sdoc/graph";
-import { applyUidRenames, collectUids, fieldOf, flatten, mapAt, nextUid, nodeUid, placeNode, prefixChainFor, prefixExpectations, prefixRenames, removeUid, requirementNode, sectionNode, sectionUidPrefix, usesLegacySections, withField, withRelations } from "@/lib/sdoc/model";
+import { applyUidRenames, collectUids, fieldOf, flatten, grammarNode, insertRelative, joinPrefix, mapAt, nextUid, nodePrefixChain, nodeUid, prefixExpectations, prefixRenames, removeAt, removeUid, resolveSelection, sectionUidPrefix, selectionKey, usesLegacySections, withField, withRelations } from "@/lib/sdoc/model";
 import { parseGrammarFile } from "@/lib/sdoc/parse";
 import { detachGrammar, serializeGrammarFile, textForWrite } from "@/lib/sdoc/serialize";
 import type { Grammar, Relation, SDocDocument, SDocIssue, SDocNode } from "@/lib/sdoc/types";
@@ -478,35 +478,66 @@ export function IntakeApp({
     }
   }
 
-  function addNode(kind: "REQUIREMENT" | "SECTION", where: "inside" | "after") {
-    if (!editor?.document) return;
-    const uids = [...editor.siblingUids, ...collectUids(editor.document)];
-    const chain = prefixChainFor(editor.document, selected || undefined, where === "inside");
-    const id =
-      kind === "SECTION"
-        ? nextUid(sectionUidPrefix(chain || editor.document.prefix), uids)
-        : nextUid(chain || editor.document.prefix || "REQ-", uids);
-    const node =
-      kind === "SECTION"
-        ? sectionNode(id, "New section", usesLegacySections(editor.document.nodes))
-        : requirementNode(id, "New requirement", "");
-    const anchor = selected || undefined;
-    mutate((document) => ({
-      ...document,
-      nodes: placeNode(document.nodes, anchor, node, where),
-    }));
-    setSelected(id);
-    onSelect(editor.path, id);
+  function chooseRow(key: string) {
+    if (key.startsWith("#")) {
+      setSelected(key);
+      return;
+    }
+    chooseUid(key);
   }
 
-  function addRootSection() {
+  function addNode(tag: string, where: "inside" | "after") {
     if (!editor?.document) return;
+    const elements = editor.document.grammar.elements.length > 0 ? editor.document.grammar.elements : defaultElements();
+    const element = elements.find((item) => item.tag === tag);
+    if (!element) return;
+    const anchor = resolveSelection(editor.document.nodes, selected);
+    const inside = where === "inside" && Boolean(anchor?.node.composite);
+    const chain = anchor
+      ? nodePrefixChain(editor.document, inside ? [...anchor.path, -1] : anchor.path)
+      : joinPrefix([editor.document.prefix]);
     const uids = [...editor.siblingUids, ...collectUids(editor.document)];
-    const id = nextUid(sectionUidPrefix(editor.document.prefix), uids);
-    const node = sectionNode(id, "New section", usesLegacySections(editor.document.nodes));
+    const hasUid = element.fields.some((field) => field.title === "UID");
+    const id = !hasUid
+      ? ""
+      : nextUid(
+          element.tag === "SECTION"
+            ? sectionUidPrefix(chain || editor.document.prefix)
+            : chain || editor.document.prefix || `${tag.slice(0, 3)}-`,
+          uids,
+        );
+    const node = grammarNode(element, id, element.tag === "SECTION" && usesLegacySections(editor.document.nodes));
+    const nextPath = anchor
+      ? inside
+        ? [...anchor.path, anchor.node.children.length]
+        : [...anchor.path.slice(0, -1), (anchor.path[anchor.path.length - 1] ?? 0) + 1]
+      : [editor.document.nodes.length];
+    mutate((document) => ({
+      ...document,
+      nodes: anchor ? insertRelative(document.nodes, anchor.path, node, where) : [...document.nodes, node],
+    }));
+    setSelected(id || selectionKey(node, nextPath));
+    if (id) onSelect(editor.path, id);
+  }
+
+  function addRoot(tag: string) {
+    if (!editor?.document) return;
+    const elements = editor.document.grammar.elements.length > 0 ? editor.document.grammar.elements : defaultElements();
+    const element = elements.find((item) => item.tag === tag);
+    if (!element) return;
+    const uids = [...editor.siblingUids, ...collectUids(editor.document)];
+    const hasUid = element.fields.some((field) => field.title === "UID");
+    const id = !hasUid
+      ? ""
+      : nextUid(
+          element.tag === "SECTION" ? sectionUidPrefix(editor.document.prefix) : editor.document.prefix || `${tag.slice(0, 3)}-`,
+          uids,
+        );
+    const node = grammarNode(element, id, element.tag === "SECTION" && usesLegacySections(editor.document.nodes));
+    const nextPath = [editor.document.nodes.length];
     mutate((document) => ({ ...document, nodes: [...document.nodes, node] }));
-    setSelected(id);
-    onSelect(editor.path, id);
+    setSelected(id || selectionKey(node, nextPath));
+    if (id) onSelect(editor.path, id);
   }
 
   function setSectionPrefix(uid: string, value: string) {
@@ -647,8 +678,9 @@ export function IntakeApp({
 
   function deleteSelected() {
     if (!editor?.document || !selected) return;
-    const row = flatten(editor.document.nodes).find((item) => nodeUid(item.node) === selected);
-    const doomed = new Set(row ? uidsUnder(row.node) : [selected]);
+    const row = resolveSelection(editor.document.nodes, selected);
+    if (!row) return;
+    const doomed = new Set(uidsUnder(row.node));
     const incoming = catalog.filter(
       (node) =>
         node.file !== editor.path &&
@@ -661,11 +693,12 @@ export function IntakeApp({
       if (!proceed) return;
       setForceNext(true);
     }
-    const uid = selected;
+    const uid = nodeUid(row.node);
+    const path = row.path;
     mutate((document) => {
       let nodes = document.nodes;
       for (const id of doomed) nodes = stripParents(nodes, id);
-      return { ...document, nodes: removeUid(nodes, uid).nodes };
+      return { ...document, nodes: uid ? removeUid(nodes, uid).nodes : removeAt(nodes, path) };
     });
     setSelected("");
   }
@@ -968,7 +1001,7 @@ export function IntakeApp({
               document={editor.document}
               selected={selected}
               index={catalog}
-              onSelect={(next) => chooseUid(next)}
+              onSelect={(next) => chooseRow(next)}
               onField={(path, name, value) => {
                 mutate((document) => ({
                   ...document,
@@ -1045,9 +1078,9 @@ export function IntakeApp({
               <Outline
                 document={editor.document}
                 selected={selected}
-                onSelect={(uid) => chooseUid(uid)}
+                onSelect={(uid) => chooseRow(uid)}
                 onChange={(nodes) => mutate((document) => ({ ...document, nodes }))}
-                onAddRootSection={addRootSection}
+                onAddRoot={addRoot}
                 onFix={(uid) => {
                   void applyPrefixFix(uid);
                 }}

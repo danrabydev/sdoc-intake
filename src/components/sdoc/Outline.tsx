@@ -1,12 +1,14 @@
-import { fieldOf, flatten, indentNode, moveNode, nodeUid, outdentNode, outlineNumbers, prefixExpectations, reorderSibling } from "@/lib/sdoc/model";
+import { fieldOf, flatten, indentNode, moveNode, nodeUid, outdentNode, outlineNumbers, prefixExpectations, reorderSibling, selectionKey } from "@/lib/sdoc/model";
+import { fallbackTag, tagLabel } from "@/lib/sdoc/grammar";
 import type { SDocDocument, SDocNode } from "@/lib/sdoc/types";
+import { useState } from "react";
 
 export function Outline({
   document,
   selected,
   onSelect,
   onChange,
-  onAddRootSection,
+  onAddRoot,
   onFix,
   onSectionPrefix,
 }: {
@@ -14,7 +16,7 @@ export function Outline({
   selected: string;
   onSelect: (uid: string) => void;
   onChange: (nodes: SDocNode[]) => void;
-  onAddRootSection: () => void;
+  onAddRoot: (tag: string) => void;
   onFix: (uid: string) => void;
   onSectionPrefix: (uid: string, value: string) => void;
 }) {
@@ -33,6 +35,10 @@ export function Outline({
   const canIn = Boolean(previous?.composite);
   const canOut = Boolean(row && row.path.length > 1);
 
+  const tags = document.grammar.elements.map((element) => element.tag);
+  const [picked, setPicked] = useState("");
+  const addTag = tags.includes(picked) ? picked : fallbackTag(tags, ["SECTION", "REQUIREMENT", "RELEASE"]);
+
   function apply(next: { nodes: SDocNode[]; ok: boolean } | SDocNode[]) {
     if (Array.isArray(next)) onChange(next);
     else if (next.ok) onChange(next.nodes);
@@ -42,22 +48,39 @@ export function Outline({
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
         <p className="text-xs text-muted">Document outline</p>
-        <button
-          type="button"
-          onClick={onAddRootSection}
-          className="min-h-9 rounded-md border border-line px-2 text-xs text-fg"
-        >
-          Section at root
-        </button>
+        <div className="flex items-center gap-1">
+          <select
+            aria-label="Element to add at the root"
+            value={addTag}
+            onChange={(event) => setPicked(event.target.value)}
+            disabled={tags.length === 0}
+            className="min-h-9 max-w-28 rounded-md border border-line bg-bg px-1 text-xs text-fg disabled:opacity-40"
+          >
+            {document.grammar.elements.map((element) => (
+              <option key={element.tag} value={element.tag}>
+                {tagLabel(element.tag)}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            disabled={!addTag}
+            onClick={() => onAddRoot(addTag)}
+            className="min-h-9 rounded-md border border-line px-2 text-xs text-fg disabled:opacity-40"
+          >
+            At root
+          </button>
+        </div>
       </div>
       <ul className="min-h-0 flex-1 overflow-y-auto py-1">
         {rows.length === 0 ? <li className="px-3 py-6 text-sm text-muted">No nodes yet.</li> : null}
         {rows.map((item) => {
           const uid = nodeUid(item.node);
+          const pick = selectionKey(item.node, item.path);
           const title = fieldOf(item.node, "TITLE") || fieldOf(item.node, "STATEMENT").split("\n")[0] || "Untitled";
           const number = numbers.get(item.path.join("."));
           const expected = prefixes.get(uid);
-          const active = uid !== "" && uid === selected;
+          const active = pick === selected;
           return (
             <li key={item.path.join(".")}>
               <div
@@ -68,7 +91,7 @@ export function Outline({
               >
                 <button
                   type="button"
-                  onClick={() => uid && onSelect(uid)}
+                  onClick={() => onSelect(pick)}
                   className="flex min-h-9 min-w-0 flex-1 items-baseline gap-2 text-left"
                 >
                   <span className="w-14 shrink-0 font-mono text-[10px] tabular-nums text-accent">{number ?? ""}</span>
