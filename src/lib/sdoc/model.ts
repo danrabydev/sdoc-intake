@@ -1,3 +1,4 @@
+import type { IndexNode } from "./api-types.ts";
 import type { GrammarElement, Relation, SDocDocument, SDocNode } from "./types.ts";
 
 export interface FlatRow {
@@ -12,6 +13,47 @@ export function fieldOf(node: SDocNode, name: string): string {
 
 export function nodeUid(node: SDocNode): string {
   return fieldOf(node, "UID");
+}
+
+/** Flat index of a document, with each node pointing at the section that contains it. */
+export function indexDocument(file: string, document: SDocDocument): IndexNode[] {
+  const out: IndexNode[] = [];
+  if (document.uid) {
+    out.push({
+      uid: document.uid,
+      title: document.title,
+      file,
+      tag: "DOCUMENT",
+      statement: "",
+      relations: [],
+    });
+  }
+  const walk = (list: SDocNode[], parent: string) => {
+    for (const node of list) {
+      const uid = nodeUid(node);
+      if (uid) {
+        const statement = fieldOf(node, "STATEMENT");
+        out.push({
+          uid,
+          title: fieldOf(node, "TITLE") || statement.split("\n").find((line) => line.trim())?.trim() || "",
+          file,
+          tag: node.tag,
+          statement,
+          relations: node.relations.map((relation) => ({
+            type: relation.type,
+            role: relation.role,
+            value: relation.value,
+          })),
+          parent,
+          composite: Boolean(node.composite || node.tag === "SECTION"),
+        });
+      }
+      const next = node.composite && uid ? uid : parent;
+      if (node.children.length > 0) walk(node.children, next);
+    }
+  };
+  walk(document.nodes, "");
+  return out;
 }
 
 export function flatten(nodes: SDocNode[], depth = 0, prefix: number[] = []): FlatRow[] {

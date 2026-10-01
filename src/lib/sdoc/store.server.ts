@@ -12,6 +12,7 @@ import {
   fieldOf,
   flatten,
   insertAfter,
+  indexDocument,
   nextUid,
   nodeUid,
   parentEdges,
@@ -199,42 +200,11 @@ function contextFor(project: Project, rel: string, flags: WriteFlags & { mode: "
   };
 }
 
-function firstLine(value: string): string {
-  const line = value.split("\n").find((item) => item.trim().length > 0) ?? "";
-  return line.trim();
-}
-
 function indexNodes(all: CorpusFile[]): IndexNode[] {
   const nodes: IndexNode[] = [];
   for (const file of all) {
-    const doc = file.parsed.document;
-    if (!doc) continue;
-    if (doc.uid) {
-      nodes.push({
-        uid: doc.uid,
-        title: doc.title,
-        file: file.rel,
-        tag: "DOCUMENT",
-        statement: "",
-        relations: [],
-      });
-    }
-    for (const row of flatten(doc.nodes)) {
-      const uid = nodeUid(row.node);
-      if (!uid) continue;
-      nodes.push({
-        uid,
-        title: fieldOf(row.node, "TITLE") || firstLine(fieldOf(row.node, "STATEMENT")),
-        file: file.rel,
-        tag: row.node.tag,
-        statement: fieldOf(row.node, "STATEMENT"),
-        relations: row.node.relations.map((relation) => ({
-          type: relation.type,
-          role: relation.role,
-          value: relation.value,
-        })),
-      });
-    }
+    if (!file.parsed.document) continue;
+    nodes.push(...indexDocument(file.rel, file.parsed.document));
   }
   return nodes;
 }

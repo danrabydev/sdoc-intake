@@ -6,6 +6,11 @@ const NODE_H = 56;
 const GAP_X = 88;
 const GAP_Y = 14;
 const PAD = 28;
+const INSET = 16;
+
+function boxWidth(depth: number | undefined): number {
+  return Math.max(120, NODE_W - (depth ?? 0) * INSET);
+}
 
 function edgeColor(role: string): string {
   if (role === "Refines") return "#e2a227";
@@ -29,10 +34,10 @@ export function Diagram({
   onEdge: (edge: DiagramEdge) => void;
 }) {
   const [hover, setHover] = useState("");
-  const placed = useMemo(() => layout(nodes), [nodes]);
+  const placed = useMemo(() => layout(nodes, edges), [nodes, edges]);
   const at = useMemo(() => new Map(placed.map((node) => [node.id, node])), [placed]);
-  const width = Math.max(lanes.length, 1) * (NODE_W + GAP_X) + PAD;
-  const height = Math.max(...placed.map((node) => node.y), 0) + NODE_H + PAD * 2;
+  const width = Math.max(PAD * 2, ...placed.map((node) => node.x + boxWidth(node.depth) + PAD), lanes.length * (NODE_W + GAP_X));
+  const height = Math.max(160, ...placed.map((node) => node.y), 0) + NODE_H + PAD;
 
   return (
     <svg
@@ -61,7 +66,7 @@ export function Diagram({
         const to = at.get(edge.to);
         if (!from || !to) return null;
         const live = edge.hot || hover === edge.from || hover === edge.to || hover === edge.id;
-        const x1 = from.x + NODE_W;
+        const x1 = from.x + boxWidth(from.depth);
         const y1 = from.y + NODE_H / 2;
         const x2 = to.x;
         const y2 = to.y + NODE_H / 2;
@@ -121,7 +126,7 @@ export function Diagram({
             <rect
               x={node.x}
               y={node.y}
-              width={NODE_W}
+              width={boxWidth(node.depth)}
               height={NODE_H}
               rx={6}
               fill={node.kind === "bundle" ? "#181e24" : "#212932"}
@@ -155,7 +160,24 @@ export function Diagram({
   );
 }
 
-function layout(nodes: DiagramNode[]): (DiagramNode & { x: number; y: number })[] {
+const PITCH = NODE_H + GAP_Y;
+const GROUP_GAP = 22;
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) return sorted[mid] ?? 0;
+  return ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2;
+}
+
+function gapBefore(node: DiagramNode, prev: DiagramNode | undefined): number {
+  if (!prev) return 0;
+  if ((node.depth ?? 0) === 0 && (node.file !== prev.file || (prev.depth ?? 0) > 0)) return GROUP_GAP;
+  return 0;
+}
+
+/** Place boxes again from the visible groups. Order inside a group stays put; gaps open so links line up. */
+function layout(nodes: DiagramNode[], edges: DiagramEdge[]): (DiagramNode & { x: number; y: number })[] {
   const columns = new Map<number, DiagramNode[]>();
   for (const node of nodes) {
     const list = columns.get(node.column) ?? [];
@@ -163,17 +185,88 @@ function layout(nodes: DiagramNode[]): (DiagramNode & { x: number; y: number })[
     columns.set(node.column, list);
   }
   for (const list of columns.values()) {
-    list.sort((a, b) => Number(b.focus) - Number(a.focus) || a.file.localeCompare(b.file) || a.title.localeCompare(b.title));
+    list.sort((a, b) => {
+      if (a.order != null || b.order != null) return (a.order ?? 0) - (b.order ?? 0);
+      return Number(b.focus) - Number(a.focus) || a.file.localeCompare(b.file) || a.title.localeCompare(b.title);
+    });
   }
+
+  const yOf = new Map<string, number>();
+  for (const list of columns.values()) {
+    let y = PAD;
+    let prev: DiagramNode | undefined;
+    for (const node of list) {
+      y += gapBefore(node, prev);
+      yOf.set(node.id, y);
+      y += PITCH;
+      prev = node;
+    }
+  }
+
+  const columnOf = new Map(nodes.map((node) => [node.id, node.column]));
+  const neighborYs = (id: string): number[] => {
+    const column = columnOf.get(id);
+    const ys: number[] = [];
+    for (const edge of edges) {
+      const other = edge.from === id ? edge.to : edge.to === id ? edge.from : "";
+      if (!other || columnOf.get(other) === column) continue;
+      const y = yOf.get(other);
+      if (y != null) ys.push(y);
+    }
+    return ys;
+  };
+
+  const sweep = (topDown: boolean) => {
+    for (const list of columns.values()) {
+      const ideals = list.map((node) => {
+        const ys = neighborYs(node.id);
+        return ys.length > 0 ? median(ys) : null;
+      });
+      if (topDown) {
+        let cursor = PAD;
+        let prev: DiagramNode | undefined;
+        list.forEach((node, index) => {
+          cursor += gapBefore(node, prev);
+          const ideal = ideals[index];
+          const y = ideal == null ? cursor : Math.max(cursor, ideal);
+          yOf.set(node.id, y);
+          cursor = y + PITCH;
+          prev = node;
+        });
+        continue;
+      }
+      for (let index = list.length - 1; index >= 0; index -= 1) {
+        const node = list[index];
+        const prev = list[index - 1];
+        const next = list[index + 1];
+        if (!node) continue;
+        const minY = prev ? (yOf.get(prev.id) ?? PAD) + PITCH + gapBefore(node, prev) : PAD;
+        const maxY = next ? (yOf.get(next.id) ?? minY) - PITCH - gapBefore(next, node) : Number.POSITIVE_INFINITY;
+        const ideal = ideals[index] ?? yOf.get(node.id) ?? minY;
+        yOf.set(node.id, Math.min(maxY, Math.max(minY, ideal)));
+      }
+    }
+  };
+
+  for (let pass = 0; pass < 9; pass += 1) {
+    sweep(pass % 2 === 0);
+    let min = Number.POSITIVE_INFINITY;
+    for (const y of yOf.values()) min = Math.min(min, y);
+    if (Number.isFinite(min) && min !== PAD) {
+      const delta = PAD - min;
+      for (const [id, y] of yOf) yOf.set(id, y + delta);
+    }
+  }
+
   const out: (DiagramNode & { x: number; y: number })[] = [];
   for (const [column, list] of columns) {
-    list.forEach((node, index) => {
+    for (const node of list) {
       out.push({
         ...node,
-        x: PAD + column * (NODE_W + GAP_X),
-        y: PAD + index * (NODE_H + GAP_Y),
+        x: PAD + column * (NODE_W + GAP_X) + (node.depth ?? 0) * INSET,
+        y: yOf.get(node.id) ?? PAD,
       });
-    });
+    }
   }
   return out;
 }

@@ -21,13 +21,21 @@ export function FlowMap({
   file?: string;
   onPick: (uid: string, file: string) => void;
 }) {
-  const fileIds = useMemo(() => flowDiagram(nodes, focus, file).nodes.map((node) => node.file), [nodes, focus, file]);
+  const expandable = useMemo(() => {
+    const files = new Set(flowDiagram(nodes, focus, file).nodes.map((node) => node.file));
+    const ids = new Set(files);
+    for (const node of nodes) {
+      if (!node.uid || !files.has(node.file)) continue;
+      if (node.composite || node.tag === "SECTION") ids.add(node.uid);
+    }
+    return [...ids];
+  }, [nodes, focus, file]);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const model = useMemo(() => flowDiagram(nodes, focus, file, expanded), [nodes, focus, file, expanded]);
   const [edgeId, setEdgeId] = useState("");
   const links = model.links.get(edgeId) ?? [];
   const roles = [...new Set(model.edges.map((edge) => edge.role))];
-  const allOpen = fileIds.length > 0 && fileIds.every((id) => expanded.has(id));
+  const allOpen = expandable.length > 0 && expandable.every((id) => expanded.has(id));
 
   function toggle(id: string) {
     setExpanded((current) => {
@@ -45,13 +53,13 @@ export function FlowMap({
         <p className="text-xs text-muted">
           {model.nodes.length === 0
             ? "No cross-file links yet."
-            : "Click a document to show its nodes. Click a node to open it."}
+            : "Click a file or section to open it. The group stays around its children."}
         </p>
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          {fileIds.length > 0 ? (
+          {expandable.length > 0 ? (
             <button
               type="button"
-              onClick={() => setExpanded(allOpen ? new Set() : new Set(fileIds))}
+              onClick={() => setExpanded(allOpen ? new Set() : new Set(expandable))}
               className="min-h-11 rounded-md border border-line px-2 text-xs text-muted"
             >
               {allOpen ? "Collapse" : "Show all"}
@@ -72,7 +80,7 @@ export function FlowMap({
             edges={model.edges}
             onNode={(node) => {
               if (node.kind === "bundle") {
-                toggle(node.file);
+                toggle(node.uid || node.file);
                 return;
               }
               if (node.uid && node.file) onPick(node.uid, node.file);

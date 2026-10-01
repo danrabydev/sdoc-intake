@@ -10,6 +10,10 @@ export interface DiagramNode {
   file: string;
   focus: boolean;
   hot: boolean;
+  /** Stack order inside a column. Trace leaves this unset. */
+  order?: number;
+  /** Nesting under a file or section. */
+  depth?: number;
 }
 
 export interface DiagramEdge {
@@ -137,42 +141,60 @@ export function flowDiagram(
     }
   }
 
-  const membersOf = new Map<string, IndexNode[]>();
-  const open = new Set<string>();
-  for (const file of files) {
-    const members = [...byUid.values()]
-      .filter((node) => node.file === file && node.tag !== "DOCUMENT")
-      .sort((a, b) => a.uid.localeCompare(b.uid));
-    membersOf.set(file, members);
-    if (expanded.has(file) && members.length > 0) open.add(file);
+  const parentOf = new Map<string, string>();
+  const compositeOf = new Set<string>();
+  for (const node of byUid.values()) {
+    if (node.parent) parentOf.set(node.uid, node.parent);
+    if (node.composite || node.tag === "SECTION") compositeOf.add(node.uid);
   }
+  const childrenOf = new Map<string, IndexNode[]>();
+  for (const file of files) {
+    const seen = new Set<string>();
+    for (const node of nodes) {
+      if (node.file !== file || !node.uid || node.tag === "DOCUMENT" || seen.has(node.uid)) continue;
+      seen.add(node.uid);
+      const parent = parentOf.get(node.uid) ?? "";
+      const key = `${file}\n${parent}`;
+      const list = childrenOf.get(key) ?? [];
+      list.push(node);
+      childrenOf.set(key, list);
+    }
+  }
+  const childList = (file: string, parent: string) => childrenOf.get(`${file}\n${parent}`) ?? [];
+  const seenAncestors = new Set<string>();
+  const ancestorsOpen = (uid: string): boolean => {
+    seenAncestors.clear();
+    let parent = parentOf.get(uid) ?? "";
+    while (parent && !seenAncestors.has(parent)) {
+      seenAncestors.add(parent);
+      if (compositeOf.has(parent) && !expanded.has(parent)) return false;
+      parent = parentOf.get(parent) ?? "";
+    }
+    return true;
+  };
+  const anchor = (uid: string, file: string): string => {
+    if (!expanded.has(file)) return file;
+    const seen = new Set<string>();
+    let current = uid;
+    while (current && !seen.has(current)) {
+      seen.add(current);
+      const node = byUid.get(current);
+      if (node && node.file === file && ancestorsOpen(current)) return `n:${current}`;
+      current = parentOf.get(current) ?? "";
+    }
+    return file;
+  };
 
   const links = new Map<string, DiagramLink[]>();
   const grouped = new Map<string, { from: string; to: string; role: string; fromFile: string; toFile: string; links: DiagramLink[] }>();
   for (const bucket of buckets.values()) {
-    const fromOpen = open.has(bucket.from);
-    const toOpen = open.has(bucket.to);
-    if (!fromOpen && !toOpen) {
-      const id = `${bucket.from}|${bucket.role}|${bucket.to}`;
-      grouped.set(id, {
-        from: bucket.from,
-        to: bucket.to,
-        role: bucket.role,
-        fromFile: bucket.from,
-        toFile: bucket.to,
-        links: bucket.links,
-      });
-      continue;
-    }
     for (const link of bucket.links) {
-      const from = fromOpen ? `n:${link.fromUid}` : bucket.from;
-      const to = toOpen ? `n:${link.toUid}` : bucket.to;
+      const from = anchor(link.fromUid, bucket.from);
+      const to = anchor(link.toUid, bucket.to);
       const id = `${from}|${bucket.role}|${to}`;
       const existing = grouped.get(id);
       if (existing) existing.links.push(link);
-      else {
-        grouped.set(id, { from, to, role: bucket.role, fromFile: bucket.from, toFile: bucket.to, links: [link] });
-      }
+      else grouped.set(id, { from, to, role: bucket.role, fromFile: bucket.from, toFile: bucket.to, links: [link] });
     }
   }
   const edges: DiagramEdge[] = [...grouped.values()]
@@ -181,51 +203,60 @@ export function flowDiagram(
       const id = `${bucket.from}|${bucket.role}|${bucket.to}`;
       links.set(id, bucket.links);
       const hot = Boolean(focusFile) && (bucket.fromFile === focusFile || bucket.toFile === focusFile);
+      const collapsed = bucket.from === bucket.fromFile && bucket.to === bucket.toFile;
       return {
         id,
         from: bucket.from,
         to: bucket.to,
-        label:
-          bucket.links.length > 1 || (bucket.from === bucket.fromFile && bucket.to === bucket.toFile)
-            ? `${bucket.role} ${bucket.links.length}`
-            : bucket.role,
+        label: bucket.links.length > 1 || collapsed ? `${bucket.role} ${bucket.links.length}` : bucket.role,
         role: bucket.role,
         hot,
       };
     });
 
   const nodesOut: DiagramNode[] = [];
-  for (const file of files) {
-    const column = columnOf.get(file) ?? 0;
-    const members = membersOf.get(file) ?? [];
-    const doc = docOf.get(file);
-    if (!open.has(file)) {
-      nodesOut.push({
-        id: file,
-        column,
-        title: clip(doc?.title || shortFile(file), 26),
-        sub: `${members.length} nodes`,
-        kind: "bundle",
-        uid: "",
-        file,
-        focus: file === focusFile,
-        hot: !focusFile || hotFiles.has(file),
-      });
-      continue;
-    }
-    for (const member of members) {
+  let order = 0;
+  const emitChildren = (file: string, parent: string, depth: number, column: number) => {
+    for (const member of childList(file, parent)) {
+      const group = compositeOf.has(member.uid);
+      const kids = childList(file, member.uid);
       nodesOut.push({
         id: `n:${member.uid}`,
         column,
-        title: clip(member.uid, 26),
-        sub: clip(member.title && member.title !== member.uid ? member.title : member.tag, 34),
-        kind: "item",
+        order: order++,
+        depth,
+        title: clip(group ? member.title || member.uid : member.uid, 26),
+        sub: group ? `${kids.length} nodes` : clip(member.title && member.title !== member.uid ? member.title : member.tag, 34),
+        kind: group ? "bundle" : "item",
         uid: member.uid,
         file,
         focus: member.uid === focus,
         hot: !focusFile || hotFiles.has(file),
       });
+      if (group && expanded.has(member.uid)) emitChildren(file, member.uid, depth + 1, column);
     }
+  };
+  for (const file of files) {
+    const column = columnOf.get(file) ?? 0;
+    const doc = docOf.get(file);
+    const count = nodes.reduce(
+      (sum, node) => (node.file === file && node.uid && node.tag !== "DOCUMENT" ? sum + 1 : sum),
+      0,
+    );
+    nodesOut.push({
+      id: file,
+      column,
+      order: order++,
+      depth: 0,
+      title: clip(doc?.title || shortFile(file), 26),
+      sub: `${count} nodes`,
+      kind: "bundle",
+      uid: "",
+      file,
+      focus: file === focusFile && !expanded.has(file),
+      hot: !focusFile || hotFiles.has(file),
+    });
+    if (expanded.has(file) && count > 0) emitChildren(file, "", 1, column);
   }
 
   const laneCount = Math.max(0, ...nodesOut.map((node) => node.column)) + (nodesOut.length > 0 ? 1 : 0);

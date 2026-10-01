@@ -1,7 +1,7 @@
 import type { FileResponse, GrammarResponse, IndexNode, TreeResponse } from "./api-types.ts";
 import { ApiError } from "./api-error.ts";
 import { defaultElements, defaultGrammar, resolveGrammarPath } from "./grammar.ts";
-import { collectUids, fieldOf, flatten, nodeUid, parentEdges } from "./model.ts";
+import { collectUids, flatten, indexDocument, nodeUid, parentEdges } from "./model.ts";
 import { parse, parseGrammarFile } from "./parse.ts";
 import { detachGrammar, serializeGrammarFile, textForWrite } from "./serialize.ts";
 import type { Grammar, SDocDocument, SDocIssue, ValidateOptions } from "./types.ts";
@@ -220,34 +220,11 @@ function contextFor(project: Project, rel: string, flags: { mode: "read" | "writ
   };
 }
 
-function firstLine(value: string): string {
-  return (value.split("\n").find((item) => item.trim().length > 0) ?? "").trim();
-}
-
 function indexNodes(all: HeldFile[]): IndexNode[] {
   const nodes: IndexNode[] = [];
   for (const file of all) {
-    const doc = file.parsed.document;
-    if (!doc) continue;
-    if (doc.uid) {
-      nodes.push({ uid: doc.uid, title: doc.title, file: file.rel, tag: "DOCUMENT", statement: "", relations: [] });
-    }
-    for (const row of flatten(doc.nodes)) {
-      const uid = nodeUid(row.node);
-      if (!uid) continue;
-      nodes.push({
-        uid,
-        title: fieldOf(row.node, "TITLE") || firstLine(fieldOf(row.node, "STATEMENT")),
-        file: file.rel,
-        tag: row.node.tag,
-        statement: fieldOf(row.node, "STATEMENT"),
-        relations: row.node.relations.map((relation) => ({
-          type: relation.type,
-          role: relation.role,
-          value: relation.value,
-        })),
-      });
-    }
+    if (!file.parsed.document) continue;
+    nodes.push(...indexDocument(file.rel, file.parsed.document));
   }
   return nodes;
 }

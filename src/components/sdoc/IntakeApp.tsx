@@ -5,7 +5,7 @@ import { ApiError, createDir, createDoc, createGrammar, deleteDoc, getFile, getG
 import { explicitMode, FS_MODE_KEY, setActiveMode, type FsMode } from "@/lib/sdoc/fs-mode";
 import { resolveGrammarPath, defaultElements } from "@/lib/sdoc/grammar";
 import { buildGraph } from "@/lib/sdoc/graph";
-import { applyUidRenames, collectUids, fieldOf, flatten, grammarNode, insertRelative, joinPrefix, mapAt, nextUid, nodePrefixChain, nodeUid, prefixExpectations, prefixRenames, removeAt, removeUid, resolveSelection, sectionUidPrefix, selectionKey, usesLegacySections, withField, withRelations } from "@/lib/sdoc/model";
+import { applyUidRenames, collectUids, flatten, grammarNode, indexDocument, insertRelative, joinPrefix, mapAt, nextUid, nodePrefixChain, nodeUid, prefixExpectations, prefixRenames, removeAt, removeUid, resolveSelection, sectionUidPrefix, selectionKey, usesLegacySections, withField, withRelations } from "@/lib/sdoc/model";
 import { parse, parseGrammarFile } from "@/lib/sdoc/parse";
 import { detachGrammar, serializeGrammarFile, textForWrite } from "@/lib/sdoc/serialize";
 import type { Grammar, Relation, SDocDocument, SDocIssue, SDocNode } from "@/lib/sdoc/types";
@@ -49,35 +49,7 @@ function uidsUnder(node: SDocNode): string[] {
 function liveIndex(index: IndexNode[], editor: Editor | null): IndexNode[] {
   if (!editor?.document || editor.parseFailed) return index;
   const others = index.filter((node) => node.file !== editor.path);
-  const local: IndexNode[] = [];
-  if (editor.document.uid) {
-    local.push({
-      uid: editor.document.uid,
-      title: editor.document.title,
-      file: editor.path,
-      tag: "DOCUMENT",
-      statement: "",
-      relations: [],
-    });
-  }
-  for (const row of flatten(editor.document.nodes)) {
-    const uid = nodeUid(row.node);
-    if (!uid) continue;
-    const statement = fieldOf(row.node, "STATEMENT");
-    local.push({
-      uid,
-      title: fieldOf(row.node, "TITLE") || statement.split("\n").find((line) => line.trim()) || "",
-      file: editor.path,
-      tag: row.node.tag,
-      statement,
-      relations: row.node.relations.map((relation) => ({
-        type: relation.type,
-        role: relation.role,
-        value: relation.value,
-      })),
-    });
-  }
-  return [...others, ...local];
+  return [...others, ...indexDocument(editor.path, editor.document)];
 }
 
 function editorFromView(

@@ -13,6 +13,10 @@ export interface IndexNode {
   tag: string;
   statement: string;
   relations: IndexRelation[];
+  /** UID of the containing section. Empty when the node sits on the document. */
+  parent?: string;
+  /** A file section, or any other composite, that groups the nodes under it. */
+  composite?: boolean;
 }
 
 export interface TreeFile {
