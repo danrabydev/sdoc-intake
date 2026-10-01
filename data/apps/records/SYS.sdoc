@@ -1,0 +1,342 @@
+[DOCUMENT]
+TITLE: Records
+UID: APP-REC
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: REC-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Official records, retention, hold, and privacy requests for Northline.
+
+[[SECTION]]
+UID: REC-SEC-CAP
+PREFIX: CAP
+TITLE: Capture
+
+[REQUIREMENT]
+UID: REC-CAP-001
+TITLE: Declare a record
+STATEMENT: Records shall store an official record with its classification, owner, and retention schedule.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-16
+
+[REQUIREMENT]
+UID: REC-CAP-002
+TITLE: Immutable content
+STATEMENT: Records shall keep the bytes of a declared record unchanged.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-7
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222596
+
+[REQUIREMENT]
+UID: REC-CAP-003
+TITLE: Classification
+STATEMENT: Records shall require a classification before a file enters an official repository.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-16
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-3
+
+[REQUIREMENT]
+UID: REC-CAP-004
+TITLE: Version
+STATEMENT: Records shall keep prior versions of a record that was superseded.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+
+[REQUIREMENT]
+UID: REC-CAP-005
+TITLE: Source system
+STATEMENT: Records shall record which system declared the record.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: REC-CAP-006
+TITLE: Bulk import
+STATEMENT: Records shall reject a bulk import that has no owner.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+[[/SECTION]]
+
+[[SECTION]]
+UID: REC-SEC-RET
+PREFIX: RET
+TITLE: Retention and hold
+
+[REQUIREMENT]
+UID: REC-RET-001
+TITLE: Schedule
+STATEMENT: Records shall apply the retention schedule attached to the record category.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-11
+
+[REQUIREMENT]
+UID: REC-RET-002
+TITLE: Disposition approval
+STATEMENT: Records shall require approval before destroying a record that has reached the end of retention.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: MP-6
+
+[REQUIREMENT]
+UID: REC-RET-003
+TITLE: Hold flag
+STATEMENT: Records shall stop disposition of a record while a legal hold names it.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-11
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222601
+
+[REQUIREMENT]
+UID: REC-RET-004
+TITLE: Hold release
+STATEMENT: Records shall resume the schedule only after the hold is released by the counsel role.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-11
+
+[REQUIREMENT]
+UID: REC-RET-005
+TITLE: Destruction proof
+STATEMENT: Records shall record who destroyed a record and when.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: MP-6
+
+[REQUIREMENT]
+UID: REC-RET-006
+TITLE: Hold notice
+STATEMENT: Records shall notify the record owner when a hold is placed.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-6
+[[/SECTION]]
+
+[[SECTION]]
+UID: REC-SEC-PRV
+PREFIX: PRV
+TITLE: Privacy
+
+[REQUIREMENT]
+UID: REC-PRV-001
+TITLE: Purpose
+STATEMENT: Records shall record the purpose for which personal information was collected.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+
+[REQUIREMENT]
+UID: REC-PRV-002
+TITLE: Consent record
+STATEMENT: Records shall store the consent text and the time it was given.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+
+[REQUIREMENT]
+UID: REC-PRV-003
+TITLE: Consent withdrawal
+STATEMENT: Records shall stop optional processing when consent is withdrawn.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+
+[REQUIREMENT]
+UID: REC-PRV-004
+TITLE: Subject request
+STATEMENT: Records shall open a subject-access case and track its due date.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-1
+
+[REQUIREMENT]
+UID: REC-PRV-005
+TITLE: Export for the subject
+STATEMENT: Records shall export the information held about a person in a readable file.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-1
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: REC-PRV-006
+TITLE: De-identify
+STATEMENT: Records shall remove direct identifiers before a data set is released to analytics.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CRY-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-12
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222602
+
+[REQUIREMENT]
+UID: REC-PRV-007
+TITLE: Minimum necessary
+STATEMENT: Records shall not return fields the caller's purpose does not need.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+[[/SECTION]]

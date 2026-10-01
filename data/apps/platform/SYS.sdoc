@@ -1,0 +1,982 @@
+[DOCUMENT]
+TITLE: Northline platform
+UID: APP-PLT
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: PLT-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Shared platform obligations. Each requirement refines a capability and conforms to NIST SP 800-53. Some also conform to an ASD STIG rule.
+
+[[SECTION]]
+UID: PLT-SEC-ID
+PREFIX: ID
+TITLE: Identity services
+
+[REQUIREMENT]
+UID: PLT-ID-001
+TITLE: Phishing-resistant workforce authenticator
+STATEMENT: The identity service shall require a phishing-resistant authenticator for every privileged workforce session.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2.1
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2.2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222399
+
+[REQUIREMENT]
+UID: PLT-ID-002
+TITLE: Customer authenticator
+STATEMENT: The identity service shall authenticate a customer with an authenticator bound to that customer.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-5
+
+[REQUIREMENT]
+UID: PLT-ID-003
+TITLE: Account record
+STATEMENT: The identity service shall keep one account record for each person or non-person identity.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+
+[REQUIREMENT]
+UID: PLT-ID-004
+TITLE: Disable departed accounts
+STATEMENT: The identity service shall disable an account when the joiner-mover-leaver feed says the person has left.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2.3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PS-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222400
+
+[REQUIREMENT]
+UID: PLT-ID-005
+TITLE: Federated sign-in
+STATEMENT: The identity service shall accept a partner assertion only from a registered issuer.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-8
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-20
+
+[REQUIREMENT]
+UID: PLT-ID-006
+TITLE: Session lifetime
+STATEMENT: The identity service shall end a session at the configured idle time and when the user signs out.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-11
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-12
+
+[REQUIREMENT]
+UID: PLT-ID-007
+TITLE: Break-glass account
+STATEMENT: The identity service shall issue a break-glass credential that expires and is alerted on use.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-007
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222403
+
+[REQUIREMENT]
+UID: PLT-ID-008
+TITLE: Service identity
+STATEMENT: The identity service shall identify a workload with a credential that is not a shared password.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-5
+[[/SECTION]]
+
+[[SECTION]]
+UID: PLT-SEC-AUD
+PREFIX: AUD
+TITLE: Audit
+
+[REQUIREMENT]
+UID: PLT-AUD-001
+TITLE: Security audit events
+STATEMENT: The platform shall record sign-in, access denial, privilege change, and export as audit events.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222404
+
+[REQUIREMENT]
+UID: PLT-AUD-002
+TITLE: Audit record content
+STATEMENT: An audit record shall include who, what, when, where, and the outcome.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: PLT-AUD-003
+TITLE: Audit review
+STATEMENT: The platform shall make audit records available for review by the security operations role.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-6
+
+[REQUIREMENT]
+UID: PLT-AUD-004
+TITLE: Audit integrity
+STATEMENT: The platform shall protect stored audit records from change by the application that produced them.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222425
+
+[REQUIREMENT]
+UID: PLT-AUD-005
+TITLE: Audit retention
+STATEMENT: The platform shall retain audit records for the retention period of the record they describe.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-11
+
+[REQUIREMENT]
+UID: PLT-AUD-006
+TITLE: Audit time source
+STATEMENT: Audit timestamps shall come from the enterprise time source.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-8
+
+[REQUIREMENT]
+UID: PLT-AUD-007
+TITLE: Audit export
+STATEMENT: The platform shall export audit records to the central store within five minutes.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-12
+
+[REQUIREMENT]
+UID: PLT-AUD-008
+TITLE: Audit failure
+STATEMENT: The platform shall alert when audit recording fails and shall not drop the action silently.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-5
+[[/SECTION]]
+
+[[SECTION]]
+UID: PLT-SEC-CRY
+PREFIX: CRY
+TITLE: Cryptography
+
+[REQUIREMENT]
+UID: PLT-CRY-001
+TITLE: Protected channels
+STATEMENT: The platform shall protect data in transit with an approved protocol.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-8
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-13
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222430
+
+[REQUIREMENT]
+UID: PLT-CRY-002
+TITLE: Encryption at rest
+STATEMENT: The platform shall encrypt stored restricted data with an enterprise-managed key.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-28
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-12
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222432
+
+[REQUIREMENT]
+UID: PLT-CRY-003
+TITLE: Key custody
+STATEMENT: Cryptographic keys shall be generated and stored in the enterprise key service.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-12
+
+[REQUIREMENT]
+UID: PLT-CRY-004
+TITLE: Password storage
+STATEMENT: The platform shall store memorized secrets only as a salted one-way secret.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-5.1
+
+[REQUIREMENT]
+UID: PLT-CRY-005
+TITLE: Certificate lifetime
+STATEMENT: A service certificate shall be replaced before it expires.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-17
+
+[REQUIREMENT]
+UID: PLT-CRY-006
+TITLE: Approved modules
+STATEMENT: Cryptographic operations shall use modules on the enterprise approved list.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-13
+[[/SECTION]]
+
+[[SECTION]]
+UID: PLT-SEC-CFG
+PREFIX: CFG
+TITLE: Configuration
+
+[REQUIREMENT]
+UID: PLT-CFG-001
+TITLE: Configuration baseline
+STATEMENT: Each environment shall be built from a recorded baseline.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-6
+
+[REQUIREMENT]
+UID: PLT-CFG-002
+TITLE: Change control
+STATEMENT: A change to production shall be requested, approved, and traceable.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-3
+
+[REQUIREMENT]
+UID: PLT-CFG-003
+TITLE: Least functionality
+STATEMENT: A deployed component shall not enable a service the baseline does not list.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-7
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222522
+
+[REQUIREMENT]
+UID: PLT-CFG-004
+TITLE: Component inventory
+STATEMENT: The platform shall keep an inventory of deployed components and their owners.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-8
+
+[REQUIREMENT]
+UID: PLT-CFG-005
+TITLE: No secrets in config
+STATEMENT: A configuration store shall not hold a plaintext long-lived secret.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-28
+
+[REQUIREMENT]
+UID: PLT-CFG-006
+TITLE: Hardened image
+STATEMENT: A workload image shall be built from the hardened base image.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-2
+
+[REQUIREMENT]
+UID: PLT-CFG-007
+TITLE: Drift detection
+STATEMENT: The platform shall report a host whose configuration has left the baseline.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-4
+
+[REQUIREMENT]
+UID: PLT-CFG-008
+TITLE: Feature flag owner
+STATEMENT: A feature flag that changes security behavior shall have a named owner.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-3
+[[/SECTION]]
+
+[[SECTION]]
+UID: PLT-SEC-CON
+PREFIX: CON
+TITLE: Continuity
+
+[REQUIREMENT]
+UID: PLT-CON-001
+TITLE: Backup
+STATEMENT: The platform shall back up restricted data on the schedule in the continuity plan.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CP-9
+
+[REQUIREMENT]
+UID: PLT-CON-002
+TITLE: Restore test
+STATEMENT: A backup of each system of record shall be restored in a test at least quarterly.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CP-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CP-10
+
+[REQUIREMENT]
+UID: PLT-CON-003
+TITLE: Recovery objective
+STATEMENT: The platform shall document a recovery time objective for each system of record.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CP-2
+
+[REQUIREMENT]
+UID: PLT-CON-004
+TITLE: Failover
+STATEMENT: A loss of the primary site shall not silently drop an accepted transaction.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CP-10
+
+[REQUIREMENT]
+UID: PLT-CON-005
+TITLE: Contingency access
+STATEMENT: Break-glass access shall still be available when the primary identity store is degraded.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-007
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CP-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+
+[REQUIREMENT]
+UID: PLT-CON-006
+TITLE: Backup protection
+STATEMENT: Backups shall be protected from deletion by the application administrator.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CP-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222536
+[[/SECTION]]
+
+[[SECTION]]
+UID: PLT-SEC-MON
+PREFIX: MON
+TITLE: Monitoring and flaw remediation
+
+[REQUIREMENT]
+UID: PLT-MON-001
+TITLE: Vulnerability scanning
+STATEMENT: Internet-facing and internal components shall be scanned for known vulnerabilities.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222542
+
+[REQUIREMENT]
+UID: PLT-MON-002
+TITLE: Patch window
+STATEMENT: A fix for a critical vulnerability shall be applied inside the enterprise window.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-5
+
+[REQUIREMENT]
+UID: PLT-MON-003
+TITLE: Malicious code protection
+STATEMENT: A managed endpoint and a server workload shall run malicious-code protection.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-3
+
+[REQUIREMENT]
+UID: PLT-MON-004
+TITLE: Attack detection
+STATEMENT: The platform shall alert on authentication attacks and unusual data export.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222543
+
+[REQUIREMENT]
+UID: PLT-MON-005
+TITLE: Software integrity
+STATEMENT: A deployed artifact shall be checked against its signed digest before start.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-7
+
+[REQUIREMENT]
+UID: PLT-MON-006
+TITLE: Input handling
+STATEMENT: The platform shall reject input that does not match the expected type and length.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-10
+
+[REQUIREMENT]
+UID: PLT-MON-007
+TITLE: Error handling
+STATEMENT: An error shown to a user shall not include a secret or a stack trace.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-11
+
+[REQUIREMENT]
+UID: PLT-MON-008
+TITLE: Incident handoff
+STATEMENT: A confirmed security incident shall be opened in the incident system with the affected accounts.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-6
+[[/SECTION]]
+
+[[SECTION]]
+UID: PLT-SEC-OPS
+PREFIX: OPS
+TITLE: Security operations support
+
+[REQUIREMENT]
+UID: PLT-OPS-001
+TITLE: Assessment calendar
+STATEMENT: The platform shall record the last result and the next due date for each control the enterprise claims.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-7
+
+[REQUIREMENT]
+UID: PLT-OPS-002
+TITLE: Exception expiry
+STATEMENT: The platform shall expire an accepted risk and shall not renew it without a new approval.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222550
+
+[REQUIREMENT]
+UID: PLT-OPS-003
+TITLE: Incident case
+STATEMENT: The platform shall require a severity, an owner, and the affected accounts on a confirmed incident.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-8
+
+[REQUIREMENT]
+UID: PLT-OPS-004
+TITLE: Evidence store
+STATEMENT: The platform shall store assessment evidence as a record the producing team cannot change.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-11
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222551
+
+[REQUIREMENT]
+UID: PLT-OPS-005
+TITLE: Boundary record
+STATEMENT: The platform shall list the systems inside the authorization boundary and the owner of each.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-007
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PL-8
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-8
+
+[REQUIREMENT]
+UID: PLT-OPS-006
+TITLE: Vendor risk feed
+STATEMENT: The platform shall show a vendor's risk rating to procurement and to security operations.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SA-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-3
+
+[REQUIREMENT]
+UID: PLT-OPS-007
+TITLE: Finding clock
+STATEMENT: The platform shall keep a due date on an open finding and alert when the date passes.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-5
+
+[REQUIREMENT]
+UID: PLT-OPS-008
+TITLE: Threat bulletin
+STATEMENT: The platform shall record who received a threat notice and whether delivery succeeded.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-6
+[[/SECTION]]
+
+[[SECTION]]
+UID: PLT-SEC-DAT
+PREFIX: DAT
+TITLE: Data platform support
+
+[REQUIREMENT]
+UID: PLT-DAT-001
+TITLE: Dataset owner
+STATEMENT: The platform shall refuse a queryable data set that has no owner and no classification.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-16
+
+[REQUIREMENT]
+UID: PLT-DAT-002
+TITLE: Export approval
+STATEMENT: The platform shall hold a bulk export of restricted data until the recorded approver releases it.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222554
+
+[REQUIREMENT]
+UID: PLT-DAT-003
+TITLE: Pipeline identity
+STATEMENT: The platform shall run a pipeline as a workload identity, not as a shared password.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-5
+
+[REQUIREMENT]
+UID: PLT-DAT-004
+TITLE: Purpose on the role
+STATEMENT: The platform shall bind a warehouse role to one stated purpose.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+
+[REQUIREMENT]
+UID: PLT-DAT-005
+TITLE: Write lineage
+STATEMENT: The platform shall name the pipeline that wrote a derived table.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-8
+
+[REQUIREMENT]
+UID: PLT-DAT-006
+TITLE: Dispose the copy
+STATEMENT: The platform shall delete an analytics copy when the source record is disposed.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-12
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: MP-6
+
+[REQUIREMENT]
+UID: PLT-DAT-007
+TITLE: Query audit
+STATEMENT: The platform shall audit who queried a restricted data set and which role they used.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222555
+[[/SECTION]]

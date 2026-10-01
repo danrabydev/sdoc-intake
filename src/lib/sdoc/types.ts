@@ -24,6 +24,8 @@ export interface GrammarRelation {
 
 export interface GrammarElement {
   tag: string;
+  /** StrictDoc PROPERTIES / IS_COMPOSITE. Sections are composite. */
+  composite?: boolean;
   fields: GrammarField[];
   relations: GrammarRelation[];
 }
@@ -31,6 +33,8 @@ export interface GrammarElement {
 export interface Grammar {
   explicit: boolean;
   elements: GrammarElement[];
+  /** Path as written in the document. Elements are loaded from that file. */
+  importFrom?: string;
 }
 
 export interface FieldValue {
@@ -100,6 +104,8 @@ export interface ValidateOptions {
   mode?: "read" | "write";
   strict?: boolean;
   file?: string;
+  /** Read a project-relative path. Used to load `.sgra` grammar imports. */
+  readText?: (rel: string) => string | undefined;
   /** When false, a missing relation target is a warning even on write. */
   indexComplete?: boolean;
 }

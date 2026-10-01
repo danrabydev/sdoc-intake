@@ -1,0 +1,415 @@
+[DOCUMENT]
+TITLE: Harbor clinic
+UID: APP-CLI
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: CLI-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Patient registration, chart access, prescribing, and results for the Harbor clinic portal. This is a fictional care setting.
+
+[[SECTION]]
+UID: CLI-SEC-REG
+PREFIX: REG
+TITLE: Registration
+
+[REQUIREMENT]
+UID: CLI-REG-001
+TITLE: Match the patient
+STATEMENT: Clinic shall match a registration to an existing patient before creating a second record.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+
+[REQUIREMENT]
+UID: CLI-REG-002
+TITLE: Demographic minimum
+STATEMENT: Clinic shall require the identifiers the registration policy lists.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+
+[REQUIREMENT]
+UID: CLI-REG-003
+TITLE: Merge
+STATEMENT: Clinic shall merge duplicate patients only under the health-information role, and shall audit the merge.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222612
+
+[REQUIREMENT]
+UID: CLI-REG-004
+TITLE: Proxy
+STATEMENT: Clinic shall let an authorized proxy act for a patient and shall record the authority.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+
+[REQUIREMENT]
+UID: CLI-REG-005
+TITLE: Minor
+STATEMENT: Clinic shall apply the minor-access rule before showing a chart to a guardian.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+[[/SECTION]]
+
+[[SECTION]]
+UID: CLI-SEC-SCH
+PREFIX: SCH
+TITLE: Scheduling
+
+[REQUIREMENT]
+UID: CLI-SCH-001
+TITLE: Book
+STATEMENT: Clinic shall book an appointment only into an open slot for a clinician who treats that service.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+
+[REQUIREMENT]
+UID: CLI-SCH-002
+TITLE: Change
+STATEMENT: Clinic shall keep the prior slot when an appointment is moved.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+
+[REQUIREMENT]
+UID: CLI-SCH-003
+TITLE: Cancel reason
+STATEMENT: Clinic shall record who cancelled an appointment and the reason.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: CLI-SCH-004
+TITLE: Reminder
+STATEMENT: Clinic shall send the appointment reminder through patient messaging and record delivery.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-6
+
+[REQUIREMENT]
+UID: CLI-SCH-005
+TITLE: No-show
+STATEMENT: Clinic shall mark a no-show and shall not delete the slot history.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+
+[REQUIREMENT]
+UID: CLI-SCH-006
+TITLE: Overbook
+STATEMENT: Clinic shall allow an overbook only for the role named in the clinic policy.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+[[/SECTION]]
+
+[[SECTION]]
+UID: CLI-SEC-CHART
+PREFIX: CHART
+TITLE: Chart
+
+[REQUIREMENT]
+UID: CLI-CHART-001
+TITLE: Treatment relationship
+STATEMENT: Clinic shall open a chart only when the clinician has a treatment relationship or an emergency override.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222620
+
+[REQUIREMENT]
+UID: CLI-CHART-002
+TITLE: Break-glass chart
+STATEMENT: Clinic shall alert privacy when a chart is opened with the emergency override.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-007
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-007
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222642
+
+[REQUIREMENT]
+UID: CLI-CHART-003
+TITLE: Note authorship
+STATEMENT: Clinic shall record the author of a clinical note and shall not allow a silent rewrite.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+
+[REQUIREMENT]
+UID: CLI-CHART-004
+TITLE: Sensitive note
+STATEMENT: Clinic shall hide a note marked sensitive from a role that is not on its list.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+
+[REQUIREMENT]
+UID: CLI-CHART-005
+TITLE: Print
+STATEMENT: Clinic shall audit a chart print or download.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+
+[REQUIREMENT]
+UID: CLI-CHART-006
+TITLE: External image
+STATEMENT: Clinic shall accept an outside image only into the designated repository.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CRY-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-8
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-7
+[[/SECTION]]
+
+[[SECTION]]
+UID: CLI-SEC-RX
+PREFIX: RX
+TITLE: Orders and results
+
+[REQUIREMENT]
+UID: CLI-RX-001
+TITLE: Prescriber check
+STATEMENT: Clinic shall send a prescription only for a user with the prescriber grant.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222643
+
+[REQUIREMENT]
+UID: CLI-RX-002
+TITLE: Prescription sign
+STATEMENT: Clinic shall sign a prescription with the prescriber's authenticator, not a shared kiosk session.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2.1
+
+[REQUIREMENT]
+UID: CLI-RX-003
+TITLE: Result final
+STATEMENT: Clinic shall release a result to the patient only after it is marked final.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+
+[REQUIREMENT]
+UID: CLI-RX-004
+TITLE: Abnormal notice
+STATEMENT: Clinic shall send the abnormal-result notice through patient messaging.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-6
+
+[REQUIREMENT]
+UID: CLI-RX-005
+TITLE: Claim from encounter
+STATEMENT: Clinic shall build a claim from the signed encounter and not from an unsigned note.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: CLI-RX-006
+TITLE: Claim audit
+STATEMENT: Clinic shall audit a change to a diagnosis on a claim.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-CLI-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+[[/SECTION]]

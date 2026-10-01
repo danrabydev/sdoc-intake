@@ -35,6 +35,8 @@ pnpm exec sdoc-intake ./data
 
 `pnpm dev` reads `./data` unless `SDOC_ROOT` is set. See `.env.example`.
 
+`data/` includes a fictional company, Northline. `data/catalog` is NIST SP 800-53 and the ASD STIG, with the same identifiers as the templates. `data/apps` is the enterprise that points at them: capabilities, a shared platform, the product systems, and one release train. A product requirement `Refines` a capability and `ConformsTo` a catalog id. A release `Delivers` capabilities. A shipped release stays as written. A later change is a new release.
+
 `SDOC_STRICTDOC_BIN` is an optional second check with the StrictDoc CLI. The app does not require it. That check runs only in server mode.
 
 ## Browser folder

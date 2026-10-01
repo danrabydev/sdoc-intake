@@ -1,0 +1,37 @@
+[DOCUMENT]
+TITLE: Releases
+UID: DOC-REL
+VERSION: 0.1.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../grammar/release.sgra
+
+[TEXT]
+STATEMENT: >>>
+One document for the product release train. A sprint is a section. Each drop is a release under that sprint, up to a handful per sprint.
+A shipped release stays as written. Later scope is a new release. Delivers points at a capability UID.
+Copy this file and the grammar file together, keeping the relative path.
+<<<
+
+[[SECTION]]
+UID: SPR-12
+TITLE: Sprint 12
+
+[RELEASE]
+UID: REL-12.1
+TITLE: Release 12.1
+VERSION: 12.1
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: >>>
+Account management.
+<<<
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: CAP-010
+
+[[/SECTION]]

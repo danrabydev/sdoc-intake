@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { FileResponse, IndexNode, TreeFile } from "@/lib/sdoc/api-types";
+import type { FileResponse, GrammarResponse, IndexNode, TreeFile } from "@/lib/sdoc/api-types";
 import { openBrowserFolder, restoreBrowserFolder, subscribeBrowser } from "@/lib/sdoc/browser-fs";
-import { ApiError, createDir, createDoc, deleteDoc, getFile, getIndex, getTree, probeServer, putFile } from "@/lib/sdoc/client";
+import { ApiError, createDir, createDoc, createGrammar, deleteDoc, getFile, getGrammar, getIndex, getTree, probeServer, putFile, putGrammar } from "@/lib/sdoc/client";
 import { explicitMode, FS_MODE_KEY, setActiveMode, type FsMode } from "@/lib/sdoc/fs-mode";
+import { resolveGrammarPath, defaultElements } from "@/lib/sdoc/grammar";
 import { buildGraph } from "@/lib/sdoc/graph";
 import { applyUidRenames, collectUids, fieldOf, flatten, mapAt, nextUid, nodeUid, placeNode, prefixChainFor, prefixExpectations, prefixRenames, removeUid, requirementNode, sectionNode, sectionUidPrefix, usesLegacySections, withField, withRelations } from "@/lib/sdoc/model";
-import { textForWrite } from "@/lib/sdoc/serialize";
-import type { Relation, SDocDocument, SDocIssue, SDocNode } from "@/lib/sdoc/types";
+import { parseGrammarFile } from "@/lib/sdoc/parse";
+import { detachGrammar, serializeGrammarFile, textForWrite } from "@/lib/sdoc/serialize";
+import type { Grammar, Relation, SDocDocument, SDocIssue, SDocNode } from "@/lib/sdoc/types";
 import { validate } from "@/lib/sdoc/validate";
 import { FlowMap } from "@/components/sdoc/FlowMap";
+import { GrammarEditor } from "@/components/sdoc/GrammarEditor";
 import { Graph } from "@/components/sdoc/Graph";
 import { IntakeTable } from "@/components/sdoc/IntakeTable";
 import { Outline } from "@/components/sdoc/Outline";
@@ -19,11 +22,13 @@ interface Editor {
   path: string;
   text: string;
   document: SDocDocument | null;
+  grammar: Grammar | null;
   parseFailed: boolean;
   siblingUids: string[];
   siblingEdges: { from: string; to: string }[];
   dirty: boolean;
   external: boolean;
+  kind: "sdoc" | "sgra";
 }
 
 function stripParents(nodes: SDocNode[], uid: string): SDocNode[] {
@@ -81,11 +86,29 @@ function editorFromView(
     path: view.path,
     text: view.text,
     document: view.document,
+    grammar: view.document?.grammar ?? null,
     parseFailed: view.parseFailed,
     siblingUids: view.siblingUids,
     siblingEdges: view.siblingEdges,
     dirty,
     external: false,
+    kind: "sdoc",
+  };
+}
+
+function editorFromGrammar(view: GrammarResponse, dirty = false): Editor {
+  const failed = !view.grammar || view.errors.some((issue) => issue.severity === "error");
+  return {
+    path: view.path,
+    text: view.text,
+    document: null,
+    grammar: view.grammar,
+    parseFailed: failed,
+    siblingUids: [],
+    siblingEdges: [],
+    dirty,
+    external: false,
+    kind: "sgra",
   };
 }
 
@@ -117,7 +140,7 @@ export function IntakeApp({
   const [editor, setEditor] = useState<Editor | null>(initial.file ? editorFromView(initial.file) : null);
   const [selected, setSelected] = useState(uid || firstRequirement(initial.file?.document ?? null));
   const [strict, setStrict] = useState(false);
-  const [center, setCenter] = useState<"table" | "nodes" | "flow">("table");
+  const [center, setCenter] = useState<"table" | "nodes" | "flow" | "grammar">("table");
   const [pane, setPane] = useState<"files" | "intake" | "trace">("intake");
   const [drawer, setDrawer] = useState<"trace" | "outline">("outline");
   const [depth, setDepth] = useState(2);
@@ -125,7 +148,8 @@ export function IntakeApp({
   const [notice, setNotice] = useState("");
   const [loadError, setLoadError] = useState("");
   const [creating, setCreating] = useState(false);
-  const [draft, setDraft] = useState({ path: "", title: "", uid: "", prefix: "", root: false });
+  const [draft, setDraft] = useState({ path: "", title: "", uid: "", prefix: "", root: false, kind: "sdoc" as "sdoc" | "sgra" });
+  const [grammarTexts, setGrammarTexts] = useState<Record<string, string>>({});
   const [draftError, setDraftError] = useState("");
   const [forceNext, setForceNext] = useState(false);
   const [serverIssues, setServerIssues] = useState<SDocIssue[] | null>(null);
@@ -134,9 +158,11 @@ export function IntakeApp({
   const [boot, setBoot] = useState(0);
   const editorRef = useRef<Editor | null>(null);
   const selectedRef = useRef(selected);
+  const grammarTextsRef = useRef<Record<string, string>>({});
   const selfWrite = useRef(false);
   editorRef.current = editor;
   selectedRef.current = selected;
+  grammarTextsRef.current = grammarTexts;
 
   async function refreshLists() {
     const [tree, listed] = await Promise.all([getTree(), getIndex()]);
@@ -144,6 +170,19 @@ export function IntakeApp({
     setFiles(tree.files);
     setDirs(tree.dirs ?? []);
     setIndex(listed.nodes);
+    const texts: Record<string, string> = {};
+    await Promise.all(
+      tree.files
+        .filter((item) => item.kind === "sgra" || item.path.endsWith(".sgra"))
+        .map(async (item) => {
+          try {
+            texts[item.path] = (await getGrammar(item.path)).text;
+          } catch {
+            /* unread */
+          }
+        }),
+    );
+    setGrammarTexts(texts);
     return tree.files;
   }
 
@@ -151,6 +190,17 @@ export function IntakeApp({
     const current = editorRef.current;
     if (current?.dirty && current.path !== path && !options?.discard) {
       if (!window.confirm("Discard unsaved edits?")) return;
+    }
+    if (path.endsWith(".sgra")) {
+      const view = await getGrammar(path);
+      setEditor(editorFromGrammar(view));
+      setSelected("");
+      setForceNext(false);
+      setServerIssues(null);
+      setCenter("grammar");
+      setNotice("");
+      onSelect(path, "");
+      return;
     }
     const view = await getFile(path);
     setEditor(editorFromView(view));
@@ -175,10 +225,10 @@ export function IntakeApp({
         setEditor({ ...current, external: true });
         return;
       }
-      void getFile(current.path)
+      void (current.kind === "sgra" ? getGrammar(current.path) : getFile(current.path))
         .then((view) => {
           if (editorRef.current?.dirty || editorRef.current?.path !== view.path) return;
-          setEditor(editorFromView(view));
+          setEditor(current.kind === "sgra" ? editorFromGrammar(view as GrammarResponse) : editorFromView(view as FileResponse));
         })
         .catch(() => undefined);
     };
@@ -208,11 +258,16 @@ export function IntakeApp({
           if (!cancel) {
             const path = file || listed[0]?.path || "";
             if (path) {
-              const view = await getFile(path);
-              if (!cancel) {
-                setEditor(editorFromView(view));
-                if (!selectedRef.current) setSelected(firstRequirement(view.document));
-                if (path !== file) onSelect(path, selectedRef.current || firstRequirement(view.document));
+              if (path.endsWith(".sgra")) {
+                const view = await getGrammar(path);
+                if (!cancel) setEditor(editorFromGrammar(view));
+              } else {
+                const view = await getFile(path);
+                if (!cancel) {
+                  setEditor(editorFromView(view));
+                  if (!selectedRef.current) setSelected(firstRequirement(view.document));
+                  if (path !== file) onSelect(path, selectedRef.current || firstRequirement(view.document));
+                }
               }
             }
           }
@@ -293,8 +348,16 @@ export function IntakeApp({
   }
 
   const catalog = useMemo(() => liveIndex(index, editor), [index, editor]);
+  const projectText = (rel: string, current: Editor | null = editor) => {
+    if (current?.kind === "sgra" && current.path === rel) return current.text;
+    return grammarTexts[rel];
+  };
   const checked = useMemo(() => {
     if (!editor) return null;
+    if (editor.kind === "sgra") {
+      const parsed = parseGrammarFile(editor.text);
+      return { ok: !parsed.errors.some((issue) => issue.severity === "error"), errors: parsed.errors, document: null };
+    }
     const shared = {
       siblingUids: editor.siblingUids,
       siblingEdges: editor.siblingEdges,
@@ -302,10 +365,11 @@ export function IntakeApp({
       strict,
       indexComplete: true,
       file: editor.path,
+      readText: (rel: string) => projectText(rel, editor),
     };
     if (editor.parseFailed || !editor.document) return validate(editor.text, shared);
     return validate(textForWrite(editor.document), shared);
-  }, [editor, strict]);
+  }, [editor, strict, grammarTexts]);
   const issues = serverIssues ?? checked?.errors ?? [];
   const canSave = Boolean(editor?.dirty && checked?.ok && !serverIssues && !saving);
   const graph = useMemo(() => buildGraph(catalog, selected, depth), [catalog, selected, depth]);
@@ -313,6 +377,38 @@ export function IntakeApp({
   async function save() {
     const current = editorRef.current;
     if (!current || saving || selfWrite.current) return;
+    const readText = (rel: string) =>
+      current.kind === "sgra" && current.path === rel ? current.text : grammarTextsRef.current[rel];
+    if (current.kind === "sgra") {
+      const parsed = parseGrammarFile(current.text);
+      if (parsed.errors.some((issue) => issue.severity === "error") || !parsed.grammar) {
+        setServerIssues(parsed.errors);
+        setNotice("Fix errors before saving");
+        return;
+      }
+      setSaving(true);
+      selfWrite.current = true;
+      try {
+        const view = await putGrammar(current.path, { grammar: parsed.grammar });
+        setEditor(editorFromGrammar(view));
+        setServerIssues(null);
+        setNotice("Written");
+        await refreshLists();
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setServerIssues(err.errors);
+          setNotice(err.message);
+        } else {
+          setNotice(err instanceof Error ? err.message : "Save failed");
+        }
+      } finally {
+        setSaving(false);
+        window.setTimeout(() => {
+          selfWrite.current = false;
+        }, 600);
+      }
+      return;
+    }
     const gate = current.parseFailed || !current.document
       ? validate(current.text, {
           siblingUids: current.siblingUids,
@@ -321,6 +417,7 @@ export function IntakeApp({
           strict,
           indexComplete: true,
           file: current.path,
+          readText,
         })
       : validate(textForWrite(current.document), {
           siblingUids: current.siblingUids,
@@ -329,6 +426,7 @@ export function IntakeApp({
           strict,
           indexComplete: true,
           file: current.path,
+          readText,
         });
     if (!gate.ok) {
       setServerIssues(gate.errors);
@@ -486,6 +584,67 @@ export function IntakeApp({
     }
   }
 
+  async function moveGrammarTo(grammarPath: string) {
+    const current = editorRef.current;
+    if (!current?.document || current.kind !== "sdoc") return;
+    const detached = detachGrammar(current.document, current.path, grammarPath);
+    if ("error" in detached) {
+      setNotice(detached.error);
+      return;
+    }
+    setSaving(true);
+    selfWrite.current = true;
+    try {
+      await createGrammar(grammarPath, detached.text);
+      try {
+        const view = await putFile(current.path, { document: detached.document }, strict, false);
+        setEditor(editorFromView(view));
+        setNotice(`Grammar moved to ${grammarPath}`);
+        await refreshLists();
+      } catch (err) {
+        await deleteDoc(grammarPath, true).catch(() => undefined);
+        throw err;
+      }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setServerIssues(err.errors);
+        setNotice(err.message);
+      } else {
+        setNotice(err instanceof Error ? err.message : "Could not move the grammar.");
+      }
+    } finally {
+      setSaving(false);
+      window.setTimeout(() => {
+        selfWrite.current = false;
+      }, 600);
+    }
+  }
+
+  function editGrammar(grammar: Grammar) {
+    const text = grammar.importFrom ? undefined : serializeGrammarFile(grammar.elements);
+    setServerIssues(null);
+    setNotice("");
+    setEditor((current) => {
+      if (!current) return current;
+      if (current.kind === "sgra") {
+        return {
+          ...current,
+          grammar: { ...grammar, explicit: true, importFrom: undefined },
+          text: text ?? current.text,
+          dirty: true,
+          parseFailed: false,
+        };
+      }
+      if (!current.document) return current;
+      return {
+        ...current,
+        grammar,
+        document: { ...current.document, grammar: { ...grammar, explicit: true } },
+        dirty: true,
+      };
+    });
+  }
+
   function deleteSelected() {
     if (!editor?.document || !selected) return;
     const row = flatten(editor.document.nodes).find((item) => nodeUid(item.node) === selected);
@@ -538,6 +697,26 @@ export function IntakeApp({
   async function submitDraft() {
     setDraftError("");
     const path = draft.path.trim();
+    if (draft.kind === "sgra") {
+      if (!path.endsWith(".sgra") || path.includes("..")) {
+        setDraftError("Use a relative path that ends in .sgra.");
+        return;
+      }
+      try {
+        const view = await createGrammar(path);
+        setCreating(false);
+        setDraft({ path: "", title: "", uid: "", prefix: "", root: false, kind: "sdoc" });
+        await refreshLists();
+        setEditor(editorFromGrammar(view));
+        setCenter("grammar");
+        setSelected("");
+        onSelect(view.path, "");
+        setPane("intake");
+      } catch (err) {
+        setDraftError(err instanceof Error ? err.message : "Could not create the grammar file.");
+      }
+      return;
+    }
     if (!path.endsWith(".sdoc") || path.includes("..")) {
       setDraftError("Use a relative path that ends in .sdoc.");
       return;
@@ -551,7 +730,7 @@ export function IntakeApp({
         root: draft.root,
       });
       setCreating(false);
-      setDraft({ path: "", title: "", uid: "", prefix: "", root: false });
+      setDraft({ path: "", title: "", uid: "", prefix: "", root: false, kind: "sdoc" });
       await refreshLists();
       setEditor(editorFromView(view));
       setSelected("");
@@ -636,7 +815,7 @@ export function IntakeApp({
             }}
             onCreateFile={(folder) => {
               setDraftError("");
-              setDraft({ path: folder ? `${folder}/` : "", title: "", uid: "", prefix: "", root: false });
+              setDraft({ path: folder ? `${folder}/` : "", title: "", uid: "", prefix: "", root: false, kind: "sdoc" });
               setCreating(true);
             }}
             onCreateFolder={async (path) => {
@@ -683,6 +862,7 @@ export function IntakeApp({
                 {(
                   [
                     ["table", "This file"],
+                    ["grammar", "Grammar"],
                     ["nodes", "All nodes"],
                     ["flow", "Flow"],
                   ] as const
@@ -702,10 +882,49 @@ export function IntakeApp({
               </div>
             </div>
           ) : null}
-          {center === "flow" ? (
+          {editor?.kind === "sgra" ? (
+            editor.parseFailed || !editor.grammar ? (
+              <div className="flex min-h-0 flex-1 flex-col">
+                <p className="border-b border-line px-3 py-2 text-sm text-danger">
+                  This grammar file does not parse. Fix the source. Nothing is written until it validates.
+                </p>
+                <textarea
+                  value={editor.text}
+                  onChange={(event) => {
+                    const text = event.target.value;
+                    setServerIssues(null);
+                    setEditor((current) => (current ? { ...current, text, dirty: true } : current));
+                  }}
+                  className="min-h-0 w-full flex-1 resize-none bg-bg p-3 font-mono text-xs leading-relaxed text-fg"
+                  spellCheck={false}
+                />
+              </div>
+            ) : (
+              <GrammarEditor grammar={editor.grammar} onChange={editGrammar} />
+            )
+          ) : center === "grammar" && editor?.document ? (
+            <GrammarEditor
+              grammar={
+                editor.document.grammar.explicit || editor.document.grammar.importFrom
+                  ? editor.document.grammar
+                  : { explicit: false, elements: defaultElements() }
+              }
+              onChange={editGrammar}
+              onOpenImport={(spec) => {
+                const rel = resolveGrammarPath(editor.path, spec);
+                if (!rel) {
+                  setNotice("That grammar path is outside the project.");
+                  return;
+                }
+                void openPath(rel);
+              }}
+              onMoveToFile={editor.document.grammar.importFrom ? undefined : moveGrammarTo}
+            />
+          ) : center === "flow" ? (
             <FlowMap
               nodes={catalog}
               focus={selected}
+              file={editor?.kind === "sdoc" ? editor.path : ""}
               onPick={(uid, path) => {
                 chooseUid(uid, path);
               }}
@@ -788,7 +1007,10 @@ export function IntakeApp({
                   <p className="text-sm text-muted">No file open.</p>
                   <button
                     type="button"
-                    onClick={() => setCreating(true)}
+                    onClick={() => {
+                      setDraft({ path: "", title: "", uid: "", prefix: "", root: false, kind: "sdoc" });
+                      setCreating(true);
+                    }}
                     className="min-h-11 rounded-md bg-accent px-3 text-sm text-accent-fg"
                   >
                     New .sdoc
@@ -883,18 +1105,48 @@ export function IntakeApp({
               void submitDraft();
             }}
           >
-            <h2 className="text-sm font-semibold">New document</h2>
-            <p className="mt-1 text-xs text-muted">Created under the data root. Validated before it is written.</p>
+            <h2 className="text-sm font-semibold">{draft.kind === "sgra" ? "New grammar" : "New document"}</h2>
+            <div className="mt-2 flex rounded-md border border-line p-0.5" role="group" aria-label="File kind">
+              <button
+                type="button"
+                aria-pressed={draft.kind === "sdoc"}
+                onClick={() => setDraft({ ...draft, kind: "sdoc" })}
+                className={"min-h-9 flex-1 rounded text-xs " + (draft.kind === "sdoc" ? "bg-surface-2 text-fg" : "text-muted")}
+              >
+                Document
+              </button>
+              <button
+                type="button"
+                aria-pressed={draft.kind === "sgra"}
+                onClick={() =>
+                  setDraft({
+                    ...draft,
+                    kind: "sgra",
+                    path: draft.path.endsWith(".sdoc") ? draft.path.replace(/\.sdoc$/, ".sgra") : draft.path,
+                  })
+                }
+                className={"min-h-9 flex-1 rounded text-xs " + (draft.kind === "sgra" ? "bg-surface-2 text-fg" : "text-muted")}
+              >
+                Grammar
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-muted">
+              {draft.kind === "sgra"
+                ? "A .sgra file other documents can import."
+                : "Created under the data root. Validated before it is written."}
+            </p>
             <label className="mt-3 block text-xs text-muted">
               Path
               <input
                 required
                 value={draft.path}
                 onChange={(event) => setDraft({ ...draft, path: event.target.value })}
-                placeholder="CAB.sdoc"
+                placeholder={draft.kind === "sgra" ? "grammar/org.sgra" : "CAB.sdoc"}
                 className="mt-1 min-h-11 w-full rounded-md border border-line bg-bg px-2 font-mono text-sm text-fg"
               />
             </label>
+            {draft.kind === "sdoc" ? (
+              <>
             <label className="mt-3 block text-xs text-muted">
               Title
               <input
@@ -932,6 +1184,8 @@ export function IntakeApp({
               />
               ROOT true
             </label>
+              </>
+            ) : null}
             {draftError ? <p className="mt-2 text-sm text-danger">{draftError}</p> : null}
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" onClick={() => setCreating(false)} className="min-h-11 rounded-md px-3 text-sm text-muted">

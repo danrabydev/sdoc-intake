@@ -1,4 +1,4 @@
-import type { RelationType, SDocDocument, SDocIssue } from "./types.ts";
+import type { Grammar, RelationType, SDocDocument, SDocIssue } from "./types.ts";
 
 export interface IndexRelation {
   type: RelationType;
@@ -21,6 +21,7 @@ export interface TreeFile {
   uid: string;
   nodeCount: number;
   issueCount: number;
+  kind?: "sdoc" | "sgra";
 }
 
 export interface TreeResponse {
@@ -31,6 +32,14 @@ export interface TreeResponse {
 
 export interface IndexResponse {
   nodes: IndexNode[];
+}
+
+export interface GrammarResponse {
+  ok: boolean;
+  path: string;
+  text: string;
+  grammar: Grammar | null;
+  errors: SDocIssue[];
 }
 
 export interface HealthResponse {

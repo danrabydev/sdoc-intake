@@ -1,16 +1,20 @@
-import type { FileResponse, GraphResponse, HealthResponse, IndexResponse, NodeResponse, TreeResponse } from "./api-types.ts";
+import type { FileResponse, GrammarResponse, GraphResponse, HealthResponse, IndexResponse, NodeResponse, TreeResponse } from "./api-types.ts";
 import { ApiError } from "./api-error.ts";
 import {
   browserCreate,
   browserCreateDir,
+  browserCreateGrammar,
   browserDelete,
   browserFile,
   browserIndex,
+  browserMoveGrammar,
   browserPut,
+  browserReadGrammar,
+  browserSaveGrammar,
   browserTree,
 } from "./browser-fs.ts";
 import { activeMode } from "./fs-mode.ts";
-import type { SDocDocument, SDocIssue } from "./types.ts";
+import type { Grammar, SDocDocument, SDocIssue } from "./types.ts";
 
 export { ApiError };
 export type { SDocIssue };
@@ -93,6 +97,32 @@ export function deleteDoc(path: string, force: boolean) {
   const query = new URLSearchParams({ path });
   if (force) query.set("force", "1");
   return request<{ ok: boolean }>(`/api/file?${query}`, { method: "DELETE" });
+}
+
+export function getGrammar(path: string) {
+  return local()
+    ? browserReadGrammar(path)
+    : request<GrammarResponse>(`/api/grammar?path=${encodeURIComponent(path)}`);
+}
+
+export function putGrammar(path: string, body: { text?: string; grammar?: Grammar }) {
+  if (local()) return browserSaveGrammar(path, body);
+  return request<GrammarResponse>(`/api/grammar?path=${encodeURIComponent(path)}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export function createGrammar(path: string, text?: string) {
+  return local()
+    ? browserCreateGrammar(path, text)
+    : request<GrammarResponse>("/api/grammar", { method: "POST", body: JSON.stringify({ path, text }) });
+}
+
+export function moveGrammar(document: string, grammar: string) {
+  return local()
+    ? browserMoveGrammar(document, grammar)
+    : request<FileResponse>("/api/grammar/move", { method: "POST", body: JSON.stringify({ document, grammar }) });
 }
 
 export function getNode(uid: string) {

@@ -12,6 +12,8 @@ ELEMENTS:
     TYPE: String
     REQUIRED: True
 - TAG: SECTION
+  PROPERTIES:
+    IS_COMPOSITE: True
   FIELDS:
   - TITLE: UID
     TYPE: String

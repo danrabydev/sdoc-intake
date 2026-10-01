@@ -1,0 +1,240 @@
+[DOCUMENT]
+TITLE: Public portal
+UID: APP-WEB
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: WEB-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Public pages and anonymous requests. No account is required to read published content.
+
+[[SECTION]]
+UID: WEB-SEC-PUB
+PREFIX: PUB
+TITLE: Publishing
+
+[REQUIREMENT]
+UID: WEB-PUB-001
+TITLE: Approved source
+STATEMENT: Portal shall publish a page only from the approved content source.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CFG-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-7
+
+[REQUIREMENT]
+UID: WEB-PUB-002
+TITLE: Reviewer
+STATEMENT: Portal shall require a reviewer other than the author before a page is public.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-5
+
+[REQUIREMENT]
+UID: WEB-PUB-003
+TITLE: Withdraw
+STATEMENT: Portal shall withdraw a page and keep the withdrawn copy as a record.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+
+[REQUIREMENT]
+UID: WEB-PUB-004
+TITLE: Cache
+STATEMENT: Portal shall drop a withdrawn page from the public cache.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-7
+
+[REQUIREMENT]
+UID: WEB-PUB-005
+TITLE: Integrity of assets
+STATEMENT: Portal shall serve a script only when its digest matches the published manifest.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-7
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222432
+
+[REQUIREMENT]
+UID: WEB-PUB-006
+TITLE: Headers
+STATEMENT: Portal shall send the enterprise browser-protection headers on every public response.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CRY-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-8
+[[/SECTION]]
+
+[[SECTION]]
+UID: WEB-SEC-REQ
+PREFIX: REQ
+TITLE: Anonymous requests
+
+[REQUIREMENT]
+UID: WEB-REQ-001
+TITLE: No account required
+STATEMENT: Portal shall accept a service request without creating an account.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-14
+
+[REQUIREMENT]
+UID: WEB-REQ-002
+TITLE: Rate limit
+STATEMENT: Portal shall slow an address that submits requests faster than the published limit.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222522
+
+[REQUIREMENT]
+UID: WEB-REQ-003
+TITLE: Field check
+STATEMENT: Portal shall reject a request whose fields do not match the form definition.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-10
+
+[REQUIREMENT]
+UID: WEB-REQ-004
+TITLE: Attachment scan
+STATEMENT: Portal shall scan an uploaded file before a staff member can open it.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-3
+
+[REQUIREMENT]
+UID: WEB-REQ-005
+TITLE: Abuse block
+STATEMENT: Portal shall let the review role block a source and shall record the block.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+
+[REQUIREMENT]
+UID: WEB-REQ-006
+TITLE: Personal data in request
+STATEMENT: Portal shall treat a request that contains personal data as a record.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CRY-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+
+[REQUIREMENT]
+UID: WEB-REQ-007
+TITLE: Status without account
+STATEMENT: Portal shall show request status with the receipt code, not with an account session.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-WEB-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2
+[[/SECTION]]

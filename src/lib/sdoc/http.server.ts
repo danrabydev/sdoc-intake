@@ -1,17 +1,21 @@
-import type { SDocDocument } from "./types.ts";
+import type { Grammar, SDocDocument } from "./types.ts";
 import {
   addNode,
   buildIndex,
   buildTree,
   createDir,
   createFile,
+  createGrammar,
   health,
+  moveDocumentGrammar,
   queryGraph,
   readFileView,
+  readGrammar,
   readNode,
   removeFile,
   removeNode,
   saveFile,
+  saveGrammar,
   saveNode,
   SdocError,
   subscribe,
@@ -130,6 +134,24 @@ async function fileRoute(method: string, url: URL, request: Request): Promise<Re
   return json(405, { ok: false, message: "Method not allowed.", errors: [] });
 }
 
+async function grammarRoute(method: string, url: URL, request: Request): Promise<Response> {
+  const path = url.searchParams.get("path") ?? "";
+  if (method === "GET") return json(200, await readGrammar(path));
+  if (method === "PUT") {
+    const body = await readJson(request);
+    const payload: { text?: string; grammar?: Grammar } = {};
+    if (typeof body.text === "string") payload.text = body.text;
+    if (body.grammar && typeof body.grammar === "object") payload.grammar = body.grammar as Grammar;
+    return json(200, await saveGrammar(path, payload));
+  }
+  if (method === "POST") {
+    const body = await readJson(request);
+    return json(201, await createGrammar(String(body.path ?? ""), typeof body.text === "string" ? body.text : undefined));
+  }
+  if (method === "DELETE") return json(200, await removeFile(path, url.searchParams.get("force") === "1"));
+  return json(405, { ok: false, message: "Method not allowed.", errors: [] });
+}
+
 async function nodeRoute(method: string, uidParts: string[], url: URL, request: Request): Promise<Response> {
   if (method === "POST" && uidParts.length === 0) {
     const body = await readJson(request);
@@ -184,6 +206,11 @@ export async function dispatch(request: Request): Promise<Response> {
       const body = await readJson(request);
       return json(201, await createDir(String(body.path ?? "")));
     }
+    if (head === "grammar" && parts[1] === "move" && method === "POST") {
+      const body = await readJson(request);
+      return json(200, await moveDocumentGrammar(String(body.document ?? ""), String(body.grammar ?? "")));
+    }
+    if (head === "grammar") return await grammarRoute(method, url, request);
     if (head === "file") return await fileRoute(method, url, request);
     if (head === "node") return await nodeRoute(method, parts.slice(1), url, request);
     return json(404, { ok: false, message: "Not found.", errors: [] });

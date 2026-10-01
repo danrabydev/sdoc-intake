@@ -1,0 +1,373 @@
+[DOCUMENT]
+TITLE: Procurement
+UID: APP-PRC
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: PRC-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Vendors, contracts, purchases, and supplier assurance for Northline. Payment execution stays in Payments. A purchase cites a contract and a registered vendor.
+
+[[SECTION]]
+UID: PRC-SEC-VEN
+PREFIX: VEN
+TITLE: Vendors
+
+[REQUIREMENT]
+UID: PRC-VEN-001
+TITLE: Register first
+STATEMENT: Procurement shall refuse a purchase order for a vendor that is not active on the register.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SA-9
+
+[REQUIREMENT]
+UID: PRC-VEN-002
+TITLE: One vendor record
+STATEMENT: Procurement shall match a new vendor to an existing record before creating a second.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+
+[REQUIREMENT]
+UID: PRC-VEN-003
+TITLE: Vendor owner
+STATEMENT: Procurement shall require a named owner on an active vendor.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+
+[REQUIREMENT]
+UID: PRC-VEN-004
+TITLE: Bank on the vendor
+STATEMENT: Procurement shall require step-up authentication when the vendor bank account changes.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222554
+
+[REQUIREMENT]
+UID: PRC-VEN-005
+TITLE: Inactivate
+STATEMENT: Procurement shall stop new orders when a vendor is inactivated and shall keep the history.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SA-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+
+[REQUIREMENT]
+UID: PRC-VEN-006
+TITLE: Conflict
+STATEMENT: Procurement shall record a disclosed personal interest before that person can approve the vendor.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-5
+[[/SECTION]]
+
+[[SECTION]]
+UID: PRC-SEC-BUY
+PREFIX: BUY
+TITLE: Buying
+
+[REQUIREMENT]
+UID: PRC-BUY-001
+TITLE: Requester
+STATEMENT: Procurement shall record the requester on every purchase.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: PRC-BUY-002
+TITLE: Second approver
+STATEMENT: Procurement shall require an approver other than the requester above the threshold.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222555
+
+[REQUIREMENT]
+UID: PRC-BUY-003
+TITLE: Cite the contract
+STATEMENT: Procurement shall refuse a purchase that does not cite an active contract or a documented exception.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SA-4
+
+[REQUIREMENT]
+UID: PRC-BUY-004
+TITLE: Split orders
+STATEMENT: Procurement shall hold a set of orders that together exceed the requester's limit.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+
+[REQUIREMENT]
+UID: PRC-BUY-005
+TITLE: Three-way match
+STATEMENT: Procurement shall match the invoice to the order and the receipt before handing it to Payments.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: PRC-BUY-006
+TITLE: Duplicate invoice
+STATEMENT: Procurement shall reject an invoice number already matched for that vendor.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-10
+
+[REQUIREMENT]
+UID: PRC-BUY-007
+TITLE: After the fact
+STATEMENT: Procurement shall flag an order created after the invoice date.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+[[/SECTION]]
+
+[[SECTION]]
+UID: PRC-SEC-ASR
+PREFIX: ASR
+TITLE: Supplier assurance
+
+[REQUIREMENT]
+UID: PRC-ASR-001
+TITLE: Security clause
+STATEMENT: Procurement shall attach the enterprise security clause before a vendor can receive restricted data.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SA-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SA-4.9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222577
+
+[REQUIREMENT]
+UID: PRC-ASR-002
+TITLE: Subprocessors
+STATEMENT: Procurement shall record the subprocessors a vendor names for restricted data.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SA-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SR-3
+
+[REQUIREMENT]
+UID: PRC-ASR-003
+TITLE: High-risk review
+STATEMENT: Procurement shall require a security review before a high-risk vendor is activated.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SA-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-3
+
+[REQUIREMENT]
+UID: PRC-ASR-004
+TITLE: Vendor incident
+STATEMENT: Procurement shall record a vendor's notice of an incident and shall open a security case.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SR-8
+
+[REQUIREMENT]
+UID: PRC-ASR-005
+TITLE: Remove access
+STATEMENT: Procurement shall tell Identity to remove a vendor's access when the contract ends.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2.3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PS-4
+
+[REQUIREMENT]
+UID: PRC-ASR-006
+TITLE: Review the rating
+STATEMENT: Procurement shall review a high-risk rating at least annually.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SA-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-2
+
+[REQUIREMENT]
+UID: PRC-ASR-007
+TITLE: Flow-down
+STATEMENT: Procurement shall record whether the vendor flowed the security clause to its subprocessors.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PRC-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SR-3.1
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SA-9
+[[/SECTION]]

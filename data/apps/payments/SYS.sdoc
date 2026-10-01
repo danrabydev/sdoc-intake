@@ -1,0 +1,314 @@
+[DOCUMENT]
+TITLE: Payments
+UID: APP-PAY
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: PAY-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Payment initiation, approval, screening, and reconciliation for Northline treasury.
+
+[[SECTION]]
+UID: PAY-SEC-INIT
+PREFIX: INIT
+TITLE: Initiation
+
+[REQUIREMENT]
+UID: PAY-INIT-001
+TITLE: Entitled account
+STATEMENT: Payments shall start a payment only from an account the user is entitled to.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+
+[REQUIREMENT]
+UID: PAY-INIT-002
+TITLE: Dual control
+STATEMENT: Payments shall hold a payment above the threshold until a second person approves it.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222604
+
+[REQUIREMENT]
+UID: PAY-INIT-003
+TITLE: Payee on file
+STATEMENT: Payments shall send funds only to a payee record that has been approved.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+
+[REQUIREMENT]
+UID: PAY-INIT-004
+TITLE: Amount limit
+STATEMENT: Payments shall reject an amount above the user's limit.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+
+[REQUIREMENT]
+UID: PAY-INIT-005
+TITLE: Idempotent submit
+STATEMENT: Payments shall not create a second payment when the same request is repeated.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-10
+
+[REQUIREMENT]
+UID: PAY-INIT-006
+TITLE: After hours
+STATEMENT: Payments shall queue an international payment started outside the dealing window.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+[[/SECTION]]
+
+[[SECTION]]
+UID: PAY-SEC-SCR
+PREFIX: SCR
+TITLE: Screening and fraud
+
+[REQUIREMENT]
+UID: PAY-SCR-001
+TITLE: Sanctions list
+STATEMENT: Payments shall screen the payee against the current sanctions list before release.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222607
+
+[REQUIREMENT]
+UID: PAY-SCR-002
+TITLE: Screen fail closed
+STATEMENT: Payments shall not release a payment when the screening service is unavailable.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-5
+
+[REQUIREMENT]
+UID: PAY-SCR-003
+TITLE: Velocity
+STATEMENT: Payments shall hold a burst of payments from one account for review.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-4
+
+[REQUIREMENT]
+UID: PAY-SCR-004
+TITLE: Changed bank details
+STATEMENT: Payments shall require step-up authentication when bank details change.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222608
+
+[REQUIREMENT]
+UID: PAY-SCR-005
+TITLE: Fraud case
+STATEMENT: Payments shall open a case when a payment is held for fraud.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-4
+
+[REQUIREMENT]
+UID: PAY-SCR-006
+TITLE: Recall
+STATEMENT: Payments shall record a recall request against the original payment.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+[[/SECTION]]
+
+[[SECTION]]
+UID: PAY-SEC-LED
+PREFIX: LED
+TITLE: Ledger
+
+[REQUIREMENT]
+UID: PAY-LED-001
+TITLE: Match settlement
+STATEMENT: Payments shall match each settled item to one ledger entry.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: PAY-LED-002
+TITLE: Unmatched item
+STATEMENT: Payments shall list unmatched items older than one business day.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-6
+
+[REQUIREMENT]
+UID: PAY-LED-003
+TITLE: Refund link
+STATEMENT: Payments shall refuse a refund that does not name the original payment.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+
+[REQUIREMENT]
+UID: PAY-LED-004
+TITLE: Refund approval
+STATEMENT: Payments shall require approval for a refund above the threshold.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-5
+
+[REQUIREMENT]
+UID: PAY-LED-005
+TITLE: Merchant total
+STATEMENT: Payments shall compute merchant settlement from cleared transactions only.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: PAY-LED-006
+TITLE: Ledger audit
+STATEMENT: Payments shall audit who posted an adjusting entry.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-PAY-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222609
+[[/SECTION]]

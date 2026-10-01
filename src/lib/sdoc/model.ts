@@ -513,7 +513,8 @@ export function semanticallyEqual(a: SDocDocument | null, b: SDocDocument | null
   if ((a.root ?? null) !== (b.root ?? null)) return false;
   if (!optionsEqual(a.options, b.options)) return false;
   if (a.grammar.explicit !== b.grammar.explicit) return false;
-  if (a.grammar.explicit && JSON.stringify(a.grammar.elements) !== JSON.stringify(b.grammar.elements)) {
+  if ((a.grammar.importFrom ?? "") !== (b.grammar.importFrom ?? "")) return false;
+  if (!a.grammar.importFrom && a.grammar.explicit && JSON.stringify(a.grammar.elements) !== JSON.stringify(b.grammar.elements)) {
     return false;
   }
   return nodesEqual(a.nodes, b.nodes);

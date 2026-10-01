@@ -4,9 +4,9 @@ import { mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from "node:f
 import { tmpdir } from "node:os";
 import { isAbsolute, dirname, join, relative, resolve, sep } from "node:path";
 import { promisify } from "node:util";
-import type { FileResponse, IndexNode, NodeResponse, TreeResponse } from "./api-types.ts";
+import type { FileResponse, GrammarResponse, IndexNode, NodeResponse, TreeResponse } from "./api-types.ts";
 import { buildGraph } from "./graph.ts";
-import { defaultGrammar } from "./grammar.ts";
+import { defaultElements, defaultGrammar, resolveGrammarPath } from "./grammar.ts";
 import {
   collectUids,
   fieldOf,
@@ -21,9 +21,9 @@ import {
   withRelations,
   mapAt,
 } from "./model.ts";
-import { parse } from "./parse.ts";
-import { textForWrite } from "./serialize.ts";
-import type { SDocDocument, SDocIssue, SDocNode, ValidateOptions } from "./types.ts";
+import { parse, parseGrammarFile } from "./parse.ts";
+import { detachGrammar, serializeGrammarFile, textForWrite } from "./serialize.ts";
+import type { Grammar, SDocDocument, SDocIssue, SDocNode, ValidateOptions } from "./types.ts";
 import { validate } from "./validate.ts";
 
 const execFileAsync = promisify(execFile);
@@ -50,6 +50,12 @@ interface CorpusFile {
   abs: string;
   text: string;
   parsed: ReturnType<typeof parse>;
+}
+
+interface Project {
+  docs: CorpusFile[];
+  grammars: { rel: string; text: string }[];
+  readText: (rel: string) => string | undefined;
 }
 
 export function sdocRoot(): string {
@@ -81,6 +87,44 @@ export function resolveInside(input: string): { rel: string; abs: string } {
   return { rel: cleaned, abs };
 }
 
+function resolveGrammarFile(input: string): { rel: string; abs: string } {
+  const cleaned = input.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (!cleaned || cleaned.includes("..") || cleaned.includes("\0") || !cleaned.endsWith(".sgra")) {
+    throw new SdocError(400, "Path must be a .sgra file inside the data root.");
+  }
+  if (!/^[A-Za-z0-9._/-]+$/.test(cleaned)) {
+    throw new SdocError(400, "Path contains unsupported characters.");
+  }
+  const root = sdocRoot();
+  const abs = resolve(root, cleaned);
+  const back = relative(root, abs);
+  if (back.startsWith("..") || isAbsolute(back)) throw new SdocError(400, "Path escapes the data root.");
+  return { rel: cleaned, abs };
+}
+
+async function writeGrammarFile(abs: string, text: string): Promise<void> {
+  await mkdir(dirname(abs), { recursive: true });
+  const tmp = `${abs}.tmp-${process.pid}-${Date.now()}`;
+  try {
+    await writeFile(tmp, text, "utf8");
+    await rename(tmp, abs);
+  } catch (err) {
+    await rm(tmp, { force: true });
+    throw err;
+  }
+}
+
+function grammarView(rel: string, text: string): GrammarResponse {
+  const parsed = parseGrammarFile(text);
+  return {
+    ok: parsed.grammar !== null && !parsed.errors.some((issue) => issue.severity === "error"),
+    path: rel,
+    text,
+    grammar: parsed.grammar,
+    errors: parsed.errors,
+  };
+}
+
 async function ensureRoot(): Promise<void> {
   await mkdir(sdocRoot(), { recursive: true });
 }
@@ -105,33 +149,41 @@ async function walk(
       await walk(abs, root, out, dirs);
       continue;
     }
-    if (!entry.isFile() || !entry.name.endsWith(".sdoc") || entry.name.includes(".tmp-")) continue;
+    if (!entry.isFile() || entry.name.includes(".tmp-")) continue;
+    if (!entry.name.endsWith(".sdoc") && !entry.name.endsWith(".sgra")) continue;
     out.push({ rel: relative(root, abs).split(sep).join("/"), abs });
   }
 }
 
-async function corpus(): Promise<CorpusFile[]> {
+async function corpus(): Promise<Project> {
   await ensureRoot();
   const root = sdocRoot();
   const found: { rel: string; abs: string }[] = [];
   await walk(root, root, found);
   found.sort((a, b) => a.rel.localeCompare(b.rel));
-  const files: CorpusFile[] = [];
+  const texts = new Map<string, string>();
+  const docs: CorpusFile[] = [];
+  const grammars: { rel: string; text: string }[] = [];
   for (const file of found) {
     try {
       const text = await readFile(file.abs, "utf8");
-      files.push({ ...file, text, parsed: parse(text) });
+      texts.set(file.rel, text);
+      if (file.rel.endsWith(".sgra")) {
+        grammars.push({ rel: file.rel, text });
+        continue;
+      }
+      docs.push({ ...file, text, parsed: parse(text) });
     } catch {
       continue;
     }
   }
-  return files;
+  return { docs, grammars, readText: (rel) => texts.get(rel) };
 }
 
-function contextFor(all: CorpusFile[], rel: string, flags: WriteFlags & { mode: "read" | "write" }): ValidateOptions {
+function contextFor(project: Project, rel: string, flags: WriteFlags & { mode: "read" | "write" }): ValidateOptions {
   const siblingUids: string[] = [];
   const siblingEdges: { from: string; to: string }[] = [];
-  for (const file of all) {
+  for (const file of project.docs) {
     if (file.rel === rel || !file.parsed.document) continue;
     siblingUids.push(...collectUids(file.parsed.document));
     siblingEdges.push(...parentEdges(file.parsed.document));
@@ -143,6 +195,7 @@ function contextFor(all: CorpusFile[], rel: string, flags: WriteFlags & { mode: 
     strict: flags.strict === true,
     indexComplete: true,
     file: rel,
+    readText: project.readText,
   };
 }
 
@@ -186,8 +239,8 @@ function indexNodes(all: CorpusFile[]): IndexNode[] {
   return nodes;
 }
 
-function toFileResponse(rel: string, text: string, all: CorpusFile[], mode: "read" | "write"): FileResponse {
-  const ctx = contextFor(all, rel, { mode });
+function toFileResponse(rel: string, text: string, project: Project, mode: "read" | "write"): FileResponse {
+  const ctx = contextFor(project, rel, { mode });
   const result = validate(text, ctx);
   const parsed = parse(text);
   return {
@@ -228,8 +281,8 @@ export async function createDir(input: string): Promise<{ ok: boolean; path: str
 }
 
 export async function health(): Promise<{ ok: boolean; root: string; fileCount: number }> {
-  const all = await corpus();
-  return { ok: true, root: displayRoot(), fileCount: all.length };
+  const project = await corpus();
+  return { ok: true, root: displayRoot(), fileCount: project.docs.length };
 }
 
 export async function buildTree(): Promise<TreeResponse> {
@@ -238,25 +291,38 @@ export async function buildTree(): Promise<TreeResponse> {
   const found: { rel: string; abs: string }[] = [];
   const dirs: string[] = [];
   await walk(rootPath, rootPath, found, dirs);
-  const all = await corpus();
+  const project = await corpus();
+  const documents = project.docs.map((file) => {
+    const doc = file.parsed.document;
+    return {
+      path: file.rel,
+      title: doc?.title || file.rel,
+      uid: doc?.uid ?? "",
+      nodeCount: doc ? flatten(doc.nodes).length : 0,
+      issueCount: file.parsed.errors.filter((issue) => issue.severity === "error").length,
+      kind: "sdoc" as const,
+    };
+  });
+  const grammars = project.grammars.map((file) => {
+    const parsed = parseGrammarFile(file.text);
+    return {
+      path: file.rel,
+      title: "Grammar",
+      uid: "",
+      nodeCount: parsed.grammar?.elements.length ?? 0,
+      issueCount: parsed.errors.filter((issue) => issue.severity === "error").length,
+      kind: "sgra" as const,
+    };
+  });
   return {
     root: displayRoot(),
     dirs: dirs.sort((a, b) => a.localeCompare(b)),
-    files: all.map((file) => {
-      const doc = file.parsed.document;
-      return {
-        path: file.rel,
-        title: doc?.title || file.rel,
-        uid: doc?.uid ?? "",
-        nodeCount: doc ? flatten(doc.nodes).length : 0,
-        issueCount: file.parsed.errors.filter((issue) => issue.severity === "error").length,
-      };
-    }),
+    files: [...documents, ...grammars].sort((a, b) => a.path.localeCompare(b.path)),
   };
 }
 
 export async function buildIndex(): Promise<{ nodes: IndexNode[] }> {
-  return { nodes: indexNodes(await corpus()) };
+  return { nodes: indexNodes((await corpus()).docs) };
 }
 
 export async function readFileView(rel: string): Promise<FileResponse> {
@@ -267,8 +333,8 @@ export async function readFileView(rel: string): Promise<FileResponse> {
   } catch {
     throw new SdocError(404, "File not found.");
   }
-  const all = await corpus();
-  return toFileResponse(rel, text, all, "read");
+  const project = await corpus();
+  return toFileResponse(rel, text, project, "read");
 }
 
 function normalizeDocument(input: SDocDocument): SDocDocument {
@@ -358,15 +424,15 @@ async function atomicWrite(abs: string, text: string, ctx: ValidateOptions): Pro
 
 async function commit(rel: string, text: string, flags: WriteFlags): Promise<FileResponse> {
   const { abs } = resolveInside(rel);
-  const all = await corpus();
-  const ctx = contextFor(all, rel, { ...flags, mode: "write" });
+  const project = await corpus();
+  const ctx = contextFor(project, rel, { ...flags, mode: "write" });
   const result = validate(text, ctx);
   if (!result.ok || !result.document) {
     throw new SdocError(422, "Invalid SDoc.", result.errors);
   }
   if (!flags.force) {
-    const previous = all.find((file) => file.rel === rel)?.parsed.document ?? null;
-    const blocked = referencedRemovals(all, rel, previous, result.document);
+    const previous = project.docs.find((file) => file.rel === rel)?.parsed.document ?? null;
+    const blocked = referencedRemovals(project.docs, rel, previous, result.document);
     if (blocked.length > 0) {
       throw new SdocError(409, "Other nodes parent-point at a UID this save removes.", blocked);
     }
@@ -392,8 +458,8 @@ export async function saveFile(
     if (!preview.document || preview.errors.some((issue) => issue.severity === "error")) {
       throw new SdocError(422, "Invalid SDoc.", preview.errors);
     }
-    const all = await corpus();
-    const checked = validate(body.text, contextFor(all, rel, { ...flags, mode: "write" }));
+    const project = await corpus();
+    const checked = validate(body.text, contextFor(project, rel, { ...flags, mode: "write" }));
     if (!checked.ok || !checked.document) throw new SdocError(422, "Invalid SDoc.", checked.errors);
     text = textForWrite(checked.document);
   } else {
@@ -434,7 +500,83 @@ export async function createFile(input: {
   return commit(rel, textForWrite(document), {});
 }
 
+export async function readGrammar(rel: string): Promise<GrammarResponse> {
+  const { abs } = resolveGrammarFile(rel);
+  let text: string;
+  try {
+    text = await readFile(abs, "utf8");
+  } catch {
+    throw new SdocError(404, "Grammar file not found.");
+  }
+  return grammarView(rel, text);
+}
+
+export async function saveGrammar(
+  rel: string,
+  body: { text?: string; grammar?: Grammar },
+): Promise<GrammarResponse> {
+  const { abs } = resolveGrammarFile(rel);
+  try {
+    await readFile(abs, "utf8");
+  } catch {
+    throw new SdocError(404, "Grammar file not found.");
+  }
+  const text = grammarBody(body);
+  await writeGrammarFile(abs, text);
+  return grammarView(rel, text);
+}
+
+export async function createGrammar(rel: string, text?: string): Promise<GrammarResponse> {
+  const { abs } = resolveGrammarFile(rel);
+  await ensureRoot();
+  try {
+    await readFile(abs, "utf8");
+    throw new SdocError(409, "Grammar file already exists.");
+  } catch (err) {
+    if (err instanceof SdocError) throw err;
+  }
+  const written = text === undefined ? serializeGrammarFile(defaultElements()) : grammarBody({ text });
+  await writeGrammarFile(abs, written);
+  return grammarView(rel, written);
+}
+
+export async function moveDocumentGrammar(documentPath: string, grammarPath: string): Promise<FileResponse> {
+  const view = await readFileView(documentPath);
+  if (!view.document || view.parseFailed) throw new SdocError(422, "Document does not parse.", view.errors);
+  const detached = detachGrammar(view.document, documentPath, grammarPath);
+  if ("error" in detached) throw new SdocError(400, detached.error);
+  await createGrammar(grammarPath, detached.text);
+  try {
+    return await saveFile(documentPath, { document: detached.document });
+  } catch (err) {
+    await rm(resolveGrammarFile(grammarPath).abs, { force: true });
+    throw err;
+  }
+}
+
+function grammarBody(body: { text?: string; grammar?: Grammar }): string {
+  if (body.grammar) {
+    if (body.grammar.importFrom) throw new SdocError(400, "A grammar file cannot import another grammar file.");
+    if (!Array.isArray(body.grammar.elements)) throw new SdocError(400, "Grammar needs elements.");
+    const text = serializeGrammarFile(body.grammar.elements);
+    const parsed = parseGrammarFile(text);
+    if (!parsed.grammar || parsed.errors.some((issue) => issue.severity === "error")) {
+      throw new SdocError(422, "Invalid grammar.", parsed.errors);
+    }
+    return text;
+  }
+  if (typeof body.text === "string") {
+    const parsed = parseGrammarFile(body.text);
+    if (!parsed.grammar || parsed.errors.some((issue) => issue.severity === "error")) {
+      throw new SdocError(422, "Invalid grammar.", parsed.errors);
+    }
+    return serializeGrammarFile(parsed.grammar.elements);
+  }
+  throw new SdocError(400, "Body must be { text } or { grammar }.");
+}
+
 export async function removeFile(rel: string, force: boolean): Promise<{ ok: boolean }> {
+  if (rel.replace(/\\/g, "/").endsWith(".sgra")) return removeGrammar(rel, force);
   const { abs } = resolveInside(rel);
   let text: string;
   try {
@@ -448,6 +590,28 @@ export async function removeFile(rel: string, force: boolean): Promise<{ ok: boo
   }
   if ((parsed.document?.nodes.length ?? 0) > 0 && !force) {
     throw new SdocError(409, "File is not empty. Pass force=1 to delete it.");
+  }
+  await rm(abs);
+  return { ok: true };
+}
+
+async function removeGrammar(rel: string, force: boolean): Promise<{ ok: boolean }> {
+  const { abs } = resolveGrammarFile(rel);
+  try {
+    await readFile(abs, "utf8");
+  } catch {
+    throw new SdocError(404, "Grammar file not found.");
+  }
+  const project = await corpus();
+  const used = project.docs.filter((file) => {
+    const spec = file.parsed.document?.grammar.importFrom;
+    return spec ? resolveGrammarPath(file.rel, spec) === rel : false;
+  });
+  if (used.length > 0 && !force) {
+    throw new SdocError(
+      409,
+      `Imported by ${used.map((file) => file.rel).join(", ")}.`,
+    );
   }
   await rm(abs);
   return { ok: true };
@@ -486,10 +650,10 @@ function stripParents(nodes: SDocNode[], uid: string): SDocNode[] {
 }
 
 export async function readNode(uid: string): Promise<NodeResponse> {
-  const all = await corpus();
-  const found = locate(all, uid);
+  const project = await corpus();
+  const found = locate(project.docs, uid);
   if (!found) throw new SdocError(404, "UID not found.");
-  const nodes = indexNodes(all);
+  const nodes = indexNodes(project.docs);
   const incoming = nodes
     .filter((node) => node.relations.some((relation) => relation.type !== "File" && relation.value === uid))
     .map((node) => {
@@ -516,8 +680,8 @@ export async function saveNode(
   patch: { fields?: Record<string, string>; relations?: IndexNode["relations"] },
   flags: WriteFlags = {},
 ): Promise<NodeResponse> {
-  const all = await corpus();
-  const found = locate(all, uid);
+  const project = await corpus();
+  const found = locate(project.docs, uid);
   if (!found) throw new SdocError(404, "UID not found.");
   let node = found.node;
   if (patch.fields) {
@@ -560,8 +724,8 @@ export async function addNode(
 }
 
 export async function removeNode(uid: string, force: boolean): Promise<{ ok: boolean }> {
-  const all = await corpus();
-  const found = locate(all, uid);
+  const project = await corpus();
+  const found = locate(project.docs, uid);
   if (!found) throw new SdocError(404, "UID not found.");
   const incoming = (await readNode(uid)).incoming.filter((item) => item.file !== found.file.rel && item.type === "Parent");
   if (incoming.length > 0 && !force) {
@@ -605,7 +769,7 @@ function ensureWatch(): void {
   try {
     watcher = watch(root, { recursive: true }, (_event, filename) => {
       const name = String(filename ?? "");
-      if (!name.endsWith(".sdoc") || name.includes(".tmp-")) return;
+      if ((!name.endsWith(".sdoc") && !name.endsWith(".sgra")) || name.includes(".tmp-")) return;
       const parts = name.split(/[/\\]/);
       if (parts.some((part) => part === "output" || part === "node_modules" || part === ".git")) return;
       pending.add(parts.join("/"));

@@ -1,102 +1,80 @@
-import { useEffect, useRef } from "react";
+import { useMemo, useState } from "react";
 import type { IndexNode } from "@/lib/sdoc/api-types";
-import { flowSource, type FlowHit } from "@/lib/sdoc/flow";
+import { flowDiagram } from "@/lib/sdoc/diagram";
+import { Diagram } from "@/components/sdoc/Diagram";
+
+const ROLE_COLOR: Record<string, string> = {
+  Refines: "#e2a227",
+  ConformsTo: "#3cba8b",
+  Delivers: "#7eb6ff",
+  Satisfies: "#c4b5fd",
+};
 
 export function FlowMap({
   nodes,
   focus,
+  file = "",
   onPick,
 }: {
   nodes: IndexNode[];
   focus: string;
+  file?: string;
   onPick: (uid: string, file: string) => void;
 }) {
-  const host = useRef<HTMLDivElement>(null);
-  const pick = useRef(onPick);
-  pick.current = onPick;
-  const chart = flowSource(nodes, focus);
-
-  const hits = useRef(chart.hits);
-  hits.current = chart.hits;
-
-  useEffect(() => {
-    const el = host.current;
-    if (!el) return;
-    if (!chart.source) {
-      el.replaceChildren();
-      return;
-    }
-    let cancel = false;
-    const renderId = `flow${Math.random().toString(36).slice(2)}`;
-    void (async () => {
-      const mermaid = (await import("mermaid")).default;
-      mermaid.initialize({
-        startOnLoad: false,
-        securityLevel: "strict",
-        theme: "base",
-        fontFamily: "IBM Plex Sans",
-        themeVariables: {
-          darkMode: true,
-          background: "#101418",
-          primaryColor: "#212932",
-          primaryTextColor: "#e7eef3",
-          primaryBorderColor: "#3c4650",
-          lineColor: "#8d9aa3",
-          clusterBkg: "#181e24",
-          clusterBorder: "#3c4650",
-          titleColor: "#e7eef3",
-          fontSize: "14px",
-        },
-      });
-      try {
-        const rendered = await mermaid.render(renderId, chart.source);
-        if (cancel || !host.current) return;
-        host.current.innerHTML = rendered.svg;
-        const svg = host.current.querySelector("svg");
-        if (svg) {
-          svg.style.maxWidth = "none";
-          svg.style.height = "auto";
-        }
-        host.current.querySelectorAll<HTMLElement>(".node").forEach((node) => {
-          node.style.cursor = "pointer";
-          node.addEventListener("click", () => {
-            const hit = hitFor(node.id, hits.current);
-            if (hit) pick.current(hit.uid, hit.file);
-          });
-        });
-      } catch (err) {
-        if (!cancel && host.current) {
-          host.current.textContent = err instanceof Error ? err.message : "Could not draw the flow.";
-        }
-      }
-    })();
-    return () => {
-      cancel = true;
-    };
-  }, [chart.source]);
-
-  const documents = new Set(nodes.map((node) => node.file).filter(Boolean)).size;
+  const model = useMemo(() => flowDiagram(nodes, focus, file), [nodes, focus, file]);
+  const [edgeId, setEdgeId] = useState("");
+  const links = model.links.get(edgeId) ?? [];
+  const roles = [...new Set(model.edges.map((edge) => edge.role))];
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-bg">
-      <div className="border-b border-line px-3 py-2">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line px-3 py-2">
         <p className="font-mono text-xs tracking-widest text-accent">FLOW</p>
         <p className="text-xs text-muted">
-          {documents === 0
-            ? "No documents."
-            : "Nodes with a Parent or Child link. Arrows are Parent links."}
+          {model.nodes.length === 0
+            ? "No cross-file links yet."
+            : "One box per document. Lines from the open document are labeled. Select a line to list the requirements."}
         </p>
+        <div className="ml-auto flex flex-wrap gap-2">
+          {roles.map((role) => (
+            <span key={role} className="font-mono text-xs" style={{ color: ROLE_COLOR[role] ?? "#8d9aa3" }}>
+              {role}
+            </span>
+          ))}
+        </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-auto p-4">
-        {chart.source ? <div ref={host} /> : <p className="text-sm text-muted">Nothing to draw yet.</p>}
+      <div className="min-h-0 flex-1 overflow-auto p-2">
+        {model.nodes.length > 0 ? (
+          <Diagram
+            lanes={model.lanes}
+            nodes={model.nodes}
+            edges={model.edges}
+            onNode={(node) => {
+              if (node.uid && node.file) onPick(node.uid, node.file);
+            }}
+            onEdge={(edge) => setEdgeId((current) => (current === edge.id ? "" : edge.id))}
+          />
+        ) : (
+          <p className="px-2 py-4 text-sm text-muted">Nothing to draw yet.</p>
+        )}
       </div>
+      {links.length > 0 ? (
+        <ul className="max-h-40 overflow-y-auto border-t border-line">
+          {links.map((link) => (
+            <li key={`${link.fromUid}|${link.role}|${link.toUid}`}>
+              <button
+                type="button"
+                onClick={() => onPick(link.fromUid, link.fromFile)}
+                className="flex min-h-11 w-full items-baseline gap-2 px-3 text-left"
+              >
+                <span className="font-mono text-xs text-accent">{link.fromUid}</span>
+                <span className="font-mono text-xs text-muted">{link.role}</span>
+                <span className="font-mono text-xs">{link.toUid}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
-}
-
-function hitFor(domId: string, hits: Map<string, FlowHit>): FlowHit | undefined {
-  for (const [id, hit] of hits) {
-    if (domId.includes(id)) return hit;
-  }
-  return undefined;
 }

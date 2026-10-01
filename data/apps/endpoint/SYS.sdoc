@@ -1,0 +1,270 @@
+[DOCUMENT]
+TITLE: Endpoint management
+UID: APP-END
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: END-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Enrollment, patch compliance, media control, and lost-device response for managed endpoints.
+
+[[SECTION]]
+UID: END-SEC-ENR
+PREFIX: ENR
+TITLE: Enrollment
+
+[REQUIREMENT]
+UID: END-ENR-001
+TITLE: Corporate device
+STATEMENT: Endpoint shall enroll a device before it is allowed to open enterprise data.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CFG-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-19
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-8
+
+[REQUIREMENT]
+UID: END-ENR-002
+TITLE: Owner
+STATEMENT: Endpoint shall record the person a device is assigned to.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-8
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+
+[REQUIREMENT]
+UID: END-ENR-003
+TITLE: Unenrolled block
+STATEMENT: Endpoint shall block a device that is not enrolled from the enterprise network profile.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CFG-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-7
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222399
+
+[REQUIREMENT]
+UID: END-ENR-004
+TITLE: Certificate
+STATEMENT: Endpoint shall install a device certificate from the enterprise authority.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CRY-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-17
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-3
+
+[REQUIREMENT]
+UID: END-ENR-005
+TITLE: Retire
+STATEMENT: Endpoint shall wipe enterprise data when a device is retired.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: MP-6
+
+[REQUIREMENT]
+UID: END-ENR-006
+TITLE: Lost
+STATEMENT: Endpoint shall lock a reported-lost device and wipe it if it does not check in.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: MP-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222400
+[[/SECTION]]
+
+[[SECTION]]
+UID: END-SEC-PAT
+PREFIX: CMP
+TITLE: Compliance
+
+[REQUIREMENT]
+UID: END-CMP-001
+TITLE: Patch level
+STATEMENT: Endpoint shall mark a device non-compliant when a critical patch is missing past the window.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222403
+
+[REQUIREMENT]
+UID: END-CMP-002
+TITLE: Disk encryption
+STATEMENT: Endpoint shall require disk encryption before a device is compliant.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CRY-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-28
+
+[REQUIREMENT]
+UID: END-CMP-003
+TITLE: Screen lock
+STATEMENT: Endpoint shall require a screen lock within the configured idle time.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-11
+
+[REQUIREMENT]
+UID: END-CMP-004
+TITLE: Malware agent
+STATEMENT: Endpoint shall require the malware agent to be running and current.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-3
+
+[REQUIREMENT]
+UID: END-CMP-005
+TITLE: Media block
+STATEMENT: Endpoint shall block removable storage unless an exception names the device and the expiry.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CFG-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-20
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: MP-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222404
+
+[REQUIREMENT]
+UID: END-CMP-006
+TITLE: Exception review
+STATEMENT: Endpoint shall expire a media exception and list it for review.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CFG-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-3
+
+[REQUIREMENT]
+UID: END-CMP-007
+TITLE: Drift report
+STATEMENT: Endpoint shall report a device whose configuration has left the baseline.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-END-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CFG-007
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-4
+[[/SECTION]]

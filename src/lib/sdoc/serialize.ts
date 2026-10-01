@@ -1,4 +1,4 @@
-import { ensureOrgGrammar } from "./grammar.ts";
+import { ensureOrgGrammar, relativeImport } from "./grammar.ts";
 import type { DocOptions, Grammar, GrammarElement, SDocDocument, SDocNode } from "./types.ts";
 
 const OPTION_KEYS = ["ENABLE_MID", "AUTO_LEVELS", "VIEW_STYLE", "NODE_IN_TOC", "MARKUP"] as const;
@@ -39,13 +39,40 @@ function serializeOptions(options: DocOptions): string[] {
 }
 
 function serializeGrammar(grammar: Grammar): string[] {
+  if (grammar.importFrom) return ["[GRAMMAR]", `IMPORT_FROM_FILE: ${grammar.importFrom}`];
   const lines = ["[GRAMMAR]", "ELEMENTS:"];
   for (const element of grammar.elements) lines.push(...serializeElement(element));
   return lines;
 }
 
+export function serializeGrammarFile(elements: GrammarElement[]): string {
+  const text = serializeGrammar({ explicit: true, elements }).join("\n");
+  return text.endsWith("\n") ? text : `${text}\n`;
+}
+
+/** Point a document at a new grammar file. The grammar text is the document's current elements. */
+export function detachGrammar(
+  document: SDocDocument,
+  fromRel: string,
+  grammarRel: string,
+): { document: SDocDocument; text: string } | { error: string } {
+  if (document.grammar.importFrom) return { error: "This document already imports a grammar file." };
+  const elements = (document.grammar.explicit ? document : ensureOrgGrammar(document)).grammar.elements;
+  const spec = relativeImport(fromRel, grammarRel);
+  if (!spec) return { error: "Grammar path must be a .sgra file inside the project." };
+  return {
+    text: serializeGrammarFile(elements),
+    document: { ...document, grammar: { explicit: true, elements, importFrom: spec } },
+  };
+}
+
 function serializeElement(element: GrammarElement): string[] {
-  const lines = [`- TAG: ${element.tag}`, "  FIELDS:"];
+  const lines = [`- TAG: ${element.tag}`];
+  const composite = element.composite ?? (element.tag === "SECTION" ? true : undefined);
+  if (composite !== undefined) {
+    lines.push("  PROPERTIES:", `    IS_COMPOSITE: ${composite ? "True" : "False"}`);
+  }
+  lines.push("  FIELDS:");
   for (const field of element.fields) {
     lines.push(`  - TITLE: ${field.title}`);
     const options = field.type === "SingleChoice" && field.options?.length ? `(${field.options.join(", ")})` : "";

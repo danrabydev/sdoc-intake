@@ -236,8 +236,20 @@ function parseOptions(scanner: Scanner, errors: SDocIssue[]): DocOptions {
 function parseGrammar(scanner: Scanner, errors: SDocIssue[]): Grammar {
   const grammar: Grammar = { explicit: true, elements: [] };
   while (scanner.current !== null && scanner.current.trim() === "") scanner.next();
+  const imported = /^\s*IMPORT_FROM_FILE:\s*(.*?)\s*$/.exec(scanner.current ?? "");
+  if (imported) {
+    const spec = imported[1]!.trim();
+    if (!spec) errors.push(issue(scanner.lineNo, 1, "grammar", "IMPORT_FROM_FILE needs a .sgra path."));
+    else grammar.importFrom = spec;
+    scanner.next();
+    while (scanner.current !== null && scanner.current.trim() === "") scanner.next();
+    if (scanner.current !== null && !scanner.current.trim().startsWith("[")) {
+      errors.push(issue(scanner.lineNo, 1, "grammar", "IMPORT_FROM_FILE stands alone. Do not also declare ELEMENTS."));
+    }
+    return grammar;
+  }
   if (scanner.current?.trim() !== "ELEMENTS:") {
-    errors.push(issue(scanner.lineNo, 1, "grammar", "GRAMMAR must contain ELEMENTS:."));
+    errors.push(issue(scanner.lineNo, 1, "grammar", "GRAMMAR must contain ELEMENTS: or IMPORT_FROM_FILE:."));
   } else {
     scanner.next();
   }
@@ -293,6 +305,8 @@ function parseGrammar(scanner: Scanner, errors: SDocIssue[]): Grammar {
       continue;
     }
     if (mode === "properties") {
+      const composite = /^\s*IS_COMPOSITE:\s*(True|False)\s*$/i.exec(raw);
+      if (composite && current) current.composite = /^true$/i.test(composite[1]!);
       scanner.next();
       continue;
     }
@@ -391,6 +405,23 @@ function parseGrammar(scanner: Scanner, errors: SDocIssue[]): Grammar {
   }
   finishField();
   return grammar;
+}
+
+/** A `.sgra` file is a `[GRAMMAR]` block and nothing else. */
+export function parseGrammarFile(text: string): { grammar: Grammar | null; errors: SDocIssue[] } {
+  const errors: SDocIssue[] = [];
+  const scanner = new Scanner(text);
+  while (scanner.current !== null && scanner.current.trim() === "") scanner.next();
+  if (scanner.current?.trim() !== "[GRAMMAR]") {
+    errors.push(issue(scanner.lineNo, 1, "grammar", "A grammar file must start with [GRAMMAR]."));
+    return { grammar: null, errors };
+  }
+  scanner.next();
+  const grammar = parseGrammar(scanner, errors);
+  if (grammar.importFrom) {
+    errors.push(issue(1, 1, "grammar", "A grammar file cannot import another grammar file."));
+  }
+  return { grammar, errors };
 }
 
 function parseNodes(scanner: Scanner, errors: SDocIssue[], closer: string | null): SDocNode[] {

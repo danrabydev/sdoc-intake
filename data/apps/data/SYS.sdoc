@@ -1,0 +1,409 @@
+[DOCUMENT]
+TITLE: Data platform
+UID: APP-DAT
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: DAT-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Pipelines, the warehouse, and bulk export for Northline. A data set keeps the classification of its source. Analytics is a different purpose from care and from payment.
+
+[[SECTION]]
+UID: DAT-SEC-PIP
+PREFIX: PIP
+TITLE: Pipelines
+
+[REQUIREMENT]
+UID: DAT-PIP-001
+TITLE: Workload identity
+STATEMENT: Data shall run each pipeline as a workload identity.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-5
+
+[REQUIREMENT]
+UID: DAT-PIP-002
+TITLE: No shared secret
+STATEMENT: Data shall not store a long-lived password in a pipeline definition.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CFG-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-28
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222604
+
+[REQUIREMENT]
+UID: DAT-PIP-003
+TITLE: Lineage
+STATEMENT: Data shall record the pipeline and the run that wrote a derived table.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-8
+
+[REQUIREMENT]
+UID: DAT-PIP-004
+TITLE: Failed run
+STATEMENT: Data shall alert the pipeline owner when a run fails and shall not mark the table fresh.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-4
+
+[REQUIREMENT]
+UID: DAT-PIP-005
+TITLE: Schema change
+STATEMENT: Data shall require a change record before a pipeline writes a new column of restricted data.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CFG-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-3
+
+[REQUIREMENT]
+UID: DAT-PIP-006
+TITLE: Source classification
+STATEMENT: Data shall carry the source classification onto the derived table.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-16
+[[/SECTION]]
+
+[[SECTION]]
+UID: DAT-SEC-WH
+PREFIX: WH
+TITLE: Warehouse
+
+[REQUIREMENT]
+UID: DAT-WH-001
+TITLE: Named role
+STATEMENT: Data shall issue a warehouse role to a person or a workload, not a shared login.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222607
+
+[REQUIREMENT]
+UID: DAT-WH-002
+TITLE: Purpose
+STATEMENT: Data shall refuse a role that does not name a purpose.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+
+[REQUIREMENT]
+UID: DAT-WH-003
+TITLE: Personal schema
+STATEMENT: Data shall keep production tables out of a personal schema.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CFG-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-7
+
+[REQUIREMENT]
+UID: DAT-WH-004
+TITLE: Query audit
+STATEMENT: Data shall audit the role and the person on a query of restricted data.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-007
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: DAT-WH-005
+TITLE: Break-glass query
+STATEMENT: Data shall alert when a break-glass role reads a restricted table.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-007
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-007
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222608
+
+[REQUIREMENT]
+UID: DAT-WH-006
+TITLE: Owner before query
+STATEMENT: Data shall not publish a data set to the warehouse catalog without an owner.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-16
+
+[REQUIREMENT]
+UID: DAT-WH-007
+TITLE: Join to identity
+STATEMENT: Data shall not join a warehouse extract back to a person unless the purpose allows it.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-12
+[[/SECTION]]
+
+[[SECTION]]
+UID: DAT-SEC-EXP
+PREFIX: EXP
+TITLE: Export and disposal
+
+[REQUIREMENT]
+UID: DAT-EXP-001
+TITLE: Approve the file
+STATEMENT: Data shall hold a bulk export until the recorded approver releases it.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222609
+
+[REQUIREMENT]
+UID: DAT-EXP-002
+TITLE: Encrypt the file
+STATEMENT: Data shall encrypt an export of restricted data with an enterprise-managed key.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CRY-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-28
+
+[REQUIREMENT]
+UID: DAT-EXP-003
+TITLE: Name the recipient
+STATEMENT: Data shall record the recipient and the purpose on the export.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-16
+
+[REQUIREMENT]
+UID: DAT-EXP-004
+TITLE: Expire the link
+STATEMENT: Data shall expire a download link and shall not leave the file at a stable address.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-12
+
+[REQUIREMENT]
+UID: DAT-EXP-005
+TITLE: De-identify outbound
+STATEMENT: Data shall remove direct identifiers before an export leaves the enterprise for analytics.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-12
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+
+[REQUIREMENT]
+UID: DAT-EXP-006
+TITLE: Dispose the copy
+STATEMENT: Data shall delete an analytics copy when Records disposes the source.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-12
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: MP-6
+
+[REQUIREMENT]
+UID: DAT-EXP-007
+TITLE: Size
+STATEMENT: Data shall require a second approver when an export exceeds the configured row count.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-DAT-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+[[/SECTION]]

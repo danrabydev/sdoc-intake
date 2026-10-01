@@ -1,5 +1,6 @@
+import { resolveGrammarPath } from "./grammar.ts";
 import { semanticallyEqual, nodeUid, parentEdges } from "./model.ts";
-import { parse } from "./parse.ts";
+import { parse, parseGrammarFile } from "./parse.ts";
 import { serialize } from "./serialize.ts";
 import type {
   GrammarElement,
@@ -24,6 +25,30 @@ export function tightListOffset(value: string): number | null {
   return null;
 }
 
+/** Load an `IMPORT_FROM_FILE` grammar onto the document. A save still writes the import, not a copy. */
+function applyImportedGrammar(
+  document: SDocDocument,
+  fromRel: string,
+  readText: ((rel: string) => string | undefined) | undefined,
+): SDocIssue[] {
+  const spec = document.grammar.importFrom;
+  if (!spec) return [];
+  const fail = (message: string): SDocIssue[] => [
+    { line: 1, col: 1, path: "grammar", message, severity: "error", code: "grammar-import" },
+  ];
+  if (!readText) return fail(`Grammar import ${spec} was not loaded.`);
+  const rel = resolveGrammarPath(fromRel, spec);
+  if (!rel) return fail(`Grammar import ${spec} must be a .sgra file inside the project.`);
+  const text = readText(rel);
+  if (text === undefined) return fail(`Grammar file ${rel} was not found.`);
+  const parsed = parseGrammarFile(text);
+  if (!parsed.grammar || parsed.errors.some((item) => item.severity === "error")) {
+    return parsed.errors.map((item) => ({ ...item, message: `${rel}: ${item.message}`, file: rel }));
+  }
+  document.grammar = { explicit: true, elements: parsed.grammar.elements, importFrom: spec };
+  return [];
+}
+
 export function validate(text: string, options: ValidateOptions = {}): ValidateResult {
   const parsed = parse(text);
   const errors = parsed.errors.map((item) => ({ ...item }));
@@ -31,6 +56,15 @@ export function validate(text: string, options: ValidateOptions = {}): ValidateR
   if (!document) {
     stampFile(errors, options.file);
     return { ok: false, errors, document: null };
+  }
+
+  if (document.grammar.importFrom) {
+    const imported = applyImportedGrammar(document, options.file ?? "", options.readText);
+    if (imported.length > 0) {
+      errors.push(...imported);
+      stampFile(errors, options.file);
+      return { ok: false, errors, document };
+    }
   }
 
   const siblings = new Set(options.siblingUids ?? []);
@@ -160,6 +194,16 @@ function checkNode(
       message: `Element [${node.tag}] is not in the grammar.`,
       severity: "error",
       code: "unknown-element",
+      uid: uid || undefined,
+    });
+  } else if (node.composite && element.composite === false) {
+    errors.push({
+      line: node.line,
+      col: 1,
+      path,
+      message: `${node.tag} is not composite, so it cannot contain other elements.`,
+      severity: "error",
+      code: "not-composite",
       uid: uid || undefined,
     });
   }

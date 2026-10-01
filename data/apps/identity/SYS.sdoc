@@ -1,0 +1,515 @@
+[DOCUMENT]
+TITLE: Identity
+UID: APP-IDN
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: IDN-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Workforce and customer identity for Northline. Requirements refine the identity capabilities and the platform identity service.
+
+[[SECTION]]
+UID: IDN-SEC-ACC
+PREFIX: ACC
+TITLE: Access
+
+[[SECTION]]
+UID: IDN-SEC-AUTH
+PREFIX: AUTH
+TITLE: Authentication
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTH-001
+TITLE: SMS one-time password
+STATEMENT: Identity shall accept SMS as a second factor for a workforce account.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTH-002
+TITLE: Privileged sign-in
+STATEMENT: Identity shall refuse a privileged session that did not use a phishing-resistant authenticator.
+COMMENT: Replaces IDN-ACC-AUTH-001. The earlier requirement stays as approved.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: IDN-ACC-AUTH-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2.1
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222577
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTH-003
+TITLE: Customer step-up
+STATEMENT: Identity shall step up a customer session before showing payment instruments or health information.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTH-004
+TITLE: Lockout
+STATEMENT: Identity shall temporarily lock an account after the configured number of failed attempts.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-7
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTH-005
+TITLE: Authenticator recovery
+STATEMENT: Identity shall recover a lost authenticator only after a second channel that is not the authenticator itself.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-5
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTH-006
+TITLE: Replay
+STATEMENT: Identity shall reject a reused authenticator response.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2.8
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222578
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTH-007
+TITLE: Sign-out
+STATEMENT: Identity shall revoke the session tokens when the user signs out.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-12
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTH-008
+TITLE: Remembered device
+STATEMENT: Identity shall bind a remembered browser to the customer and expire that binding.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-3
+[[/SECTION]]
+
+[[SECTION]]
+UID: IDN-SEC-AUTHZ
+PREFIX: AUTHZ
+TITLE: Authorization
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTHZ-001
+TITLE: Role grant
+STATEMENT: Identity shall grant an administrative role only from an approved request.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTHZ-002
+TITLE: Least privilege
+STATEMENT: Identity shall not include an administrative role in a standard workforce profile.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTHZ-003
+TITLE: Separation
+STATEMENT: Identity shall stop one person from both requesting and approving the same privileged grant.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-5
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTHZ-004
+TITLE: Temporary elevation
+STATEMENT: Identity shall expire a temporary elevation at the time recorded on the request.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-007
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-007
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222585
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTHZ-005
+TITLE: Access review
+STATEMENT: Identity shall present privileged grants for review every quarter.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2.9
+
+[REQUIREMENT]
+UID: IDN-ACC-AUTHZ-006
+TITLE: Deny by default
+STATEMENT: Identity shall deny an action that no grant covers.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+[[/SECTION]]
+[[/SECTION]]
+
+[[SECTION]]
+UID: IDN-SEC-PRV
+PREFIX: PRV
+TITLE: Provisioning
+
+[REQUIREMENT]
+UID: IDN-PRV-001
+TITLE: Hire feed
+STATEMENT: Identity shall open a workforce account from the HR hire event and not from a free-text request.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+
+[REQUIREMENT]
+UID: IDN-PRV-002
+TITLE: Transfer
+STATEMENT: Identity shall replace role grants when HR records a transfer.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+
+[REQUIREMENT]
+UID: IDN-PRV-003
+TITLE: Departure
+STATEMENT: Identity shall disable sign-in within one hour of a recorded departure.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2.3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PS-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222588
+
+[REQUIREMENT]
+UID: IDN-PRV-004
+TITLE: Orphan account
+STATEMENT: Identity shall list accounts that no longer match a person or a workload.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-008
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+
+[REQUIREMENT]
+UID: IDN-PRV-005
+TITLE: Service account owner
+STATEMENT: Identity shall require a named owner on every service account.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-008
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-3
+
+[REQUIREMENT]
+UID: IDN-PRV-006
+TITLE: Dormant account
+STATEMENT: Identity shall disable a workforce account with no successful sign-in for the configured period.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+[[/SECTION]]
+
+[[SECTION]]
+UID: IDN-SEC-FED
+PREFIX: FED
+TITLE: Federation
+
+[REQUIREMENT]
+UID: IDN-FED-001
+TITLE: Registered issuer
+STATEMENT: Identity shall reject an assertion whose issuer is not on the partner register.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-8
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222589
+
+[REQUIREMENT]
+UID: IDN-FED-002
+TITLE: Audience
+STATEMENT: Identity shall reject an assertion that does not name this service as the audience.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-8
+
+[REQUIREMENT]
+UID: IDN-FED-003
+TITLE: Lifetime
+STATEMENT: Identity shall reject an assertion outside its validity window.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-8
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-8
+
+[REQUIREMENT]
+UID: IDN-FED-004
+TITLE: Attribute map
+STATEMENT: Identity shall map partner attributes to local roles through an approved map, not through a default role.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+
+[REQUIREMENT]
+UID: IDN-FED-005
+TITLE: Partner offboarding
+STATEMENT: Identity shall stop accepting an issuer the day the partnership ends.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2.3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-8
+
+[REQUIREMENT]
+UID: IDN-FED-006
+TITLE: Federation audit
+STATEMENT: Identity shall audit the issuer and subject of every federated sign-in.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+[[/SECTION]]

@@ -1,0 +1,43 @@
+[GRAMMAR]
+ELEMENTS:
+- TAG: TEXT
+  FIELDS:
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+- TAG: SECTION
+  PROPERTIES:
+    IS_COMPOSITE: True
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: False
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+- TAG: RELEASE
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+  - TITLE: VERSION
+    TYPE: String
+    REQUIRED: True
+  - TITLE: CHANNEL
+    TYPE: SingleChoice(upkeep, maintenance, security-only)
+    REQUIRED: True
+  - TITLE: DATE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: DESCRIPTION
+    TYPE: String
+    REQUIRED: True
+  - TITLE: STATUS
+    TYPE: SingleChoice(planned, shipped, deprecated)
+    REQUIRED: True
+  RELATIONS:
+  - TYPE: Child
+    ROLE: Delivers

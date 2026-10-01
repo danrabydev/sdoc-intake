@@ -48,8 +48,8 @@
   height: auto;
 }
 
-.sdoc-graph .node {
-  cursor: pointer;
+.sdoc-diagram text {
+  user-select: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

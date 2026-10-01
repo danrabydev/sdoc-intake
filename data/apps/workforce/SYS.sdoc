@@ -1,0 +1,484 @@
+[DOCUMENT]
+TITLE: Workforce
+UID: APP-HR
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: HR-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Positions, time, payroll access, training, and contractors for Northline. Identity still opens and closes the account. This system is the source of the hire, transfer, and leave events.
+
+[[SECTION]]
+UID: HR-SEC-POS
+PREFIX: POS
+TITLE: People
+
+[REQUIREMENT]
+UID: HR-POS-001
+TITLE: One position
+STATEMENT: Workforce shall keep one current position for a person, including the manager and the job code.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PS-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PL-4
+
+[REQUIREMENT]
+UID: HR-POS-002
+TITLE: Person identifier
+STATEMENT: Workforce shall assign one identifier to a person and shall reuse it if they are rehired.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+
+[REQUIREMENT]
+UID: HR-POS-003
+TITLE: Hire event
+STATEMENT: Workforce shall emit a hire event that Identity consumes. Workforce shall not create the account itself.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+
+[REQUIREMENT]
+UID: HR-POS-004
+TITLE: Job suggests, grant decides
+STATEMENT: Workforce shall suggest roles from the job code and shall not grant them.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+
+[REQUIREMENT]
+UID: HR-POS-005
+TITLE: Manager of record
+STATEMENT: Workforce shall name a manager before a person is marked active.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PS-2
+
+[REQUIREMENT]
+UID: HR-POS-006
+TITLE: Rehire
+STATEMENT: Workforce shall open a rehire against the existing person identifier, not a second person.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-ID-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222536
+[[/SECTION]]
+
+[[SECTION]]
+UID: HR-SEC-PAY
+PREFIX: PAY
+TITLE: Time and pay
+
+[REQUIREMENT]
+UID: HR-PAY-001
+TITLE: Shared payroll login
+STATEMENT: Workforce shall allow the payroll team to share one login for pay changes.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+
+[REQUIREMENT]
+UID: HR-PAY-002
+TITLE: Named payroll access
+STATEMENT: Workforce shall grant payroll access only to named accounts.
+COMMENT: Replaces HR-PAY-001. The earlier requirement stays as approved.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: HR-PAY-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222542
+
+[REQUIREMENT]
+UID: HR-PAY-003
+TITLE: Attest time
+STATEMENT: Workforce shall require the worker to attest a time record before the manager can accept it.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+
+[REQUIREMENT]
+UID: HR-PAY-004
+TITLE: Not your own time
+STATEMENT: Workforce shall stop a person from accepting their own time record.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-5
+
+[REQUIREMENT]
+UID: HR-PAY-005
+TITLE: Pay change audit
+STATEMENT: Workforce shall audit who changed a pay rate, the old rate, and the new rate.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: HR-PAY-006
+TITLE: Bank change
+STATEMENT: Workforce shall require step-up authentication before a direct-deposit account changes.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222543
+
+[REQUIREMENT]
+UID: HR-PAY-007
+TITLE: Garnishment
+STATEMENT: Workforce shall limit garnishment detail to the payroll role.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PT-2
+
+[REQUIREMENT]
+UID: HR-PAY-008
+TITLE: Correction
+STATEMENT: Workforce shall keep a corrected time record and the record it replaced.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+[[/SECTION]]
+
+[[SECTION]]
+UID: HR-SEC-LRN
+PREFIX: LRN
+TITLE: Training
+
+[REQUIREMENT]
+UID: HR-LRN-001
+TITLE: Assigned training
+STATEMENT: Workforce shall assign the training the job code requires and shall record completion.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AT-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AT-4
+
+[REQUIREMENT]
+UID: HR-LRN-002
+TITLE: Role training
+STATEMENT: Workforce shall assign extra training when a privileged role is granted.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AT-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AT-2
+
+[REQUIREMENT]
+UID: HR-LRN-003
+TITLE: Overdue blocks elevation
+STATEMENT: Workforce shall refuse a new privileged grant while required training is overdue.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AT-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222550
+
+[REQUIREMENT]
+UID: HR-LRN-004
+TITLE: Keep the record
+STATEMENT: Workforce shall keep a training completion for the retention period of the employment record.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AT-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-11
+
+[REQUIREMENT]
+UID: HR-LRN-005
+TITLE: Content owner
+STATEMENT: Workforce shall name an owner for each required course.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AT-4
+[[/SECTION]]
+
+[[SECTION]]
+UID: HR-SEC-CTR
+PREFIX: CTR
+TITLE: Contractors
+
+[REQUIREMENT]
+UID: HR-CTR-001
+TITLE: Sponsor
+STATEMENT: Workforce shall require a workforce sponsor on every contractor.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PS-7
+
+[REQUIREMENT]
+UID: HR-CTR-002
+TITLE: End date
+STATEMENT: Workforce shall disable contractor eligibility on the end date without a separate request.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PS-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2.3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222551
+
+[REQUIREMENT]
+UID: HR-CTR-003
+TITLE: Agreement
+STATEMENT: Workforce shall record the confidentiality agreement before a contractor is eligible.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PS-6
+
+[REQUIREMENT]
+UID: HR-CTR-004
+TITLE: Badge is not a grant
+STATEMENT: Workforce shall not treat a badge as permission to an application role.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+
+[REQUIREMENT]
+UID: HR-CTR-005
+TITLE: Company
+STATEMENT: Workforce shall record the vendor company of a contractor and shall not file them as an employee.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-006
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SA-9
+
+[REQUIREMENT]
+UID: HR-CTR-006
+TITLE: Checklist
+STATEMENT: Workforce shall close accounts, badge, and equipment on one separation checklist.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-HR-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PS-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: MP-6
+[[/SECTION]]

@@ -1,0 +1,494 @@
+[DOCUMENT]
+TITLE: Northline capabilities
+UID: APP-CAP
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: ENT-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Enterprise capabilities for Northline, a fictional company: identity, records, payments, the Harbor clinic, messaging, endpoints, logistics, the public portal, workforce, procurement, security operations, and the data platform. Applications refine these. NIST and STIG identifiers stay in the catalog.
+
+[[SECTION]]
+UID: ENT-SEC-ID
+PREFIX: ID
+TITLE: Identity and access
+
+[REQUIREMENT]
+UID: ENT-ID-001
+TITLE: Workforce sign-in
+STATEMENT: A workforce user can prove who they are and open a session.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-ID-002
+TITLE: Customer sign-in
+STATEMENT: A customer can sign in to the services they are enrolled in.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-ID-003
+TITLE: Privileged access
+STATEMENT: Administration is limited to named privileged accounts.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-ID-004
+TITLE: Joiner, mover, leaver
+STATEMENT: Accounts are created, changed, and removed as employment changes.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-ID-005
+TITLE: Partner federation
+STATEMENT: A partner organization can be trusted for sign-in without a local password.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-ID-006
+TITLE: Session control
+STATEMENT: A session ends when it is idle, revoked, or the user signs out.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-ID-007
+TITLE: Break-glass access
+STATEMENT: Emergency access is available, attributed, and reviewed afterward.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-ID-008
+TITLE: Non-person identity
+STATEMENT: A service and a device can be identified apart from a person.
+STATUS: Draft
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SEC-REC
+PREFIX: REC
+TITLE: Records and privacy
+
+[REQUIREMENT]
+UID: ENT-REC-001
+TITLE: Official record
+STATEMENT: A business event that must be kept is captured as a record.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-REC-002
+TITLE: Retention
+STATEMENT: A record is kept for its retention period and then disposed of.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-REC-003
+TITLE: Legal hold
+STATEMENT: A record under hold is not disposed of.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-REC-004
+TITLE: Consent
+STATEMENT: Processing that needs consent does not proceed without it.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-REC-005
+TITLE: Subject access
+STATEMENT: A person can request a copy of the information held about them.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-REC-006
+TITLE: De-identification
+STATEMENT: A data set released for analysis does not identify a person.
+STATUS: Draft
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SEC-PAY
+PREFIX: PAY
+TITLE: Payments
+
+[REQUIREMENT]
+UID: ENT-PAY-001
+TITLE: Payment initiation
+STATEMENT: An authorized user can start a payment from an approved account.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-PAY-002
+TITLE: Payment approval
+STATEMENT: A payment above the threshold waits for a second approver.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-PAY-003
+TITLE: Reconciliation
+STATEMENT: Settled payments are matched to the ledger.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-PAY-004
+TITLE: Refunds
+STATEMENT: A refund is tied to the original payment and approved.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-PAY-005
+TITLE: Sanctions screening
+STATEMENT: A payee is screened before the payment is released.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-PAY-006
+TITLE: Settlement
+STATEMENT: Merchant settlement is calculated from cleared transactions.
+STATUS: Draft
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SEC-CLI
+PREFIX: CLI
+TITLE: Harbor clinic
+
+[REQUIREMENT]
+UID: ENT-CLI-001
+TITLE: Patient registration
+STATEMENT: A patient can be registered and matched to one record.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-CLI-002
+TITLE: Scheduling
+STATEMENT: A patient can book and change an appointment.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-CLI-003
+TITLE: Chart access
+STATEMENT: A clinician can open the chart of a patient they are treating.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-CLI-004
+TITLE: Prescribing
+STATEMENT: An authorized prescriber can send a prescription.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-CLI-005
+TITLE: Results release
+STATEMENT: A result is released to the patient when it is final.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-CLI-006
+TITLE: Encounter billing
+STATEMENT: A completed encounter produces a billable claim.
+STATUS: Draft
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SEC-COM
+PREFIX: COM
+TITLE: Communications
+
+[REQUIREMENT]
+UID: ENT-COM-001
+TITLE: Workforce messaging
+STATEMENT: Workforce users can exchange messages inside the enterprise.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-COM-002
+TITLE: Patient messaging
+STATEMENT: A patient and a care team can exchange messages about care.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-COM-003
+TITLE: Notices
+STATEMENT: A required notice is delivered and the delivery is recorded.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-COM-004
+TITLE: Emergency notification
+STATEMENT: An emergency notice reaches the on-call roster.
+STATUS: Draft
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SEC-END
+PREFIX: END
+TITLE: Endpoints
+
+[REQUIREMENT]
+UID: ENT-END-001
+TITLE: Enrollment
+STATEMENT: A managed device is enrolled before it can reach enterprise data.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-END-002
+TITLE: Patch compliance
+STATEMENT: A device that is behind on patches is reported and blocked.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-END-003
+TITLE: Removable media
+STATEMENT: Removable media is blocked unless an exception is approved.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-END-004
+TITLE: Lost device
+STATEMENT: A lost device can be locked and its enterprise data wiped.
+STATUS: Draft
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SEC-LOG
+PREFIX: LOG
+TITLE: Logistics
+
+[REQUIREMENT]
+UID: ENT-LOG-001
+TITLE: Warehouse receipt
+STATEMENT: Inbound goods are received against a purchase order.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-LOG-002
+TITLE: Inventory accuracy
+STATEMENT: On-hand quantity is adjusted only through an attributed transaction.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-LOG-003
+TITLE: Shipment tender
+STATEMENT: An outbound shipment is tendered to a carrier with a tracking id.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-LOG-004
+TITLE: Chain of custody
+STATEMENT: A controlled item has a recorded custodian at each handoff.
+STATUS: Draft
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SEC-WEB
+PREFIX: WEB
+TITLE: Public presence
+
+[REQUIREMENT]
+UID: ENT-WEB-001
+TITLE: Publishing
+STATEMENT: Public pages are published from an approved source.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-WEB-002
+TITLE: Anonymous request
+STATEMENT: A person can submit a request without an account.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-WEB-003
+TITLE: Content withdrawal
+STATEMENT: A published page can be withdrawn and the withdrawal recorded.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-WEB-004
+TITLE: Abuse handling
+STATEMENT: An abusive submission can be blocked and reviewed.
+STATUS: Draft
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SEC-HR
+PREFIX: HR
+TITLE: Workforce
+
+[REQUIREMENT]
+UID: ENT-HR-001
+TITLE: Position of record
+STATEMENT: Each person has one current position, a manager, and a job code.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-HR-002
+TITLE: Time record
+STATEMENT: Time worked is attested by the person and accepted by the manager.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-HR-003
+TITLE: Payroll access
+STATEMENT: Pay data is visible only to the payroll role and the person it concerns.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-HR-004
+TITLE: Training assignment
+STATEMENT: A person is assigned the training their job requires, and completion is recorded.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-HR-005
+TITLE: Contractor access
+STATEMENT: A contractor has a sponsor, an end date, and no access after that date.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-HR-006
+TITLE: Separation checklist
+STATEMENT: A departure closes accounts, badges, and equipment against one checklist.
+STATUS: Draft
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SEC-PRC
+PREFIX: PRC
+TITLE: Procurement
+
+[REQUIREMENT]
+UID: ENT-PRC-001
+TITLE: Vendor register
+STATEMENT: A vendor is registered, owned, and marked active before it can be paid.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-PRC-002
+TITLE: Contract obligation
+STATEMENT: A purchase cites the contract that authorizes it.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-PRC-003
+TITLE: Purchase approval
+STATEMENT: A purchase above the threshold is approved by someone other than the requester.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-PRC-004
+TITLE: Invoice match
+STATEMENT: An invoice is paid only when it matches the order and the receipt.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-PRC-005
+TITLE: Conflict check
+STATEMENT: A buyer discloses a personal interest before approving a vendor.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-PRC-006
+TITLE: Supplier assurance
+STATEMENT: A vendor that handles restricted data has an assessed security obligation.
+STATUS: Draft
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SEC-SOC
+PREFIX: SOC
+TITLE: Security operations
+
+[REQUIREMENT]
+UID: ENT-SOC-001
+TITLE: Control assessment
+STATEMENT: A claimed control is assessed on a schedule, and the result is recorded.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-SOC-002
+TITLE: Vulnerability intake
+STATEMENT: A scan finding is accepted into one queue and given a due date.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-SOC-003
+TITLE: Risk exception
+STATEMENT: An unmet control is allowed only by an exception that expires.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-SOC-004
+TITLE: Incident record
+STATEMENT: A confirmed incident has a severity, an owner, and the affected accounts.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-SOC-005
+TITLE: Evidence package
+STATEMENT: Assessment evidence is a record the producing team cannot alter.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-SOC-006
+TITLE: Threat notice
+STATEMENT: A notice that customers or patients must receive is tracked to delivery.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-SOC-007
+TITLE: Authorization boundary
+STATEMENT: The systems inside the authorization boundary are listed and owned.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-SOC-008
+TITLE: Flaw acceptance
+STATEMENT: An accepted vulnerability is reviewed again before its expiry.
+STATUS: Draft
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SEC-DAT
+PREFIX: DAT
+TITLE: Data platform
+
+[REQUIREMENT]
+UID: ENT-DAT-001
+TITLE: Pipeline
+STATEMENT: A data pipeline runs as a workload identity and records what it wrote.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-DAT-002
+TITLE: Warehouse access
+STATEMENT: A warehouse role is named, purposed, and is not a shared login.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-DAT-003
+TITLE: Bulk export
+STATEMENT: A bulk export of restricted data is approved before the file is released.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-DAT-004
+TITLE: Analytics purpose
+STATEMENT: An analytics use names its purpose and does not reuse a care or payment purpose.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-DAT-005
+TITLE: Dataset catalog
+STATEMENT: A data set has an owner and a classification before it can be queried.
+STATUS: Active
+
+[REQUIREMENT]
+UID: ENT-DAT-006
+TITLE: Copy disposal
+STATEMENT: An analytics copy is disposed when the source record is disposed.
+STATUS: Draft
+[[/SECTION]]

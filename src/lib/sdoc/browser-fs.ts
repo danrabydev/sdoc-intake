@@ -1,10 +1,10 @@
-import type { FileResponse, IndexNode, TreeResponse } from "./api-types.ts";
+import type { FileResponse, GrammarResponse, IndexNode, TreeResponse } from "./api-types.ts";
 import { ApiError } from "./api-error.ts";
-import { defaultGrammar } from "./grammar.ts";
+import { defaultElements, defaultGrammar, resolveGrammarPath } from "./grammar.ts";
 import { collectUids, fieldOf, flatten, nodeUid, parentEdges } from "./model.ts";
-import { parse } from "./parse.ts";
-import { textForWrite } from "./serialize.ts";
-import type { SDocDocument, SDocIssue, ValidateOptions } from "./types.ts";
+import { parse, parseGrammarFile } from "./parse.ts";
+import { detachGrammar, serializeGrammarFile, textForWrite } from "./serialize.ts";
+import type { Grammar, SDocDocument, SDocIssue, ValidateOptions } from "./types.ts";
 import { validate } from "./validate.ts";
 
 const SKIP_DIR = new Set(["node_modules", "output", ".git", "dist", ".output", "artifacts"]);
@@ -38,6 +38,12 @@ interface HeldFile {
   parsed: ReturnType<typeof parse>;
 }
 
+interface Project {
+  docs: HeldFile[];
+  grammars: { rel: string; text: string }[];
+  readText: (rel: string) => string | undefined;
+}
+
 let root: DirHandle | null = null;
 
 function showPicker(): ((options: { mode: "readwrite"; id: string }) => Promise<DirHandle>) | undefined {
@@ -65,9 +71,13 @@ export function assertDirRel(input: string): string {
 }
 
 export function assertSdocRel(input: string): string {
+  return assertRel(input, ".sdoc");
+}
+
+function assertRel(input: string, ext: ".sdoc" | ".sgra"): string {
   const cleaned = input.replace(/\\/g, "/").replace(/^\/+/, "");
-  if (!cleaned || cleaned.includes("..") || cleaned.includes("\0") || !cleaned.endsWith(".sdoc")) {
-    throw new ApiError(400, "Path must be a .sdoc file inside the folder.");
+  if (!cleaned || cleaned.includes("..") || cleaned.includes("\0") || !cleaned.endsWith(ext)) {
+    throw new ApiError(400, `Path must be a ${ext} file inside the folder.`);
   }
   if (!/^[A-Za-z0-9._/-]+$/.test(cleaned)) {
     throw new ApiError(400, "Path contains unsupported characters.");
@@ -157,32 +167,44 @@ async function walk(
       await walk(handle, `${rel}/`, out, dirs);
       continue;
     }
-    if (handle.kind === "file" && name.endsWith(".sdoc") && !name.includes(".tmp-")) {
+    if (
+      handle.kind === "file" &&
+      (name.endsWith(".sdoc") || name.endsWith(".sgra")) &&
+      !name.includes(".tmp-")
+    ) {
       out.push({ rel: `${prefix}${name}`, handle });
     }
   }
 }
 
-async function corpus(): Promise<HeldFile[]> {
+async function corpus(): Promise<Project> {
   const found: { rel: string; handle: FileHandle }[] = [];
   await walk(requireRoot(), "", found);
   found.sort((a, b) => a.rel.localeCompare(b.rel));
-  const files: HeldFile[] = [];
+  const texts = new Map<string, string>();
+  const docs: HeldFile[] = [];
+  const grammars: { rel: string; text: string }[] = [];
   for (const file of found) {
     try {
       const text = await (await file.handle.getFile()).text();
-      files.push({ rel: file.rel, text, parsed: parse(text) });
+      texts.set(file.rel, text);
+      if (file.rel.endsWith(".sgra")) {
+        grammars.push({ rel: file.rel, text });
+        continue;
+      }
+      if (!file.rel.endsWith(".sdoc")) continue;
+      docs.push({ rel: file.rel, text, parsed: parse(text) });
     } catch {
       continue;
     }
   }
-  return files;
+  return { docs, grammars, readText: (rel) => texts.get(rel) };
 }
 
-function contextFor(all: HeldFile[], rel: string, flags: { mode: "read" | "write"; strict?: boolean }): ValidateOptions {
+function contextFor(project: Project, rel: string, flags: { mode: "read" | "write"; strict?: boolean }): ValidateOptions {
   const siblingUids: string[] = [];
   const siblingEdges: { from: string; to: string }[] = [];
-  for (const file of all) {
+  for (const file of project.docs) {
     if (file.rel === rel || !file.parsed.document) continue;
     siblingUids.push(...collectUids(file.parsed.document));
     siblingEdges.push(...parentEdges(file.parsed.document));
@@ -194,6 +216,7 @@ function contextFor(all: HeldFile[], rel: string, flags: { mode: "read" | "write
     strict: flags.strict === true,
     indexComplete: true,
     file: rel,
+    readText: project.readText,
   };
 }
 
@@ -229,8 +252,8 @@ function indexNodes(all: HeldFile[]): IndexNode[] {
   return nodes;
 }
 
-function toFileResponse(rel: string, text: string, all: HeldFile[], mode: "read" | "write"): FileResponse {
-  const ctx = contextFor(all, rel, { mode });
+function toFileResponse(rel: string, text: string, project: Project, mode: "read" | "write"): FileResponse {
+  const ctx = contextFor(project, rel, { mode });
   const result = validate(text, ctx);
   const parsed = parse(text);
   return {
@@ -245,8 +268,8 @@ function toFileResponse(rel: string, text: string, all: HeldFile[], mode: "read"
   };
 }
 
-async function fileHandle(rel: string, create: boolean): Promise<FileHandle> {
-  const cleaned = assertSdocRel(rel);
+async function fileHandle(rel: string, create: boolean, ext: ".sdoc" | ".sgra" = ".sdoc"): Promise<FileHandle> {
+  const cleaned = assertRel(rel, ext);
   let dir = requireRoot();
   const parts = cleaned.split("/");
   for (let index = 0; index < parts.length - 1; index += 1) {
@@ -267,8 +290,8 @@ async function readText(rel: string): Promise<string> {
   return (await (await fileHandle(rel, false)).getFile()).text();
 }
 
-async function writeText(rel: string, text: string, create: boolean): Promise<void> {
-  const handle = await fileHandle(rel, create);
+async function writeText(rel: string, text: string, create: boolean, ext: ".sdoc" | ".sgra" = ".sdoc"): Promise<void> {
+  const handle = await fileHandle(rel, create, ext);
   const writable = await handle.createWritable();
   await writable.write(text);
   await writable.close();
@@ -305,13 +328,13 @@ function referencedRemovals(all: HeldFile[], rel: string, previous: SDocDocument
 }
 
 async function commit(rel: string, text: string, flags: { strict?: boolean; force?: boolean }, create: boolean): Promise<FileResponse> {
-  const all = await corpus();
-  const ctx = contextFor(all, rel, { ...flags, mode: "write" });
+  const project = await corpus();
+  const ctx = contextFor(project, rel, { ...flags, mode: "write" });
   const result = validate(text, ctx);
   if (!result.ok || !result.document) throw new ApiError(422, "Invalid SDoc.", result.errors);
   if (!flags.force) {
-    const previous = all.find((file) => file.rel === rel)?.parsed.document ?? null;
-    const blocked = referencedRemovals(all, rel, previous, result.document);
+    const previous = project.docs.find((file) => file.rel === rel)?.parsed.document ?? null;
+    const blocked = referencedRemovals(project.docs, rel, previous, result.document);
     if (blocked.length > 0) {
       throw new ApiError(409, "Other nodes parent-point at a UID this save removes.", blocked);
     }
@@ -341,25 +364,38 @@ export async function browserTree(): Promise<TreeResponse> {
   const found: { rel: string; handle: FileHandle }[] = [];
   const dirs: string[] = [];
   await walk(requireRoot(), "", found, dirs);
-  const all = await corpus();
+  const project = await corpus();
+  const documents = project.docs.map((file) => {
+    const doc = file.parsed.document;
+    return {
+      path: file.rel,
+      title: doc?.title || file.rel,
+      uid: doc?.uid ?? "",
+      nodeCount: doc ? flatten(doc.nodes).length : 0,
+      issueCount: file.parsed.errors.filter((issue) => issue.severity === "error").length,
+      kind: "sdoc" as const,
+    };
+  });
+  const grammars = project.grammars.map((file) => {
+    const parsed = parseGrammarFile(file.text);
+    return {
+      path: file.rel,
+      title: "Grammar",
+      uid: "",
+      nodeCount: parsed.grammar?.elements.length ?? 0,
+      issueCount: parsed.errors.filter((issue) => issue.severity === "error").length,
+      kind: "sgra" as const,
+    };
+  });
   return {
     root: browserFolderName(),
     dirs: dirs.sort((a, b) => a.localeCompare(b)),
-    files: all.map((file) => {
-      const doc = file.parsed.document;
-      return {
-        path: file.rel,
-        title: doc?.title || file.rel,
-        uid: doc?.uid ?? "",
-        nodeCount: doc ? flatten(doc.nodes).length : 0,
-        issueCount: file.parsed.errors.filter((issue) => issue.severity === "error").length,
-      };
-    }),
+    files: [...documents, ...grammars].sort((a, b) => a.path.localeCompare(b.path)),
   };
 }
 
 export async function browserIndex(): Promise<{ nodes: IndexNode[] }> {
-  return { nodes: indexNodes(await corpus()) };
+  return { nodes: indexNodes((await corpus()).docs) };
 }
 
 export async function browserFile(rel: string): Promise<FileResponse> {
@@ -388,7 +424,8 @@ export async function browserPut(
     if (!preview.document || preview.errors.some((issue) => issue.severity === "error")) {
       throw new ApiError(422, "Invalid SDoc.", preview.errors);
     }
-    const checked = validate(body.text, contextFor(await corpus(), rel, { mode: "write", strict }));
+    const project = await corpus();
+    const checked = validate(body.text, contextFor(project, rel, { mode: "write", strict }));
     if (!checked.ok || !checked.document) throw new ApiError(422, "Invalid SDoc.", checked.errors);
     text = textForWrite(checked.document);
   } else {
@@ -430,6 +467,7 @@ export async function browserCreate(input: {
 }
 
 export async function browserDelete(rel: string, force: boolean): Promise<{ ok: boolean }> {
+  if (rel.endsWith(".sgra")) return browserDeleteGrammar(rel, force);
   const text = await readText(rel);
   const parsed = parse(text);
   if (!parsed.document && !force) throw new ApiError(409, "File does not parse. Pass force=1 to delete it.");
@@ -442,6 +480,95 @@ export async function browserDelete(rel: string, force: boolean): Promise<{ ok: 
   for (let index = 0; index < parts.length - 1; index += 1) {
     dir = await dir.getDirectoryHandle(parts[index]!);
   }
+  await dir.removeEntry(parts[parts.length - 1]!);
+  return { ok: true };
+}
+
+function grammarView(rel: string, text: string): GrammarResponse {
+  const parsed = parseGrammarFile(text);
+  return {
+    ok: parsed.grammar !== null && !parsed.errors.some((issue) => issue.severity === "error"),
+    path: rel,
+    text,
+    grammar: parsed.grammar,
+    errors: parsed.errors,
+  };
+}
+
+async function readGrammarText(rel: string): Promise<string> {
+  return (await (await fileHandle(rel, false, ".sgra")).getFile()).text();
+}
+
+export async function browserReadGrammar(rel: string): Promise<GrammarResponse> {
+  return grammarView(rel, await readGrammarText(rel));
+}
+
+export async function browserSaveGrammar(rel: string, body: { text?: string; grammar?: Grammar }): Promise<GrammarResponse> {
+  await readGrammarText(rel);
+  const text = grammarBody(body);
+  await writeText(assertRel(rel, ".sgra"), text, false, ".sgra");
+  return grammarView(rel, text);
+}
+
+export async function browserCreateGrammar(rel: string, text?: string): Promise<GrammarResponse> {
+  const cleaned = assertRel(rel, ".sgra");
+  try {
+    await readGrammarText(cleaned);
+    throw new ApiError(409, "Grammar file already exists.");
+  } catch (err) {
+    if (err instanceof ApiError && err.status !== 404) throw err;
+  }
+  const written = text === undefined ? serializeGrammarFile(defaultElements()) : grammarBody({ text });
+  await writeText(cleaned, written, true, ".sgra");
+  return grammarView(cleaned, written);
+}
+
+export async function browserMoveGrammar(documentPath: string, grammarPath: string): Promise<FileResponse> {
+  const current = await browserFile(documentPath);
+  if (!current.document || current.parseFailed) throw new ApiError(422, "Document does not parse.", current.errors);
+  const detached = detachGrammar(current.document, documentPath, grammarPath);
+  if ("error" in detached) throw new ApiError(400, detached.error);
+  await browserCreateGrammar(grammarPath, detached.text);
+  try {
+    return await browserPut(documentPath, { document: detached.document }, false, false);
+  } catch (err) {
+    await browserDeleteGrammar(grammarPath, true);
+    throw err;
+  }
+}
+
+function grammarBody(body: { text?: string; grammar?: Grammar }): string {
+  if (body.grammar) {
+    if (body.grammar.importFrom) throw new ApiError(400, "A grammar file cannot import another grammar file.");
+    const text = serializeGrammarFile(body.grammar.elements);
+    const parsed = parseGrammarFile(text);
+    if (!parsed.grammar || parsed.errors.some((issue) => issue.severity === "error")) {
+      throw new ApiError(422, "Invalid grammar.", parsed.errors);
+    }
+    return text;
+  }
+  if (typeof body.text === "string") {
+    const parsed = parseGrammarFile(body.text);
+    if (!parsed.grammar || parsed.errors.some((issue) => issue.severity === "error")) {
+      throw new ApiError(422, "Invalid grammar.", parsed.errors);
+    }
+    return serializeGrammarFile(parsed.grammar.elements);
+  }
+  throw new ApiError(400, "Body must be { text } or { grammar }.");
+}
+
+async function browserDeleteGrammar(rel: string, force: boolean): Promise<{ ok: boolean }> {
+  const cleaned = assertRel(rel, ".sgra");
+  await readGrammarText(cleaned);
+  const project = await corpus();
+  const used = project.docs.filter((file) => {
+    const spec = file.parsed.document?.grammar.importFrom;
+    return spec ? resolveGrammarPath(file.rel, spec) === cleaned : false;
+  });
+  if (used.length > 0 && !force) throw new ApiError(409, `Imported by ${used.map((file) => file.rel).join(", ")}.`);
+  const parts = cleaned.split("/");
+  let dir = requireRoot();
+  for (let index = 0; index < parts.length - 1; index += 1) dir = await dir.getDirectoryHandle(parts[index]!);
   await dir.removeEntry(parts[parts.length - 1]!);
   return { ok: true };
 }

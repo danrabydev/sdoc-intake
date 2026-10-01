@@ -1,0 +1,577 @@
+[DOCUMENT]
+TITLE: Northline releases
+UID: APP-REL
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../grammar/release.sgra
+
+[TEXT]
+STATEMENT: One release train for Northline. A sprint is a section. A shipped release stays as written. A later change is a new release. Delivers points at a capability.
+
+[[SECTION]]
+UID: ENT-SPR-26-1
+TITLE: 2026 Sprint 1
+
+[RELEASE]
+UID: REL-26.1.1
+TITLE: Release 26.1.1
+VERSION: 26.1.1
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-02-13
+DESCRIPTION: Workforce sign-in and account records.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-ID-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-ID-004
+
+[RELEASE]
+UID: REL-26.1.2
+TITLE: Release 26.1.2
+VERSION: 26.1.2
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-02-27
+DESCRIPTION: Session control and customer sign-in.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-ID-006
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-ID-002
+
+[RELEASE]
+UID: REL-26.1.3
+TITLE: Release 26.1.3
+VERSION: 26.1.3
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-03-13
+DESCRIPTION: Privileged access and partner federation.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-ID-003
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-ID-005
+
+[RELEASE]
+UID: REL-26.1.4
+TITLE: Release 26.1.4
+VERSION: 26.1.4
+CHANNEL: maintenance
+STATUS: shipped
+DATE: 2026-03-27
+DESCRIPTION: Break-glass and non-person identity.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-ID-007
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-ID-008
+
+[RELEASE]
+UID: REL-26.1.5
+TITLE: Release 26.1.5
+VERSION: 26.1.5
+CHANNEL: security-only
+STATUS: shipped
+DATE: 2026-04-03
+DESCRIPTION: Security-only update of privileged access. The 26.1.3 drop stays as shipped.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-ID-003
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SPR-26-2
+TITLE: 2026 Sprint 2
+
+[RELEASE]
+UID: REL-26.2.1
+TITLE: Release 26.2.1
+VERSION: 26.2.1
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-04-24
+DESCRIPTION: Official records and retention.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-REC-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-REC-002
+
+[RELEASE]
+UID: REL-26.2.2
+TITLE: Release 26.2.2
+VERSION: 26.2.2
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-05-08
+DESCRIPTION: Legal hold and consent.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-REC-003
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-REC-004
+
+[RELEASE]
+UID: REL-26.2.3
+TITLE: Release 26.2.3
+VERSION: 26.2.3
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-05-22
+DESCRIPTION: Subject access and de-identification.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-REC-005
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-REC-006
+
+[RELEASE]
+UID: REL-26.2.4
+TITLE: Release 26.2.4
+VERSION: 26.2.4
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-06-05
+DESCRIPTION: Payment initiation and approval.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PAY-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PAY-002
+
+[RELEASE]
+UID: REL-26.2.5
+TITLE: Release 26.2.5
+VERSION: 26.2.5
+CHANNEL: maintenance
+STATUS: shipped
+DATE: 2026-06-19
+DESCRIPTION: Screening, reconciliation, refunds, and settlement.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PAY-005
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PAY-003
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PAY-004
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PAY-006
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SPR-26-3
+TITLE: 2026 Sprint 3
+
+[RELEASE]
+UID: REL-26.3.1
+TITLE: Release 26.3.1
+VERSION: 26.3.1
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-07-17
+DESCRIPTION: Patient registration and scheduling.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-CLI-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-CLI-002
+
+[RELEASE]
+UID: REL-26.3.2
+TITLE: Release 26.3.2
+VERSION: 26.3.2
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-07-31
+DESCRIPTION: Chart access and prescribing.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-CLI-003
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-CLI-004
+
+[RELEASE]
+UID: REL-26.3.3
+TITLE: Release 26.3.3
+VERSION: 26.3.3
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Results release and encounter billing.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-CLI-005
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-CLI-006
+
+[RELEASE]
+UID: REL-26.3.4
+TITLE: Release 26.3.4
+VERSION: 26.3.4
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Workforce and patient messaging.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-COM-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-COM-002
+
+[RELEASE]
+UID: REL-26.3.5
+TITLE: Release 26.3.5
+VERSION: 26.3.5
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Notices and emergency notification.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-COM-003
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-COM-004
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SPR-26-4
+TITLE: 2026 Sprint 4
+
+[RELEASE]
+UID: REL-26.4.1
+TITLE: Release 26.4.1
+VERSION: 26.4.1
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Device enrollment and patch compliance.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-END-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-END-002
+
+[RELEASE]
+UID: REL-26.4.2
+TITLE: Release 26.4.2
+VERSION: 26.4.2
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Removable media and lost devices.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-END-003
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-END-004
+
+[RELEASE]
+UID: REL-26.4.3
+TITLE: Release 26.4.3
+VERSION: 26.4.3
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Warehouse receipt and inventory.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-LOG-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-LOG-002
+
+[RELEASE]
+UID: REL-26.4.4
+TITLE: Release 26.4.4
+VERSION: 26.4.4
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Shipment tender and chain of custody.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-LOG-003
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-LOG-004
+
+[RELEASE]
+UID: REL-26.4.5
+TITLE: Release 26.4.5
+VERSION: 26.4.5
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Public publishing, anonymous requests, withdrawal, and abuse handling.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-WEB-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-WEB-002
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-WEB-003
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-WEB-004
+
+[RELEASE]
+UID: REL-26.4.6
+TITLE: Release 26.4.6
+VERSION: 26.4.6
+CHANNEL: security-only
+STATUS: planned
+DESCRIPTION: Security-only maintenance planned for device enrollment. No new capability.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-END-001
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SPR-26-5
+TITLE: 2026 Sprint 5
+
+[RELEASE]
+UID: REL-26.5.1
+TITLE: Release 26.5.1
+VERSION: 26.5.1
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-09-04
+DESCRIPTION: Positions of record and the separation checklist.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-HR-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-HR-006
+
+[RELEASE]
+UID: REL-26.5.2
+TITLE: Release 26.5.2
+VERSION: 26.5.2
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-09-18
+DESCRIPTION: Training assignments and contractor access.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-HR-004
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-HR-005
+
+[RELEASE]
+UID: REL-26.5.3
+TITLE: Release 26.5.3
+VERSION: 26.5.3
+CHANNEL: upkeep
+STATUS: shipped
+DATE: 2026-09-25
+DESCRIPTION: Vendor register and purchase approval.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PRC-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PRC-003
+
+[RELEASE]
+UID: REL-26.5.4
+TITLE: Release 26.5.4
+VERSION: 26.5.4
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Invoice match and supplier assurance.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PRC-004
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PRC-006
+
+[RELEASE]
+UID: REL-26.5.5
+TITLE: Release 26.5.5
+VERSION: 26.5.5
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Time records and payroll access.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-HR-002
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-HR-003
+
+[RELEASE]
+UID: REL-26.5.6
+TITLE: Release 26.5.6
+VERSION: 26.5.6
+CHANNEL: maintenance
+STATUS: planned
+DESCRIPTION: Contract obligations and conflict checks.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PRC-002
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-PRC-005
+[[/SECTION]]
+
+[[SECTION]]
+UID: ENT-SPR-26-6
+TITLE: 2026 Sprint 6
+
+[RELEASE]
+UID: REL-26.6.1
+TITLE: Release 26.6.1
+VERSION: 26.6.1
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Control assessment and the authorization boundary.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-SOC-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-SOC-007
+
+[RELEASE]
+UID: REL-26.6.2
+TITLE: Release 26.6.2
+VERSION: 26.6.2
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Vulnerability intake, exceptions, and accepted flaws.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-SOC-002
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-SOC-003
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-SOC-008
+
+[RELEASE]
+UID: REL-26.6.3
+TITLE: Release 26.6.3
+VERSION: 26.6.3
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Incident records and threat notices.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-SOC-004
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-SOC-006
+
+[RELEASE]
+UID: REL-26.6.4
+TITLE: Release 26.6.4
+VERSION: 26.6.4
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Evidence packages for assessment.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-SOC-005
+
+[RELEASE]
+UID: REL-26.6.5
+TITLE: Release 26.6.5
+VERSION: 26.6.5
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Pipelines, the warehouse, and the dataset catalog.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-DAT-001
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-DAT-002
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-DAT-005
+
+[RELEASE]
+UID: REL-26.6.6
+TITLE: Release 26.6.6
+VERSION: 26.6.6
+CHANNEL: upkeep
+STATUS: planned
+DESCRIPTION: Bulk export, analytics purpose, and disposal of copies.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-DAT-003
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-DAT-004
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-DAT-006
+
+[RELEASE]
+UID: REL-26.6.7
+TITLE: Release 26.6.7
+VERSION: 26.6.7
+CHANNEL: security-only
+STATUS: planned
+DESCRIPTION: Security-only update for vulnerability intake. The 26.6.2 drop stays as planned scope, not a rewrite.
+RELATIONS:
+- TYPE: Child
+  ROLE: Delivers
+  VALUE: ENT-SOC-002
+[[/SECTION]]

@@ -1,0 +1,224 @@
+[DOCUMENT]
+TITLE: Messaging
+UID: APP-MSG
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: MSG-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Workforce and patient messaging, including delivery of required notices.
+
+[[SECTION]]
+UID: MSG-SEC-WRK
+PREFIX: WRK
+TITLE: Workforce
+
+[REQUIREMENT]
+UID: MSG-WRK-001
+TITLE: Directory only
+STATEMENT: Messaging shall address workforce messages to directory identities, not to free-typed mailboxes.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+
+[REQUIREMENT]
+UID: MSG-WRK-002
+TITLE: Attachment type
+STATEMENT: Messaging shall block an attachment type that the baseline does not allow.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-7
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222658
+
+[REQUIREMENT]
+UID: MSG-WRK-003
+TITLE: Retention of messages
+STATEMENT: Messaging shall keep a workforce message for the messaging retention period.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-11
+
+[REQUIREMENT]
+UID: MSG-WRK-004
+TITLE: External banner
+STATEMENT: Messaging shall mark a message that arrived from outside the enterprise.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-8
+
+[REQUIREMENT]
+UID: MSG-WRK-005
+TITLE: Forward audit
+STATEMENT: Messaging shall audit a forward of a restricted message to an external address.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+
+[REQUIREMENT]
+UID: MSG-WRK-006
+TITLE: Channel protection
+STATEMENT: Messaging shall transport messages over the protected channel.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CRY-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SC-8
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222659
+[[/SECTION]]
+
+[[SECTION]]
+UID: MSG-SEC-PAT
+PREFIX: PAT
+TITLE: Patients and notices
+
+[REQUIREMENT]
+UID: MSG-PAT-001
+TITLE: Care-team thread
+STATEMENT: Messaging shall open a patient thread only for the assigned care team.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+
+[REQUIREMENT]
+UID: MSG-PAT-002
+TITLE: Patient identity on thread
+STATEMENT: Messaging shall show the patient identity on every thread so a message is not filed to the wrong chart.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-4
+
+[REQUIREMENT]
+UID: MSG-PAT-003
+TITLE: Notice record
+STATEMENT: Messaging shall record that a required notice was sent and whether delivery succeeded.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: MSG-PAT-004
+TITLE: On-call fan-out
+STATEMENT: Messaging shall deliver an emergency notice to the current on-call roster.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222662
+
+[REQUIREMENT]
+UID: MSG-PAT-005
+TITLE: Quiet hours exception
+STATEMENT: Messaging shall still deliver an emergency notice during quiet hours.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-6
+
+[REQUIREMENT]
+UID: MSG-PAT-006
+TITLE: Undelivered notice
+STATEMENT: Messaging shall raise an alert when a required notice is undelivered after the configured time.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-5
+[[/SECTION]]

@@ -1,0 +1,613 @@
+[DOCUMENT]
+TITLE: Security operations
+UID: APP-SOC
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: SOC-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: How Northline assesses controls, takes vulnerabilities, grants exceptions, and keeps evidence. The control text stays in the catalog. A requirement here conforms to that catalog identifier. It does not copy the control.
+
+[[SECTION]]
+UID: SOC-SEC-ASM
+PREFIX: ASM
+TITLE: Assessments
+
+[REQUIREMENT]
+UID: SOC-ASM-001
+TITLE: Claim set
+STATEMENT: Security shall assess the controls Northline claims and shall not invent a second identifier for a catalog control.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PL-2
+
+[REQUIREMENT]
+UID: SOC-ASM-002
+TITLE: Independent assessor
+STATEMENT: Security shall use an assessor who did not implement the control under test.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-2.2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222578
+
+[REQUIREMENT]
+UID: SOC-ASM-003
+TITLE: Result
+STATEMENT: Security shall record met, not met, or not applicable, and the evidence the result used.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: SOC-ASM-004
+TITLE: Finding
+STATEMENT: Security shall open a finding when a result is not met, with a due date and an owner.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-007
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-5
+
+[REQUIREMENT]
+UID: SOC-ASM-005
+TITLE: Inherited
+STATEMENT: Security shall name the platform requirement a product inherits instead of reassessing the platform control in every app.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PL-8
+
+[REQUIREMENT]
+UID: SOC-ASM-006
+TITLE: Continuous
+STATEMENT: Security shall record a monitoring result between full assessments for the controls marked continuous.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-7
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-7.1
+
+[REQUIREMENT]
+UID: SOC-ASM-007
+TITLE: Boundary
+STATEMENT: Security shall list every system in the authorization boundary and shall refuse an undeclared production system.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-007
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PL-8
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-8
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222585
+
+[REQUIREMENT]
+UID: SOC-ASM-008
+TITLE: Plan
+STATEMENT: Security shall keep one system security plan that points at this catalog and at the requirements that implement it.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PL-2
+[[/SECTION]]
+
+[[SECTION]]
+UID: SOC-SEC-VUL
+PREFIX: VUL
+TITLE: Vulnerabilities and exceptions
+
+[REQUIREMENT]
+UID: SOC-VUL-001
+TITLE: One queue
+STATEMENT: Security shall accept scan findings into one queue and shall keep the scanner's identifier.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-5
+
+[REQUIREMENT]
+UID: SOC-VUL-002
+TITLE: Critical clock
+STATEMENT: Security shall set the enterprise patch window as the due date of a critical finding.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222588
+
+[REQUIREMENT]
+UID: SOC-VUL-003
+TITLE: False positive
+STATEMENT: Security shall record why a finding was marked a false positive and who decided.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-5.2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: SOC-VUL-004
+TITLE: Internet first
+STATEMENT: Security shall rank an internet-facing finding ahead of an internal finding of the same severity.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-5.3
+
+[REQUIREMENT]
+UID: SOC-VUL-005
+TITLE: Image scan
+STATEMENT: Security shall block a workload image with an open critical finding from the production registry.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-7
+
+[REQUIREMENT]
+UID: SOC-VUL-006
+TITLE: Exception
+STATEMENT: Security shall allow an unmet control only through an exception with an owner, a reason, and an expiry.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-5
+
+[REQUIREMENT]
+UID: SOC-VUL-007
+TITLE: No silent renewal
+STATEMENT: Security shall close an exception on its expiry and shall require a new approval to extend it.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222589
+
+[REQUIREMENT]
+UID: SOC-VUL-008
+TITLE: Accept a flaw
+STATEMENT: Security shall review an accepted vulnerability before its expiry and shall record the residual risk.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-008
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: RA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-5
+
+[REQUIREMENT]
+UID: SOC-VUL-009
+TITLE: Exception scope
+STATEMENT: Security shall name the systems an exception covers and shall not apply it enterprise-wide by default.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-5
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: PL-8
+[[/SECTION]]
+
+[[SECTION]]
+UID: SOC-SEC-INC
+PREFIX: INC
+TITLE: Incidents
+
+[REQUIREMENT]
+UID: SOC-INC-001
+TITLE: Open a case
+STATEMENT: Security shall open a case with a severity and an owner when an incident is confirmed.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-8
+
+[REQUIREMENT]
+UID: SOC-INC-002
+TITLE: Contain
+STATEMENT: Security shall record the containment action and the time it was taken.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: SOC-INC-003
+TITLE: Disable the account
+STATEMENT: Security shall be able to request that Identity disable an involved account during the case.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-ID-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222596
+
+[REQUIREMENT]
+UID: SOC-INC-004
+TITLE: Customer notice
+STATEMENT: Security shall track a required customer or patient notice to a delivery result.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-006
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-6
+
+[REQUIREMENT]
+UID: SOC-INC-005
+TITLE: Lessons
+STATEMENT: Security shall record a lesson and whether a requirement changed because of it.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-4.1
+
+[REQUIREMENT]
+UID: SOC-INC-006
+TITLE: Roster
+STATEMENT: Security shall use the current on-call roster from Messaging for the first notification.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-COM-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-008
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-6
+
+[REQUIREMENT]
+UID: SOC-INC-007
+TITLE: Hold the log
+STATEMENT: Security shall place a hold on the audit records of an open incident so they are not disposed.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-REC-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-11
+
+[REQUIREMENT]
+UID: SOC-INC-008
+TITLE: Severity review
+STATEMENT: Security shall review severity when the set of affected people changes.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-4
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IR-5
+[[/SECTION]]
+
+[[SECTION]]
+UID: SOC-SEC-EVD
+PREFIX: EVD
+TITLE: Evidence
+
+[REQUIREMENT]
+UID: SOC-EVD-001
+TITLE: Link the ticket
+STATEMENT: Security shall link evidence to the control and to the requirement that implements it.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-2
+
+[REQUIREMENT]
+UID: SOC-EVD-002
+TITLE: Not a loose file
+STATEMENT: Security shall store evidence in the evidence store, not in a personal drive.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-9
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222601
+
+[REQUIREMENT]
+UID: SOC-EVD-003
+TITLE: Sample
+STATEMENT: Security shall record the population and the sample size an assessor used.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-2
+
+[REQUIREMENT]
+UID: SOC-EVD-004
+TITLE: Keep evidence
+STATEMENT: Security shall retain evidence for the life of the authorization and the following review.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-11
+
+[REQUIREMENT]
+UID: SOC-EVD-005
+TITLE: Assessor export
+STATEMENT: Security shall export an evidence package only to the named assessor role.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-DAT-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+
+[REQUIREMENT]
+UID: SOC-EVD-006
+TITLE: Catalog is the rule
+STATEMENT: Security shall cite the STIG vulnerability id from the catalog and shall not paste a second copy of the check text.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222602
+
+[REQUIREMENT]
+UID: SOC-EVD-007
+TITLE: Stale evidence
+STATEMENT: Security shall flag evidence older than the control's assessment period.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-SOC-005
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-OPS-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CA-7
+[[/SECTION]]

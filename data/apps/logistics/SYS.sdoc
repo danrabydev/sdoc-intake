@@ -1,0 +1,212 @@
+[DOCUMENT]
+TITLE: Logistics
+UID: APP-LOG
+VERSION: 1.0.0
+DATE: 2026-09-30
+CLASSIFICATION: Internal
+PREFIX: LOG-
+ROOT: False
+
+[GRAMMAR]
+IMPORT_FROM_FILE: ../../grammar/org.sgra
+
+[TEXT]
+STATEMENT: Warehouse receipt, inventory, shipment, and chain of custody.
+
+[[SECTION]]
+UID: LOG-SEC-WH
+PREFIX: WH
+TITLE: Warehouse
+
+[REQUIREMENT]
+UID: LOG-WH-001
+TITLE: Receive against order
+STATEMENT: Logistics shall receive goods only against an open purchase order line.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-3
+
+[REQUIREMENT]
+UID: LOG-WH-002
+TITLE: Receiver identity
+STATEMENT: Logistics shall record the person who confirmed the receipt.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-001
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: IA-2
+
+[REQUIREMENT]
+UID: LOG-WH-003
+TITLE: Discrepancy
+STATEMENT: Logistics shall hold a line whose count does not match the order.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-10
+
+[REQUIREMENT]
+UID: LOG-WH-004
+TITLE: Adjust stock
+STATEMENT: Logistics shall adjust on-hand quantity only through an attributed transaction.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-002
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-2
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-6
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222425
+
+[REQUIREMENT]
+UID: LOG-WH-005
+TITLE: Cycle count
+STATEMENT: Logistics shall require a second person to confirm a cycle count that changes quantity.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AC-5
+
+[REQUIREMENT]
+UID: LOG-WH-006
+TITLE: Negative stock
+STATEMENT: Logistics shall not allow on-hand quantity to go negative.
+STATUS: Draft
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-10
+[[/SECTION]]
+
+[[SECTION]]
+UID: LOG-SEC-SHIP
+PREFIX: SHIP
+TITLE: Shipment and custody
+
+[REQUIREMENT]
+UID: LOG-SHIP-001
+TITLE: Tender
+STATEMENT: Logistics shall tender a shipment only to a carrier on the approved list.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-003
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-CFG-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: CM-8
+
+[REQUIREMENT]
+UID: LOG-SHIP-002
+TITLE: Tracking
+STATEMENT: Logistics shall store the carrier tracking id on the shipment.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-003
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+
+[REQUIREMENT]
+UID: LOG-SHIP-003
+TITLE: Custody handoff
+STATEMENT: Logistics shall record the custodian at each handoff of a controlled item.
+STATUS: Approved
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-AUD-002
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: V-222430
+
+[REQUIREMENT]
+UID: LOG-SHIP-004
+TITLE: Seal
+STATEMENT: Logistics shall record the seal number when a controlled shipment leaves the dock.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-005
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-7
+
+[REQUIREMENT]
+UID: LOG-SHIP-005
+TITLE: Missing scan
+STATEMENT: Logistics shall alert when a controlled item misses an expected scan.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-004
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: PLT-MON-004
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: SI-4
+
+[REQUIREMENT]
+UID: LOG-SHIP-006
+TITLE: Return
+STATEMENT: Logistics shall receive a return against the original shipment.
+STATUS: Active
+RELATIONS:
+- TYPE: Parent
+  ROLE: Refines
+  VALUE: ENT-LOG-001
+- TYPE: Parent
+  ROLE: ConformsTo
+  VALUE: AU-3
+[[/SECTION]]

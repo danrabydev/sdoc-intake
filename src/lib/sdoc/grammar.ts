@@ -11,6 +11,7 @@ export function defaultElements(): GrammarElement[] {
     },
     {
       tag: "SECTION",
+      composite: true,
       fields: [
         { title: "UID", type: "String", required: false },
         { title: "PREFIX", type: "String", required: false },
@@ -57,9 +58,10 @@ export function defaultGrammar(): Grammar {
   return { explicit: false, elements: defaultElements() };
 }
 
-/** Register this org's Parent roles. Does not mutate the input. */
+/** Register this org's Parent roles. Does not mutate the input. An imported grammar is left to its file. */
 export function ensureOrgGrammar(doc: SDocDocument): SDocDocument {
   const next = structuredClone(doc);
+  if (next.grammar.importFrom || next.grammar.explicit) return next;
   const grammar: Grammar = next.grammar.explicit
     ? next.grammar
     : { explicit: true, elements: defaultElements() };
@@ -88,4 +90,39 @@ export function ensureOrgGrammar(doc: SDocDocument): SDocDocument {
   }
   next.grammar = grammar;
   return next;
+}
+
+/** Resolve `IMPORT_FROM_FILE` against the importing document. Rejects paths that leave the project. */
+export function resolveGrammarPath(fromRel: string, spec: string): string | null {
+  const cleaned = spec.replace(/\\/g, "/").trim();
+  if (!cleaned || cleaned.startsWith("/") || cleaned.includes("\0") || !cleaned.endsWith(".sgra")) return null;
+  if (!/^[A-Za-z0-9._/-]+$/.test(cleaned)) return null;
+  const base = fromRel.includes("/") ? fromRel.slice(0, fromRel.lastIndexOf("/")) : "";
+  const parts = [...(base ? base.split("/") : []), ...cleaned.split("/")];
+  const stack: string[] = [];
+  for (const part of parts) {
+    if (part === "" || part === ".") continue;
+    if (part === "..") {
+      if (stack.length === 0) return null;
+      stack.pop();
+      continue;
+    }
+    if (!/^[A-Za-z0-9._-]+$/.test(part)) return null;
+    stack.push(part);
+  }
+  const rel = stack.join("/");
+  return rel.endsWith(".sgra") ? rel : null;
+}
+
+/** Import path to write in `fromRel` so it resolves to `targetRel`. */
+export function relativeImport(fromRel: string, targetRel: string): string | null {
+  const target = targetRel.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (!target.endsWith(".sgra") || target.includes("..") || target.startsWith("/")) return null;
+  const fromDir = fromRel.includes("/") ? fromRel.slice(0, fromRel.lastIndexOf("/")) : "";
+  const fromParts = fromDir ? fromDir.split("/") : [];
+  const toParts = target.split("/");
+  let shared = 0;
+  while (shared < fromParts.length && shared < toParts.length && fromParts[shared] === toParts[shared]) shared += 1;
+  const spec = [...Array.from({ length: fromParts.length - shared }, () => ".."), ...toParts.slice(shared)].join("/");
+  return resolveGrammarPath(fromRel, spec) === target ? spec : null;
 }
