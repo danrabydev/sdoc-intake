@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { FileResponse, GrammarResponse, IndexNode, TreeFile } from "@/lib/sdoc/api-types";
 import { openBrowserFolder, restoreBrowserFolder, subscribeBrowser } from "@/lib/sdoc/browser-fs";
 import { ApiError, createDir, createDoc, createGrammar, deleteDoc, getFile, getGrammar, getIndex, getTree, probeServer, putFile, putGrammar } from "@/lib/sdoc/client";
@@ -17,6 +17,7 @@ import { IntakeTable } from "@/components/sdoc/IntakeTable";
 import { Outline } from "@/components/sdoc/Outline";
 import { Tree } from "@/components/sdoc/Tree";
 import { ValidationBar } from "@/components/sdoc/ValidationBar";
+import { Workspace } from "@/components/sdoc/Workspace";
 
 interface Editor {
   path: string;
@@ -142,6 +143,7 @@ export function IntakeApp({
   const [strict, setStrict] = useState(false);
   const [center, setCenter] = useState<"table" | "nodes" | "flow" | "grammar">("table");
   const [pane, setPane] = useState<"files" | "intake" | "trace">("intake");
+  const [wide, setWide] = useState(false);
   const [drawer, setDrawer] = useState<"trace" | "outline">("outline");
   const [depth, setDepth] = useState(2);
   const [saving, setSaving] = useState(false);
@@ -211,6 +213,14 @@ export function IntakeApp({
     setNotice("");
     onSelect(path, nextUid);
   }
+
+  useLayoutEffect(() => {
+    const query = window.matchMedia("(min-width: 1024px)");
+    const apply = () => setWide(query.matches);
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, []);
 
   useEffect(() => {
     let cancel = false;
@@ -774,9 +784,6 @@ export function IntakeApp({
     }
   }
 
-  const paneClass = (name: "files" | "intake" | "trace", extra: string) =>
-    `${pane === name ? "flex" : "hidden"} min-h-0 flex-col lg:flex ${extra}`;
-
   return (
     <main className="flex h-dvh flex-col overflow-hidden bg-bg text-fg">
       <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line px-3 py-2">
@@ -811,29 +818,15 @@ export function IntakeApp({
           {editor ? <p className="max-w-48 truncate font-mono text-xs text-fg">{editor.path}</p> : null}
         </div>
       </header>
-      <div className="flex border-b border-line lg:hidden">
-        {(
-          [
-            ["files", "Files"],
-            ["intake", "Intake"],
-            ["trace", "Trace"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setPane(id)}
-            className={
-              "min-h-11 flex-1 text-sm " + (pane === id ? "border-b-2 border-accent text-fg" : "text-muted")
-            }
-          >
-            {label}
-          </button>
-        ))}
-      </div>
       {loadError ? <p className="border-b border-line px-3 py-2 text-sm text-danger">{loadError}</p> : null}
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[16rem_minmax(0,1fr)_22rem]">
-        <aside className={paneClass("files", "border-line lg:border-r")}>
+      <div className="relative min-h-0 flex-1">
+        <div className="absolute inset-0">
+        <Workspace
+          wide={wide}
+          pane={pane}
+          onPane={setPane}
+          files={
+        <div className="flex h-full min-h-0 flex-col">
           <Tree
             root={root}
             files={files}
@@ -859,8 +852,10 @@ export function IntakeApp({
               void removeFile(path);
             }}
           />
-        </aside>
-        <section className={paneClass("intake", "min-w-0 bg-bg")}>
+        </div>
+          }
+          editor={
+        <div className="flex h-full min-h-0 flex-col overflow-hidden bg-bg">
           {editor?.document && !editor.parseFailed ? (
             <div className="flex flex-wrap items-end gap-2 border-b border-line px-3 py-2">
               <label className="min-w-0 flex-1 text-xs text-muted">
@@ -1007,6 +1002,11 @@ export function IntakeApp({
                   ...document,
                   nodes: mapAt(document.nodes, path, (node) => withField(node, name, value)),
                 }));
+                if (name === "UID") {
+                  const next = value.trim();
+                  setSelected(next || `#${path.join(".")}`);
+                  if (editor) onSelect(editor.path, next);
+                }
               }}
               onRelations={(path, relations: Relation[]) => {
                 mutate((document) => ({
@@ -1052,8 +1052,10 @@ export function IntakeApp({
               )}
             </div>
           )}
-        </section>
-        <aside className={paneClass("trace", "border-line lg:border-l")}>
+        </div>
+          }
+          inspector={
+        <div className="flex h-full min-h-0 flex-col bg-surface">
           <div className="flex border-b border-line">
             {(
               [
@@ -1106,7 +1108,10 @@ export function IntakeApp({
               />
             </div>
           ) : null}
-        </aside>
+        </div>
+          }
+        />
+        </div>
       </div>
       <ValidationBar
         issues={issues}

@@ -1,159 +1,107 @@
 import { Plus, Trash2 } from "lucide-react";
-import { useState, type KeyboardEvent } from "react";
+import { useState } from "react";
+import { Group, Panel, Separator } from "react-resizable-panels";
 import type { IndexNode } from "@/lib/sdoc/api-types";
 import { elementLinks, fallbackTag, tagLabel } from "@/lib/sdoc/grammar";
-import { fieldOf, flatten, selectionKey } from "@/lib/sdoc/model";
+import { fieldOf, flatten, outlineNumbers, selectionKey } from "@/lib/sdoc/model";
 import type { GrammarElement, GrammarField, Relation, SDocDocument, SDocNode } from "@/lib/sdoc/types";
 import { RelationTags } from "@/components/sdoc/RelationTags";
+
+const PROSE = new Set(["STATEMENT", "DESCRIPTION", "RATIONALE", "COMMENT"]);
 
 function grammarOf(document: SDocDocument, tag: string): GrammarElement | undefined {
   return document.grammar.elements.find((element) => element.tag === tag);
 }
 
-function declares(element: GrammarElement | undefined, name: string): boolean {
-  if (!element) return name === "UID" || name === "TITLE" || name === "STATEMENT";
-  return element.fields.some((field) => field.title === name);
+function fieldsOf(element: GrammarElement | undefined): GrammarField[] {
+  if (element) return element.fields;
+  return [
+    { title: "UID", type: "String", required: false },
+    { title: "TITLE", type: "String", required: false },
+    { title: "STATEMENT", type: "String", required: false },
+  ];
 }
 
-function spareFields(element: GrammarElement | undefined): GrammarField[] {
-  if (!element) return [];
-  return element.fields.filter(
-    (field) =>
-      field.title !== "UID" &&
-      field.title !== "TITLE" &&
-      field.title !== "STATEMENT" &&
-      field.type !== "SingleChoice" &&
-      field.type !== "Choice",
-  );
-}
-function choiceFields(document: SDocDocument, tag: string) {
-  return (
-    document.grammar.elements
-      .find((element) => element.tag === tag)
-      ?.fields.filter((field) => field.type === "SingleChoice" && (field.options?.length ?? 0) > 0) ?? []
-  );
+function isProse(field: GrammarField): boolean {
+  return field.type === "MultiLineString" || PROSE.has(field.title);
 }
 
-function SpareFields({
+function FieldControl({
+  field,
   node,
   path,
-  fields,
+  marked,
   onField,
 }: {
+  field: GrammarField;
   node: SDocNode;
   path: number[];
-  fields: GrammarField[];
+  marked?: string;
   onField: (path: number[], name: string, value: string) => void;
 }) {
-  if (fields.length === 0) return null;
+  const value = fieldOf(node, field.title);
+  const options = field.options ?? [];
+  const choice = (field.type === "SingleChoice" || field.type === "Choice") && options.length > 0;
+  const inputClass = "mt-1 min-h-11 w-full rounded-md border border-line bg-bg px-2 text-sm text-fg";
   return (
-    <div className="mt-1 flex flex-col gap-1">
-      {fields.map((field) => {
-        const value = fieldOf(node, field.title);
-        const prose = field.type === "MultiLineString" || field.title === "DESCRIPTION" || field.title === "RATIONALE" || field.title === "COMMENT";
-        return (
-          <label key={field.title} className="block text-[10px] uppercase tracking-wide text-muted">
-            {field.title}
-            {field.type === "Boolean" ? (
-              <select
-                aria-label={field.title}
-                value={value === "True" || value === "False" ? value : ""}
-                onClick={(event) => event.stopPropagation()}
-                onChange={(event) => onField(path, field.title, event.target.value)}
-                className="mt-0.5 min-h-8 w-full rounded-md border border-line bg-bg px-2 text-xs normal-case tracking-normal text-fg"
-              >
-                <option value="">—</option>
-                <option value="True">True</option>
-                <option value="False">False</option>
-              </select>
-            ) : prose ? (
-              <textarea
-                aria-label={field.title}
-                value={value}
-                rows={2}
-                onClick={(event) => event.stopPropagation()}
-                onChange={(event) => onField(path, field.title, event.target.value)}
-                className="mt-0.5 w-full resize-none rounded-md border border-line bg-bg px-2 py-1 text-xs normal-case tracking-normal text-fg"
-              />
-            ) : (
-              <input
-                aria-label={field.title}
-                value={value}
-                onClick={(event) => event.stopPropagation()}
-                onChange={(event) => onField(path, field.title, event.target.value)}
-                className="mt-0.5 min-h-8 w-full rounded-md border border-line bg-bg px-2 font-mono text-xs normal-case tracking-normal text-fg"
-              />
-            )}
-          </label>
-        );
-      })}
-    </div>
+    <label className="block text-xs text-muted">
+      {field.title}
+      {field.required ? <span className="text-accent"> *</span> : null}
+      {field.type === "Boolean" ? (
+        <select
+          aria-label={field.title}
+          value={value === "True" || value === "False" ? value : ""}
+          onChange={(event) => onField(path, field.title, event.target.value)}
+          className={inputClass}
+        >
+          <option value="">—</option>
+          <option value="True">True</option>
+          <option value="False">False</option>
+        </select>
+      ) : choice ? (
+        <select
+          aria-label={field.title}
+          value={options.includes(value) ? value : ""}
+          onChange={(event) => onField(path, field.title, event.target.value)}
+          className={inputClass}
+        >
+          <option value="">—</option>
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      ) : isProse(field) ? (
+        <textarea
+          aria-label={field.title}
+          value={value}
+          rows={field.title === "STATEMENT" || field.title === "DESCRIPTION" ? 8 : 4}
+          onChange={(event) => onField(path, field.title, event.target.value)}
+          className="mt-1 w-full rounded-md border border-line bg-bg px-2 py-2 text-sm leading-relaxed text-fg"
+        />
+      ) : (
+        <input
+          aria-label={field.title}
+          value={value}
+          title={marked}
+          onChange={(event) =>
+            onField(
+              path,
+              field.title,
+              field.title === "UID" ? event.target.value.replace(/\s+/g, "") : event.target.value,
+            )
+          }
+          className={
+            inputClass +
+            (field.title === "UID" ? " font-mono" : "") +
+            (marked ? " text-accent" : "")
+          }
+        />
+      )}
+      {marked ? <span className="mt-1 block text-accent">Prefix should be {marked}</span> : null}
+    </label>
   );
-}
-
-function SpareSummary({ node, fields }: { node: SDocNode; fields: GrammarField[] }) {
-  const bits = fields
-    .map((field) => {
-      const value = fieldOf(node, field.title).replace(/\s+/g, " ").trim();
-      return value ? `${field.title} ${value}` : "";
-    })
-    .filter((bit) => bit.length > 0);
-  if (bits.length === 0) return null;
-  return <p className="truncate text-[10px] text-muted">{bits.join(" · ")}</p>;
-}
-
-function choiceColumns(document: SDocDocument) {
-  const seen = new Map<string, string[]>();
-  for (const element of document.grammar.elements) {
-    for (const field of element.fields) {
-      if (field.type === "SingleChoice" && field.options?.length && !seen.has(field.title)) {
-        seen.set(field.title, field.options);
-      }
-    }
-  }
-  return [...seen.entries()].map(([title, options]) => ({ title, options }));
-}
-
-function ChoiceSelect({
-  node,
-  path,
-  title,
-  options,
-  onField,
-}: {
-  node: SDocNode;
-  path: number[];
-  title: string;
-  options: string[];
-  onField: (path: number[], name: string, value: string) => void;
-}) {
-  const value = fieldOf(node, title);
-  return (
-    <select
-      value={options.includes(value) ? value : ""}
-      aria-label={title}
-      onClick={(event) => event.stopPropagation()}
-      onChange={(event) => onField(path, title, event.target.value)}
-      className="min-h-11 w-full rounded-md border border-line bg-bg px-2 text-sm text-fg"
-    >
-      <option value="">—</option>
-      {options.map((option) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-const INDENT = ["pl-2", "pl-6", "pl-10", "pl-14"] as const;
-
-function visibleInput(row: number, col: string): HTMLElement | null {
-  const nodes = document.querySelectorAll<HTMLElement>(`[data-cell="${row}:${col}"]`);
-  for (const node of nodes) {
-    if (node.offsetParent !== null) return node;
-  }
-  return null;
 }
 
 export function IntakeTable({
@@ -178,23 +126,16 @@ export function IntakeTable({
   markedUids?: ReadonlyMap<string, string>;
 }) {
   const rows = flatten(document.nodes);
-  const choices = choiceColumns(document);
+  const numbers = outlineNumbers(document.nodes);
   const elements = document.grammar.elements;
   const tags = elements.map((element) => element.tag);
   const [picked, setPicked] = useState("");
   const addTag = tags.includes(picked) ? picked : fallbackTag(tags, ["REQUIREMENT", "RELEASE", "SECTION"]);
   const selectedRow = rows.find((row) => selectionKey(row.node, row.path) === selected);
   const intoComposite = Boolean(selectedRow?.node.composite);
-  const [statementKey, setStatementKey] = useState("");
-
-  function enterNext(event: KeyboardEvent<HTMLElement>, row: number, col: string) {
-    if (event.key !== "Enter" || event.shiftKey || event.metaKey || event.ctrlKey) return;
-    event.preventDefault();
-    visibleInput(row + 1, col)?.focus();
-  }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
         <p className="text-xs text-muted">
           <span className="font-mono text-accent">{rows.length}</span> nodes
@@ -243,232 +184,129 @@ export function IntakeTable({
           </button>
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-auto">
-        <table className="hidden w-full table-fixed border-collapse text-left text-xs lg:table">
-          <thead className="sticky top-0 z-10 bg-surface text-muted">
-            <tr className="border-b border-line">
-              <th className="w-1/6 px-2 py-2 font-medium">UID</th>
-              <th className="w-1/5 px-2 py-2 font-medium">Title</th>
-              <th className="w-24 px-2 py-2 font-medium">Tag</th>
-              {choices.map((spec) => (
-                <th key={spec.title} className="w-36 px-2 py-2 font-medium">
-                  {spec.title}
-                </th>
-              ))}
-              <th className="px-2 py-2 font-medium">Statement</th>
-              <th className="w-1/4 px-2 py-2 font-medium">Relations</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, indexOnPage) => {
-              const uid = fieldOf(row.node, "UID");
-              const key = row.path.join(".");
-              const pick = selectionKey(row.node, row.path);
-              const active = pick === selected;
-              const element = grammarOf(document, row.node.tag);
-              const spare = spareFields(element);
-              const links = elementLinks(document.grammar.elements, row.node.tag);
-              return (
-                <tr
-                  key={key}
-                  data-uid={uid || undefined}
-                  onClick={() => onSelect(pick)}
-                  className={"border-b border-line align-top " + (active ? "bg-surface-2" : "bg-bg")}
-                >
-                  <td className="px-2 py-1">
-                    {declares(element, "UID") ? (
-                      <input
-                        data-cell={`${indexOnPage}:uid`}
-                        value={uid}
-                        aria-label="UID"
-                        onChange={(event) => onField(row.path, "UID", event.target.value.replace(/\s+/g, ""))}
-                        onKeyDown={(event) => enterNext(event, indexOnPage, "uid")}
-                        onFocus={() => onSelect(pick)}
-                        title={markedUids?.get(uid) ? `Prefix should be ${markedUids.get(uid)}` : undefined}
-                        className={
-                          "w-full bg-transparent font-mono text-xs " + (markedUids?.has(uid) ? "text-accent" : "text-fg")
-                        }
-                      />
-                    ) : (
-                      <span className="text-muted">—</span>
-                    )}
-                  </td>
-                  <td className="px-2 py-1">
-                    {declares(element, "TITLE") ? (
-                      <input
-                        data-cell={`${indexOnPage}:title`}
-                        value={fieldOf(row.node, "TITLE")}
-                        aria-label="Title"
-                        onChange={(event) => onField(row.path, "TITLE", event.target.value)}
-                        onKeyDown={(event) => enterNext(event, indexOnPage, "title")}
-                        onFocus={() => onSelect(pick)}
-                        className={
-                          "w-full bg-transparent text-xs text-fg " +
-                          INDENT[Math.min(row.depth, 3)] +
-                          (row.node.composite ? " font-medium" : "")
-                        }
-                      />
-                    ) : (
-                      <span className="text-muted">—</span>
-                    )}
-                  </td>
-                  <td className="px-2 py-2 font-mono text-xs tracking-wide text-muted">{row.node.tag}</td>
-                  {choices.map((spec) => {
-                    const field = choiceFields(document, row.node.tag).find((item) => item.title === spec.title);
+      <div className="relative min-h-0 flex-1">
+        <div className="absolute inset-0">
+        <Group id="sdoc-nodes" orientation="vertical" className="h-full" resizeTargetMinimumSize={{ coarse: 20, fine: 8 }}>
+          <Panel id="list" className="h-full min-h-0" defaultSize="38%" minSize="6rem" style={{ overflow: "hidden" }}>
+            <div className="h-full overflow-auto">
+              <table className="sdoc-nodes text-xs">
+                <thead className="sticky top-0 z-10 bg-surface text-muted">
+                  <tr className="border-b border-line">
+                    <th className="shrink px-2 py-2 font-medium">#</th>
+                    <th className="shrink px-2 py-2 font-medium">UID</th>
+                    <th className="grow px-2 py-2 font-medium">Title</th>
+                    <th className="shrink px-2 py-2 font-medium">Tag</th>
+                    <th className="shrink px-2 py-2 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => {
+                    const uid = fieldOf(row.node, "UID");
+                    const pick = selectionKey(row.node, row.path);
+                    const active = pick === selected;
+                    const title = fieldOf(row.node, "TITLE") || fieldOf(row.node, "STATEMENT").split("\n")[0] || "Untitled";
+                    const status = fieldOf(row.node, "STATUS");
+                    const marked = uid ? markedUids?.get(uid) : undefined;
                     return (
-                      <td key={spec.title} className="px-2 py-1">
-                        {field ? (
-                          <ChoiceSelect
-                            node={row.node}
-                            path={row.path}
-                            title={field.title}
-                            options={field.options ?? []}
-                            onField={onField}
-                          />
-                        ) : (
-                          <span className="text-muted">—</span>
-                        )}
-                      </td>
+                      <tr
+                        key={row.path.join(".")}
+                        data-uid={uid || undefined}
+                        onClick={() => onSelect(pick)}
+                        className={"cursor-pointer border-b border-line " + (active ? "bg-surface-2 text-fg" : "text-muted")}
+                      >
+                        <td className="shrink px-2 py-2 font-mono text-xs tabular-nums text-accent">
+                          {numbers.get(row.path.join(".")) ?? ""}
+                        </td>
+                        <td
+                          className={"shrink px-2 py-2 font-mono " + (marked ? "text-accent" : "text-fg")}
+                          title={marked ? `Prefix should be ${marked}` : undefined}
+                          style={{ paddingLeft: `${row.depth * 12 + 8}px` }}
+                        >
+                          {uid || "—"}
+                        </td>
+                        <td className={"grow px-2 py-2 " + (row.node.composite ? "font-medium text-fg" : "text-fg")}>
+                          {title}
+                        </td>
+                        <td className="shrink px-2 py-2 font-mono tracking-wide">{row.node.tag}</td>
+                        <td className="shrink px-2 py-2">{status}</td>
+                      </tr>
                     );
                   })}
-                  <td className="px-2 py-1">
-                    {declares(element, "STATEMENT") ? (
-                      <textarea
-                        data-cell={`${indexOnPage}:statement`}
-                        value={fieldOf(row.node, "STATEMENT")}
-                        aria-label="Statement"
-                        rows={statementKey === key ? 4 : 1}
-                        onFocus={() => {
-                          setStatementKey(key);
-                          onSelect(pick);
-                        }}
-                        onBlur={() => setStatementKey((current) => (current === key ? "" : current))}
-                        onChange={(event) => onField(row.path, "STATEMENT", event.target.value)}
-                        className="w-full resize-none bg-transparent text-xs leading-relaxed text-fg"
-                      />
-                    ) : null}
-                    {active ? (
-                      <SpareFields node={row.node} path={row.path} fields={spare} onField={onField} />
-                    ) : (
-                      <SpareSummary node={row.node} fields={spare} />
-                    )}
-                    {!declares(element, "STATEMENT") && spare.length === 0 ? (
-                      <span className="text-muted">—</span>
-                    ) : null}
-                  </td>
-                  <td className="px-2 py-1" onClick={(event) => event.stopPropagation()}>
-                    {links.length > 0 ? (
-                      <RelationTags
-                        relations={row.node.relations}
-                        index={index}
-                        selfUid={uid}
-                        links={links}
-                        onChange={(relations) => onRelations(row.path, relations)}
-                      />
-                    ) : (
-                      <span className="text-muted">—</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        <ul className="flex flex-col gap-2 p-3 lg:hidden">
-          {rows.map((row, indexOnPage) => {
-            const uid = fieldOf(row.node, "UID");
-            const element = grammarOf(document, row.node.tag);
-            const spare = spareFields(element);
-            const links = elementLinks(document.grammar.elements, row.node.tag);
-            const pick = selectionKey(row.node, row.path);
-            const active = pick === selected;
-            return (
-              <li
-                key={row.path.join(".")}
-                data-uid={uid || undefined}
-                onClick={() => onSelect(pick)}
-                className={"rounded-md border border-line p-3 " + (active ? "bg-surface-2" : "bg-surface")}
-              >
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="font-mono text-xs text-muted">{row.node.tag}</span>
-                  <button type="button" className="text-xs text-accent" onClick={() => uid && onSelect(uid)}>
-                    Trace
-                  </button>
-                </div>
-                {declares(element, "UID") ? (
-                  <label className="block text-xs text-muted">
-                    UID
-                    <input
-                      data-cell={`${indexOnPage}:uid`}
-                      value={uid}
-                      onChange={(event) => onField(row.path, "UID", event.target.value.replace(/\s+/g, ""))}
-                      title={markedUids?.get(uid) ? `Prefix should be ${markedUids.get(uid)}` : undefined}
-                      className={
-                        "mt-1 min-h-11 w-full rounded-md border border-line bg-bg px-2 font-mono text-sm " +
-                        (markedUids?.has(uid) ? "text-accent" : "text-fg")
-                      }
-                    />
-                  </label>
-                ) : null}
-                {declares(element, "TITLE") ? (
-                  <label className="mt-2 block text-xs text-muted">
-                    Title
-                    <input
-                      data-cell={`${indexOnPage}:title`}
-                      value={fieldOf(row.node, "TITLE")}
-                      onChange={(event) => onField(row.path, "TITLE", event.target.value)}
-                      className={
-                        "mt-1 min-h-11 w-full rounded-md border border-line bg-bg px-2 text-sm text-fg " +
-                        (row.node.composite ? "font-medium" : "")
-                      }
-                    />
-                  </label>
-                ) : null}
-                {choiceFields(document, row.node.tag).map((field) => (
-                  <label key={field.title} className="mt-2 block text-xs text-muted">
-                    {field.title}
-                    <div className="mt-1">
-                      <ChoiceSelect
-                        node={row.node}
-                        path={row.path}
-                        title={field.title}
-                        options={field.options ?? []}
-                        onField={onField}
-                      />
-                    </div>
-                  </label>
-                ))}
-                {declares(element, "STATEMENT") ? (
-                  <label className="mt-2 block text-xs text-muted">
-                    Statement
-                    <textarea
-                      value={fieldOf(row.node, "STATEMENT")}
-                      rows={4}
-                      onChange={(event) => onField(row.path, "STATEMENT", event.target.value)}
-                      className="mt-1 w-full rounded-md border border-line bg-bg px-2 py-2 text-sm leading-relaxed text-fg"
-                    />
-                  </label>
-                ) : null}
-                <SpareFields node={row.node} path={row.path} fields={spare} onField={onField} />
-                {links.length > 0 ? (
-                  <div className="mt-2">
-                    <RelationTags
-                      relations={row.node.relations}
-                      index={index}
-                      selfUid={uid}
-                      links={links}
-                      onChange={(relations) => onRelations(row.path, relations)}
-                    />
-                  </div>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-        {rows.length === 0 ? (
-          <p className="px-3 py-8 text-sm text-muted">No nodes yet. Add an element from the grammar.</p>
-        ) : null}
+                </tbody>
+              </table>
+              {rows.length === 0 ? (
+                <p className="px-3 py-8 text-sm text-muted">No nodes yet. Add an element from the grammar.</p>
+              ) : null}
+            </div>
+          </Panel>
+          <Separator className="sdoc-sash" />
+          <Panel id="fields" className="h-full min-h-0" defaultSize="62%" minSize="10rem" style={{ overflow: "hidden" }}>
+            <NodeForm
+              document={document}
+              row={selectedRow}
+              index={index}
+              markedUids={markedUids}
+              onField={onField}
+              onRelations={onRelations}
+            />
+          </Panel>
+        </Group>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function NodeForm({
+  document,
+  row,
+  index,
+  markedUids,
+  onField,
+  onRelations,
+}: {
+  document: SDocDocument;
+  row: ReturnType<typeof flatten>[number] | undefined;
+  index: IndexNode[];
+  markedUids?: ReadonlyMap<string, string>;
+  onField: (path: number[], name: string, value: string) => void;
+  onRelations: (path: number[], relations: Relation[]) => void;
+}) {
+  if (!row) {
+    return <p className="px-4 py-8 text-sm text-muted">Select a node to edit its fields.</p>;
+  }
+  const element = grammarOf(document, row.node.tag);
+  const fields = fieldsOf(element);
+  const links = elementLinks(document.grammar.elements, row.node.tag);
+  const uid = fieldOf(row.node, "UID");
+  return (
+    <div className="h-full overflow-y-auto px-4 py-3">
+      <p className="font-mono text-xs tracking-wide text-muted">{row.node.tag}</p>
+      <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {fields.map((field) => (
+          <div key={field.title} className={isProse(field) ? "lg:col-span-2" : undefined}>
+            <FieldControl
+              field={field}
+              node={row.node}
+              path={row.path}
+              marked={field.title === "UID" ? markedUids?.get(uid) : undefined}
+              onField={onField}
+            />
+          </div>
+        ))}
+      </div>
+      {links.length > 0 ? (
+        <div className="mt-4 border-t border-line pt-3">
+          <p className="mb-2 text-xs text-muted">Relations</p>
+          <RelationTags
+            relations={row.node.relations}
+            index={index}
+            selfUid={uid}
+            links={links}
+            onChange={(relations) => onRelations(row.path, relations)}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

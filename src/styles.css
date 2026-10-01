@@ -52,6 +52,44 @@
   user-select: none;
 }
 
+.sdoc-sash {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 1px 100%;
+  background-image: linear-gradient(var(--color-line), var(--color-line));
+}
+
+.sdoc-sash[aria-orientation="horizontal"] {
+  background-size: 100% 1px;
+}
+
+.sdoc-sash:hover,
+.sdoc-sash[data-separator="active"],
+.sdoc-sash[data-separator="focus"] {
+  background-image: linear-gradient(var(--color-accent), var(--color-accent));
+}
+
+.sdoc-nodes {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+  text-align: left;
+}
+
+.sdoc-nodes .shrink {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.sdoc-nodes .grow {
+  width: 99%;
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
