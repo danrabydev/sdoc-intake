@@ -64,8 +64,13 @@ function roleOf(type: string, role?: string): string {
   return name && name.length > 0 ? name : type;
 }
 
-/** Cross-file Parent and Child links. One box per document, not per requirement. */
-export function flowDiagram(nodes: IndexNode[], focus: string, openFile = ""): Diagram {
+/** Cross-file Parent and Child links. One box per document until that document is opened. */
+export function flowDiagram(
+  nodes: IndexNode[],
+  focus: string,
+  openFile = "",
+  expanded: ReadonlySet<string> = new Set(),
+): Diagram {
   const byUid = new Map<string, IndexNode>();
   for (const node of nodes) {
     if (!node.uid || node.tag === "DOCUMENT") continue;
@@ -132,46 +137,96 @@ export function flowDiagram(nodes: IndexNode[], focus: string, openFile = ""): D
     }
   }
 
+  const membersOf = new Map<string, IndexNode[]>();
+  const open = new Set<string>();
+  for (const file of files) {
+    const members = [...byUid.values()]
+      .filter((node) => node.file === file && node.tag !== "DOCUMENT")
+      .sort((a, b) => a.uid.localeCompare(b.uid));
+    membersOf.set(file, members);
+    if (expanded.has(file) && members.length > 0) open.add(file);
+  }
+
   const links = new Map<string, DiagramLink[]>();
-  const edges: DiagramEdge[] = [...buckets.values()]
+  const grouped = new Map<string, { from: string; to: string; role: string; fromFile: string; toFile: string; links: DiagramLink[] }>();
+  for (const bucket of buckets.values()) {
+    const fromOpen = open.has(bucket.from);
+    const toOpen = open.has(bucket.to);
+    if (!fromOpen && !toOpen) {
+      const id = `${bucket.from}|${bucket.role}|${bucket.to}`;
+      grouped.set(id, {
+        from: bucket.from,
+        to: bucket.to,
+        role: bucket.role,
+        fromFile: bucket.from,
+        toFile: bucket.to,
+        links: bucket.links,
+      });
+      continue;
+    }
+    for (const link of bucket.links) {
+      const from = fromOpen ? `n:${link.fromUid}` : bucket.from;
+      const to = toOpen ? `n:${link.toUid}` : bucket.to;
+      const id = `${from}|${bucket.role}|${to}`;
+      const existing = grouped.get(id);
+      if (existing) existing.links.push(link);
+      else {
+        grouped.set(id, { from, to, role: bucket.role, fromFile: bucket.from, toFile: bucket.to, links: [link] });
+      }
+    }
+  }
+  const edges: DiagramEdge[] = [...grouped.values()]
     .sort((a, b) => a.from.localeCompare(b.from) || a.role.localeCompare(b.role) || a.to.localeCompare(b.to))
     .map((bucket) => {
       const id = `${bucket.from}|${bucket.role}|${bucket.to}`;
       links.set(id, bucket.links);
-      const hot = Boolean(focusFile) && (bucket.from === focusFile || bucket.to === focusFile);
+      const hot = Boolean(focusFile) && (bucket.fromFile === focusFile || bucket.toFile === focusFile);
       return {
         id,
         from: bucket.from,
         to: bucket.to,
-        label: `${bucket.role} ${bucket.links.length}`,
+        label:
+          bucket.links.length > 1 || (bucket.from === bucket.fromFile && bucket.to === bucket.toFile)
+            ? `${bucket.role} ${bucket.links.length}`
+            : bucket.role,
         role: bucket.role,
         hot,
       };
     });
 
-  const firstUid = new Map<string, string>();
-  for (const node of byUid.values()) {
-    if (node.file && !firstUid.has(node.file)) firstUid.set(node.file, node.uid);
-  }
-
-  const nodesOut: DiagramNode[] = files.map((file) => {
+  const nodesOut: DiagramNode[] = [];
+  for (const file of files) {
+    const column = columnOf.get(file) ?? 0;
+    const members = membersOf.get(file) ?? [];
     const doc = docOf.get(file);
-    const leaving = [...buckets.values()].filter((bucket) => bucket.from === file).reduce((sum, bucket) => sum + bucket.links.length, 0);
-    return {
-      id: file,
-      column: columnOf.get(file) ?? 0,
-      title: clip(doc?.title || shortFile(file), 26),
-      sub: clip(
-        `${shortFile(file)} · ${leaving > 0 ? `${leaving} out` : `${incomingCount(buckets, file)} in`}`,
-        34,
-      ),
-      kind: "item",
-      uid: doc?.uid || firstUid.get(file) || "",
-      file,
-      focus: file === focusFile,
-      hot: !focusFile || hotFiles.has(file),
-    };
-  });
+    if (!open.has(file)) {
+      nodesOut.push({
+        id: file,
+        column,
+        title: clip(doc?.title || shortFile(file), 26),
+        sub: `${members.length} nodes`,
+        kind: "bundle",
+        uid: "",
+        file,
+        focus: file === focusFile,
+        hot: !focusFile || hotFiles.has(file),
+      });
+      continue;
+    }
+    for (const member of members) {
+      nodesOut.push({
+        id: `n:${member.uid}`,
+        column,
+        title: clip(member.uid, 26),
+        sub: clip(member.title && member.title !== member.uid ? member.title : member.tag, 34),
+        kind: "item",
+        uid: member.uid,
+        file,
+        focus: member.uid === focus,
+        hot: !focusFile || hotFiles.has(file),
+      });
+    }
+  }
 
   const laneCount = Math.max(0, ...nodesOut.map((node) => node.column)) + (nodesOut.length > 0 ? 1 : 0);
   const lanes: string[] = [];
@@ -179,14 +234,6 @@ export function flowDiagram(nodes: IndexNode[], focus: string, openFile = ""): D
     lanes.push(laneName.get(index) || "");
   }
   return { lanes, nodes: nodesOut, edges, links };
-}
-
-function incomingCount(buckets: Map<string, { to: string; links: DiagramLink[] }>, file: string): number {
-  let count = 0;
-  for (const bucket of buckets.values()) {
-    if (bucket.to === file) count += bucket.links.length;
-  }
-  return count;
 }
 
 function rankFiles(files: string[], edges: { from: string; to: string }[]): Map<string, number> {

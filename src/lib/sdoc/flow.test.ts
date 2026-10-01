@@ -60,6 +60,33 @@ test("the flow is one box per document and counts parent links", () => {
   assert.equal(opened.nodes.find((item) => item.file === "product/SYS.sdoc")?.focus, true);
   assert.equal(opened.edges[0]?.hot, true);
   assert.equal(diagram.nodes.some((item) => item.title === "Occupant" || item.uid === "SYS-099"), false);
+  const expanded = flowDiagram(
+    [
+      node({ uid: "DOC-SYS", file: "product/SYS.sdoc", tag: "DOCUMENT", title: "System" }),
+      node({
+        uid: "SYS-010",
+        file: "product/SYS.sdoc",
+        tag: "REQUIREMENT",
+        title: "Belt",
+        relations: [{ type: "Parent", role: "Refines", value: "CAP-1" }],
+      }),
+      node({ uid: "SYS-SEC-1", file: "product/SYS.sdoc", tag: "SECTION", title: "Occupant" }),
+      node({ uid: "SYS-099", file: "product/SYS.sdoc", tag: "REQUIREMENT", title: "Unused" }),
+      node({ uid: "CAP-1", file: "CAP.sdoc", tag: "REQUIREMENT", title: "Capability" }),
+    ],
+    "SYS-010",
+    "",
+    new Set(["product/SYS.sdoc"]),
+  );
+  assert.equal(expanded.nodes.some((item) => item.kind === "bundle" && item.file === "product/SYS.sdoc"), false);
+  assert.deepEqual(
+    expanded.nodes.filter((item) => item.file === "product/SYS.sdoc").map((item) => item.uid).sort(),
+    ["SYS-010", "SYS-099", "SYS-SEC-1"],
+  );
+  assert.equal(expanded.nodes.find((item) => item.uid === "SYS-010")?.focus, true);
+  assert.equal(expanded.edges[0]?.from, "n:SYS-010");
+  assert.equal(expanded.edges[0]?.to, "CAP.sdoc");
+  assert.equal(expanded.nodes.find((item) => item.file === "CAP.sdoc")?.kind, "bundle");
 });
 
 test("a large catalog stays one box", () => {
