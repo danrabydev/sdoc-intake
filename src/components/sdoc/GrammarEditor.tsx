@@ -111,7 +111,7 @@ export function GrammarEditor({
       {moveError ? <p className="mt-1 text-xs text-danger">{moveError}</p> : null}
       <ul className="mt-3 flex flex-col gap-3">
         {grammar.elements.map((element, index) => (
-          <li key={`${element.tag}:${index}`} className="rounded-md border border-line p-2">
+          <li key={index} className="rounded-md border border-line p-2">
             <div className="flex items-center gap-2">
               <label className="min-w-0 flex-1 text-xs text-muted">
                 Element
@@ -153,7 +153,7 @@ export function GrammarEditor({
             <ul className="mt-1 flex flex-col gap-2">
               {element.fields.map((field, fieldIndex) => (
                 <FieldRow
-                  key={`${field.title}:${fieldIndex}`}
+                  key={fieldIndex}
                   field={field}
                   onChange={(next) => {
                     const fields = element.fields.map((item, at) => (at === fieldIndex ? next : item));
@@ -179,7 +179,7 @@ export function GrammarEditor({
             <p className="mt-2 text-xs text-muted">Relations</p>
             <ul className="mt-1 flex flex-col gap-2">
               {element.relations.map((relation, relationIndex) => (
-                <li key={`${relation.type}:${relation.role ?? ""}:${relationIndex}`} className="flex flex-wrap items-center gap-2">
+                <li key={relationIndex} className="flex flex-wrap items-center gap-2">
                   <select
                     value={relation.type}
                     onChange={(event) => {

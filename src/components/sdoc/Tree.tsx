@@ -106,12 +106,12 @@ export function Tree({
     }
   }
 
-  function FolderRow({ node, depth }: { node: DirNode; depth: number }) {
+  function folderRow(node: DirNode, depth: number) {
     const open = !collapsed.has(node.path);
     const drafting = draftParent === node.path;
     const showActions = !drafting && (hot === node.path || pinned === node.path);
     return (
-      <li>
+      <li key={`dir:${node.path}`}>
         <div
           className="relative flex min-h-11 items-center rounded-md"
           style={{ paddingLeft: `${depth * 12 + 4}px` }}
@@ -183,12 +183,12 @@ export function Tree({
             {draftError ? <p className="mt-1 text-xs text-danger">{draftError}</p> : null}
           </form>
         ) : null}
-        {open ? <NodeList nodes={node.children} depth={depth + 1} /> : null}
+        {open ? nodeList(node.children, depth + 1) : null}
       </li>
     );
   }
 
-  function NodeList({ nodes, depth }: { nodes: ExplorerNode[]; depth: number }) {
+  function nodeList(nodes: ExplorerNode[], depth: number) {
     if (nodes.length === 0 && depth === 1 && draftParent === null) {
       return <li className="px-2 py-4 text-sm text-muted">No .sdoc files yet.</li>;
     }
@@ -196,7 +196,7 @@ export function Tree({
       <ul>
         {nodes.map((node) =>
           node.kind === "dir" ? (
-            <FolderRow key={`dir:${node.path}`} node={node} depth={depth} />
+            folderRow(node, depth)
           ) : (
             <li key={node.file.path}>
               <button
@@ -234,7 +234,7 @@ export function Tree({
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-1">
         <ul>
-          <FolderRow node={tree} depth={0} />
+          {folderRow(tree, 0)}
         </ul>
       </div>
       {active ? (
