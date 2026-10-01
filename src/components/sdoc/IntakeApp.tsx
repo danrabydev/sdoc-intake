@@ -265,28 +265,24 @@ export function IntakeApp({
         stopWatch();
         return;
       }
-      if (!editorRef.current) {
-        try {
-          const listed = await refreshLists();
-          if (!cancel) {
-            const path = file || listed[0]?.path || "";
-            if (path) {
-              if (path.endsWith(".sgra")) {
-                const view = await getGrammar(path);
-                if (!cancel) setEditor(editorFromGrammar(view));
-              } else {
-                const view = await getFile(path);
-                if (!cancel) {
-                  setEditor(editorFromView(view));
-                  if (!selectedRef.current) setSelected(firstRequirement(view.document));
-                  if (path !== file) onSelect(path, selectedRef.current || firstRequirement(view.document));
-                }
-              }
+      try {
+        const listed = await refreshLists();
+        if (!cancel && !editorRef.current) {
+          const path = file || listed[0]?.path || "";
+          if (path.endsWith(".sgra")) {
+            const view = await getGrammar(path);
+            if (!cancel) setEditor(editorFromGrammar(view));
+          } else if (path) {
+            const view = await getFile(path);
+            if (!cancel) {
+              setEditor(editorFromView(view));
+              if (!selectedRef.current) setSelected(firstRequirement(view.document));
+              if (path !== file) onSelect(path, selectedRef.current || firstRequirement(view.document));
             }
           }
-        } catch (err) {
-          if (!cancel) setLoadError(err instanceof Error ? err.message : "Could not read the tree.");
         }
+      } catch (err) {
+        if (!cancel) setLoadError(err instanceof Error ? err.message : "Could not read the tree.");
       }
       if (cancel || chosen !== "server") return;
       source = new EventSource("/api/events");
@@ -308,6 +304,24 @@ export function IntakeApp({
     // Mount, and again after the folder flag changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boot]);
+
+  const importedGrammar = editor?.kind === "sdoc" ? editor.document?.grammar.importFrom : undefined;
+  const importedFrom = editor?.path ?? "";
+  useEffect(() => {
+    if (!importedFrom || !importedGrammar) return;
+    const rel = resolveGrammarPath(importedFrom, importedGrammar);
+    if (!rel || grammarTextsRef.current[rel] !== undefined) return;
+    let cancel = false;
+    void getGrammar(rel)
+      .then((view) => {
+        if (cancel) return;
+        setGrammarTexts((current) => (current[rel] !== undefined ? current : { ...current, [rel]: view.text }));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancel = true;
+    };
+  }, [importedFrom, importedGrammar]);
 
   function rememberMode(mode: FsMode) {
     window.localStorage.setItem(FS_MODE_KEY, mode);
