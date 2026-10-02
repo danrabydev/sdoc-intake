@@ -1,0 +1,43 @@
+# CDP4-COMET Community Edition. Not wired to sdoc-intake.
+# Images and database host match Starion's deployment compose:
+# https://github.com/STARIONGROUP/COMET-WebServices-Community-Edition/blob/master/docker-compose.yml
+services:
+  comet-db:
+    image: stariongroup/cdp4-database-community-edition:4.2.0
+    hostname: comet-db
+    shm_size: 2gb
+    restart: unless-stopped
+    command: postgres -c max_locks_per_transaction=1024
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - comet-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  comet-webservices:
+    image: stariongroup/comet-webservices-community-edition:10.0.1
+    restart: unless-stopped
+    depends_on:
+      comet-db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    volumes:
+      - comet-ws-storage:/app/storage
+      - comet-ws-upload:/app/upload
+
+  comet-web:
+    image: stariongroup/comet-web-community-edition:web-7.0.0
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+
+volumes:
+  comet-db-data:
+  comet-ws-storage:
+  comet-ws-upload:
