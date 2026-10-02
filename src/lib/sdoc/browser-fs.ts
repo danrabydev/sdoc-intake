@@ -1,6 +1,6 @@
 import type { FileResponse, GrammarResponse, IndexNode, TreeResponse } from "./api-types.ts";
 import { ApiError } from "./api-error.ts";
-import { defaultElements, defaultGrammar, resolveGrammarPath } from "./grammar.ts";
+import { assignAlias, defaultElements, defaultGrammar, parseGrammarAliases, removeGrammarPath, resolveGrammarPath, STRICTDOC_CONFIG, upsertGrammarAlias } from "./grammar.ts";
 import { collectUids, flatten, indexDocument, nodeUid, parentEdges } from "./model.ts";
 import { parse, parseGrammarFile } from "./parse.ts";
 import { detachGrammar, serializeGrammarFile, textForWrite } from "./serialize.ts";
@@ -41,6 +41,7 @@ interface HeldFile {
 interface Project {
   docs: HeldFile[];
   grammars: { rel: string; text: string }[];
+  aliases: Record<string, string>;
   readText: (rel: string) => string | undefined;
 }
 
@@ -198,7 +199,13 @@ async function corpus(): Promise<Project> {
       continue;
     }
   }
-  return { docs, grammars, readText: (rel) => texts.get(rel) };
+  let aliases: Record<string, string> = {};
+  try {
+    aliases = parseGrammarAliases((await readConfigText()) ?? "");
+  } catch {
+    aliases = {};
+  }
+  return { docs, grammars, aliases, readText: (rel) => texts.get(rel) };
 }
 
 function contextFor(project: Project, rel: string, flags: { mode: "read" | "write"; strict?: boolean }): ValidateOptions {
@@ -217,6 +224,7 @@ function contextFor(project: Project, rel: string, flags: { mode: "read" | "writ
     indexComplete: true,
     file: rel,
     readText: project.readText,
+    grammars: project.aliases,
   };
 }
 
@@ -368,6 +376,7 @@ export async function browserTree(): Promise<TreeResponse> {
     root: browserFolderName(),
     dirs: dirs.sort((a, b) => a.localeCompare(b)),
     files: [...documents, ...grammars].sort((a, b) => a.path.localeCompare(b.path)),
+    aliases: project.aliases,
   };
 }
 
@@ -497,17 +506,61 @@ export async function browserCreateGrammar(rel: string, text?: string): Promise<
   }
   const written = text === undefined ? serializeGrammarFile(defaultElements()) : grammarBody({ text });
   await writeText(cleaned, written, true, ".sgra");
-  return grammarView(cleaned, written);
+  try {
+    const alias = await registerGrammar(cleaned);
+    return { ...grammarView(cleaned, written), alias };
+  } catch (err) {
+    await removeEntry(cleaned, ".sgra");
+    throw err;
+  }
+}
+
+async function readConfigText(): Promise<string | null> {
+  try {
+    const handle = await requireRoot().getFileHandle(STRICTDOC_CONFIG);
+    return await (await handle.getFile()).text();
+  } catch {
+    return null;
+  }
+}
+
+async function writeConfigText(text: string): Promise<void> {
+  const handle = await requireRoot().getFileHandle(STRICTDOC_CONFIG, { create: true });
+  const writable = await handle.createWritable();
+  await writable.write(text);
+  await writable.close();
+}
+
+async function registerGrammar(rel: string): Promise<string> {
+  const current = await readConfigText();
+  const alias = assignAlias(parseGrammarAliases(current ?? ""), rel);
+  const next = upsertGrammarAlias(current, alias, rel);
+  if (typeof next !== "string") throw new ApiError(422, next.error);
+  await writeConfigText(next);
+  return alias;
+}
+
+async function forgetGrammar(rel: string): Promise<void> {
+  const current = await readConfigText();
+  if (!current) return;
+  const next = removeGrammarPath(current, rel);
+  if (next !== current) await writeConfigText(next);
 }
 
 export async function browserMoveGrammar(documentPath: string, grammarPath: string): Promise<FileResponse> {
   const current = await browserFile(documentPath);
   if (!current.document || current.parseFailed) throw new ApiError(422, "Document does not parse.", current.errors);
-  const detached = detachGrammar(current.document, documentPath, grammarPath);
+  const alias = assignAlias((await corpus()).aliases, grammarPath);
+  const detached = detachGrammar(current.document, grammarPath, alias);
   if ("error" in detached) throw new ApiError(400, detached.error);
-  await browserCreateGrammar(grammarPath, detached.text);
+  const created = await browserCreateGrammar(grammarPath, detached.text);
+  const importFrom = created.alias ?? alias;
+  const document =
+    importFrom === detached.document.grammar.importFrom
+      ? detached.document
+      : { ...detached.document, grammar: { ...detached.document.grammar, importFrom } };
   try {
-    return await browserPut(documentPath, { document: detached.document }, false, false);
+    return await browserPut(documentPath, { document }, false, false);
   } catch (err) {
     await browserDeleteGrammar(grammarPath, true);
     throw err;
@@ -540,14 +593,20 @@ async function browserDeleteGrammar(rel: string, force: boolean): Promise<{ ok: 
   const project = await corpus();
   const used = project.docs.filter((file) => {
     const spec = file.parsed.document?.grammar.importFrom;
-    return spec ? resolveGrammarPath(file.rel, spec) === cleaned : false;
+    return spec ? resolveGrammarPath(file.rel, spec, project.aliases) === cleaned : false;
   });
   if (used.length > 0 && !force) throw new ApiError(409, `Imported by ${used.map((file) => file.rel).join(", ")}.`);
+  await removeEntry(cleaned, ".sgra");
+  await forgetGrammar(cleaned);
+  return { ok: true };
+}
+
+async function removeEntry(rel: string, ext: ".sdoc" | ".sgra"): Promise<void> {
+  const cleaned = assertRel(rel, ext);
   const parts = cleaned.split("/");
   let dir = requireRoot();
   for (let index = 0; index < parts.length - 1; index += 1) dir = await dir.getDirectoryHandle(parts[index]!);
   await dir.removeEntry(parts[parts.length - 1]!);
-  return { ok: true };
 }
 
 export function subscribeBrowser(onChange: () => void): () => void {

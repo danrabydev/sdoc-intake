@@ -22,11 +22,13 @@ export function GrammarEditor({
   onChange,
   onOpenImport,
   onMoveToFile,
+  aliases = {},
 }: {
   grammar: Grammar;
   onChange: (grammar: Grammar) => void;
   onOpenImport?: (spec: string) => void;
   onMoveToFile?: (path: string) => Promise<void>;
+  aliases?: Readonly<Record<string, string>>;
 }) {
   const [movePath, setMovePath] = useState("");
   const [moving, setMoving] = useState(false);
@@ -38,16 +40,24 @@ export function GrammarEditor({
         <p className="text-sm text-fg">This document uses a grammar file.</p>
         <p className="mt-1 text-xs text-muted">Edits belong in that file. Clear the path to copy the grammar into this document.</p>
         <label className="mt-3 block text-xs text-muted">
-          Grammar file
+          Grammar import
           <input
             value={grammar.importFrom}
+            list="grammar-aliases"
             onChange={(event) => {
               const spec = event.target.value.trim();
               onChange({ ...grammar, explicit: true, importFrom: spec || undefined });
             }}
+            placeholder="@name"
             className="mt-1 min-h-11 w-full rounded-md border border-line bg-bg px-2 font-mono text-sm text-fg"
           />
         </label>
+        <AliasList aliases={aliases} />
+        <p className="mt-1 text-xs text-muted">
+          {grammar.importFrom.startsWith("@")
+            ? "Resolved from strictdoc_config.py. A relative path still works in this editor."
+            : "StrictDoc wants an @alias. Moving a grammar file registers one in strictdoc_config.py."}
+        </p>
         {onOpenImport && grammar.importFrom ? (
           <button
             type="button"
@@ -107,6 +117,9 @@ export function GrammarEditor({
             Move
           </button>
         </form>
+      ) : null}
+      {moving ? (
+        <p className="mt-1 text-xs text-muted">The document will import @name, and that alias is written into strictdoc_config.py.</p>
       ) : null}
       {moveError ? <p className="mt-1 text-xs text-danger">{moveError}</p> : null}
       <ul className="mt-3 flex flex-col gap-3">
@@ -332,5 +345,19 @@ function FieldRow({
         />
       ) : null}
     </li>
+  );
+}
+
+function AliasList({ aliases }: { aliases: Readonly<Record<string, string>> }) {
+  const names = Object.keys(aliases);
+  if (names.length === 0) return null;
+  return (
+    <datalist id="grammar-aliases">
+      {names.map((alias) => (
+        <option key={alias} value={alias}>
+          {aliases[alias]}
+        </option>
+      ))}
+    </datalist>
   );
 }

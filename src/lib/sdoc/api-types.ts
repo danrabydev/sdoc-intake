@@ -32,6 +32,8 @@ export interface TreeResponse {
   root: string;
   files: TreeFile[];
   dirs: string[];
+  /** `@alias` registered in `strictdoc_config.py`. */
+  aliases: Record<string, string>;
 }
 
 export interface IndexResponse {
@@ -44,6 +46,8 @@ export interface GrammarResponse {
   text: string;
   grammar: Grammar | null;
   errors: SDocIssue[];
+  /** Alias written into `strictdoc_config.py` when this file was created. */
+  alias?: string;
 }
 
 export interface HealthResponse {

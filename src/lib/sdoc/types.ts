@@ -106,6 +106,8 @@ export interface ValidateOptions {
   file?: string;
   /** Read a project-relative path. Used to load `.sgra` grammar imports. */
   readText?: (rel: string) => string | undefined;
+  /** `@alias` to project-relative `.sgra` path, from `strictdoc_config.py`. */
+  grammars?: Readonly<Record<string, string>>;
   /** When false, a missing relation target is a warning even on write. */
   indexComplete?: boolean;
 }

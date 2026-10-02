@@ -26,19 +26,22 @@ export function tightListOffset(value: string): number | null {
 }
 
 /** Load an `IMPORT_FROM_FILE` grammar onto the document. A save still writes the import, not a copy. */
-function applyImportedGrammar(
-  document: SDocDocument,
-  fromRel: string,
-  readText: ((rel: string) => string | undefined) | undefined,
-): SDocIssue[] {
+function applyImportedGrammar(document: SDocDocument, fromRel: string, options: ValidateOptions): SDocIssue[] {
   const spec = document.grammar.importFrom;
   if (!spec) return [];
   const fail = (message: string): SDocIssue[] => [
     { line: 1, col: 1, path: "grammar", message, severity: "error", code: "grammar-import" },
   ];
+  const readText = options.readText;
   if (!readText) return fail(`Grammar import ${spec} was not loaded.`);
-  const rel = resolveGrammarPath(fromRel, spec);
-  if (!rel) return fail(`Grammar import ${spec} must be a .sgra file inside the project.`);
+  const rel = resolveGrammarPath(fromRel, spec, options.grammars);
+  if (!rel) {
+    return fail(
+      spec.startsWith("@")
+        ? `Grammar alias ${spec} is not registered in strictdoc_config.py.`
+        : `Grammar import ${spec} must be a .sgra file inside the project.`,
+    );
+  }
   const text = readText(rel);
   if (text === undefined) return fail(`Grammar file ${rel} was not found.`);
   const parsed = parseGrammarFile(text);
@@ -59,7 +62,7 @@ export function validate(text: string, options: ValidateOptions = {}): ValidateR
   }
 
   if (document.grammar.importFrom) {
-    const imported = applyImportedGrammar(document, options.file ?? "", options.readText);
+    const imported = applyImportedGrammar(document, options.file ?? "", options);
     if (imported.length > 0) {
       errors.push(...imported);
       stampFile(errors, options.file);

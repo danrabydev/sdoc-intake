@@ -3,11 +3,11 @@ import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { elementLinks, fallbackTag, relativeImport, tagLabel } from "./grammar.ts";
+import { elementLinks, fallbackTag, parseGrammarAliases, relativeImport, removeGrammarPath, resolveGrammarPath, tagLabel, upsertGrammarAlias } from "./grammar.ts";
 import { fieldOf, grammarNode, insertRelative, removeAt, selectionKey } from "./model.ts";
 import { parse, parseGrammarFile } from "./parse.ts";
 import { detachGrammar, textForWrite } from "./serialize.ts";
-import { createFile, createGrammar, moveDocumentGrammar, readFileView, readGrammar, saveGrammar } from "./store.server.ts";
+import { createFile, createGrammar, moveDocumentGrammar, readFileView, readGrammar, removeFile, saveGrammar } from "./store.server.ts";
 import { validate } from "./validate.ts";
 
 test("a grammar node uses the element, including composite and required fields", () => {
@@ -155,13 +155,18 @@ test("move grammar to file keeps the elements and writes an import", async () =>
     assert.ok(before.document);
     assert.equal(before.document.grammar.importFrom, undefined);
     const moved = await moveDocumentGrammar("SYS.sdoc", "grammar/org.sgra");
-    assert.equal(moved.document?.grammar.importFrom, "grammar/org.sgra");
+    assert.equal(moved.document?.grammar.importFrom, "@org");
+    assert.equal(moved.ok, true, JSON.stringify(moved.errors));
     assert.ok(moved.document?.grammar.elements.some((element) => element.tag === "REQUIREMENT"));
     const grammar = await readGrammar("grammar/org.sgra");
     assert.equal(grammar.ok, true);
     assert.match(grammar.text, /TAG: REQUIREMENT/);
-    assert.match(await readFile(join(dir, "SYS.sdoc"), "utf8"), /IMPORT_FROM_FILE: grammar\/org\.sgra/);
-    assert.doesNotMatch(await readFile(join(dir, "SYS.sdoc"), "utf8"), /TAG: REQUIREMENT/);
+    const written = await readFile(join(dir, "SYS.sdoc"), "utf8");
+    assert.match(written, /IMPORT_FROM_FILE: @org/);
+    assert.doesNotMatch(written, /TAG: REQUIREMENT/);
+    const config = await readFile(join(dir, "strictdoc_config.py"), "utf8");
+    assert.match(config, /"@org": "grammar\/org\.sgra"/);
+    await assert.rejects(() => removeFile("grammar/org.sgra", false));
     const edited = await saveGrammar("grammar/org.sgra", {
       grammar: {
         explicit: true,
@@ -180,7 +185,7 @@ test("move grammar to file keeps the elements and writes an import", async () =>
     });
     assert.equal(edited.ok, true);
     assert.match(edited.text, /ROLE: Delivers/);
-    const detached = detachGrammar(parse("[DOCUMENT]\nTITLE: Already\n\n[GRAMMAR]\nIMPORT_FROM_FILE: grammar/org.sgra\n").document!, "SYS.sdoc", "other.sgra");
+    const detached = detachGrammar(parse("[DOCUMENT]\nTITLE: Already\n\n[GRAMMAR]\nIMPORT_FROM_FILE: @org\n").document!, "grammar/other.sgra", "@other");
     assert.ok("error" in detached);
   } finally {
     if (previous === undefined) delete process.env.SDOC_ROOT;
@@ -195,10 +200,49 @@ test("creating a grammar file does not require a document", async () => {
   try {
     const created = await createGrammar("grammar/custom.sgra");
     assert.equal(created.ok, true);
+    assert.equal(created.alias, "@custom");
     assert.match(created.text, /\[GRAMMAR\]/);
     assert.ok(created.grammar?.elements.some((element) => element.tag === "SECTION"));
+    const config = await readFile(join(dir, "strictdoc_config.py"), "utf8");
+    assert.match(config, /"@custom": "grammar\/custom\.sgra"/);
+    await removeFile("grammar/custom.sgra", true);
+    const after = await readFile(join(dir, "strictdoc_config.py"), "utf8");
+    assert.doesNotMatch(after, /custom\.sgra/);
   } finally {
     if (previous === undefined) delete process.env.SDOC_ROOT;
     else process.env.SDOC_ROOT = previous;
   }
+});
+
+test("a grammar alias is read from strictdoc_config.py and written back", () => {
+  const source = `from strictdoc.core.project_config import ProjectConfig
+
+def create_config() -> ProjectConfig:
+    return ProjectConfig(
+        project_title="Demo",
+        grammars={
+            "@release": "grammar/release.sgra",
+            "@org": "./grammar/org.sgra",
+        },
+    )
+`;
+  assert.deepEqual(parseGrammarAliases(source), {
+    "@release": "grammar/release.sgra",
+    "@org": "grammar/org.sgra",
+  });
+  const next = upsertGrammarAlias(source, "@custom", "grammar/custom.sgra");
+  assert.equal(typeof next, "string");
+  assert.match(String(next), /"@custom": "grammar\/custom\.sgra"/);
+  assert.match(String(next), /"@release": "grammar\/release\.sgra"/);
+  const replaced = upsertGrammarAlias(String(next), "@release", "grammar/renamed.sgra");
+  assert.match(String(replaced), /"@release": "grammar\/renamed\.sgra"/);
+  assert.doesNotMatch(String(replaced), /grammar\/release\.sgra/);
+  const dropped = removeGrammarPath(String(replaced), "grammar/org.sgra");
+  assert.deepEqual(parseGrammarAliases(dropped), {
+    "@release": "grammar/renamed.sgra",
+    "@custom": "grammar/custom.sgra",
+  });
+  assert.equal(resolveGrammarPath("releases/product.sdoc", "@release", { "@release": "grammar/release.sgra" }), "grammar/release.sgra");
+  assert.equal(resolveGrammarPath("releases/product.sdoc", "@missing", {}), null);
+  assert.equal(resolveGrammarPath("releases/product.sdoc", "../grammar/release.sgra"), "grammar/release.sgra");
 });

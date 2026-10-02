@@ -7,6 +7,7 @@ export interface IntakeBootstrap {
   dirs: string[];
   nodes: IndexNode[];
   file: FileResponse | null;
+  aliases: Record<string, string>;
 }
 
 export const loadIntake = createServerFn({ method: "GET" })
@@ -26,5 +27,5 @@ export const loadIntake = createServerFn({ method: "GET" })
         file = null;
       }
     }
-    return { root: tree.root, files: tree.files, dirs: tree.dirs, nodes: index.nodes, file };
+    return { root: tree.root, files: tree.files, dirs: tree.dirs, nodes: index.nodes, file, aliases: tree.aliases };
   });

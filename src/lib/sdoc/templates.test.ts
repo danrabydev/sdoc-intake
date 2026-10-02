@@ -85,4 +85,16 @@ test("a grammar import cannot leave the project", () => {
   const result = validate(text, { file: "releases/product.sdoc", readText: () => "[GRAMMAR]\nELEMENTS:\n" });
   assert.equal(result.ok, false);
   assert.equal(result.errors[0]?.code, "grammar-import");
+  const aliased = "[DOCUMENT]\nTITLE: Releases\n\n[GRAMMAR]\nIMPORT_FROM_FILE: @release\n";
+  const grammar = "[GRAMMAR]\nELEMENTS:\n- TAG: TEXT\n  FIELDS:\n  - TITLE: STATEMENT\n    TYPE: String\n    REQUIRED: True\n";
+  const viaAlias = validate(aliased, {
+    file: "releases/product.sdoc",
+    grammars: { "@release": "grammar/release.sgra" },
+    readText: (rel) => (rel === "grammar/release.sgra" ? grammar : undefined),
+  });
+  assert.equal(viaAlias.ok, true, JSON.stringify(viaAlias.errors));
+  assert.equal(viaAlias.document?.grammar.importFrom, "@release");
+  const missing = validate(aliased, { file: "releases/product.sdoc", grammars: {}, readText: () => grammar });
+  assert.equal(missing.ok, false);
+  assert.match(missing.errors[0]?.message ?? "", /not registered/);
 });

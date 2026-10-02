@@ -1,4 +1,4 @@
-import { ensureOrgGrammar, relativeImport } from "./grammar.ts";
+import { ensureOrgGrammar, grammarAliasName, grammarFilePath } from "./grammar.ts";
 import type { DocOptions, Grammar, GrammarElement, SDocDocument, SDocNode } from "./types.ts";
 
 const OPTION_KEYS = ["ENABLE_MID", "AUTO_LEVELS", "VIEW_STYLE", "NODE_IN_TOC", "MARKUP"] as const;
@@ -50,19 +50,19 @@ export function serializeGrammarFile(elements: GrammarElement[]): string {
   return text.endsWith("\n") ? text : `${text}\n`;
 }
 
-/** Point a document at a new grammar file. The grammar text is the document's current elements. */
+/** Point a document at a grammar file through its project alias. The grammar text is the document's current elements. */
 export function detachGrammar(
   document: SDocDocument,
-  fromRel: string,
   grammarRel: string,
+  alias: string,
 ): { document: SDocDocument; text: string } | { error: string } {
   if (document.grammar.importFrom) return { error: "This document already imports a grammar file." };
+  if (!grammarFilePath(grammarRel)) return { error: "Grammar path must be a .sgra file inside the project." };
+  if (!/^@[A-Za-z_][A-Za-z0-9_]*$/.test(alias)) return { error: "Grammar alias must look like @name." };
   const elements = (document.grammar.explicit ? document : ensureOrgGrammar(document)).grammar.elements;
-  const spec = relativeImport(fromRel, grammarRel);
-  if (!spec) return { error: "Grammar path must be a .sgra file inside the project." };
   return {
     text: serializeGrammarFile(elements),
-    document: { ...document, grammar: { explicit: true, elements, importFrom: spec } },
+    document: { ...document, grammar: { explicit: true, elements, importFrom: alias || grammarAliasName(grammarRel) } },
   };
 }
 

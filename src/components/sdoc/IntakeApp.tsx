@@ -3,7 +3,7 @@ import type { FileResponse, GrammarResponse, IndexNode, TreeFile } from "@/lib/s
 import { openBrowserFolder, restoreBrowserFolder, subscribeBrowser } from "@/lib/sdoc/browser-fs";
 import { ApiError, createDir, createDoc, createGrammar, deleteDoc, getFile, getGrammar, getIndex, getTree, probeServer, putFile, putGrammar } from "@/lib/sdoc/client";
 import { explicitMode, FS_MODE_KEY, setActiveMode, type FsMode } from "@/lib/sdoc/fs-mode";
-import { resolveGrammarPath, defaultElements } from "@/lib/sdoc/grammar";
+import { grammarAliasName, resolveGrammarPath, defaultElements } from "@/lib/sdoc/grammar";
 import { buildGraph } from "@/lib/sdoc/graph";
 import { applyUidRenames, collectUids, flatten, grammarNode, indexDocument, insertRelative, joinPrefix, mapAt, nextUid, nodePrefixChain, nodeUid, prefixExpectations, prefixRenames, removeAt, removeUid, resolveSelection, sectionUidPrefix, selectionKey, usesLegacySections, withField, withRelations } from "@/lib/sdoc/model";
 import { parse, parseGrammarFile } from "@/lib/sdoc/parse";
@@ -102,7 +102,7 @@ export function IntakeApp({
   uid,
   onSelect,
 }: {
-  initial: { root: string; files: TreeFile[]; dirs?: string[]; nodes: IndexNode[]; file: FileResponse | null };
+  initial: { root: string; files: TreeFile[]; dirs?: string[]; nodes: IndexNode[]; file: FileResponse | null; aliases?: Record<string, string> };
   file: string;
   uid: string;
   onSelect: (file: string, uid: string) => void;
@@ -129,6 +129,7 @@ export function IntakeApp({
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState({ path: "", title: "", uid: "", prefix: "", root: false, kind: "sdoc" as "sdoc" | "sgra" });
   const [grammarTexts, setGrammarTexts] = useState<Record<string, string>>({});
+  const [aliases, setAliases] = useState<Record<string, string>>(initial.aliases ?? {});
   const [draftError, setDraftError] = useState("");
   const [forceNext, setForceNext] = useState(false);
   const [serverIssues, setServerIssues] = useState<SDocIssue[] | null>(null);
@@ -138,10 +139,12 @@ export function IntakeApp({
   const editorRef = useRef<Editor | null>(null);
   const selectedRef = useRef(selected);
   const grammarTextsRef = useRef<Record<string, string>>({});
+  const aliasesRef = useRef<Record<string, string>>({});
   const selfWrite = useRef(false);
   editorRef.current = editor;
   selectedRef.current = selected;
   grammarTextsRef.current = grammarTexts;
+  aliasesRef.current = aliases;
 
   async function refreshLists() {
     const [tree, listed] = await Promise.all([getTree(), getIndex()]);
@@ -149,6 +152,7 @@ export function IntakeApp({
     setFiles(tree.files);
     setDirs(tree.dirs ?? []);
     setIndex(listed.nodes);
+    setAliases(tree.aliases ?? {});
     const texts: Record<string, string> = {};
     await Promise.all(
       tree.files
@@ -281,7 +285,7 @@ export function IntakeApp({
   const importedFrom = editor?.path ?? "";
   useEffect(() => {
     if (!importedFrom || !importedGrammar) return;
-    const rel = resolveGrammarPath(importedFrom, importedGrammar);
+    const rel = resolveGrammarPath(importedFrom, importedGrammar, aliases);
     if (!rel || grammarTextsRef.current[rel] !== undefined) return;
     let cancel = false;
     void getGrammar(rel)
@@ -293,7 +297,7 @@ export function IntakeApp({
     return () => {
       cancel = true;
     };
-  }, [importedFrom, importedGrammar]);
+  }, [importedFrom, importedGrammar, aliases]);
 
   function rememberMode(mode: FsMode) {
     window.localStorage.setItem(FS_MODE_KEY, mode);
@@ -407,10 +411,11 @@ export function IntakeApp({
       indexComplete: true,
       file: editor.path,
       readText: (rel: string) => projectText(rel, editor),
+      grammars: aliases,
     };
     if (editor.parseFailed || !editor.document) return validate(editor.text, shared);
     return validate(textForWrite(editor.document), shared);
-  }, [editor, strict, grammarTexts]);
+  }, [editor, strict, grammarTexts, aliases]);
   const issues = serverIssues ?? checked?.errors ?? [];
   const canSave = Boolean(editor?.dirty && checked?.ok && !serverIssues && !saving);
   const blocking = issues.filter((issue) => issue.severity === "error" || (strict && issue.code === "missing-parent"));
@@ -462,6 +467,7 @@ export function IntakeApp({
           indexComplete: true,
           file: current.path,
           readText,
+          grammars: aliasesRef.current,
         })
       : validate(textForWrite(current.document), {
           siblingUids: current.siblingUids,
@@ -471,6 +477,7 @@ export function IntakeApp({
           indexComplete: true,
           file: current.path,
           readText,
+          grammars: aliasesRef.current,
         });
     if (!gate.ok) {
       setServerIssues(gate.errors);
@@ -610,6 +617,8 @@ export function IntakeApp({
       strict,
       indexComplete: true,
       file: current.path,
+      grammars: aliasesRef.current,
+      readText: (rel) => (current.kind === "sgra" && current.path === rel ? current.text : grammarTextsRef.current[rel]),
     });
     if (!gate.ok) {
       setServerIssues(gate.errors);
@@ -661,7 +670,7 @@ export function IntakeApp({
   async function moveGrammarTo(grammarPath: string) {
     const current = editorRef.current;
     if (!current?.document || current.kind !== "sdoc") return;
-    const detached = detachGrammar(current.document, current.path, grammarPath);
+    const detached = detachGrammar(current.document, grammarPath, grammarAliasName(grammarPath));
     if ("error" in detached) {
       setNotice(detached.error);
       return;
@@ -669,11 +678,16 @@ export function IntakeApp({
     setSaving(true);
     selfWrite.current = true;
     try {
-      await createGrammar(grammarPath, detached.text);
+      const created = await createGrammar(grammarPath, detached.text);
+      const alias = created.alias || detached.document.grammar.importFrom || grammarAliasName(grammarPath);
+      const document =
+        alias === detached.document.grammar.importFrom
+          ? detached.document
+          : { ...detached.document, grammar: { ...detached.document.grammar, importFrom: alias } };
       try {
-        const view = await putFile(current.path, { document: detached.document }, strict, false);
+        const view = await putFile(current.path, { document }, strict, false);
         setEditor(editorFromView(view));
-        setNotice(`Grammar moved to ${grammarPath}`);
+        setNotice(`Grammar registered as ${alias}`);
         await refreshLists();
       } catch (err) {
         await deleteDoc(grammarPath, true).catch(() => undefined);
@@ -786,6 +800,7 @@ export function IntakeApp({
         setEditor(editorFromGrammar(view));
         setCenter("grammar");
         setSelected("");
+        setNotice(view.alias ? `Grammar registered as ${view.alias}` : "");
         onSelect(view.path, "");
         revealEditor();
       } catch (err) {
@@ -992,7 +1007,7 @@ export function IntakeApp({
                 />
               </div>
             ) : (
-              <GrammarEditor grammar={editor.grammar} onChange={editGrammar} />
+              <GrammarEditor grammar={editor.grammar} onChange={editGrammar} aliases={aliases} />
             )
           ) : center === "grammar" && editor?.document ? (
             <GrammarEditor
@@ -1002,10 +1017,15 @@ export function IntakeApp({
                   : { explicit: false, elements: defaultElements() }
               }
               onChange={editGrammar}
+              aliases={aliases}
               onOpenImport={(spec) => {
-                const rel = resolveGrammarPath(editor.path, spec);
+                const rel = resolveGrammarPath(editor.path, spec, aliases);
                 if (!rel) {
-                  setNotice("That grammar path is outside the project.");
+                  setNotice(
+                    spec.trim().startsWith("@")
+                      ? `${spec.trim()} is not registered in strictdoc_config.py.`
+                      : "That grammar path is outside the project.",
+                  );
                   return;
                 }
                 void openPath(rel);
