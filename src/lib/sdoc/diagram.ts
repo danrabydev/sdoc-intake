@@ -415,3 +415,114 @@ function compact(place: Map<string, number>): Map<string, number> {
   for (const [uid, rank] of place) out.set(uid, ranks.indexOf(rank));
   return out;
 }
+
+export const DIAGRAM_NODE_H = 56;
+
+export interface DiagramBox extends DiagramNode {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+const BOX_W = 210;
+const BOX_GAP_X = 72;
+const BOX_GAP_Y = 12;
+const BOX_PAD = 28;
+const BOX_INNER = 8;
+
+interface DiagramFrame {
+  node: DiagramNode;
+  children: DiagramFrame[];
+}
+
+function framesOf(list: DiagramNode[]): DiagramFrame[] {
+  const roots: DiagramFrame[] = [];
+  const stack: DiagramFrame[] = [];
+  for (const node of list) {
+    const depth = node.depth ?? 0;
+    while (stack.length > depth) stack.pop();
+    const frame: DiagramFrame = { node, children: [] };
+    const parent = stack[stack.length - 1];
+    if (parent) parent.children.push(frame);
+    else roots.push(frame);
+    stack.push(frame);
+  }
+  return roots;
+}
+
+function measureFrame(frame: DiagramFrame, sizes: Map<DiagramFrame, { w: number; h: number }>): { w: number; h: number } {
+  if (frame.children.length === 0) {
+    const size = { w: BOX_W, h: DIAGRAM_NODE_H };
+    sizes.set(frame, size);
+    return size;
+  }
+  let innerW = BOX_W - BOX_INNER * 2;
+  let innerH = 0;
+  frame.children.forEach((child, index) => {
+    const size = measureFrame(child, sizes);
+    innerW = Math.max(innerW, size.w);
+    innerH += size.h;
+    if (index > 0) innerH += BOX_GAP_Y;
+  });
+  const size = { w: innerW + BOX_INNER * 2, h: DIAGRAM_NODE_H + BOX_INNER + innerH + BOX_INNER };
+  sizes.set(frame, size);
+  return size;
+}
+
+function placeFrame(
+  frame: DiagramFrame,
+  x: number,
+  y: number,
+  slotW: number,
+  sizes: Map<DiagramFrame, { w: number; h: number }>,
+  out: DiagramBox[],
+): void {
+  const natural = sizes.get(frame) ?? { w: BOX_W, h: DIAGRAM_NODE_H };
+  const w = Math.max(natural.w, slotW);
+  out.push({ ...frame.node, x, y, w, h: natural.h });
+  if (frame.children.length === 0) return;
+  let childY = y + DIAGRAM_NODE_H + BOX_INNER;
+  const innerW = w - BOX_INNER * 2;
+  for (const child of frame.children) {
+    const childSize = sizes.get(child) ?? { w: innerW, h: DIAGRAM_NODE_H };
+    placeFrame(child, x + BOX_INNER, childY, innerW, sizes, out);
+    childY += childSize.h + BOX_GAP_Y;
+  }
+}
+
+/** Pack each open group inside its parent box. Columns sit side by side with no alignment gaps. */
+export function layoutDiagram(nodes: DiagramNode[]): { nodes: DiagramBox[]; laneX: Map<number, number> } {
+  const columns = new Map<number, DiagramNode[]>();
+  for (const node of nodes) {
+    const list = columns.get(node.column) ?? [];
+    list.push(node);
+    columns.set(node.column, list);
+  }
+  for (const list of columns.values()) {
+    list.sort((a, b) => {
+      if (a.order != null || b.order != null) return (a.order ?? 0) - (b.order ?? 0);
+      return Number(b.focus) - Number(a.focus) || a.file.localeCompare(b.file) || a.title.localeCompare(b.title);
+    });
+  }
+
+  const sizes = new Map<DiagramFrame, { w: number; h: number }>();
+  const laneX = new Map<number, number>();
+  const out: DiagramBox[] = [];
+  let x = BOX_PAD;
+  for (const column of [...columns.keys()].sort((a, b) => a - b)) {
+    laneX.set(column, x);
+    const frames = framesOf(columns.get(column) ?? []);
+    let columnW = BOX_W;
+    for (const frame of frames) columnW = Math.max(columnW, measureFrame(frame, sizes).w);
+    let y = BOX_PAD;
+    for (const frame of frames) {
+      const size = sizes.get(frame) ?? { w: columnW, h: DIAGRAM_NODE_H };
+      const before = out.length;
+      placeFrame(frame, x, y, size.w, sizes, out);
+      y += (out[before]?.h ?? size.h) + BOX_GAP_Y;
+    }
+    x += columnW + BOX_GAP_X;
+  }
+  return { nodes: out, laneX };
+}

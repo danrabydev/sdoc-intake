@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { IndexNode } from "./api-types.ts";
-import { flowDiagram, traceDiagram } from "./diagram.ts";
+import { flowDiagram, layoutDiagram, traceDiagram } from "./diagram.ts";
 import { buildGraph } from "./graph.ts";
 
 function node(partial: Partial<IndexNode> & Pick<IndexNode, "uid" | "file" | "tag">): IndexNode {
@@ -164,3 +164,38 @@ test("trace collapses a crowded file until it is opened", () => {
   assert.equal(opened.nodes.filter((item) => item.uid.startsWith("IDN-")).length, 10);
   assert.equal(opened.nodes.some((item) => item.kind === "bundle"), false);
 });
+
+test("an open group keeps its children inside the parent box", () => {
+  const boxes = layoutDiagram([
+    layoutBox("file", 0, 0),
+    layoutBox("sec", 1, 1),
+    layoutBox("req", 2, 2),
+    layoutBox("other", 0, 3),
+  ]).nodes;
+  const file = boxes.find((item) => item.id === "file");
+  const sec = boxes.find((item) => item.id === "sec");
+  const req = boxes.find((item) => item.id === "req");
+  const other = boxes.find((item) => item.id === "other");
+  assert.ok(file && sec && req && other);
+  assert.ok(sec.x > file.x && sec.x + sec.w < file.x + file.w);
+  assert.ok(sec.y > file.y && sec.y + sec.h < file.y + file.h);
+  assert.ok(req.x > sec.x && req.x + req.w < sec.x + sec.w);
+  assert.ok(req.y > sec.y && req.y + req.h < sec.y + sec.h);
+  assert.ok(other.y >= file.y + file.h);
+});
+
+function layoutBox(id: string, depth: number, order: number) {
+  return {
+    id,
+    column: 0,
+    title: id,
+    sub: "",
+    kind: depth === 2 ? ("item" as const) : ("bundle" as const),
+    uid: id,
+    file: "a.sdoc",
+    focus: false,
+    hot: true,
+    order,
+    depth,
+  };
+}
