@@ -34,6 +34,11 @@ services:
   comet-web:
     image: stariongroup/comet-web-community-edition:web-7.0.0
     restart: unless-stopped
+    depends_on:
+      - comet-webservices
+    environment:
+      # Login runs inside this container, so the API host is the compose service, not the browser.
+      ServerConfiguration__ServerAddress: http://comet-webservices:5000
     ports:
       - "8080:8080"
 
