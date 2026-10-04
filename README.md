@@ -1,50 +1,15 @@
-# SDoc Intake
+# sdoc-intake (monorepo)
 
-Local editor for a StrictDoc `.sdoc` tree. Change UID, title, statement, and relations in a table. Every save is validated first. Invalid SDoc is never written.
+This repository is a pnpm workspace. Root scripts (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm build:cli`, `pnpm publish:cli`, and the rest) delegate to the packages below.
 
-There is no database and no sign-in. Documents stay as files on disk.
+| Path | Role |
+| --- | --- |
+| [`packages/intake`](packages/intake) | Local StrictDoc `.sdoc` editor and `sdoc-intake` CLI (today’s product). |
+| [`cdp4-comet`](cdp4-comet) | Optional Comet/CDP stack notes (not started by default). |
 
-## Run without cloning
+Planned later as sibling packages (not scaffolded yet): Rust API, Postgres-backed services, DevOps extension.
 
-After the package is published:
-
-```sh
-npx sdoc-intake
-npx sdoc-intake ./requirements
-npx sdoc-intake ./requirements/SYS.sdoc --port 8087
-```
-
-The path is a directory of `.sdoc` files, or one `.sdoc` file. A file opens in the editor and its folder is the document root, so sibling documents stay visible. With no path, the current directory is the root. The editor listens on `http://127.0.0.1:8087`.
-
-Requires Node 22 or newer.
-
-Publish the staged, dependency-free package (this does not publish the preview app):
-
-```sh
-pnpm publish:cli
-```
-
-## Develop this repo
-
-```sh
-pnpm install
-pnpm dev
-pnpm build:cli
-pnpm exec sdoc-intake ./data
-```
-
-`pnpm dev` reads `./data` unless `SDOC_ROOT` is set. See `.env.example`.
-
-`data/` includes a fictional company, Northline. `data/catalog` is NIST SP 800-53 and the ASD STIG, with the same identifiers as the templates. `data/apps` is the enterprise that points at them: capabilities, a shared platform, the product systems, and one release train. A product requirement `Refines` a capability and `ConformsTo` a catalog id. A release `Delivers` capabilities. A shipped release stays as written. A later change is a new release.
-
-`SDOC_STRICTDOC_BIN` is an optional second check with the StrictDoc CLI. The app does not require it. That check runs only in server mode.
-
-## Browser folder
-
-Host `dist/client/sdoc-intake.html` from `pnpm build:cli` as a static site, with no API and no other files. If `/api/health` does not answer, the page uses a folder on the visitor's computer (Chrome or Edge). Open it over http or https. A `file://` page cannot ask for a folder. The header flag switches **Server** and **This computer**. `?mode=browser` or `?mode=server` forces one, and the choice is remembered in that browser.
-
-Invalid SDoc is still refused before a write. The page can only see the folder the visitor picked.
-
+Editor development, sample data, and CLI publishing are documented in [`packages/intake/README.md`](packages/intake/README.md).
 
 ## License
 

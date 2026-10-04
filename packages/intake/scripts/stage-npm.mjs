@@ -4,19 +4,34 @@
  * The repo package stays private because the preview app pulls Vite and React.
  * The published CLI is one server file plus the built client.
  */
-import { chmodSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-const release = join(root, "release");
+const pkgRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = join(pkgRoot, "../..");
+const pkg = JSON.parse(readFileSync(join(pkgRoot, "package.json"), "utf8"));
+const licenseSrc = [join(pkgRoot, "LICENSE"), join(repoRoot, "LICENSE")].find((p) =>
+  existsSync(p),
+);
+if (!licenseSrc) {
+  throw new Error("LICENSE not found under package or repo root");
+}
+const release = join(pkgRoot, "release");
 rmSync(release, { recursive: true, force: true });
 mkdirSync(release, { recursive: true });
-cpSync(join(root, "dist", "cli.js"), join(release, "cli.js"));
-cpSync(join(root, "dist", "client"), join(release, "client"), { recursive: true });
-cpSync(join(root, "README.md"), join(release, "README.md"));
-cpSync(join(root, "LICENSE"), join(release, "LICENSE"));
+cpSync(join(pkgRoot, "dist", "cli.js"), join(release, "cli.js"));
+cpSync(join(pkgRoot, "dist", "client"), join(release, "client"), { recursive: true });
+cpSync(join(pkgRoot, "README.md"), join(release, "README.md"));
+cpSync(licenseSrc, join(release, "LICENSE"));
 chmodSync(join(release, "cli.js"), 0o755);
 writeFileSync(
   join(release, "package.json"),

@@ -1,6 +1,8 @@
 node_modules
 dist
 release
+packages/*/dist
+packages/*/release
 .output
 .vercel
 .tanstack
