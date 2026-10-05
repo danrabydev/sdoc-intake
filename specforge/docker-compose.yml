@@ -1,0 +1,35 @@
+# SpecForge daemon — local test harness for sdoc-intake (see README.md).
+services:
+  specforge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Override to pin a different tag or commit-ish ref at build time.
+        SPECFORGE_REF: ${SPECFORGE_REF:-v0.21.1}
+    restart: unless-stopped
+    ports:
+      - "${SPECFORGE_HOST_PORT:-8765}:8765"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SPECFORGE_DEV: ${SPECFORGE_DEV:-0}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      # Convenience path for CLI examples (daemon opens projects via UI or /projects/open).
+      SPECFORGE_PROJECT: ${SPECFORGE_PROJECT:-/projects}
+    volumes:
+      # Put git-backed SpecForge project folders here (host path relative to this directory).
+      - ./projects:/projects
+      # Optional shared snippets (e.g. copy .specforge.yaml into a project under ./projects).
+      - ./config:/config:ro
+    command:
+      - sh
+      - -c
+      - |
+        set -eu
+        RELOAD=
+        case "$${SPECFORGE_DEV}" in 1|true|yes|TRUE|YES) RELOAD="--reload" ;; esac
+        exec uvicorn specforge_daemon.api:app --host 0.0.0.0 --port 8765 $$RELOAD
