@@ -23,11 +23,14 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git ca-certificates curl \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 1000 specforge \
-    && useradd --uid 1000 --gid specforge --create-home --shell /usr/sbin/nologin specforge
+    && useradd --uid 1000 --gid specforge --create-home --shell /usr/sbin/nologin specforge \
+    && mkdir -p /projects \
+    && chown specforge:specforge /projects
 
 COPY --from=build /install /usr/local
 
-WORKDIR /home/specforge
+# Match compose volume ./projects:/projects so init/open paths persist on the host.
+WORKDIR /projects
 USER specforge
 
 EXPOSE 8765
