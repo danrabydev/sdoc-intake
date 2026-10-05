@@ -20,6 +20,10 @@ Health/status (no project required): **http://localhost:8765/** returns `{"servi
 
 SpecForge stores everything in a **project directory** (Markdown artifacts, `.specforge.yaml`, trace DB, etc.).
 
+**Always** create, init, and open projects under **`/projects/<name>`** inside the container. On the host that is **`specforge/projects/<name>`** (relative to this folder: `./projects/<name>`).
+
+The web UI “Open project” accepts an arbitrary path. If you open or init under **`/home/specforge/...`**, a relative path like `./my-app`, or anywhere outside `/projects`, files land in the container’s writable layer and **do not** appear under `./projects/` on the host. The image sets **`WORKDIR /projects`** so CLI defaults and file pickers start in the mounted volume; still type an absolute path such as **`/projects/demo`** when opening in the UI.
+
 | Host path | Container path | Purpose |
 |-----------|----------------|---------|
 | `./projects/` | `/projects` | Create or copy SpecForge projects here |
@@ -33,7 +37,7 @@ docker compose exec specforge specforge init /projects/my-app --name "My App"
 docker compose exec specforge specforge init /projects/my-app --git
 ```
 
-Then in the web UI, open that folder (or `POST /projects/open` with `{"path":"/projects/my-app"}`).
+Then in the web UI, open **`/projects/my-app`** (not `/home/specforge/...`), or `POST /projects/open` with `{"path":"/projects/my-app"}`.
 
 You can also run one-off CLI commands without a long-lived exec shell:
 
@@ -41,7 +45,7 @@ You can also run one-off CLI commands without a long-lived exec shell:
 docker compose run --rm specforge specforge status /projects/my-app
 ```
 
-Set `SPECFORGE_PROJECT` in `.env` to your usual in-container path (default `/projects`) so examples stay consistent.
+Set `SPECFORGE_PROJECT` in `.env` to your usual in-container path. Default **`/projects`**; after `init`, point at a subfolder (e.g. **`/projects/demo`**) so CLI examples and docs match what you open in the UI.
 
 ## Environment variables
 
@@ -75,7 +79,7 @@ On Linux, you may need `extra_hosts: ["host.docker.internal:host-gateway"]` on t
 ## Implementation notes
 
 - Upstream `specforge-daemon` binds **127.0.0.1**; this compose file runs **uvicorn on `0.0.0.0:8765`** so the published port works from the host.
-- Image base: `python:3.12-slim`, non-root user `specforge` (uid 1000).
+- Image base: `python:3.12-slim`, non-root user `specforge` (uid 1000), **`WORKDIR /projects`** (owned by uid 1000, bind-mounted from `./projects`).
 - `HEALTHCHECK` hits `GET /` inside the container.
 
 ## Rebuild after changing upstream pin
