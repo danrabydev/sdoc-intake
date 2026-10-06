@@ -5,13 +5,13 @@ Inventory of **104** user actions from [`user-actions-inventory.md`](../user-act
 | Global | ID | Action | Status | RBAC op | Primary control families | Diagram / companion |
 |--------|-----|--------|--------|---------|--------------------------|---------------------|
 | 1 | A01 | Sign in via SSO (OIDC/SAML) | draft | `auth:signin` (TBD with Dan) | IA, AU, AC | [A01-sign-in-sso.puml](./A01-sign-in-sso.puml), [A01-sign-in-sso.md](./A01-sign-in-sso.md) |
-| 2 | A02 | Sign out | stub | TBD |  | — |
-| 3 | A03 | Select Client Scoped View | stub | TBD |  | — |
-| 4 | A04 | Clear / change Scoped View | stub | TBD |  | — |
-| 5 | A05 | View own profile / grants | stub | TBD |  | — |
-| 6 | A06 | Invite / link identity to client or project (admin) | stub | TBD |  | — |
-| 7 | A07 | Grant project role | stub | TBD |  | — |
-| 8 | A08 | Revoke project role | stub | TBD |  | — |
+| 2 | A02 | Sign out | draft | `auth:signout` (proposed) | AC, AU, IA | [A02-sign-out.puml](./A02-sign-out.puml), [A02-sign-out.md](./A02-sign-out.md) |
+| 3 | A03 | Select Client Scoped View | draft | `client:scope:select` (proposed) | AC, AU | [A03-select-client-scoped-view.puml](./A03-select-client-scoped-view.puml), [A03-select-client-scoped-view.md](./A03-select-client-scoped-view.md) |
+| 4 | A04 | Clear / change Scoped View | draft | `client:scope:clear` (proposed) | AC, AU | [A04-clear-change-scoped-view.puml](./A04-clear-change-scoped-view.puml), [A04-clear-change-scoped-view.md](./A04-clear-change-scoped-view.md) |
+| 5 | A05 | View own profile / grants | draft | `identity:read_self` (proposed) | AC, AU, IA | [A05-view-own-profile-grants.puml](./A05-view-own-profile-grants.puml), [A05-view-own-profile-grants.md](./A05-view-own-profile-grants.md) |
+| 6 | A06 | Invite / link identity to client or project (admin) | draft | `identity:link` (proposed) | AC, AU, IA | [A06-invite-link-identity.puml](./A06-invite-link-identity.puml), [A06-invite-link-identity.md](./A06-invite-link-identity.md) |
+| 7 | A07 | Grant project role | draft | `project:grant:create` (proposed) | AC, AU | [A07-grant-project-role.puml](./A07-grant-project-role.puml), [A07-grant-project-role.md](./A07-grant-project-role.md) |
+| 8 | A08 | Revoke project role | draft | `project:grant:revoke` (proposed) | AC, AU | [A08-revoke-project-role.puml](./A08-revoke-project-role.puml), [A08-revoke-project-role.md](./A08-revoke-project-role.md) |
 | 9 | A09 | Grant catalog-steward at global / client / project | stub | TBD |  | — |
 | 10 | A10 | Revoke catalog-steward | stub | TBD |  | — |
 | 11 | A11 | List who has access to a project | stub | TBD |  | — |
