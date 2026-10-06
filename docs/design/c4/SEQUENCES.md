@@ -30,6 +30,8 @@ Sequence diagrams document **who does what**, **RBAC operations**, and **why eac
 
 [A01 Sign in via SSO](./sequences/A01-sign-in-sso.puml) + [companion table](./sequences/A01-sign-in-sso.md) — IA / AU / AC families, federated auth, audit export to OTEL.
 
+**ReqAML MCP:** [MC01](./sequences/MC01-mcp-auth-desk-bind.puml) / [MC02](./sequences/MC02-mcp-mutate-requirement-version.puml) — agent desk auth/bind and HTTPS mutations (Operation Charity workflow MCP pattern); **`MC**`** IDs in [INDEX](./sequences/INDEX.md).
+
 ## Render
 
 See [`includes/README.md`](./includes/README.md). Prefer `pnpm run diagrams:render` from repo root after PlantUML is installed locally.
