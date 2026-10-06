@@ -1,0 +1,30 @@
+@startuml L3-ui-components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Web UI — Components (C4 L3)
+
+Container_Ext(api, "API", "OpenAPI")
+
+Container_Boundary(web, "Web UI") {
+  Component(app, "App", "React", "Auth + ClientScope providers")
+  Component(router, "Routes + guards", "React Router", "Guards and layout outlet; wraps Layout")
+  Component(layout, "Layout", "React", "Shell, nav, client scope selector; child outlet")
+  Component(page, "Pages", "React", "Fetch via store, context, or direct API as needed")
+  Component(view, "Views", "React", "Compose UI; rare data ownership")
+  Component(comp, "Components", "React", "Pure presentational")
+  Component(store, "Stores / context", "Zustand or context+reducer", "Shared/complex state; clientId-scoped when used")
+}
+
+Rel(app, router, "Mounts")
+Rel(router, layout, "Layout route + guards")
+Rel(layout, page, "Outlet")
+Rel(page, view, "Renders")
+Rel(view, comp, "Renders")
+Rel(page, store, "Optional")
+Rel(page, api, "Optional direct fetch")
+Rel(store, api, "Shared queries")
+Rel(router, api, "RBAC check")
+
+@enduml

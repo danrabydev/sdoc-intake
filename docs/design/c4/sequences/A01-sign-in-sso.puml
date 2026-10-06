@@ -1,0 +1,62 @@
+@startuml A01-sign-in-sso
+!include ../includes/C4_Sequence_Macros.puml
+
+title A01 — Sign in via SSO (OIDC/SAML)\nRBAC: auth:signin (TBD)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_IdP()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== User initiates federated sign-in ==
+
+seqUser -> seqWebUI : Open app / choose Sign in
+ControlNote(seqWebUI, "IA-2(1), IA-2(8)", "TBD (ASD V6R4)", "Expose only enterprise-approved SSO; no local password store")
+
+seqWebUI -> seqRouteGuard : Navigate to /login
+RbacRouteGuard("auth:signin")
+ControlNote(seqRouteGuard, "AC-3", "TBD (ASD V6R4)", "Route guard ensures unauthenticated users cannot reach protected shell")
+
+seqWebUI -> seqIdP : Redirect / authorize (OIDC or SAML)
+ControlNote(seqIdP, "IA-2, IA-8", "TBD (ASD V6R4)", "Identification & authentication via organizational IdP")
+
+seqUser -> seqIdP : Authenticate (MFA at IdP)
+ControlNote(seqIdP, "IA-2(1), IA-2(2)", "TBD (ASD V6R4)", "Re-authentication and MFA enforced by IdP policy")
+
+seqIdP --> seqWebUI : Authorization code / assertion
+ControlNote(seqWebUI, "IA-5", "TBD (ASD V6R4)", "Handle tokens only in browser channel; no long-lived secrets in UI state")
+
+== Token exchange & session ==
+
+seqWebUI -> seqAPI : POST /auth/callback\n(id_token / SAML assertion)
+ControlNote(seqAPI, "SC-8, IA-5", "TBD (ASD V6R4)", "Protect authenticator delivery in transit; validate issuer and signature")
+
+seqAPI -> seqIdP : Validate token (JWKS / metadata)
+ControlNote(seqAPI, "IA-2, SC-23", "TBD (ASD V6R4)", "Cryptographically verify federated identity before trusting claims")
+
+seqAPI -> seqBusiness : establishSession(claims)
+ControlNote(seqBusiness, "AC-3, AC-6", "TBD (ASD V6R4)", "Bind least-privilege session to verified identity; no anonymous elevation")
+
+seqBusiness -> seqRBAC : loadGrants(identity)
+RbacCheck("auth:signin")
+ControlNote(seqRBAC, "AC-2, AC-3", "TBD (ASD V6R4)", "Account management and access enforcement at sign-in boundary")
+
+seqBusiness -> seqAudit : signInSuccess(actor, ip, userAgent)
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Audit login events with who/when/where/outcome")
+seqAudit -> seqOTEL : export audit event (OTLP)
+ControlNote(seqOTEL, "AU-6, AU-12", "TBD (ASD V6R4)", "Centralize reviewable audit trail for monitoring")
+
+ComplianceNote(seqAudit, "Retention / Marsy's Law (TBD)", "Sign-in audit supports lawful access logging; retention TBD per deployment policy")
+
+seqBusiness --> seqAPI : session + claims DTO
+seqAPI --> seqWebUI : Set-Cookie / session handle
+ControlNote(seqWebUI, "AC-12", "TBD (ASD V6R4)", "Session termination metadata; idle timeout enforced server-side")
+
+seqWebUI --> seqUser : Authenticated shell (Client Scoped View)
+
+@enduml

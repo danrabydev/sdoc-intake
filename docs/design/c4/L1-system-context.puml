@@ -1,0 +1,27 @@
+@startuml L1-system-context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Requirements Product — System Context (C4 L1)
+
+Person(author, "Author", "Writes and versions requirements")
+Person(relmgr, "Release manager", "Plans releases and snapshots")
+Person(developer, "Developer", "Works mapped work items")
+Person(steward, "Catalog steward", "Publishes shared catalogs")
+
+System(reqprod, "Requirements Product", "Collaborative requirements + ALM: Client→Project hierarchy, contracts, versioned requirements, release snapshots")
+
+System_Ext(idp, "Enterprise IdP", "SAML/OIDC SSO, AD")
+System_Ext(ado, "Azure DevOps", "Work items; client of the product, not SoT")
+System_Ext(otel, "Observability", "OTEL logs/metrics/traces")
+
+Rel(author, reqprod, "Uses")
+Rel(relmgr, reqprod, "Uses")
+Rel(developer, reqprod, "Uses")
+Rel(steward, reqprod, "Uses")
+Rel(reqprod, idp, "Authenticates via", "OIDC/SAML")
+Rel(reqprod, ado, "Syncs work items", "HTTPS REST")
+Rel(reqprod, otel, "Emits telemetry", "OTLP")
+
+@enduml

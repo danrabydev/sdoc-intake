@@ -1,0 +1,160 @@
+@startuml data-erd
+!theme plain
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+title Requirements Product — Relational map (draft)
+
+entity "client" as client {
+  * id : uuid <<PK>>
+  --
+  name : text
+  created_at : timestamptz
+}
+
+entity "project" as project {
+  * id : uuid <<PK>>
+  --
+  * client_id : uuid <<FK>>
+  name : text
+  status : text
+}
+
+entity "identity" as identity {
+  * id : uuid <<PK>>
+  --
+  external_sub : text
+  email : text
+}
+
+entity "project_grant" as grant {
+  * id : uuid <<PK>>
+  --
+  * project_id : uuid <<FK>>
+  * identity_id : uuid <<FK>>
+  role : text
+}
+
+entity "catalog" as catalog {
+  * id : uuid <<PK>>
+  --
+  scope : enum <<global|client|project>>
+  client_id : uuid <<FK>> nullable
+  project_id : uuid <<FK>> nullable
+  title : text
+  is_standard : bool
+}
+
+entity "requirement_line" as line {
+  * id : uuid <<PK>>
+  --
+  * project_id : uuid <<FK>>
+  base_uid : text
+  parent_id : uuid <<FK>> nullable
+  kind : enum <<section|requirement|control|capability|release_node>>
+}
+
+entity "requirement_version" as ver {
+  * id : uuid <<PK>>
+  --
+  * line_id : uuid <<FK>>
+  * uid : text <<unique per client>>
+  version_n : int
+  statement : text
+  status : enum <<draft|active|obsolete>>
+  priority : int nullable
+  iteration_id : uuid <<FK>> nullable
+}
+
+entity "contract" as contract {
+  * id : uuid <<PK>>
+  --
+  * client_id : uuid <<FK>>
+  project_id : uuid <<FK>> nullable
+  name : text
+  starts_on : date
+  ends_on : date nullable
+  status : enum <<planned|active|closed>>
+}
+
+entity "contract_requirement" as creq {
+  * contract_id : uuid <<FK>>
+  * requirement_version_id : uuid <<FK>>
+  --
+  relation : text <<in_scope_of>>
+}
+
+entity "release" as release {
+  * id : uuid <<PK>>
+  --
+  * project_id : uuid <<FK>>
+  name : text
+  planned_on : date nullable
+  shipped_on : date nullable
+  status : enum <<planned|shipped>>
+}
+
+entity "release_snapshot_item" as snap {
+  * release_id : uuid <<FK>>
+  * requirement_version_id : uuid <<FK>>
+  --
+  relation : text <<delivers>>
+}
+
+entity "edge" as edge {
+  * id : uuid <<PK>>
+  --
+  * from_version_id : uuid <<FK>>
+  * to_version_id : uuid <<FK>>
+  kind : enum <<refines|conforms_to|uses|satisfies>>
+}
+
+entity "work_item_link" as wil {
+  * id : uuid <<PK>>
+  --
+  * requirement_version_id : uuid <<FK>>
+  devops_id : text
+  synced_fields : jsonb
+}
+
+entity "iteration" as iter {
+  * id : uuid <<PK>>
+  --
+  * project_id : uuid <<FK>>
+  name : text
+  starts_on : date
+  ends_on : date
+}
+
+entity "capability_artifact" as art {
+  * id : uuid <<PK>>
+  --
+  * requirement_version_id : uuid <<FK>>
+  kind : enum <<openapi|wireframe|mock|other>>
+  uri : text
+}
+
+client ||--o{ project
+client ||--o{ contract
+client ||--o{ catalog
+project ||--o{ line
+project ||--o{ grant
+project ||--o{ release
+project ||--o{ iter
+project ||--o{ catalog
+identity ||--o{ grant
+line ||--o{ ver
+line ||--o| line : parent
+ver }o--|| iter
+contract ||--o{ creq
+ver ||--o{ creq
+release ||--o{ snap
+ver ||--o{ snap
+ver ||--o{ edge : from
+ver ||--o{ edge : to
+ver ||--o{ wil
+ver ||--o{ art
+catalog ||--o{ ver : "referenced when standard"
+
+@enduml

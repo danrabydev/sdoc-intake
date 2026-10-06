@@ -1,0 +1,40 @@
+' C4-aligned sequence diagram styling for Requirements Product action sequences.
+' Include once at the top of each sequence diagram (before participants).
+' Remote C4-PlantUML is optional for container diagrams; sequences use these skinparams.
+
+!if (%not(%variable_exists("$C4_SEQ_STYLES_INCLUDED")))
+!$C4_SEQ_STYLES_INCLUDED = "true"
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 200
+skinparam ParticipantPadding 12
+skinparam BoxPadding 8
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam sequence {
+  ArrowColor #444444
+  ActorBorderColor #08427B
+  ActorBackgroundColor #08427B
+  ActorFontColor #FFFFFF
+  LifeLineBorderColor #444444
+  LifeLineBackgroundColor #FFFFFF
+  ParticipantBorderColor #1168BD
+  ParticipantBackgroundColor #438DD5
+  ParticipantFontColor #FFFFFF
+  BoxBorderColor #444444
+  BoxBackgroundColor #F9F9F9
+  BoxFontColor #444444
+  NoteBorderColor #444444
+  NoteBackgroundColor #FFFFCC
+  NoteFontColor #444444
+}
+
+' Semantic colors (match C4 element families where practical)
+!$C4PersonBg = "#08427B"
+!$C4ContainerBg = "#438DD5"
+!$C4ComponentBg = "#85BBF0"
+!$C4ExternalBg = "#999999"
+!$C4DatabaseBg = "#438DD5"
+
+!endif

@@ -1,0 +1,110 @@
+# User action sequence index
+
+Inventory of **104** user actions from [`user-actions-inventory.md`](../user-actions-inventory.md). Add one sequence diagram per action over time; do not create empty stub `.puml` files for every row.
+
+| Global | ID | Action | Status | RBAC op | Primary control families | Diagram / companion |
+|--------|-----|--------|--------|---------|--------------------------|---------------------|
+| 1 | A01 | Sign in via SSO (OIDC/SAML) | draft | `auth:signin` (TBD with Dan) | IA, AU, AC | [A01-sign-in-sso.puml](./A01-sign-in-sso.puml), [A01-sign-in-sso.md](./A01-sign-in-sso.md) |
+| 2 | A02 | Sign out | stub | TBD |  | — |
+| 3 | A03 | Select Client Scoped View | stub | TBD |  | — |
+| 4 | A04 | Clear / change Scoped View | stub | TBD |  | — |
+| 5 | A05 | View own profile / grants | stub | TBD |  | — |
+| 6 | A06 | Invite / link identity to client or project (admin) | stub | TBD |  | — |
+| 7 | A07 | Grant project role | stub | TBD |  | — |
+| 8 | A08 | Revoke project role | stub | TBD |  | — |
+| 9 | A09 | Grant catalog-steward at global / client / project | stub | TBD |  | — |
+| 10 | A10 | Revoke catalog-steward | stub | TBD |  | — |
+| 11 | A11 | List who has access to a project | stub | TBD |  | — |
+| 12 | A12 | Impersonate / break-glass (if ever; flag as later) | stub | TBD |  | — |
+| 13 | B01 | Create client | stub | TBD |  | — |
+| 14 | B02 | Update client metadata | stub | TBD |  | — |
+| 15 | B03 | Archive / deactivate client | stub | TBD |  | — |
+| 16 | B04 | Create project under client | stub | TBD |  | — |
+| 17 | B05 | Update project | stub | TBD |  | — |
+| 18 | B06 | Archive project | stub | TBD |  | — |
+| 19 | B07 | List clients (permission-filtered) | stub | TBD |  | — |
+| 20 | B08 | List projects in scoped client | stub | TBD |  | — |
+| 21 | C01 | Create section / requirement / control / capability line | stub | TBD |  | — |
+| 22 | C02 | Rename / retitle line | stub | TBD |  | — |
+| 23 | C03 | Move line (change parent) | stub | TBD |  | — |
+| 24 | C04 | Reorder siblings | stub | TBD |  | — |
+| 25 | C05 | Soft-delete / tombstone line (via obsolete version flow) | stub | TBD |  | — |
+| 26 | C06 | View tree (mind map / outline) | stub | TBD |  | — |
+| 27 | C07 | Expand / collapse / filter tree | stub | TBD |  | — |
+| 28 | C08 | Search requirements in client/project | stub | TBD |  | — |
+| 29 | D01 | Create first version of a line | stub | TBD |  | — |
+| 30 | D02 | Create successor version (.N+1) | stub | TBD |  | — |
+| 31 | D03 | Edit draft version fields (statement, metadata) | stub | TBD |  | — |
+| 32 | D04 | Mark version active | stub | TBD |  | — |
+| 33 | D05 | Mark version obsolete / withdrawn | stub | TBD |  | — |
+| 34 | D06 | View lineage / succession for a UID | stub | TBD |  | — |
+| 35 | D07 | Compare two versions | stub | TBD |  | — |
+| 36 | D08 | Set / clear priority on a version | stub | TBD |  | — |
+| 37 | D09 | Attach / change iteration on a version | stub | TBD |  | — |
+| 38 | D10 | Add verification note (tester) | stub | TBD |  | — |
+| 39 | D11 | Tag security metadata (catalog ref, verification) | stub | TBD |  | — |
+| 40 | E01 | Add edge refines | stub | TBD |  | — |
+| 41 | E02 | Add edge conforms_to | stub | TBD |  | — |
+| 42 | E03 | Add edge uses | stub | TBD |  | — |
+| 43 | E04 | Add edge satisfies (capability → requirement) | stub | TBD |  | — |
+| 44 | E05 | Remove edge | stub | TBD |  | — |
+| 45 | E06 | View traceability graph / matrix | stub | TBD |  | — |
+| 46 | E07 | Navigate from requirement to linked control / capability | stub | TBD |  | — |
+| 47 | F01 | Create contract | stub | TBD |  | — |
+| 48 | F02 | Update contract (dates, name, status) | stub | TBD |  | — |
+| 49 | F03 | Close contract | stub | TBD |  | — |
+| 50 | F04 | Link requirement version to contract (in_scope_of) | stub | TBD |  | — |
+| 51 | F05 | Unlink requirement version from contract | stub | TBD |  | — |
+| 52 | F06 | Bulk-link set of versions to contract | stub | TBD |  | — |
+| 53 | F07 | Open document view built from contract (filter + parent walk) | stub | TBD |  | — |
+| 54 | F08 | Toggle include context parents | stub | TBD |  | — |
+| 55 | F09 | View contract overlap timeline | stub | TBD |  | — |
+| 56 | F10 | List contracts for client/project | stub | TBD |  | — |
+| 57 | G01 | Create planned release | stub | TBD |  | — |
+| 58 | G02 | Update planned release | stub | TBD |  | — |
+| 59 | G03 | Add/remove requirement versions to planned release | stub | TBD |  | — |
+| 60 | G04 | Prioritize / order release backlog from priorities | stub | TBD |  | — |
+| 61 | G05 | Ship release (freeze snapshot of delivered versions) | stub | TBD |  | — |
+| 62 | G06 | View snapshot vs prior release (diff) | stub | TBD |  | — |
+| 63 | G07 | Open Gantt / schedule view from releases + priorities | stub | TBD |  | — |
+| 64 | G08 | List releases for project | stub | TBD |  | — |
+| 65 | H01 | Create catalog (global / client / project) | stub | TBD |  | — |
+| 66 | H02 | Update catalog metadata | stub | TBD |  | — |
+| 67 | H03 | Publish catalog version / imprint (if versioned) | stub | TBD |  | — |
+| 68 | H04 | Add catalog item (template) | stub | TBD |  | — |
+| 69 | H05 | Update catalog item (non-standard mutable catalogs only) | stub | TBD |  | — |
+| 70 | H06 | Reference standard catalog item from a requirement (no copy) | stub | TBD |  | — |
+| 71 | H07 | Copy non-standard catalog template into a project line | stub | TBD |  | — |
+| 72 | H08 | Deprecate catalog item | stub | TBD |  | — |
+| 73 | H09 | Browse catalogs available at current scope | stub | TBD |  | — |
+| 74 | I01 | Create capability (or capability-kind line) | stub | TBD |  | — |
+| 75 | I02 | Link capability satisfies requirement | stub | TBD |  | — |
+| 76 | I03 | Attach artifact (OpenAPI, wireframe, mock, other) | stub | TBD |  | — |
+| 77 | I04 | Update / replace artifact URI | stub | TBD |  | — |
+| 78 | I05 | Remove artifact | stub | TBD |  | — |
+| 79 | I06 | View capability pack / regression bed grouping (later) | stub | TBD |  | — |
+| 80 | J01 | Mark requirement ready for work item | stub | TBD |  | — |
+| 81 | J02 | Create work item from requirement version | stub | TBD |  | — |
+| 82 | J03 | Update work item link mapping | stub | TBD |  | — |
+| 83 | J04 | Push field changes req → work item | stub | TBD |  | — |
+| 84 | J05 | Pull field changes work item → req (backfeed) | stub | TBD |  | — |
+| 85 | J06 | Resolve sync conflict | stub | TBD |  | — |
+| 86 | J07 | View sync status / last sync | stub | TBD |  | — |
+| 87 | J08 | Disconnect work item link | stub | TBD |  | — |
+| 88 | K01 | Open priority queue (“what to groom next”) | stub | TBD |  | — |
+| 89 | K02 | Walk parent detail-debt from a priority leaf | stub | TBD |  | — |
+| 90 | K03 | Advance grooming state (want → detailed → WI-ready) | stub | TBD |  | — |
+| 91 | K04 | Assign iteration / sprint | stub | TBD |  | — |
+| 92 | K05 | View work track by iteration | stub | TBD |  | — |
+| 93 | K06 | View release path vs work track | stub | TBD |  | — |
+| 94 | L01 | Import StrictDoc / notation file | stub | TBD |  | — |
+| 95 | L02 | Export project or contract view to StrictDoc | stub | TBD |  | — |
+| 96 | L03 | Export document view (PDF/Markdown) — later | stub | TBD |  | — |
+| 97 | L04 | Export snapshot bill of requirements | stub | TBD |  | — |
+| 98 | M01 | View audit log for an entity | stub | TBD |  | — |
+| 99 | M02 | View audit log for a client (auditor) | stub | TBD |  | — |
+| 100 | M03 | Configure OTEL / log sinks (ops) | stub | TBD |  | — |
+| 101 | M04 | Health check / read API version | stub | TBD |  | — |
+| 102 | N01 | Toggle mind-map vs tree vs document view | stub | TBD |  | — |
+| 103 | N02 | Pin favorite contract / project | stub | TBD |  | — |
+| 104 | N03 | Use global search | stub | TBD |  | — |
