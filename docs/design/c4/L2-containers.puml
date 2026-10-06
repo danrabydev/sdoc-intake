@@ -1,0 +1,32 @@
+@startuml L2-containers
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Requirements Product — Containers (C4 L2)
+
+Person(user, "User", "Author, developer, release manager, steward")
+
+System_Boundary(reqprod, "Requirements Product") {
+  Container(web, "Web UI", "React + TypeScript", "App→Routes/guards→Layout→Page→View→Components; Client Scoped View; OTEL-ready")
+  Container(api, "API", "Node + TypeScript", "OpenAPI schema-first; HTTP→business→data; RBAC on every route")
+  Container(sync, "Sync worker", "Node + TypeScript", "Bidirectional work-item sync with DevOps")
+  ContainerDb(db, "Database", "Postgres", "SoT: clients, projects, requirement versions, contracts, releases, catalogs, edges")
+}
+
+System_Ext(idp, "Enterprise IdP", "SAML/OIDC")
+System_Ext(ado, "Azure DevOps", "Work items")
+System_Ext(otel, "OTEL collector", "Logs metrics traces")
+
+Rel(user, web, "Uses", "HTTPS")
+Rel(web, api, "Calls", "HTTPS JSON OpenAPI")
+Rel(api, db, "Reads/writes", "SQL")
+Rel(sync, db, "Reads/writes", "SQL")
+Rel(api, idp, "Validates tokens", "OIDC/SAML")
+Rel(api, ado, "Optional sync", "REST")
+Rel(sync, ado, "Syncs fields", "REST")
+Rel(web, otel, "Client telemetry", "OTLP")
+Rel(api, otel, "Audit + app logs", "OTLP")
+Rel(sync, otel, "Worker logs", "OTLP")
+
+@enduml

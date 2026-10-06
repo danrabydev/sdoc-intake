@@ -1,0 +1,34 @@
+@startuml L3-api-components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title API — Components (C4 L3)
+
+Container_Ext(web, "Web UI", "React")
+ContainerDb_Ext(db, "Postgres", "SoT")
+System_Ext(idp, "IdP", "SSO")
+System_Ext(ado, "Azure DevOps", "Work items")
+
+Container_Boundary(api, "API") {
+  Component(http, "HTTP adapters", "OpenAPI routes", "Authn extract, validate DTO, map HTTP")
+  Component(rbac, "RBAC", "TypeScript", "Permission checks scoped to client/project/catalog")
+  Component(biz, "Business services", "TypeScript", "Requirements, contracts, releases, catalogs, capabilities")
+  Component(audit, "Audit / logging", "TypeScript", "NIST/STIG ASD V6R4-aligned structured logs")
+  Component(data, "Data providers", "Repos behind schemas", "Schema-first models; providers implement interfaces")
+  Component(schemas, "Schemas", "Zod + OpenAPI", "Exist before providers; shared contracts")
+}
+
+Rel(web, http, "HTTPS OpenAPI")
+Rel(http, rbac, "Authorize")
+Rel(http, biz, "Invoke")
+Rel(biz, rbac, "Require permission")
+Rel(biz, audit, "Log actions")
+Rel(biz, data, "Use repos")
+Rel(data, schemas, "Conform to")
+Rel(http, schemas, "Validate with")
+Rel(data, db, "SQL")
+Rel(http, idp, "Token validation")
+Rel(biz, ado, "Work-item ops via sync boundary")
+
+@enduml

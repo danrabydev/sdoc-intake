@@ -1,0 +1,60 @@
+' Reusable sequence fragments for user-action diagrams.
+' Requires C4_Sequence_Participants.puml (stable alias names below).
+'
+' Macros (keep small; compose in action diagrams):
+'   RbacCheck(op)           — business-layer permission gate
+'   RbacRouteGuard(op)      — UI route guard before navigation/render
+'   AuthenticatedCall(method, path) — browser → API with session bearer
+'   ClientScopedQuery(method, path)   — API call carrying client scope header/context
+'   AuditLog(action, entity)          — structured audit emission
+'   SyncWorkItem(direction)           — push/pull hint via business → DevOps
+'   ControlNote / ComplianceNote      — see C4_Sequence_Controls.puml
+
+!include ./C4_Sequence_Participants.puml
+!include ./C4_Sequence_Controls.puml
+
+!if (%not(%variable_exists("$C4_SEQ_MACROS_INCLUDED")))
+!$C4_SEQ_MACROS_INCLUDED = "true"
+
+!unquoted procedure RbacCheck($operation)
+seqBusiness -> seqRBAC : require **$operation**
+alt denied
+  seqRBAC --> seqBusiness : 403 forbidden
+else allowed
+  seqRBAC --> seqBusiness : ok
+end
+!endprocedure
+
+!unquoted procedure RbacRouteGuard($operation)
+seqWebUI -> seqRouteGuard : navigate / render
+seqRouteGuard -> seqRouteGuard : check **$operation**
+note right of seqRouteGuard
+  Guard uses session claims;
+  may block route or redirect.
+end note
+!endprocedure
+
+!unquoted procedure AuthenticatedCall($method, $path)
+seqWebUI -> seqAPI : **$method** $path\nAuthorization: Bearer …
+seqAPI -> seqAPI : validate session / token
+!endprocedure
+
+!unquoted procedure ClientScopedQuery($method, $path)
+seqWebUI -> seqAPI : **$method** $path\nX-Client-Scope: {clientId}
+note over seqWebUI, seqAPI
+  Client Scoped View filters queries
+  server-side; never trust client-only filters.
+end note
+!endprocedure
+
+!unquoted procedure AuditLog($action, $entity)
+seqBusiness -> seqAudit : log($action, $entity, actor, clientId?)
+seqAudit -> seqOTEL : export audit event (OTLP)
+!endprocedure
+
+!unquoted procedure SyncWorkItem($direction)
+seqBusiness -> seqAzureDevOps : **$direction** work item fields
+seqAzureDevOps --> seqBusiness : ack / payload
+!endprocedure
+
+!endif

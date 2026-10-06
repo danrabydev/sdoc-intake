@@ -1,0 +1,98 @@
+' Standard sequence participants — stable aliases for macros and cross-diagram consistency.
+' Call only the C4Seq_* procedures your diagram needs (avoid declaring unused lifelines).
+'
+' Canonical aliases:
+'   seqUser, seqWebUI, seqRouteGuard, seqAPI, seqRBAC, seqBusiness, seqData, seqPostgres,
+'   seqIdP, seqAzureDevOps, seqOTEL, seqAudit
+
+!include ./C4_Sequence_Styles.puml
+
+!if (%not(%variable_exists("$C4_SEQ_PARTICIPANTS_INCLUDED")))
+!$C4_SEQ_PARTICIPANTS_INCLUDED = "true"
+
+!unquoted procedure C4Seq_User()
+participant "User" as seqUser #08427B
+!endprocedure
+
+!unquoted procedure C4Seq_WebUI()
+participant "Web UI\n(React)" as seqWebUI #438DD5
+!endprocedure
+
+!unquoted procedure C4Seq_RouteGuard()
+participant "Routes +\nRBAC guards" as seqRouteGuard #85BBF0
+!endprocedure
+
+!unquoted procedure C4Seq_API()
+participant "API\n(HTTP / OpenAPI)" as seqAPI #438DD5
+!endprocedure
+
+!unquoted procedure C4Seq_RBAC()
+participant "RBAC" as seqRBAC #85BBF0
+!endprocedure
+
+!unquoted procedure C4Seq_Business()
+participant "Business\nservices" as seqBusiness #85BBF0
+!endprocedure
+
+!unquoted procedure C4Seq_Data()
+participant "Data\nrepos" as seqData #85BBF0
+!endprocedure
+
+!unquoted procedure C4Seq_Postgres()
+database "Postgres\n(SoT)" as seqPostgres #438DD5
+!endprocedure
+
+!unquoted procedure C4Seq_IdP()
+participant "Enterprise IdP\n(OIDC/SAML)" as seqIdP #999999
+!endprocedure
+
+!unquoted procedure C4Seq_AzureDevOps()
+participant "Azure DevOps" as seqAzureDevOps #999999
+!endprocedure
+
+!unquoted procedure C4Seq_OTEL()
+participant "OTEL /\nObservability" as seqOTEL #999999
+!endprocedure
+
+!unquoted procedure C4Seq_Audit()
+participant "Audit log" as seqAudit #85BBF0
+!endprocedure
+
+' --- Preset bundles (common participant sets) ---
+
+!unquoted procedure C4Seq_Bundle_IdentityAccess()
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_IdP()
+C4Seq_OTEL()
+!endprocedure
+
+!unquoted procedure C4Seq_Bundle_ReadQuery()
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_OTEL()
+!endprocedure
+
+!unquoted procedure C4Seq_Bundle_WorkItemSync()
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_AzureDevOps()
+C4Seq_OTEL()
+!endprocedure
+
+!endif

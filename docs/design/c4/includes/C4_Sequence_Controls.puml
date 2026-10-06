@@ -1,0 +1,42 @@
+' Compliance annotations for sequence steps (NIST 800-53, STIG / ASD V6R4, other drivers).
+' Include via C4_Sequence_Macros.puml or directly after C4_Sequence_Styles.puml.
+'
+' Preferred pattern:
+'   1. Perform the interaction (message arrow or macro).
+'   2. Immediately call ControlNote(participantAlias, nist, stig, rationale).
+'   3. Mirror the same rows in the action companion *.md (Step | Control | Rationale).
+'
+' Parameters:
+'   $actor     — participant alias (e.g. seqIdP, seqAPI)
+'   $nist      — NIST SP 800-53 Rev. 5 control(s), comma-separated if several
+'   $stig      — STIG rule ID(s); use "TBD (ASD V6R4)" until pinned in catalog
+'   $rationale — one line: WHY this step exists for security / compliance
+
+!include ./C4_Sequence_Styles.puml
+
+!if (%not(%variable_exists("$C4_SEQ_CONTROLS_INCLUDED")))
+!$C4_SEQ_CONTROLS_INCLUDED = "true"
+
+skinparam note {
+  BorderColor #6B4E9B
+  BackgroundColor #F3EFFA
+  FontColor #333333
+}
+
+!unquoted procedure ControlNote($actor, $nist, $stig, $rationale)
+note right of $actor #F3EFFA
+  **NIST 800-53:** $nist
+  **STIG:** $stig
+  **Why:** $rationale
+end note
+!endprocedure
+
+' Optional extra drivers (Marsy's Law, state policy, contractual) without duplicating STIG column.
+!unquoted procedure ComplianceNote($actor, $drivers, $rationale)
+note right of $actor #FFF8E7
+  **Other drivers:** $drivers
+  **Why:** $rationale
+end note
+!endprocedure
+
+!endif

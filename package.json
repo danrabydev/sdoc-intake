@@ -36,7 +36,8 @@
     "check:auth": "node scripts/check-auth-invariant.mjs",
     "test": "node --test 'scripts/**/*.test.mjs' && node --experimental-strip-types --test src/lib/sdoc/validate.test.ts src/lib/sdoc/move.test.ts src/lib/sdoc/flow.test.ts src/lib/sdoc/templates.test.ts src/lib/sdoc/grammar-file.test.ts src/lib/sdoc/fs-mode.test.ts src/lib/sdoc/browser-path.test.ts src/cli/args.test.ts",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "diagrams:render": "sh scripts/render-diagrams.sh"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",
