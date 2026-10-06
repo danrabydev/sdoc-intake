@@ -1,0 +1,704 @@
+# ReqAML dogfood seed — design ReqAML with ReqAML
+# Schema: locked 2026-10-06 ERD (../c4/data-erd.puml)
+schema_version: "2026-10-06"
+
+client:
+  id: raby-family
+  name: Raby-Family
+  created_at: "2026-10-06T00:00:00-04:00"
+
+projects:
+  - id: reqaml
+    client_id: raby-family
+    name: ReqAML
+    status: active
+    notes: >-
+      Requirements/ALM product replacing StrictDoc-as-store.
+      Current intake / diagram repo often called sdoc-intake.
+
+identities:
+  - id: dan
+    external_sub: "oidc:dan-raby"
+    email: dan@therabyfamily.com
+    display_name: Dan Raby
+
+project_grants:
+  - id: grant-dan-reqaml-author
+    project_id: reqaml
+    identity_id: dan
+    role: Author
+  - id: grant-dan-reqaml-admin
+    project_id: reqaml
+    identity_id: dan
+    role: Project admin
+
+catalogs:
+  - id: cat-nist-global
+    scope: global
+    client_id: null
+    project_id: null
+    title: NIST SP 800-53 Rev5 (placeholder families)
+    is_standard: true
+    entries:
+      - id: NIST-AC
+        title: Access Control (AC)
+      - id: NIST-AU
+        title: Audit and Accountability (AU)
+      - id: NIST-IA
+        title: Identification and Authentication (IA)
+      - id: NIST-SC
+        title: System and Communications Protection (SC)
+  - id: cat-reqaml-security
+    scope: project
+    client_id: raby-family
+    project_id: reqaml
+    title: ReqAML project security catalog
+    is_standard: false
+    entries:
+      - id: REQAML-SEC-SSO
+        title: Enterprise SSO only (no local passwords)
+      - id: REQAML-SEC-SCOPE
+        title: Server-side client scoped view
+      - id: REQAML-SEC-RBAC
+        title: Permission checks on every mutating API
+
+iterations:
+  - id: iter-r0
+    project_id: reqaml
+    name: R0 design sequences
+    starts_on: "2026-10-01"
+    ends_on: "2026-10-31"
+
+# ---------------------------------------------------------------------------
+# Requirement lines (tree). parent = base_uid of parent LINE, never a version.
+# ---------------------------------------------------------------------------
+requirement_lines:
+  # --- Sections (roots) ---
+  - base_uid: SEC-IA
+    project_id: reqaml
+    parent: null
+    kind: section
+    title: Identity & Access
+  - base_uid: SEC-CP
+    project_id: reqaml
+    parent: null
+    kind: section
+    title: Client & Project
+  - base_uid: SEC-RL
+    project_id: reqaml
+    parent: null
+    kind: section
+    title: Requirement Lines & Versions
+  - base_uid: SEC-CT
+    project_id: reqaml
+    parent: null
+    kind: section
+    title: Contracts
+  - base_uid: SEC-REL
+    project_id: reqaml
+    parent: null
+    kind: section
+    title: Releases
+  - base_uid: SEC-UI
+    project_id: reqaml
+    parent: null
+    kind: section
+    title: UI Architecture
+  - base_uid: SEC-API
+    project_id: reqaml
+    parent: null
+    kind: section
+    title: API Architecture
+  - base_uid: SEC-SEC
+    project_id: reqaml
+    parent: null
+    kind: section
+    title: Security / RBAC
+  - base_uid: SEC-MCP
+    project_id: reqaml
+    parent: null
+    kind: section
+    title: MCP agent desks
+
+  # --- A01–A08 under Identity & Access ---
+  - base_uid: A01
+    project_id: reqaml
+    parent: SEC-IA
+    kind: requirement
+    title: Sign in via SSO
+  - base_uid: A02
+    project_id: reqaml
+    parent: SEC-IA
+    kind: requirement
+    title: Sign out
+  - base_uid: A03
+    project_id: reqaml
+    parent: SEC-IA
+    kind: requirement
+    title: Select Client Scoped View
+  - base_uid: A04
+    project_id: reqaml
+    parent: SEC-IA
+    kind: requirement
+    title: Clear / change Scoped View
+  - base_uid: A05
+    project_id: reqaml
+    parent: SEC-IA
+    kind: requirement
+    title: View own profile / grants
+  - base_uid: A06
+    project_id: reqaml
+    parent: SEC-IA
+    kind: requirement
+    title: Invite / link identity
+  - base_uid: A07
+    project_id: reqaml
+    parent: SEC-IA
+    kind: requirement
+    title: Grant project role
+  - base_uid: A08
+    project_id: reqaml
+    parent: SEC-IA
+    kind: requirement
+    title: Revoke project role
+
+  # --- MCP desk sessions (draft sequences MC01–MC02) ---
+  - base_uid: MC01
+    project_id: reqaml
+    parent: SEC-MCP
+    kind: requirement
+    title: MCP authenticate session & desk bind
+  - base_uid: MC02
+    project_id: reqaml
+    parent: SEC-MCP
+    kind: requirement
+    title: MCP mutating tool with desk attached
+
+  # --- Client & Project architecture ---
+  - base_uid: ARCH-CP-HIER
+    project_id: reqaml
+    parent: SEC-CP
+    kind: requirement
+    title: Client → Project hierarchy
+
+  # --- Lines & versions ---
+  - base_uid: ARCH-VER
+    project_id: reqaml
+    parent: SEC-RL
+    kind: requirement
+    title: Static .N requirement versioning
+
+  # --- Contracts ---
+  - base_uid: ARCH-CONTRACT
+    project_id: reqaml
+    parent: SEC-CT
+    kind: requirement
+    title: Contracts as overlays
+
+  # --- Releases ---
+  - base_uid: ARCH-RELEASE
+    project_id: reqaml
+    parent: SEC-REL
+    kind: requirement
+    title: Releases deliver version snapshots
+
+  # --- UI ---
+  - base_uid: ARCH-UI
+    project_id: reqaml
+    parent: SEC-UI
+    kind: requirement
+    title: App → Routes → Layout → Page → View
+
+  # --- API ---
+  - base_uid: ARCH-API
+    project_id: reqaml
+    parent: SEC-API
+    kind: requirement
+    title: HTTP → business → data, OpenAPI schema-first
+  - base_uid: ARCH-OTEL
+    project_id: reqaml
+    parent: SEC-API
+    kind: requirement
+    title: OTEL audit trail
+
+  # --- Security control + capabilities ---
+  - base_uid: CTL-AC-3
+    project_id: reqaml
+    parent: SEC-SEC
+    kind: control
+    title: Enforce access control on routes and APIs
+  - base_uid: CAP-SSO
+    project_id: reqaml
+    parent: SEC-SEC
+    kind: capability
+    title: Federated SSO session
+  - base_uid: CAP-SCOPED-VIEW
+    project_id: reqaml
+    parent: SEC-SEC
+    kind: capability
+    title: Client Scoped View binding
+  - base_uid: CAP-RBAC
+    project_id: reqaml
+    parent: SEC-SEC
+    kind: capability
+    title: Project RBAC grants
+  - base_uid: CAP-MCP-DESK
+    project_id: reqaml
+    parent: SEC-MCP
+    kind: capability
+    title: ReqAML MCP requirements desk channel
+
+# ---------------------------------------------------------------------------
+# Versions (content). uid = base_uid or base_uid.N; first uses version_n 0.
+# ---------------------------------------------------------------------------
+requirement_versions:
+  # Sections get a light active version so export can show titles + statements
+  - uid: SEC-IA
+    base_uid: SEC-IA
+    version_n: 0
+    status: active
+    statement: >-
+      Identity and access actions for ReqAML — SSO sign-in/out, client scoped view,
+      profile, and project grant administration.
+  - uid: SEC-CP
+    base_uid: SEC-CP
+    version_n: 0
+    status: active
+    statement: >-
+      Client owns projects; all project work assumes a Client Scoped View.
+  - uid: SEC-RL
+    base_uid: SEC-RL
+    version_n: 0
+    status: active
+    statement: >-
+      Requirement lines are stable tree nodes; requirement versions hold statement and status.
+  - uid: SEC-CT
+    base_uid: SEC-CT
+    version_n: 0
+    status: active
+    statement: >-
+      Contracts are junction overlays that mark requirement versions in_scope_of a named agreement.
+  - uid: SEC-REL
+    base_uid: SEC-REL
+    version_n: 0
+    status: active
+    statement: >-
+      Releases snapshot the requirement versions they deliver; they are not tree parents.
+  - uid: SEC-UI
+    base_uid: SEC-UI
+    version_n: 0
+    status: active
+    statement: >-
+      React UI ownership chain from App providers through routes, layout, pages, and views.
+  - uid: SEC-API
+    base_uid: SEC-API
+    version_n: 0
+    status: active
+    statement: >-
+      Node API layers HTTP adapters, RBAC, business services, audit, and schema-first data providers.
+  - uid: SEC-SEC
+    base_uid: SEC-SEC
+    version_n: 0
+    status: active
+    statement: >-
+      Cross-cutting security, NIST/STIG alignment notes, and capability packs for ReqAML.
+  - uid: SEC-MCP
+    base_uid: SEC-MCP
+    version_n: 0
+    status: active
+    statement: >-
+      MCP agents authenticate like UI users, bind to a requirements desk (browser tab routing),
+      mutate via HTTPS API, and receive live desk pushes on a session-sealed WebSocket.
+
+  # A01–A08
+  - uid: A01
+    base_uid: A01
+    version_n: 0
+    status: active
+    priority: 10
+    iteration: iter-r0
+    rbac_op: auth:signin
+    statement: >-
+      A user signs in via enterprise SSO (OIDC or SAML). ReqAML validates the IdP token,
+      establishes a least-privilege session, loads grants, and emits an auditable sign-in event.
+    security:
+      catalog_ref: NIST-IA
+      verification_note: >-
+        NIST IA/AC/AU families apply (IA-2, AC-3, AU-2/3/12). STIG TBD ASD V6R4.
+        No local password store; MFA at IdP.
+
+  - uid: A02
+    base_uid: A02
+    version_n: 0
+    status: active
+    priority: 20
+    iteration: iter-r0
+    rbac_op: auth:signout
+    statement: >-
+      An authenticated user signs out. ReqAML terminates the server session, clears the
+      client session handle, and records an auditable logout event.
+    security:
+      catalog_ref: NIST-AC
+      verification_note: >-
+        NIST AC-12 session termination; AU-2/3/12 logout audit. STIG TBD ASD V6R4.
+
+  - uid: A03
+    base_uid: A03
+    version_n: 0
+    status: active
+    priority: 10
+    iteration: iter-r0
+    rbac_op: client:scope:select
+    statement: >-
+      An authenticated user selects a Client Scoped View. The active clientId is persisted
+      server-side so subsequent queries are bound to that client for least privilege.
+    security:
+      catalog_ref: NIST-AC
+      verification_note: >-
+        NIST AC-3/AC-6 least privilege via server-bound scope. STIG TBD ASD V6R4.
+
+  - uid: A04
+    base_uid: A04
+    version_n: 0
+    status: active
+    priority: 30
+    iteration: iter-r0
+    rbac_op: client:scope:clear
+    statement: >-
+      A user clears or changes Client Scoped View. ReqAML updates or clears the server-side
+      active client binding and audits the scope change.
+    security:
+      catalog_ref: NIST-AC
+      verification_note: >-
+        NIST AC-3 access enforcement on scope clear/change. STIG TBD ASD V6R4.
+
+  - uid: A05
+    base_uid: A05
+    version_n: 0
+    status: active
+    priority: 40
+    iteration: iter-r0
+    rbac_op: identity:read_self
+    statement: >-
+      A user views their own profile and project grants. ReqAML returns only the caller’s
+      identity and grants (no cross-subject disclosure).
+    security:
+      catalog_ref: NIST-AC
+      verification_note: >-
+        NIST AC-3 self-read boundary; AU for access logging where required. STIG TBD ASD V6R4.
+
+  - uid: A06
+    base_uid: A06
+    version_n: 0
+    status: active
+    priority: 50
+    iteration: iter-r0
+    rbac_op: identity:link
+    statement: >-
+      An admin invites or links an identity to a client or project. ReqAML records the
+      external subject binding and audits who linked whom.
+    security:
+      catalog_ref: NIST-IA
+      verification_note: >-
+        NIST IA-2/AC-2 account/identity linkage; AU-2/3/12 admin actions. STIG TBD ASD V6R4.
+
+  - uid: A07
+    base_uid: A07
+    version_n: 0
+    status: active
+    priority: 50
+    iteration: iter-r0
+    rbac_op: project:grant:create
+    statement: >-
+      A project admin grants a role on a project to an identity. ReqAML creates a
+      project_grant row and audits the grant (actor, subject, role).
+    security:
+      catalog_ref: NIST-AC
+      verification_note: >-
+        NIST AC-2/AC-3/AC-6 grant administration. STIG TBD ASD V6R4.
+
+  - uid: A08
+    base_uid: A08
+    version_n: 0
+    status: active
+    priority: 50
+    iteration: iter-r0
+    rbac_op: project:grant:revoke
+    statement: >-
+      A project admin revokes a project role from an identity. ReqAML removes or tombstones
+      the grant and audits the revocation.
+    security:
+      catalog_ref: NIST-AC
+      verification_note: >-
+        NIST AC-2/AC-3 revoke path; AU-2/3/12. STIG TBD ASD V6R4.
+
+  - uid: MC01
+    base_uid: MC01
+    version_n: 0
+    status: draft
+    priority: 60
+    iteration: iter-r0
+    rbac_op: mcp:session:create, desk:list, desk:attach, desk:detach
+    statement: >-
+      An MCP host connects to ReqAML MCP (stdio or Streamable HTTP), establishes a platform
+      session (OAuth opaque token or login aligned with A01), lists desks, and attach/detach
+      routing to a browser requirements desk; live pushes use session-sealed WSS.
+    security:
+      catalog_ref: NIST-SC
+      verification_note: >-
+        NIST IA/AC/AU/SC families; desk sealing pattern (OC ADR 0018 analogue). STIG TBD ASD V6R4.
+
+  - uid: MC02
+    base_uid: MC02
+    version_n: 0
+    status: draft
+    priority: 60
+    iteration: iter-r0
+    rbac_op: requirement:version:update_draft
+    statement: >-
+      With a desk attached, an MCP tool updates a draft requirement version field over HTTPS
+      (HTTP→business→data→Postgres), audits the agent write, and pushes preview to the desk channel.
+    security:
+      catalog_ref: NIST-AC
+      verification_note: >-
+        NIST AC-3/CM-3/AU; mutations not on desk socket. STIG TBD ASD V6R4.
+
+  # Architecture requirements
+  - uid: ARCH-CP-HIER
+    base_uid: ARCH-CP-HIER
+    version_n: 0
+    status: active
+    priority: 5
+    statement: >-
+      ReqAML organizes work as Client → Project. Projects belong to exactly one client;
+      Client Scoped View is assumed for most project operations.
+
+  - uid: ARCH-VER
+    base_uid: ARCH-VER
+    version_n: 0
+    status: active
+    priority: 5
+    statement: >-
+      Each requirement line has versions with UIDs base_uid or base_uid.N (static append).
+      Children stay on the parent line (parent = base_uid); there is no cascade fork.
+      Obsolete/withdrawn is a new version with that status.
+
+  - uid: ARCH-CONTRACT
+    base_uid: ARCH-CONTRACT
+    version_n: 0
+    status: active
+    priority: 15
+    statement: >-
+      Contracts are related overlays, not tree parents. A contract links requirement version
+      UIDs via in_scope_of; document views filter by contract and optionally walk parent lines for context.
+
+  - uid: ARCH-RELEASE
+    base_uid: ARCH-RELEASE
+    version_n: 0
+    status: active
+    priority: 15
+    statement: >-
+      A release delivers a snapshot of requirement version UIDs. Shipping freezes the delivered
+      set; releases do not own the requirement tree.
+
+  - uid: ARCH-UI
+    base_uid: ARCH-UI
+    version_n: 0
+    status: active
+    priority: 20
+    statement: >-
+      UI stack is App (auth + ClientScope) → Routes + guards → Layout → Page → View → pure
+      components, with optional stores scoped by clientId.
+
+  - uid: ARCH-API
+    base_uid: ARCH-API
+    version_n: 0
+    status: active
+    priority: 20
+    statement: >-
+      API is schema-first (Zod + OpenAPI): HTTP adapters validate DTOs, RBAC authorizes,
+      business services orchestrate, data providers implement repositories against Postgres.
+
+  - uid: ARCH-OTEL
+    base_uid: ARCH-OTEL
+    version_n: 0
+    status: active
+    priority: 25
+    rbac_op: null
+    statement: >-
+      Security-relevant actions emit structured audit events exported via OTEL (OTLP) for
+      centralized review, aligned to NIST AU families and STIG TBD ASD V6R4.
+    security:
+      catalog_ref: NIST-AU
+      verification_note: >-
+        NIST AU-2/3/6/12. STIG TBD ASD V6R4.
+
+  # Control
+  - uid: CTL-AC-3
+    base_uid: CTL-AC-3
+    version_n: 0
+    status: active
+    priority: 10
+    statement: >-
+      Route guards and API RBAC enforce authorized access for every protected shell route
+      and mutating operation; unauthorized callers receive a denied outcome that is auditable.
+    security:
+      catalog_ref: NIST-AC
+      verification_note: >-
+        Conforms to NIST AC-3 (Access Enforcement). STIG TBD ASD V6R4.
+
+  # Capabilities
+  - uid: CAP-SSO
+    base_uid: CAP-SSO
+    version_n: 0
+    status: active
+    priority: 10
+    statement: >-
+      Capability pack for federated SSO session establishment and teardown against the enterprise IdP.
+  - uid: CAP-SCOPED-VIEW
+    base_uid: CAP-SCOPED-VIEW
+    version_n: 0
+    status: active
+    priority: 10
+    statement: >-
+      Capability pack for selecting, clearing, and binding Client Scoped View on the server session.
+  - uid: CAP-RBAC
+    base_uid: CAP-RBAC
+    version_n: 0
+    status: active
+    priority: 10
+    statement: >-
+      Capability pack for project_grant create/revoke and permission checks used by business services.
+  - uid: CAP-MCP-DESK
+    base_uid: CAP-MCP-DESK
+    version_n: 0
+    status: draft
+    priority: 10
+    statement: >-
+      Capability pack for ReqAML MCP server, desk list/attach, and session-sealed desk WebSocket.
+
+capability_artifacts:
+  - requirement_version_uid: CAP-SSO
+    kind: other
+    uri: "../c4/sequences/A01-sign-in-sso.puml"
+  - requirement_version_uid: ARCH-API
+    kind: openapi
+    uri: "future://reqaml/openapi.yaml"
+  - requirement_version_uid: ARCH-UI
+    kind: wireframe
+    uri: "../c4/L3-ui-components.puml"
+  - requirement_version_uid: MC01
+    kind: other
+    uri: "../c4/sequences/MC01-mcp-auth-desk-bind.puml"
+  - requirement_version_uid: MC02
+    kind: other
+    uri: "../c4/sequences/MC02-mcp-mutate-requirement-version.puml"
+
+# ---------------------------------------------------------------------------
+# Edges (version UID → version UID)
+# ---------------------------------------------------------------------------
+edges:
+  - from: CAP-SSO
+    to: A01
+    kind: satisfies
+  - from: CAP-SSO
+    to: A02
+    kind: satisfies
+  - from: CAP-SCOPED-VIEW
+    to: A03
+    kind: satisfies
+  - from: CAP-SCOPED-VIEW
+    to: A04
+    kind: satisfies
+  - from: CAP-RBAC
+    to: A07
+    kind: satisfies
+  - from: CAP-RBAC
+    to: A08
+    kind: satisfies
+  - from: CAP-RBAC
+    to: A05
+    kind: satisfies
+  - from: CAP-RBAC
+    to: A06
+    kind: satisfies
+  - from: CTL-AC-3
+    to: A01
+    kind: conforms_to
+  - from: CTL-AC-3
+    to: A03
+    kind: conforms_to
+  - from: ARCH-UI
+    to: ARCH-CP-HIER
+    kind: uses
+  - from: ARCH-API
+    to: ARCH-VER
+    kind: uses
+  - from: ARCH-OTEL
+    to: A01
+    kind: refines
+  - from: A03
+    to: ARCH-CP-HIER
+    kind: refines
+  - from: CAP-MCP-DESK
+    to: MC01
+    kind: satisfies
+  - from: CAP-MCP-DESK
+    to: MC02
+    kind: satisfies
+  - from: MC02
+    to: ARCH-API
+    kind: uses
+  - from: MC01
+    to: A01
+    kind: refines
+
+# ---------------------------------------------------------------------------
+# Contract & release junctions (version UIDs)
+# ---------------------------------------------------------------------------
+contracts:
+  - id: contract-design-2026-10
+    client_id: raby-family
+    project_id: reqaml
+    name: Design-2026-10
+    starts_on: "2026-10-06"
+    ends_on: null
+    status: active
+    in_scope_of:
+      - A01
+      - A02
+      - A03
+      - A04
+      - A05
+      - A06
+      - A07
+      - A08
+      - ARCH-CP-HIER
+      - ARCH-VER
+      - ARCH-CONTRACT
+      - ARCH-RELEASE
+      - ARCH-UI
+      - ARCH-API
+      - ARCH-OTEL
+      - CTL-AC-3
+      - MC01
+      - MC02
+
+releases:
+  - id: rel-r0-sequences
+    project_id: reqaml
+    name: R0-sequences
+    planned_on: "2026-10-31"
+    shipped_on: null
+    status: planned
+    delivers:
+      - A01
+      - A02
+      - A03
+      - A04
+      - A05
+      - A06
+      - A07
+      - A08
+      - MC01
+      - MC02

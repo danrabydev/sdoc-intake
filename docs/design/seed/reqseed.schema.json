@@ -1,0 +1,252 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reqaml.local/schemas/reqseed.schema.json",
+  "title": "ReqAML seed bundle",
+  "description": "Practical draft-07 schema for ReqAML dogfood YAML (after YAML→JSON). Not over-strict.",
+  "type": "object",
+  "required": ["schema_version", "client", "projects", "requirement_lines", "requirement_versions"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "type": "string" },
+    "client": { "$ref": "#/definitions/client" },
+    "projects": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/project" },
+      "minItems": 1
+    },
+    "identities": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/identity" }
+    },
+    "project_grants": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/project_grant" }
+    },
+    "catalogs": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/catalog" }
+    },
+    "iterations": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/iteration" }
+    },
+    "requirement_lines": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/requirement_line" },
+      "minItems": 1
+    },
+    "requirement_versions": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/requirement_version" },
+      "minItems": 1
+    },
+    "capability_artifacts": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/capability_artifact" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/edge" }
+    },
+    "contracts": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/contract" }
+    },
+    "releases": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/release" }
+    }
+  },
+  "definitions": {
+    "client": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "created_at": { "type": "string" }
+      }
+    },
+    "project": {
+      "type": "object",
+      "required": ["id", "client_id", "name"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "name": { "type": "string" },
+        "status": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string" },
+        "external_sub": { "type": "string" },
+        "email": { "type": "string" },
+        "display_name": { "type": "string" }
+      }
+    },
+    "project_grant": {
+      "type": "object",
+      "required": ["project_id", "identity_id", "role"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string" },
+        "project_id": { "type": "string" },
+        "identity_id": { "type": "string" },
+        "role": { "type": "string" }
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "required": ["id", "scope", "title"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string" },
+        "scope": { "type": "string", "enum": ["global", "client", "project"] },
+        "client_id": { "type": ["string", "null"] },
+        "project_id": { "type": ["string", "null"] },
+        "title": { "type": "string" },
+        "is_standard": { "type": "boolean" },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "title"],
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "iteration": {
+      "type": "object",
+      "required": ["id", "project_id", "name"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string" },
+        "project_id": { "type": "string" },
+        "name": { "type": "string" },
+        "starts_on": { "type": "string" },
+        "ends_on": { "type": "string" }
+      }
+    },
+    "requirement_line": {
+      "type": "object",
+      "required": ["base_uid", "project_id", "kind", "title"],
+      "additionalProperties": true,
+      "properties": {
+        "base_uid": { "type": "string", "minLength": 1 },
+        "project_id": { "type": "string" },
+        "parent": { "type": ["string", "null"] },
+        "kind": {
+          "type": "string",
+          "enum": ["section", "requirement", "control", "capability", "release_node"]
+        },
+        "title": { "type": "string" }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "catalog_ref": { "type": "string" },
+        "verification_note": { "type": "string" }
+      }
+    },
+    "requirement_version": {
+      "type": "object",
+      "required": ["uid", "base_uid", "version_n", "statement", "status"],
+      "additionalProperties": true,
+      "properties": {
+        "uid": { "type": "string", "minLength": 1 },
+        "base_uid": { "type": "string" },
+        "version_n": { "type": "integer", "minimum": 0 },
+        "statement": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "active", "obsolete", "withdrawn"]
+        },
+        "priority": { "type": ["integer", "null"] },
+        "iteration": { "type": ["string", "null"] },
+        "rbac_op": { "type": ["string", "null"] },
+        "security": { "$ref": "#/definitions/security" },
+        "title": { "type": ["string", "null"] }
+      }
+    },
+    "capability_artifact": {
+      "type": "object",
+      "required": ["requirement_version_uid", "kind", "uri"],
+      "additionalProperties": true,
+      "properties": {
+        "requirement_version_uid": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": ["openapi", "wireframe", "mock", "other"]
+        },
+        "uri": { "type": "string" }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "required": ["from", "to", "kind"],
+      "additionalProperties": true,
+      "properties": {
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": ["refines", "conforms_to", "uses", "satisfies"]
+        }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "required": ["id", "client_id", "name", "status", "in_scope_of"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "project_id": { "type": ["string", "null"] },
+        "name": { "type": "string" },
+        "starts_on": { "type": "string" },
+        "ends_on": { "type": ["string", "null"] },
+        "status": {
+          "type": "string",
+          "enum": ["planned", "active", "closed"]
+        },
+        "in_scope_of": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "release": {
+      "type": "object",
+      "required": ["id", "project_id", "name", "status", "delivers"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string" },
+        "project_id": { "type": "string" },
+        "name": { "type": "string" },
+        "planned_on": { "type": ["string", "null"] },
+        "shipped_on": { "type": ["string", "null"] },
+        "status": {
+          "type": "string",
+          "enum": ["planned", "shipped"]
+        },
+        "delivers": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,560 @@
+[DOCUMENT]
+TITLE: ReqAML — Requirements
+UID: reqaml-requirements
+COMMENT: >>>
+client: Raby-Family (raby-family)
+project: ReqAML (reqaml)
+ReqAML dogfood export — StrictDoc interchange only
+schema_version: 2026-10-06
+<<<
+
+[SECTION]
+UID: SEC-IA
+TITLE: Identity & Access
+STATEMENT: >>>
+Identity and access actions for ReqAML — SSO sign-in/out, client scoped view, profile, and project grant administration.
+<<<
+COMMENT: >>>
+KIND: section
+LEVEL: 1
+VERSION_UID: SEC-IA
+STATUS: active
+<<<
+
+[REQUIREMENT]
+UID: A01
+STATUS: Active
+TITLE: Sign in via SSO
+STATEMENT: >>>
+A user signs in via enterprise SSO (OIDC or SAML). ReqAML validates the IdP token, establishes a least-privilege session, loads grants, and emits an auditable sign-in event.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: A01
+VERSION_N: 0
+rbac_op: auth:signin
+priority: 10
+iteration: iter-r0
+security.catalog_ref: NIST-IA
+security.verification_note: NIST IA/AC/AU families apply (IA-2, AC-3, AU-2/3/12). STIG TBD ASD V6R4. No local password store; MFA at IdP.
+edge: ← satisfies from CAP-SSO
+edge: ← conforms_to from CTL-AC-3
+edge: ← refines from ARCH-OTEL
+edge: ← refines from MC01
+in_scope_of_contract: Design-2026-10
+delivered_by_release: R0-sequences
+<<<
+
+[REQUIREMENT]
+UID: A02
+STATUS: Active
+TITLE: Sign out
+STATEMENT: >>>
+An authenticated user signs out. ReqAML terminates the server session, clears the client session handle, and records an auditable logout event.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: A02
+VERSION_N: 0
+rbac_op: auth:signout
+priority: 20
+iteration: iter-r0
+security.catalog_ref: NIST-AC
+security.verification_note: NIST AC-12 session termination; AU-2/3/12 logout audit. STIG TBD ASD V6R4.
+edge: ← satisfies from CAP-SSO
+in_scope_of_contract: Design-2026-10
+delivered_by_release: R0-sequences
+<<<
+
+[REQUIREMENT]
+UID: A03
+STATUS: Active
+TITLE: Select Client Scoped View
+STATEMENT: >>>
+An authenticated user selects a Client Scoped View. The active clientId is persisted server-side so subsequent queries are bound to that client for least privilege.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: A03
+VERSION_N: 0
+rbac_op: client:scope:select
+priority: 10
+iteration: iter-r0
+security.catalog_ref: NIST-AC
+security.verification_note: NIST AC-3/AC-6 least privilege via server-bound scope. STIG TBD ASD V6R4.
+edge: refines → ARCH-CP-HIER
+edge: ← satisfies from CAP-SCOPED-VIEW
+edge: ← conforms_to from CTL-AC-3
+in_scope_of_contract: Design-2026-10
+delivered_by_release: R0-sequences
+<<<
+
+[REQUIREMENT]
+UID: A04
+STATUS: Active
+TITLE: Clear / change Scoped View
+STATEMENT: >>>
+A user clears or changes Client Scoped View. ReqAML updates or clears the server-side active client binding and audits the scope change.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: A04
+VERSION_N: 0
+rbac_op: client:scope:clear
+priority: 30
+iteration: iter-r0
+security.catalog_ref: NIST-AC
+security.verification_note: NIST AC-3 access enforcement on scope clear/change. STIG TBD ASD V6R4.
+edge: ← satisfies from CAP-SCOPED-VIEW
+in_scope_of_contract: Design-2026-10
+delivered_by_release: R0-sequences
+<<<
+
+[REQUIREMENT]
+UID: A05
+STATUS: Active
+TITLE: View own profile / grants
+STATEMENT: >>>
+A user views their own profile and project grants. ReqAML returns only the caller’s identity and grants (no cross-subject disclosure).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: A05
+VERSION_N: 0
+rbac_op: identity:read_self
+priority: 40
+iteration: iter-r0
+security.catalog_ref: NIST-AC
+security.verification_note: NIST AC-3 self-read boundary; AU for access logging where required. STIG TBD ASD V6R4.
+edge: ← satisfies from CAP-RBAC
+in_scope_of_contract: Design-2026-10
+delivered_by_release: R0-sequences
+<<<
+
+[REQUIREMENT]
+UID: A06
+STATUS: Active
+TITLE: Invite / link identity
+STATEMENT: >>>
+An admin invites or links an identity to a client or project. ReqAML records the external subject binding and audits who linked whom.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: A06
+VERSION_N: 0
+rbac_op: identity:link
+priority: 50
+iteration: iter-r0
+security.catalog_ref: NIST-IA
+security.verification_note: NIST IA-2/AC-2 account/identity linkage; AU-2/3/12 admin actions. STIG TBD ASD V6R4.
+edge: ← satisfies from CAP-RBAC
+in_scope_of_contract: Design-2026-10
+delivered_by_release: R0-sequences
+<<<
+
+[REQUIREMENT]
+UID: A07
+STATUS: Active
+TITLE: Grant project role
+STATEMENT: >>>
+A project admin grants a role on a project to an identity. ReqAML creates a project_grant row and audits the grant (actor, subject, role).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: A07
+VERSION_N: 0
+rbac_op: project:grant:create
+priority: 50
+iteration: iter-r0
+security.catalog_ref: NIST-AC
+security.verification_note: NIST AC-2/AC-3/AC-6 grant administration. STIG TBD ASD V6R4.
+edge: ← satisfies from CAP-RBAC
+in_scope_of_contract: Design-2026-10
+delivered_by_release: R0-sequences
+<<<
+
+[REQUIREMENT]
+UID: A08
+STATUS: Active
+TITLE: Revoke project role
+STATEMENT: >>>
+A project admin revokes a project role from an identity. ReqAML removes or tombstones the grant and audits the revocation.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: A08
+VERSION_N: 0
+rbac_op: project:grant:revoke
+priority: 50
+iteration: iter-r0
+security.catalog_ref: NIST-AC
+security.verification_note: NIST AC-2/AC-3 revoke path; AU-2/3/12. STIG TBD ASD V6R4.
+edge: ← satisfies from CAP-RBAC
+in_scope_of_contract: Design-2026-10
+delivered_by_release: R0-sequences
+<<<
+
+[/SECTION]
+
+[SECTION]
+UID: SEC-CP
+TITLE: Client & Project
+STATEMENT: >>>
+Client owns projects; all project work assumes a Client Scoped View.
+<<<
+COMMENT: >>>
+KIND: section
+LEVEL: 1
+VERSION_UID: SEC-CP
+STATUS: active
+<<<
+
+[REQUIREMENT]
+UID: ARCH-CP-HIER
+STATUS: Active
+TITLE: Client → Project hierarchy
+STATEMENT: >>>
+ReqAML organizes work as Client → Project. Projects belong to exactly one client; Client Scoped View is assumed for most project operations.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CP-HIER
+VERSION_N: 0
+priority: 5
+edge: ← uses from ARCH-UI
+edge: ← refines from A03
+in_scope_of_contract: Design-2026-10
+<<<
+
+[/SECTION]
+
+[SECTION]
+UID: SEC-RL
+TITLE: Requirement Lines & Versions
+STATEMENT: >>>
+Requirement lines are stable tree nodes; requirement versions hold statement and status.
+<<<
+COMMENT: >>>
+KIND: section
+LEVEL: 1
+VERSION_UID: SEC-RL
+STATUS: active
+<<<
+
+[REQUIREMENT]
+UID: ARCH-VER
+STATUS: Active
+TITLE: Static .N requirement versioning
+STATEMENT: >>>
+Each requirement line has versions with UIDs base_uid or base_uid.N (static append). Children stay on the parent line (parent = base_uid); there is no cascade fork. Obsolete/withdrawn is a new version with that status.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-VER
+VERSION_N: 0
+priority: 5
+edge: ← uses from ARCH-API
+in_scope_of_contract: Design-2026-10
+<<<
+
+[/SECTION]
+
+[SECTION]
+UID: SEC-CT
+TITLE: Contracts
+STATEMENT: >>>
+Contracts are junction overlays that mark requirement versions in_scope_of a named agreement.
+<<<
+COMMENT: >>>
+KIND: section
+LEVEL: 1
+VERSION_UID: SEC-CT
+STATUS: active
+<<<
+
+[REQUIREMENT]
+UID: ARCH-CONTRACT
+STATUS: Active
+TITLE: Contracts as overlays
+STATEMENT: >>>
+Contracts are related overlays, not tree parents. A contract links requirement version UIDs via in_scope_of; document views filter by contract and optionally walk parent lines for context.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CONTRACT
+VERSION_N: 0
+priority: 15
+in_scope_of_contract: Design-2026-10
+<<<
+
+[/SECTION]
+
+[SECTION]
+UID: SEC-REL
+TITLE: Releases
+STATEMENT: >>>
+Releases snapshot the requirement versions they deliver; they are not tree parents.
+<<<
+COMMENT: >>>
+KIND: section
+LEVEL: 1
+VERSION_UID: SEC-REL
+STATUS: active
+<<<
+
+[REQUIREMENT]
+UID: ARCH-RELEASE
+STATUS: Active
+TITLE: Releases deliver version snapshots
+STATEMENT: >>>
+A release delivers a snapshot of requirement version UIDs. Shipping freezes the delivered set; releases do not own the requirement tree.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-RELEASE
+VERSION_N: 0
+priority: 15
+in_scope_of_contract: Design-2026-10
+<<<
+
+[/SECTION]
+
+[SECTION]
+UID: SEC-UI
+TITLE: UI Architecture
+STATEMENT: >>>
+React UI ownership chain from App providers through routes, layout, pages, and views.
+<<<
+COMMENT: >>>
+KIND: section
+LEVEL: 1
+VERSION_UID: SEC-UI
+STATUS: active
+<<<
+
+[REQUIREMENT]
+UID: ARCH-UI
+STATUS: Active
+TITLE: App → Routes → Layout → Page → View
+STATEMENT: >>>
+UI stack is App (auth + ClientScope) → Routes + guards → Layout → Page → View → pure components, with optional stores scoped by clientId.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-UI
+VERSION_N: 0
+priority: 20
+edge: uses → ARCH-CP-HIER
+in_scope_of_contract: Design-2026-10
+<<<
+
+[/SECTION]
+
+[SECTION]
+UID: SEC-API
+TITLE: API Architecture
+STATEMENT: >>>
+Node API layers HTTP adapters, RBAC, business services, audit, and schema-first data providers.
+<<<
+COMMENT: >>>
+KIND: section
+LEVEL: 1
+VERSION_UID: SEC-API
+STATUS: active
+<<<
+
+[REQUIREMENT]
+UID: ARCH-API
+STATUS: Active
+TITLE: HTTP → business → data, OpenAPI schema-first
+STATEMENT: >>>
+API is schema-first (Zod + OpenAPI): HTTP adapters validate DTOs, RBAC authorizes, business services orchestrate, data providers implement repositories against Postgres.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-API
+VERSION_N: 0
+priority: 20
+edge: uses → ARCH-VER
+edge: ← uses from MC02
+in_scope_of_contract: Design-2026-10
+<<<
+
+[REQUIREMENT]
+UID: ARCH-OTEL
+STATUS: Active
+TITLE: OTEL audit trail
+STATEMENT: >>>
+Security-relevant actions emit structured audit events exported via OTEL (OTLP) for centralized review, aligned to NIST AU families and STIG TBD ASD V6R4.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-OTEL
+VERSION_N: 0
+priority: 25
+security.catalog_ref: NIST-AU
+security.verification_note: NIST AU-2/3/6/12. STIG TBD ASD V6R4.
+edge: refines → A01
+in_scope_of_contract: Design-2026-10
+<<<
+
+[/SECTION]
+
+[SECTION]
+UID: SEC-SEC
+TITLE: Security / RBAC
+STATEMENT: >>>
+Cross-cutting security, NIST/STIG alignment notes, and capability packs for ReqAML.
+<<<
+COMMENT: >>>
+KIND: section
+LEVEL: 1
+VERSION_UID: SEC-SEC
+STATUS: active
+<<<
+
+[REQUIREMENT]
+UID: CTL-AC-3
+STATUS: Active
+TITLE: Enforce access control on routes and APIs
+STATEMENT: >>>
+Route guards and API RBAC enforce authorized access for every protected shell route and mutating operation; unauthorized callers receive a denied outcome that is auditable.
+<<<
+COMMENT: >>>
+KIND: control
+BASE_UID: CTL-AC-3
+VERSION_N: 0
+priority: 10
+security.catalog_ref: NIST-AC
+security.verification_note: Conforms to NIST AC-3 (Access Enforcement). STIG TBD ASD V6R4.
+edge: conforms_to → A01
+edge: conforms_to → A03
+in_scope_of_contract: Design-2026-10
+<<<
+
+[REQUIREMENT]
+UID: CAP-SSO
+STATUS: Active
+TITLE: Federated SSO session
+STATEMENT: >>>
+Capability pack for federated SSO session establishment and teardown against the enterprise IdP.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SSO
+VERSION_N: 0
+priority: 10
+edge: satisfies → A01
+edge: satisfies → A02
+<<<
+
+[REQUIREMENT]
+UID: CAP-SCOPED-VIEW
+STATUS: Active
+TITLE: Client Scoped View binding
+STATEMENT: >>>
+Capability pack for selecting, clearing, and binding Client Scoped View on the server session.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SCOPED-VIEW
+VERSION_N: 0
+priority: 10
+edge: satisfies → A03
+edge: satisfies → A04
+<<<
+
+[REQUIREMENT]
+UID: CAP-RBAC
+STATUS: Active
+TITLE: Project RBAC grants
+STATEMENT: >>>
+Capability pack for project_grant create/revoke and permission checks used by business services.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-RBAC
+VERSION_N: 0
+priority: 10
+edge: satisfies → A07
+edge: satisfies → A08
+edge: satisfies → A05
+edge: satisfies → A06
+<<<
+
+[/SECTION]
+
+[SECTION]
+UID: SEC-MCP
+TITLE: MCP agent desks
+STATEMENT: >>>
+MCP agents authenticate like UI users, bind to a requirements desk (browser tab routing), mutate via HTTPS API, and receive live desk pushes on a session-sealed WebSocket.
+<<<
+COMMENT: >>>
+KIND: section
+LEVEL: 1
+VERSION_UID: SEC-MCP
+STATUS: active
+<<<
+
+[REQUIREMENT]
+UID: MC01
+STATUS: Draft
+TITLE: MCP authenticate session & desk bind
+STATEMENT: >>>
+An MCP host connects to ReqAML MCP (stdio or Streamable HTTP), establishes a platform session (OAuth opaque token or login aligned with A01), lists desks, and attach/detach routing to a browser requirements desk; live pushes use session-sealed WSS.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: MC01
+VERSION_N: 0
+rbac_op: mcp:session:create, desk:list, desk:attach, desk:detach
+priority: 60
+iteration: iter-r0
+security.catalog_ref: NIST-SC
+security.verification_note: NIST IA/AC/AU/SC families; desk sealing pattern (OC ADR 0018 analogue). STIG TBD ASD V6R4.
+edge: refines → A01
+edge: ← satisfies from CAP-MCP-DESK
+in_scope_of_contract: Design-2026-10
+delivered_by_release: R0-sequences
+<<<
+
+[REQUIREMENT]
+UID: MC02
+STATUS: Draft
+TITLE: MCP mutating tool with desk attached
+STATEMENT: >>>
+With a desk attached, an MCP tool updates a draft requirement version field over HTTPS (HTTP→business→data→Postgres), audits the agent write, and pushes preview to the desk channel.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: MC02
+VERSION_N: 0
+rbac_op: requirement:version:update_draft
+priority: 60
+iteration: iter-r0
+security.catalog_ref: NIST-AC
+security.verification_note: NIST AC-3/CM-3/AU; mutations not on desk socket. STIG TBD ASD V6R4.
+edge: uses → ARCH-API
+edge: ← satisfies from CAP-MCP-DESK
+in_scope_of_contract: Design-2026-10
+delivered_by_release: R0-sequences
+<<<
+
+[REQUIREMENT]
+UID: CAP-MCP-DESK
+STATUS: Draft
+TITLE: ReqAML MCP requirements desk channel
+STATEMENT: >>>
+Capability pack for ReqAML MCP server, desk list/attach, and session-sealed desk WebSocket.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-MCP-DESK
+VERSION_N: 0
+priority: 10
+edge: satisfies → MC01
+edge: satisfies → MC02
+<<<
+
+[/SECTION]

@@ -1,0 +1,79 @@
+[DOCUMENT]
+TITLE: ReqAML — Contracts & Releases
+UID: reqaml-contracts-releases
+COMMENT: >>>
+client: Raby-Family (raby-family)
+project: ReqAML (reqaml)
+Junction entities exported as REQUIREMENTs with COMMENT UID lists
+Contracts/releases are not tree parents in ReqAML
+<<<
+
+[SECTION]
+UID: SEC-CONTRACTS-EXPORT
+TITLE: Contracts
+
+[REQUIREMENT]
+UID: CONTRACT-contract-design-2026-10
+STATUS: Active
+TITLE: Contract Design-2026-10
+STATEMENT: >>>
+ReqAML contract overlay `Design-2026-10` (status=active, starts_on=2026-10-06). Links requirement versions via in_scope_of; not a tree parent.
+<<<
+COMMENT: >>>
+KIND: contract
+contract_id: contract-design-2026-10
+client_id: raby-family
+project_id: reqaml
+in_scope_of:
+  - A01
+  - A02
+  - A03
+  - A04
+  - A05
+  - A06
+  - A07
+  - A08
+  - ARCH-CP-HIER
+  - ARCH-VER
+  - ARCH-CONTRACT
+  - ARCH-RELEASE
+  - ARCH-UI
+  - ARCH-API
+  - ARCH-OTEL
+  - CTL-AC-3
+  - MC01
+  - MC02
+<<<
+
+[/SECTION]
+
+[SECTION]
+UID: SEC-RELEASES-EXPORT
+TITLE: Releases
+
+[REQUIREMENT]
+UID: RELEASE-rel-r0-sequences
+STATUS: Draft
+TITLE: Release R0-sequences
+STATEMENT: >>>
+ReqAML release `R0-sequences` (status=planned, planned_on=2026-10-31). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r0-sequences
+project_id: reqaml
+shipped_on: None
+delivers:
+  - A01
+  - A02
+  - A03
+  - A04
+  - A05
+  - A06
+  - A07
+  - A08
+  - MC01
+  - MC02
+<<<
+
+[/SECTION]

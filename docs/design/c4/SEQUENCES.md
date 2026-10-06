@@ -32,6 +32,8 @@ Sequence diagrams document **who does what**, **RBAC operations**, and **why eac
 
 **ReqAML MCP:** [MC01](./sequences/MC01-mcp-auth-desk-bind.puml) / [MC02](./sequences/MC02-mcp-mutate-requirement-version.puml) — agent desk auth/bind and HTTPS mutations (Operation Charity workflow MCP pattern); **`MC**`** IDs in [INDEX](./sequences/INDEX.md).
 
+**Dogfood model:** the same actions (A01–A08, draft MC01–MC02) live in [`../seed/dogfood.yaml`](../seed/dogfood.yaml) with `rbac_op` and security notes for bootstrap/import.
+
 ## Render
 
 See [`includes/README.md`](./includes/README.md). Prefer `pnpm run diagrams:render` from repo root after PlantUML is installed locally.
