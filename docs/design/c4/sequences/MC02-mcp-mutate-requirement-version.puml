@@ -1,0 +1,64 @@
+@startuml MC02-mcp-mutate-requirement-version
+!include ../includes/C4_Sequence_Macros.puml
+
+title MC02 — ReqAML MCP: mutating tool with desk attached\n(e.g. update draft requirement version statement)
+
+C4Seq_McpHost()
+C4Seq_ReqAmlMcp()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_DeskSocket()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+note over seqMcpHost, seqWebUI
+  Preconditions: MC01 complete —
+  MCP session authenticated, desk attached,
+  browser tab on same client-scoped desk.
+end note
+
+== Mutating MCP tool (HTTPS only, not desk socket) ==
+
+seqMcpHost -> seqMcpServer : tool update_requirement_draft\n(uid, field, value)
+ControlNote(seqMcpServer, "AC-3", "TBD (ASD V6R4)", "Tool invocation bound to authenticated MCP session + attached desk context")
+
+seqMcpServer -> seqAPI : PATCH /clients/{clientId}/requirements/{uid}/versions/{n}
+ClientScopedQuery("PATCH", "/clients/{clientId}/requirements/{uid}/versions/{n}")
+ControlNote(seqAPI, "SC-8", "TBD (ASD V6R4)", "Mutations via OpenAPI HTTPS like UI; MCP does not write over WSS")
+
+seqAPI -> seqBusiness : updateDraftVersion(actor, clientId, uid, n, patch)
+ControlNote(seqBusiness, "AC-3, CM-3", "TBD (ASD V6R4)", "Business rules: draft-only, optimistic concurrency optional")
+
+seqBusiness -> seqRBAC : require requirement:version:update_draft
+RbacCheck("requirement:version:update_draft")
+ControlNote(seqRBAC, "AC-3, AC-6", "TBD (ASD V6R4)", "Same RBAC op family as Author UI; client scope enforced")
+
+seqBusiness -> seqData : updateRequirementVersion(...)
+seqData -> seqPostgres : UPDATE requirement_version … WHERE client_id = scope
+ControlNote(seqPostgres, "AC-3", "TBD (ASD V6R4)", "SoT write with client boundary")
+
+seqPostgres --> seqData : ok
+seqData --> seqBusiness : updated row
+
+seqBusiness -> seqAudit : requirementVersionUpdated(actor, uid, n, field, source=mcp)
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable agent write distinguishable from human UI")
+seqAudit -> seqOTEL : export audit event (OTLP)
+
+seqBusiness --> seqAPI : DTO
+seqAPI --> seqMcpServer : tool result (structuredContent)
+seqMcpServer --> seqMcpHost : ok + revision
+
+== Live desk feedback (session-sealed push) ==
+
+seqBusiness -> seqDeskWs : push sealed desk_frame\n(preview/cursor/agent_status)
+ControlNote(seqDeskWs, "SC-23, SC-8", "TBD (ASD V6R4)", "OC ADR 0018 pattern: HPKE seal to session key; type in AAD; no RPC on socket")
+
+seqDeskWs --> seqWebUI : decrypt + render draft change
+ControlNote(seqWebUI, "AC-3", "TBD (ASD V6R4)", "Human tab shows agent edit; Layout route unchanged")
+
+@enduml

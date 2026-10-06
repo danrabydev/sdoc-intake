@@ -108,3 +108,12 @@ Inventory of **104** user actions from [`user-actions-inventory.md`](../user-act
 | 102 | N01 | Toggle mind-map vs tree vs document view | stub | TBD |  | — |
 | 103 | N02 | Pin favorite contract / project | stub | TBD |  | — |
 | 104 | N03 | Use global search | stub | TBD |  | — |
+
+## ReqAML MCP agent actions (extension)
+
+IDs **`MC**`** avoid collision with inventory section **M** (audit ops M01–M04). Pattern adapted from Operation Charity workflow MCP + desk-session sealing (see MC01 companion).
+
+| Global | ID | Action | Status | RBAC op | Primary control families | Diagram / companion |
+|--------|-----|--------|--------|---------|--------------------------|---------------------|
+| — | MC01 | MCP authenticate session & desk bind | draft | `mcp:session:create`, `desk:list`, `desk:attach`, `desk:detach` (proposed) | IA, AC, AU, SC | [MC01-mcp-auth-desk-bind.puml](./MC01-mcp-auth-desk-bind.puml), [MC01-mcp-auth-desk-bind.md](./MC01-mcp-auth-desk-bind.md) |
+| — | MC02 | MCP mutating tool with desk attached (draft req version) | draft | `requirement:version:update_draft` (proposed) | AC, AU, CM, SC | [MC02-mcp-mutate-requirement-version.puml](./MC02-mcp-mutate-requirement-version.puml), [MC02-mcp-mutate-requirement-version.md](./MC02-mcp-mutate-requirement-version.md) |

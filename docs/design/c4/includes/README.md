@@ -7,7 +7,7 @@ Reusable PlantUML fragments for **user-action sequence diagrams** (RBAC + system
 | File | Purpose |
 |------|---------|
 | `C4_Sequence_Styles.puml` | Skinparams aligned with C4-PlantUML colors |
-| `C4_Sequence_Participants.puml` | Canonical participant aliases + `C4Seq_*` / bundle procedures |
+| `C4_Sequence_Participants.puml` | Canonical participant aliases + `C4Seq_*` / bundle procedures (incl. `C4Seq_McpHost`, `C4Seq_ReqAmlMcp`, `C4Seq_DeskSocket`, `C4Seq_Bundle_McpDesk`) |
 | `C4_Sequence_Controls.puml` | **`ControlNote`** / **`ComplianceNote`** — one place for control annotations |
 | `C4_Sequence_Macros.puml` | Flow macros (`RbacCheck`, `AuditLog`, …) — includes the files above |
 

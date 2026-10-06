@@ -1,0 +1,102 @@
+@startuml MC01-mcp-auth-desk-bind
+!include ../includes/C4_Sequence_Macros.puml
+
+title MC01 — ReqAML MCP: authenticate session & desk bind\n(pattern: OC workflow MCP + ADR desk-session-sealing)
+
+C4Seq_McpHost()
+C4Seq_ReqAmlMcp()
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_IdP()
+C4Seq_DeskSocket()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== MCP transport & identity (same grants as UI SSO) ==
+
+seqMcpHost -> seqMcpServer : Connect (stdio or Streamable HTTP)
+ControlNote(seqMcpServer, "SC-8, IA-2", "TBD (ASD V6R4)", "Agent channel to ReqAML MCP over TLS (remote) or local stdio")
+
+alt Remote OAuth (browser agent host)
+  seqMcpHost -> seqMcpServer : Authorization: Bearer opaque token
+  seqMcpServer -> seqAPI : POST /auth/mcp/introspect
+  ControlNote(seqAPI, "IA-2, IA-5", "TBD (ASD V6R4)", "Opaque MCP token maps to platform session; not raw browser cookie")
+  seqAPI -> seqIdP : Validate grant / JWKS (if federated)
+  seqAPI -> seqBusiness : resolveMcpSession(token)
+else Stdio / automation login tool
+  seqMcpHost -> seqMcpServer : tool login(credentials or env token)
+  seqMcpServer -> seqAPI : POST /auth/callback (same path as A01)
+  ControlNote(seqMcpServer, "IA-2", "TBD (ASD V6R4)", "Align MCP identity with SSO-established session + grants")
+end
+
+seqAPI -> seqBusiness : establishSession(claims)
+seqBusiness -> seqRBAC : require mcp:session:create
+RbacCheck("mcp:session:create")
+ControlNote(seqRBAC, "AC-3, AC-2", "TBD (ASD V6R4)", "MCP session inherits RBAC; no elevated agent principal")
+
+seqBusiness --> seqMcpServer : principal + grants + session_id
+ControlNote(seqMcpServer, "AC-6", "TBD (ASD V6R4)", "In-process sticky context if host drops MCP state (OC session.ts pattern)")
+
+seqBusiness -> seqAudit : mcpSessionEstablished(actor, authSource)
+seqAudit -> seqOTEL : export audit event (OTLP)
+
+== Browser requirements desk (parallel human tab) ==
+
+seqUser -> seqWebUI : Open ReqAML desk surface (Layout + client scope)
+note over seqUser : Actor alias for human operator\n(same identity family as MCP subject when delegated)
+
+seqWebUI -> seqRouteGuard : Protected project/requirement route
+RbacRouteGuard("client:scope:select")
+ControlNote(seqRouteGuard, "AC-3", "TBD (ASD V6R4)", "Routes+guards wrap Layout before desk is addressable")
+
+seqWebUI -> seqDeskWs : WSS desk_hello (session-bound HPKE pubkey)
+ControlNote(seqDeskWs, "SC-8, SC-23", "TBD (ASD V6R4)", "Live desk push sealed to session (principal+tenant+session_id); MCP/RPC stay HTTPS")
+
+== Desk routing handles (not tenant/auth source) ==
+
+seqMcpHost -> seqMcpServer : tool list_desks()
+seqMcpServer -> seqAPI : GET /desks
+seqAPI -> seqBusiness : listDesks(actor)
+seqBusiness -> seqRBAC : require desk:list
+RbacCheck("desk:list")
+seqBusiness -> seqData : listDeskPresence(clientScope)
+seqData -> seqPostgres : SELECT desk routes + live flags
+ControlNote(seqPostgres, "AC-3", "TBD (ASD V6R4)", "Desk list filtered by client scope and grants")
+
+seqPostgres --> seqData : rows
+seqData --> seqBusiness : desks
+seqBusiness --> seqAPI : DTO
+seqAPI --> seqMcpServer : desks[] (href, live, attached)
+seqMcpServer --> seqMcpHost : tool result
+
+seqMcpHost -> seqMcpServer : tool attach_desk(deskId)
+seqMcpServer -> seqAPI : POST /desks/{deskId}/attach
+seqAPI -> seqBusiness : attachDesk(actor, deskId)
+seqBusiness -> seqRBAC : require desk:attach
+RbacCheck("desk:attach")
+ControlNote(seqBusiness, "AC-3", "TBD (ASD V6R4)", "Desk = routing handle for which tab receives agent presence; auth from session")
+
+seqBusiness -> seqAudit : deskAttached(actor, deskId, session_id)
+seqAudit -> seqOTEL : export audit event (OTLP)
+
+seqBusiness -> seqDeskWs : push sealed agent_status
+seqDeskWs --> seqWebUI : decrypt + show agent attached
+ControlNote(seqDeskWs, "SC-23", "TBD (ASD V6R4)", "Classified desk events only on sealed socket; no plaintext fallback")
+
+opt Detach
+  seqMcpHost -> seqMcpServer : tool detach_desk()
+  seqMcpServer -> seqAPI : POST /desks/detach
+  seqAPI -> seqBusiness : detachDesk(actor)
+  seqBusiness -> seqRBAC : require desk:detach
+  RbacCheck("desk:detach")
+  seqBusiness -> seqAudit : deskDetached(actor, deskId)
+  seqAudit -> seqOTEL : export audit event (OTLP)
+end
+
+@enduml
