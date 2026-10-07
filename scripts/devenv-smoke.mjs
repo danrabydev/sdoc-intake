@@ -136,7 +136,7 @@ async function main() {
     `Compose project name: ${composeProjectName} (set COMPOSE_PROJECT_NAME to override; avoids clashing with a dev stack on port 3000)`,
   );
   console.log(
-    "Compose overlays: docker-compose.yml + docker-compose.hostports.yml (publishes app on 127.0.0.1:3000 for host-side migrate/seed)",
+    "Compose overlays: docker-compose.yml + docker-compose.hostports.yml (hostports publishes Postgres/OpenBao on 127.0.0.1:5432/8200 for host-side migrate/seed; app stays on 127.0.0.1:3000)",
   );
   console.log("Starting peripherals + app (full-container, hostports for migrate)…");
   await run("docker", [
