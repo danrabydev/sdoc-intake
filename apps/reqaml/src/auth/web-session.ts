@@ -9,6 +9,7 @@ import { randomToken } from "../credential/password.js";
 export const SESSION_COOKIE = "reqaml_session";
 export const CSRF_COOKIE = "reqaml_csrf";
 
+const EPHEMERAL_DEV_SESSION_SECRET = randomBytes(32).toString("base64url");
 const SESSION_ABSOLUTE_MS = 12 * 60 * 60 * 1000;
 const SESSION_IDLE_MS = 30 * 60 * 1000;
 
@@ -17,7 +18,9 @@ export function sessionSecret(config: AppConfig): string {
   if (!s && isProduction(config)) {
     throw new Error("REQAML_SESSION_SECRET required in production");
   }
-  return s ?? "dev-insecure-session-secret-replace-via-devenv-init";
+  // No committed fallback: without devenv:init, dev uses a per-process random secret (sessions end
+  // on restart).
+  return s ?? EPHEMERAL_DEV_SESSION_SECRET;
 }
 
 export function signSessionId(id: string, config: AppConfig): string {
