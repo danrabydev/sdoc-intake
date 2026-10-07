@@ -1,13 +1,15 @@
 name: ReqAML devenv smoke
 
+# Manual dispatch only (GitHub Actions minutes are limited).
+# The primary check is running `pnpm devenv:smoke` locally (needs Docker + Compose v2);
+# use this workflow only for an occasional clean-runner confirmation.
 on:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -21,3 +23,6 @@ jobs:
       - run: pnpm --filter @reqaml/app typecheck
       - run: cp .env.example .env
       - run: pnpm devenv:smoke
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
