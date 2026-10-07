@@ -168,7 +168,8 @@ Auth foundation (first build slice: internal OAuth AS, credential store, key sto
 |----|---------|
 | AS01 | MCP client authorization via internal OAuth 2.1 AS (PKCE S256, PRM, audience, refresh, revoke) |
 | AS02 | Local login with lockout + MFA |
-| AS03 | Federated enterprise SSO through the internal AS |
+| AS03 | Federated enterprise SSO through the internal AS (tenant connector, claim map, upstream logout) |
+| AS04 | **Proposal:** MCP tool → provider API via token exchange vs stored upstream grant ([design doc](./auth/mcp-upstream-identity.md)) |
 | KS01 | KEK rotation + online DEK re-wrap (OpenBao Transit) |
 | KS02 | Token signing via KeyProvider + JWKS rotation overlap |
 

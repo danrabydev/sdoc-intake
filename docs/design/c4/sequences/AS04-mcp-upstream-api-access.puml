@@ -1,0 +1,59 @@
+@startuml AS04-mcp-upstream-api-access
+!include ../includes/C4_Sequence_Macros.puml
+
+title AS04 — PROPOSAL (not locked): MCP tool reaching a provider API on the user's behalf\n(b) RFC 8693 token exchange vs (c) stored upstream grant · MCP token never forwarded
+
+C4Seq_McpHost()
+C4Seq_ReqAmlMcp()
+C4Seq_Business()
+C4Seq_RBAC()
+C4Seq_KeyProvider()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_IdP()
+C4Seq_AzureDevOps()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+note over seqIdP : Upstream provider AS\n(IdP / provider OAuth)
+note over seqAzureDevOps : Provider API\n(e.g. Azure DevOps, Graph)
+
+== Inbound: MCP call with internal-AS token (settled) ==
+
+seqMcpHost -> seqMcpServer : tools/call sync_work_item\nBearer access_token(aud=MCP, iss=ReqAML AS)
+TokenValidate(seqMcpServer, "https://reqaml/mcp")
+ControlNote(seqMcpServer, "IA-2, SC-23", "V-222522", "MCP credential is always the internal-AS token (ARCH-AUTH-MCP-REQUIRED)")
+seqMcpServer -> seqBusiness : syncWorkItem(principal=human sub, client_id=MCP host)
+RbacCheck("workitem:sync")
+HookEval("workitem:sync")
+
+== Outbound: obtain a provider-audience token (OPEN: b vs c) ==
+
+alt (b) Token exchange (RFC 8693) — no long-lived upstream credential
+  seqBusiness -> seqData : load user's upstream subject token\n(held from sign-in; short-lived)
+  seqData -> seqPostgres : SELECT wrapped upstream token
+  KeyOp("unwrap", "DEK for upstream subject token")
+  seqBusiness -> seqIdP : POST /token grant_type=token-exchange\nsubject_token=<upstream token>, audience=provider API, scope=…
+  seqIdP --> seqBusiness : provider access token (short TTL, narrow scope)
+  ControlNote(seqBusiness, "AC-6, SC-23", "TBD (ASD V6R4)", "Requires a subject token the provider trusts — ReqAML's own token is NOT one")
+else (c) Stored upstream grant — user consented 'Connect provider' earlier
+  seqBusiness -> seqData : load connector grant (user, provider)
+  seqData -> seqPostgres : SELECT encrypted refresh token + wrapped DEK
+  KeyOp("unwrap", "DEK for connector refresh token")
+  seqBusiness -> seqIdP : POST /token grant_type=refresh_token (provider)
+  seqIdP --> seqBusiness : provider access token (+ rotated refresh → re-encrypt)
+  ControlNote(seqKeyProvider, "SC-28(1), SC-12", "V-222588", "Long-lived upstream secret custody under KeyProvider (ARCH-KEY-SCOPE); high-value target")
+else (d) Passthrough — REJECTED
+  seqBusiness -> seqBusiness : forward MCP token to provider ✗
+  ControlNote(seqBusiness, "AC-3, SC-23", "TBD (ASD V6R4)", "MCP spec: MUST NOT pass through / transit tokens (confused deputy)")
+end
+
+seqBusiness -> seqAzureDevOps : provider API call (Bearer provider token)
+seqAzureDevOps --> seqBusiness : result
+HookEffectsAfter("audit")
+AuditLog("workitem:sync", "upstream=provider, mode=b|c, sub, oauth_client_id, jti")
+ControlNote(seqAudit, "AU-3, AU-10", "V-222438", "Agent action attributed to human + MCP client (ARCH-AUTH-AGENT-ATTRIBUTION)")
+seqBusiness --> seqMcpServer : tool result
+seqMcpServer --> seqMcpHost : result
+
+@enduml

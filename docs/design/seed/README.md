@@ -84,16 +84,16 @@ Re-run `patch_catalog_reverse_conforms.py` after re-copying catalogs from sdoc-i
 
 | Entity | Count (approx.) |
 |--------|----------------:|
-| requirement_lines | 301 (sections + req/capability; + ARCH-AUTH/CRED/KEY/DEPLOY/BUILD + ARCH-DEVENV-* + ARCH-MINT/SUSPECT/GATE-SIGNOFF + Cyber+QA and auth FIX beds) |
-| requirement_versions | 312 (incl. FIX-SUCC-2HOP superseded hops; DEVENV content successors `.1` with `.0` superseded; + auth foundation ARCH/FIX) |
-| edges | 1269 (conforms_to + uses/satisfies/refines; + auth foundation NIST/ASD pins + suspect detect bed) |
+| requirement_lines | 314 (sections + req/capability; + ARCH-AUTH/CRED/KEY/DEPLOY/BUILD + local-optional/upstream + ARCH-DEVENV-* + ARCH-MINT/SUSPECT/GATE-SIGNOFF + Cyber+QA and auth FIX beds) |
+| requirement_versions | 326 (incl. FIX-SUCC-2HOP/DEVENV/AUTH-LOCAL content successors `.1`; + auth foundation + local-optional/upstream ARCH/FIX) |
+| edges | 1377 (conforms_to + uses/satisfies/refines; + auth foundation + local-optional/upstream NIST/ASD pins + suspect detect bed) |
 | catalog_imprints | 2 (`nist-800-53@rev5-dogfood-20261006`, `asd-stig@v6r4`) |
 | contracts | 5 (Design-2026-10, Security package, Platform baseline, **Legacy intake closed**, Fixture doc-walk) |
 | releases | 3 (R0-sequences **shipped**, **R1-foundation-shell-auth planned** (build sequencing only; dates/cyber_gate open), R1-core-ALM **planned** — includes obsolete `ARCH-CONTRACT` for stale-backlog UX) |
 | identities / grants | 13 / 11 project + 1 client_grant + 1 platform_grant (incl. jordan Auditor, morgan steward, **pat-client-admin**, **jamie-ao**, **drew-developer**, **kim-key-custodian** (deployment-scoped Key custodian via `platform_grants`), no-grant-user, tombstone `grant-alex-author-revoked`) |
 | catalog_steward_grants | 1 (`steward-morgan-reqaml-project` on `cat-reqaml-security`) |
 | clients (extra) | 1 (`other-family` — cross-client denial; no projects/grants into reqaml) |
-| audit_events | 47 (prior + mint/suspect/pin/approve/signoff + auth/key FIX samples; deployment-scoped key ops have null client/project) |
+| audit_events | 50 (prior + mint/suspect/pin/approve/signoff + auth/key + upstream-logout/agent-attribution samples; deployment-scoped key ops have null client/project) |
 | change_sets | 3 (1 leaf, 1 SDLC parent + 1 nested leaf) |
 | work_item_links | 2 (FIX-SAMPLE-APPROVED, A01) |
 | catalog entries | 9 project `REQAML-SEC-*` (incl. OAUTH / CRED / KEYS) only; NIST/STIG via imprints → `catalog/*.sdoc` |
@@ -104,7 +104,7 @@ Re-run `patch_catalog_reverse_conforms.py` after re-copying catalogs from sdoc-i
 
 | Section | Focus | Action UIDs |
 |---------|-------|-------------|
-| SEC-IA | Identity & access | A01–A12, ARCH-AUTH-AS/PKCE/METADATA/AUDIENCE/REFRESH/REVOKE/CLIENTREG/FEDERATION/LOCAL |
+| SEC-IA | Identity & access | A01–A12, ARCH-AUTH-AS/PKCE/METADATA/AUDIENCE/REFRESH/REVOKE/CLIENTREG/FEDERATION/LOCAL.1/PROFILE/MCP-REQUIRED/LOCAL-BREAKGLASS/UPSTREAM-CONNECTOR/CLAIM-MAP/UPSTREAM-REVOKE/AGENT-ATTRIBUTION |
 | SEC-CP | Client & project | B01–B08, ARCH-CP-* |
 | SEC-RL | Lines & versions + approval/verification | C01–C08, D01–D12, ARCH-VER-*, ARCH-APPROVAL, ARCH-VERIFICATION |
 | SEC-EDGE | Traces | E01–E07 |

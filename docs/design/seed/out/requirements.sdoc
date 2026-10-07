@@ -106,6 +106,9 @@ edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN.1
 edge: ← refines from ARCH-AUTH-AS
 edge: ← refines from ARCH-AUTH-FEDERATION
 edge: ← uses from FIX-ALLOW-FEDERATED-SSO-VIA-AS
+edge: ← refines from ARCH-AUTH-LOCAL.1
+edge: ← refines from ARCH-AUTH-PROFILE
+edge: ← uses from FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -409,6 +412,8 @@ security.catalog_ref: IA-2
 security.verification_note: IA-2/AC-2 account/identity linkage; AU-2/3/12 admin actions. ASD STIG V6R4 V-222542 / V-222407.
 edge: ← satisfies from CAP-RBAC
 edge: ← uses from ARCH-AUTH-FEDERATION
+edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
+edge: ← uses from ARCH-AUTH-CLAIM-MAP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -475,6 +480,7 @@ security.verification_note: AC-2/AC-3/AC-6 grant administration. ASD STIG V6R4 V
 edge: ← satisfies from CAP-RBAC
 edge: ← refines from ARCH-CRED-REAUTH
 edge: ← uses from FIX-DENY-PRIV-NO-MFA
+edge: ← uses from ARCH-AUTH-CLAIM-MAP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -539,6 +545,7 @@ iteration: iter-r0
 security.catalog_ref: AC-2
 security.verification_note: AC-2/AC-3 revoke path; AU-2/3/12. ASD STIG V6R4 V-222467 / V-222407.
 edge: ← satisfies from CAP-RBAC
+edge: ← uses from ARCH-AUTH-UPSTREAM-REVOKE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -853,6 +860,9 @@ edge: ← refines from ARCH-AUTH-LOCAL
 edge: ← uses from ARCH-DEVENV-COMPOSE.1
 edge: ← uses from ARCH-DEVENV-IDENTITY.1
 edge: ← uses from ARCH-BUILD-FOUNDATION
+edge: ← refines from ARCH-AUTH-LOCAL.1
+edge: ← refines from ARCH-AUTH-PROFILE
+edge: ← refines from ARCH-AUTH-MCP-REQUIRED
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1000,6 +1010,7 @@ security.catalog_ref: SC-23
 security.verification_note: SC-23 session authenticity; AC-3 enforcement at each resource server.
 edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
 edge: ← uses from FIX-DENY-MCP-WRONG-AUDIENCE
+edge: ← uses from ARCH-AUTH-MCP-REQUIRED
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1083,6 +1094,7 @@ iteration: iter-r1
 security.catalog_ref: AC-12
 security.verification_note: AC-12 session termination; ASD V-222549 / V-222578 / V-222391.
 edge: ← uses from FIX-DENY-REVOKED-TOKEN
+edge: ← refines from ARCH-AUTH-UPSTREAM-REVOKE
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222549 (pin imprint=asd-stig@v6r4)
@@ -1172,6 +1184,10 @@ security.catalog_ref: IA-2
 security.verification_note: IA-2 / IA-8 federated identification; ASD V-222400 / V-222401 / V-222403 / V-222404 SAML assertion checks.
 edge: ← uses from FIX-DENY-UPSTREAM-TOKEN-AT-API
 edge: ← uses from FIX-ALLOW-FEDERATED-SSO-VIA-AS
+edge: ← refines from ARCH-AUTH-UPSTREAM-CONNECTOR
+edge: ← refines from ARCH-AUTH-CLAIM-MAP
+edge: ← refines from ARCH-AUTH-UPSTREAM-REVOKE
+edge: ← uses from FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1224,10 +1240,204 @@ RELATIONS:
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
+[[SECTION]]
+UID: ARCH-AUTH-FEDERATION-CHILDREN
+TITLE: Children of ARCH-AUTH-FEDERATION
+
+[REQUIREMENT]
+UID: ARCH-AUTH-UPSTREAM-CONNECTOR
+STATUS: Active
+TITLE: Pluggable upstream IdP connector per client tenant
+STATEMENT: >>>
+Upstream identity providers attach through a pluggable connector interface (built in: OIDC RP and SAML 2.0 SP; other protocols through additional connectors). Each connector is registered to exactly one client tenant (client_id). Its client secrets and signing or decryption keys are stored under the key store (ARCH-KEY-SCOPE). A connector's assertions can only establish sessions for identities linked within that tenant (A06): a subject from client A's connector never obtains grants in client B, and cross-tenant access goes through ReqAML grants, not the connector. Connector configuration is managed by Client admin, needs step-up (ARCH-CRED-REAUTH), and is audited. How many connectors a tenant may have, how one is selected (home-realm discovery), and which non-OIDC/SAML protocols are supported are open questions (docs/design/auth/mcp-upstream-identity.md).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-UPSTREAM-CONNECTOR
+VERSION_N: 0
+rbac_op: auth:connector:configure
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-8
+security.verification_note: IA-8 non-organizational users / federation; AC-3 tenant isolation; ASD V-222559 / V-222560.
+edge: ← uses from ARCH-AUTH-CLAIM-MAP
+edge: ← uses from FIX-DENY-CROSS-TENANT-CONNECTOR
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222400 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222401 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222403 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222404 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222559 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222560 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-FEDERATION
+- TYPE: Parent
+  VALUE: ARCH-AUTH-FEDERATION
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-CP-SCOPE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-KEY-SCOPE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: A06
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CRED-REAUTH
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-8
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222400
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222401
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222403
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222404
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222559
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222560
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-CLAIM-MAP
+STATUS: Active
+TITLE: Upstream claim-to-identity/grant mapping is explicit, tenant-bounded config
+STATEMENT: >>>
+Mapping from upstream claims or attributes (sub/NameID, email, groups, amr/acr) to ReqAML identity, and optionally to grants, is explicit per-connector configuration. It is versioned, step-up gated, and audited, and is never implicit trust in upstream attributes. The identity key is the upstream issuer plus subject, never email alone. A mapping can never grant beyond its connector's tenant and never grants deployment-scoped roles (for example, Key custodian). Whether upstream groups may provision or deprovision ReqAML grants automatically is an open question. Until it is decided, grants come only from ReqAML grant records (A07 / A08), and upstream claims establish identity and MFA evidence only.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-CLAIM-MAP
+VERSION_N: 0
+rbac_op: auth:connector:configure
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-2
+security.verification_note: AC-2 account management; AC-6 least privilege; AU-2.
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-FEDERATION
+- TYPE: Parent
+  VALUE: ARCH-AUTH-FEDERATION
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-AUTH-UPSTREAM-CONNECTOR
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: A06
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: A07
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-6
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-UPSTREAM-REVOKE
+STATUS: Active
+TITLE: Upstream session end and revocation are honored
+STATEMENT: >>>
+Upstream session end and revocation are honored. On an upstream back-channel logout (OIDC Back-Channel Logout or SAML SLO) where the connector supports it, the AS ends the linked ReqAML sessions and revokes their token families, including MCP refresh tokens. Each connector sets a maximum upstream authentication age; ReqAML refresh and session lifetimes never extend access past it without upstream re-authentication. An identity disabled or unlinked in ReqAML (A06 / A08) loses all sessions and tokens immediately. Revocation-propagation events are audited. Handling for IdPs without back-channel logout (polling, SCIM deprovisioning) is an open question, bounded meanwhile by the maximum authentication age.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-UPSTREAM-REVOKE
+VERSION_N: 0
+rbac_op: auth:oauth:revoke
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-12
+security.verification_note: AC-12 session termination; AC-2(3); ASD V-222549 / V-222391.
+edge: ← uses from FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-2.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222549 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222391 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-FEDERATION
+- TYPE: Parent
+  VALUE: ARCH-AUTH-FEDERATION
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-AUTH-REVOKE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-CRED-SESSION
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: A08
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-2.3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-23
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222549
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222391
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[[/SECTION]]
+
 [REQUIREMENT]
 UID: ARCH-AUTH-LOCAL
-STATUS: Active
-TITLE: Local accounts in the internal identity store
+STATUS: Draft
+TITLE: Local accounts: optional per auth profile (off by default in production)
 STATEMENT: >>>
 The internal identity store supports local accounts that bind to the same identity rows and grants as federated identities. Local accounts are required for development (seeded dev accounts, ARCH-DEVENV-IDENTITY.1) and available to deployments whose policy enables them; production enablement and eligible users are an open question. Every local credential is subject to ARCH-CRED-*. Account create/modify/disable/remove is automated and audited, and unnecessary or built-in accounts are disabled.
 <<<
@@ -1240,9 +1450,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-2
 security.verification_note: AC-2 account management; ASD V-222407 / V-222412 / V-222661.
-edge: ← refines from ARCH-CRED-LOCKOUT
-edge: ← uses from ARCH-DEVENV-IDENTITY.1
-delivered_by_release: R1-foundation-shell-auth
+edge: ← refines from ARCH-AUTH-LOCAL.1
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222407 (pin imprint=asd-stig@v6r4)
@@ -1272,6 +1480,323 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Parent
   VALUE: V-222661
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-AUTH-LOCAL.1
+STATUS: Active
+TITLE: Local accounts: optional per auth profile (off by default in production)
+STATEMENT: >>>
+Local password accounts are an optional capability of the auth profile (ARCH-AUTH-PROFILE), not a baseline. The setting local_accounts takes one of three values: disabled (default for every production profile), breakglass_only (only ARCH-AUTH-LOCAL-BREAKGLASS accounts), or enabled (a profile that explicitly opts in). The development profile uses enabled with seeded dev accounts (ARCH-DEVENV-IDENTITY.1). With disabled: no local credential records exist, the local login route and form are absent, and sign-in is federated only. This keeps A01 / CAP-SSO / REQAML-SEC-SSO ('no local password store; MFA at the IdP') as the default production posture, so A01 is not minted. Where local accounts are enabled, they bind to the same identity rows and grants as federated identities, every local credential is subject to ARCH-CRED-*, account lifecycle is automated and audited, and unnecessary or built-in accounts are disabled. The internal AS and OAuth for MCP are required whatever this setting is (ARCH-AUTH-MCP-REQUIRED).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-LOCAL
+VERSION_N: 1
+rbac_op: auth:local:signin, identity:account:manage
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-2
+security.verification_note: AC-2 account management; CM-7 local accounts off by default; ASD V-222407 / V-222412 / V-222661.
+edge: ← refines from ARCH-CRED-LOCKOUT
+edge: ← uses from ARCH-DEVENV-IDENTITY.1
+edge: ← refines from ARCH-AUTH-LOCAL-BREAKGLASS
+edge: ← uses from FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222407 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222412 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222661 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-AUTH-PROFILE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222407
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222412
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222661
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[[SECTION]]
+UID: ARCH-AUTH-LOCAL-CHILDREN
+TITLE: Children of ARCH-AUTH-LOCAL
+
+[REQUIREMENT]
+UID: ARCH-AUTH-LOCAL-BREAKGLASS
+STATUS: Active
+TITLE: Break-glass local recovery admin (profile-enabled, MFA, dual control)
+STATEMENT: >>>
+When the auth profile sets local_accounts=breakglass_only or enabled, a deployment may configure break-glass local recovery admin accounts for when the upstream IdP or its connector is unavailable or misconfigured. These accounts are created only from deployment configuration, never through self-service or the dev seed. Their credentials are long random secrets held under split knowledge and dual control, the same custody model as ARCH-KEY-BREAKGLASS. MFA is always required (ARCH-CRED-MFA), and sessions use the admin idle and absolute timeouts (ARCH-CRED-SESSION). Privileges are limited to recovery operations (restore an upstream connector or admin grants), with no requirement-content access. Every use raises an alert, is audited (ARCH-CRED-AUDIT), and is reviewed, and the credential is rotated after use. Break-glass accounts are protected from removal or disabling except by the documented process, and are exercised on a schedule.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-LOCAL-BREAKGLASS
+VERSION_N: 0
+rbac_op: auth:breakglass:signin, auth:connector:configure
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-2.2
+security.verification_note: AC-2(2) emergency accounts; IA-2(1) MFA; AU-2; ASD V-222410 / V-222523.
+edge: ← uses from FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AC-2.2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222410 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222523 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222390 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL.1
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-BREAKGLASS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CRED-MFA
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CRED-SESSION
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CRED-AUDIT
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-2.2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-2.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-5
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222410
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222523
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222390
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[[/SECTION]]
+
+[REQUIREMENT]
+UID: ARCH-AUTH-PROFILE
+STATUS: Active
+TITLE: Auth profile: identity mode and local-account setting per deployment
+STATEMENT: >>>
+Each deployment has an auth profile that sets identity_mode (federated, local, or hybrid), local_accounts (disabled, breakglass_only, or enabled; see ARCH-AUTH-LOCAL.1), and the security presets (ARCH-CRED-POLICY / ARCH-CRED-MFA / ARCH-CRED-SESSION / ARCH-KEY-FIPS). Production defaults: identity_mode=federated, local_accounts=disabled. The profile is deployment configuration validated at startup, not a runtime toggle. A production profile that enables local accounts must name the reason and is logged at startup and in the audit trail. A dev profile (dev seed, dev KeyProvider) is refused in production. Whether a client tenant may override the deployment profile is an open question.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-PROFILE
+VERSION_N: 0
+rbac_op: auth:policy:configure
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-6
+security.verification_note: CM-6 configuration settings; CM-7 least functionality (local accounts off by default).
+edge: ← uses from ARCH-AUTH-LOCAL.1
+edge: ← uses from ARCH-AUTH-MCP-REQUIRED
+edge: ← uses from FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+edge: ← uses from ARCH-BUILD-FOUNDATION
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-CRED-POLICY
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-KEY-FIPS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-IDENTITY.1
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-6
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-MCP-REQUIRED
+STATUS: Active
+TITLE: Internal AS is mandatory for MCP in every identity mode
+STATEMENT: >>>
+OAuth 2.1 through the internal AS (ARCH-AUTH-AS) is mandatory for MCP in every identity mode: federated, local, or hybrid. MCP hosts always authorize at the internal AS (ARCH-AUTH-PKCE / ARCH-AUTH-METADATA), and the MCP server accepts only internal-AS tokens whose audience is the MCP resource (ARCH-AUTH-AUDIENCE). How the user authenticates behind the AS (upstream IdP, or a local account where the profile allows it) never changes the MCP credential. Upstream provider tokens are never accepted by the MCP server and never forwarded by it. If an MCP tool must call an upstream provider's own APIs, the mechanism (token exchange vs stored upstream grants) is an open design choice (docs/design/auth/mcp-upstream-identity.md), but the AS token remains the MCP credential.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-MCP-REQUIRED
+VERSION_N: 0
+rbac_op: auth:oauth:authorize, mcp:session:create
+priority: 5
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: IA-2 / IA-8; SC-23 audience-bound session authenticity; MCP authorization spec (no token passthrough).
+edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
+edge: ← uses from FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+edge: ← uses from ARCH-BUILD-FOUNDATION
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222522 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: MC01.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CAP-MCP-DESK
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AUDIENCE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-AUTH-PROFILE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-8
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-23
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222522
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-AGENT-ATTRIBUTION
+STATUS: Active
+TITLE: Agent (MCP) actions attributed to the human subject and OAuth client
+STATEMENT: >>>
+Every action taken through MCP is attributed in audit to the human subject who authorized the MCP host (token sub), together with the OAuth client_id of the MCP host, the token id (jti), and source=mcp. There is no shared or elevated agent principal: an agent acts with the delegating user's grants under RBAC (MC01.1 / MC03). Attribution for headless or agent-only clients that act without a delegating human (client credentials, device flow) is an open question. Until it is decided, such clients are not supported.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-AGENT-ATTRIBUTION
+VERSION_N: 0
+rbac_op: audit:write
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AU-3
+security.verification_note: AU-3 content of audit records; AU-10 non-repudiation; ASD V-222438.
+edge: ← uses from FIX-ALLOW-AGENT-ATTRIBUTION
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222438 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222441 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-CRED-AUDIT
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-AUTH-MCP-REQUIRED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: MC02
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AU-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222438
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222441
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
@@ -1701,6 +2226,8 @@ security.catalog_ref: REQAML-SEC-SCOPE
 security.verification_note: Maps to ReqAML project catalog SCOPE item.
 edge: ← refines from A03
 edge: ← uses from ARCH-BUILD-FOUNDATION
+edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
+edge: ← uses from FIX-DENY-CROSS-TENANT-CONNECTOR
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
@@ -7285,6 +7812,7 @@ edge: ← uses from M03
 edge: ← refines from ARCH-CRED-AUDIT
 edge: ← uses from ARCH-KEY-LIFECYCLE
 edge: ← uses from ARCH-BUILD-FOUNDATION
+edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -7411,6 +7939,7 @@ edge: ← satisfies from CAP-RBAC
 edge: ← uses from ARCH-AUTH-AUDIENCE
 edge: ← uses from ARCH-KEY-CUSTODIAN
 edge: ← uses from ARCH-BUILD-FOUNDATION
+edge: ← uses from ARCH-AUTH-CLAIM-MAP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1-foundation-shell-auth
@@ -7731,6 +8260,7 @@ edge: ← refines from ARCH-CRED-SESSION
 edge: ← refines from ARCH-CRED-REAUTH
 edge: ← refines from ARCH-CRED-AUDIT
 edge: ← uses from ARCH-BUILD-FOUNDATION
+edge: ← uses from ARCH-AUTH-LOCAL.1
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -7821,6 +8351,7 @@ iteration: iter-r1
 security.catalog_ref: IA-5.1
 security.verification_note: IA-5(1); ASD V-222536..V-222541, V-222544..V-222548, V-222662.
 edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN.1
+edge: ← uses from ARCH-AUTH-PROFILE
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to IA-5.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222536 (pin imprint=asd-stig@v6r4)
@@ -7915,7 +8446,7 @@ RELATIONS:
   VALUE: ARCH-CRED
   ROLE: Refines
 - TYPE: Parent
-  VALUE: ARCH-AUTH-LOCAL
+  VALUE: ARCH-AUTH-LOCAL.1
   ROLE: Refines
 - TYPE: Parent
   VALUE: AC-7
@@ -7952,6 +8483,8 @@ security.verification_note: IA-2(1) MFA privileged; ASD V-222523 / V-222527.
 edge: ← uses from ARCH-AUTH-FEDERATION
 edge: ← uses from ARCH-KEY-CUSTODIAN
 edge: ← uses from FIX-DENY-PRIV-NO-MFA
+edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
+edge: ← uses from FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222523 (pin imprint=asd-stig@v6r4)
@@ -8044,6 +8577,8 @@ iteration: iter-r1
 security.catalog_ref: AC-12
 security.verification_note: AC-12 / AC-2(5) / AC-10 / SC-23(3); ASD V-222387 / V-222389 / V-222390 / V-222575 / V-222576 / V-222577 / V-222579 / V-222581 / V-222582 / V-222583.
 edge: ← uses from FIX-DENY-SESSION-IDLE
+edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
+edge: ← uses from ARCH-AUTH-UPSTREAM-REVOKE
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2.5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8139,6 +8674,7 @@ iteration: iter-r1
 security.catalog_ref: IA-11
 security.verification_note: IA-11 re-authentication; ASD V-222520.
 edge: ← uses from FIX-DENY-STEPUP-STALE-AUTH
+edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to IA-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222520 (pin imprint=asd-stig@v6r4)
@@ -8193,6 +8729,8 @@ iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12; ASD V-222462 / V-222441 / V-222442 / V-222443 / V-222445 / V-222467.
 edge: ← uses from ARCH-AUTH-AS
+edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
+edge: ← refines from ARCH-AUTH-AGENT-ATTRIBUTION
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8365,6 +8903,7 @@ security.catalog_ref: SC-28.1
 security.verification_note: SC-28(1) cryptographic protection at rest; ASD V-222588 / V-222589 / V-222642.
 edge: ← uses from ARCH-CRED-MFA
 edge: ← uses from ARCH-CRED-TOKENS
+edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to SC-28.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222588 (pin imprint=asd-stig@v6r4)
@@ -8553,6 +9092,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: SC-12.1
 security.verification_note: SC-12(1) key availability; AC-5 dual control.
+edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to SC-12.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8592,6 +9132,7 @@ iteration: iter-r1
 security.catalog_ref: SC-13
 security.verification_note: SC-13 cryptographic protection; ASD V-222570 / V-222571 / V-222572 / V-222583.
 edge: ← uses from ARCH-CRED-HASH
+edge: ← uses from ARCH-AUTH-PROFILE
 delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to SC-13 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222570 (pin imprint=asd-stig@v6r4)
@@ -8698,6 +9239,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from ARCH-DEPLOY-MINIMAL
+edge: ← refines from ARCH-AUTH-MCP-REQUIRED
 in_scope_of_contract: Security package
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8788,6 +9330,7 @@ security.verification_note: Draft successor refining desk-seal wording. ASD STIG
 edge: ← satisfies from CAP-MCP-DESK
 edge: ← refines from ARCH-AUTH-AS
 edge: ← refines from ARCH-AUTH-METADATA
+edge: ← refines from ARCH-AUTH-MCP-REQUIRED
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -8844,6 +9387,8 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3/CM-3/AU; mutations not on desk socket. ASD STIG V6R4 V-222567.
 edge: ← satisfies from CAP-MCP-DESK
 edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
+edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
+edge: ← uses from FIX-ALLOW-AGENT-ATTRIBUTION
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -11424,6 +11969,220 @@ RELATIONS:
   VALUE: CM-7
   ROLE: ConformsTo
 
+[REQUIREMENT]
+UID: FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+STATUS: Active
+TITLE: Local login denied/absent when profile disables local accounts
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Production auth profile with local_accounts=disabled: the local login route returns 404 (absent) and the AS sign-in page offers only the configured upstream connector(s). Seeding or creating a local credential is refused. The inspection oracle finds no local credential rows, so A01 'no local password store' holds.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+VERSION_N: 0
+rbac_op: auth:local:signin
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-7
+security.verification_note: Pairs ARCH-AUTH-LOCAL.1 / ARCH-AUTH-PROFILE.
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL.1
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-AUTH-PROFILE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+STATUS: Active
+TITLE: Break-glass local admin allowed only when enabled, with MFA, recovery-scoped
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Profile local_accounts=breakglass_only with the upstream IdP connector down. A configured break-glass admin signs in with password + MFA and restores the connector (auth:connector:configure) → 200. An alert fires, audit rows are written, and the session uses the admin timeouts. Negative cases in the same bed: the break-glass account without MFA → denied; a requirement-content operation from that session → 403; an ordinary (non-break-glass) local login → denied.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+VERSION_N: 0
+rbac_op: auth:breakglass:signin, auth:connector:configure
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-2.2
+security.verification_note: Pairs ARCH-AUTH-LOCAL-BREAKGLASS.
+edge: → conforms_to to AC-2.2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222410 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL-BREAKGLASS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CRED-MFA
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-2.2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-2.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222410
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+STATUS: Active
+TITLE: MCP OAuth works with local accounts disabled (federated-only)
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Profile identity_mode=federated, local_accounts=disabled. An MCP host (as alex-author) completes discovery and authorize at the internal AS, the AS brokers to the upstream connector, and returns an aud=MCP token. update_draft then succeeds, showing MCP OAuth does not depend on local accounts.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+VERSION_N: 0
+rbac_op: auth:oauth:authorize, requirement:version:update_draft
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: Pairs ARCH-AUTH-MCP-REQUIRED.
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-MCP-REQUIRED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-AUTH-FEDERATION
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-8
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+STATUS: Active
+TITLE: Upstream back-channel logout revokes ReqAML sessions and MCP tokens
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). dan has a UI session and an MCP refresh token, both from the upstream connector. The upstream IdP sends a back-channel logout for oidc:dan-raby, and the AS ends the sessions and revokes both token families. The next MCP refresh → invalid_grant and the UI call → 401. An audit row records the propagation.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+VERSION_N: 0
+rbac_op: auth:oauth:revoke
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-12
+security.verification_note: Pairs ARCH-AUTH-UPSTREAM-REVOKE.
+edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222549 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-UPSTREAM-REVOKE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222549
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-CROSS-TENANT-CONNECTOR
+STATUS: Active
+TITLE: Client A's IdP connector cannot establish client B access
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). A valid assertion from raby-family's connector for a subject with no identity linked in other-family, used to sign in to other-family → no session for other-family. No identity is linked or created there, no grants are loaded, and the attempt is audited.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-CROSS-TENANT-CONNECTOR
+VERSION_N: 0
+rbac_op: auth:signin
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Pairs ARCH-AUTH-UPSTREAM-CONNECTOR / ARCH-CP-SCOPE.
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-UPSTREAM-CONNECTOR
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CP-SCOPE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-8
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-ALLOW-AGENT-ATTRIBUTION
+STATUS: Active
+TITLE: MCP mutation audit names human subject + OAuth client
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). MCP update_draft by alex-author through MCP host client cursor-mcp → the audit row has identity_id=alex-author, oauth_client_id=cursor-mcp, jti, and source=mcp. There is no agent-only principal.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-ALLOW-AGENT-ATTRIBUTION
+VERSION_N: 0
+rbac_op: requirement:version:update_draft
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AU-3
+security.verification_note: Pairs ARCH-AUTH-AGENT-ATTRIBUTION.
+edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222438 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AGENT-ATTRIBUTION
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: MC02
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AU-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222438
+  ROLE: ConformsTo
+
 [[/SECTION]]
 
 [[SECTION]]
@@ -12511,7 +13270,9 @@ security.catalog_ref: CM-7
 security.verification_note: CM-7 least functionality; IA-5 default authenticators; ASD V-222662 / V-222661 / V-222642.
 edge: ← uses from ARCH-DEVENV-CLONE
 edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN.1
+edge: ← uses from ARCH-AUTH-PROFILE
 delivered_by_release: R1-foundation-shell-auth
+edge: → uses to ARCH-AUTH-LOCAL.1 (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -12535,9 +13296,6 @@ RELATIONS:
   VALUE: ARCH-AUTH-AS
   ROLE: Uses
 - TYPE: Parent
-  VALUE: ARCH-AUTH-LOCAL
-  ROLE: Uses
-- TYPE: Parent
   VALUE: ARCH-DEVENV-SEED
   ROLE: Uses
 - TYPE: Parent
@@ -12558,6 +13316,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222642
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: ARCH-AUTH-LOCAL.1
+  ROLE: Uses
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -12808,6 +13569,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SA-8
   ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-AUTH-MCP-REQUIRED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-AUTH-PROFILE
+  ROLE: Uses
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers

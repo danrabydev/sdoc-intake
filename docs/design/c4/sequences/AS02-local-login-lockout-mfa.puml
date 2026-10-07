@@ -16,7 +16,12 @@ C4Seq_OTEL()
 
 seqUser -> seqWebUI : open /signin (local)
 seqWebUI -> seqAuthServer : POST /authorize (local path) or /login\nusername + password
-ControlNote(seqAuthServer, "IA-2, AC-2", "V-222407, V-222412", "Local accounts authenticate at the internal AS (ARCH-AUTH-LOCAL); same issuer as federated SSO")
+ControlNote(seqAuthServer, "IA-2, AC-2", "V-222407, V-222412", "Local accounts authenticate at the internal AS (ARCH-AUTH-LOCAL.1); same issuer as federated SSO")
+seqAuthServer -> seqAuthServer : auth profile check: local_accounts ∈ {enabled, breakglass_only}?
+alt local_accounts=disabled (production default)
+  seqAuthServer --> seqWebUI : 404 (no local route) — federated only
+  ControlNote(seqAuthServer, "CM-7", "V-222661", "Local accounts off by default; A01 posture preserved (FIX-DENY-LOCAL-LOGIN-PROFILE-OFF)")
+end
 
 LockoutCheck("taylor-tester")
 ControlNote(seqCredStore, "AC-7, IA-5(1)", "V-222432, V-222433, V-222462", "Throttle + lockout before/after verify; generic error (FIX-DENY-LOCKOUT)")

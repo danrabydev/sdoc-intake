@@ -35,6 +35,8 @@ Also locked from **Dan, 2026-10-07 (auth foundation)**, encoded in `seed/patch_a
 | Build order | Platform shell + auth comes first (ARCH-BUILD-FOUNDATION / `rel-r1-foundation-shell-auth`). This is sequencing only, with no v1 scope cut. |
 | Key store | **OpenBao (Transit)** is the default KeyProvider for dev and is suitable for prod. **SoftHSM2** is optional, for testing the PKCS#11 path only. HashiCorp Vault (BUSL) and LocalStack KMS are **not** defaults (ARCH-KEY-PROVIDER). |
 | Containers | Run as few containers as possible: **one Dockerfile**; **one app container** (API+AS, Web UI, MCP, sync; roles via `REQAML_ROLES`); **one peripherals container** in dev (Postgres + OpenBao). Hybrid mode = peripherals container + native app. Production splits Postgres and OpenBao to isolate keys from data (ARCH-DEPLOY-MINIMAL / ARCH-DEPLOY-PERIPHERALS). |
+| Local accounts | **Optional** (Dan, 2026-10-07 follow-up). Auth-profile capability; production default `local_accounts=disabled` so A01's "no local password store" holds. Allowed: seeded **dev** accounts, **break-glass** recovery admin (ARCH-AUTH-LOCAL-BREAKGLASS), or an explicit profile opt-in. A01 is **not** minted. Encoded as ARCH-AUTH-LOCAL.1 / ARCH-AUTH-PROFILE. |
+| MCP OAuth | **Mandatory** in every identity mode. The internal AS remains the only MCP token issuer even when the user authenticates at an upstream IdP (ARCH-AUTH-MCP-REQUIRED). |
 
 Also locked from workflow design (encoded):
 
@@ -83,13 +85,27 @@ Each remaining item: question, options if clear, why it blocks encoding.
 
 ---
 
-## 5. Local password accounts in production; A01 / REQAML-SEC-SSO wording
+## 5. Upstream identity for MCP integrations (design options — not locked)
 
-**Status:** Open. Local accounts plus the credential store are encoded (ARCH-AUTH-LOCAL, ARCH-CRED-*), and dev seeds them. A01 .0 still says "no local password store exists", and `REQAML-SEC-SSO` is titled "Enterprise SSO only (no local passwords)". I did **not** mint A01.1 / CAP-SSO.1 because content `.N` would clear `ar-a01` (approved) and suspect R0 delivers and contracts. Instead I added `refines` edges from ARCH-AUTH-AS / ARCH-AUTH-FEDERATION / ARCH-DEVENV-IDENTITY.1.
+**Status:** Design options deliberately not locked. Settled parts are encoded; open tradeoffs live here and in the design doc.
 
-**Question:** Are local password accounts allowed in production (for example, for clients without an IdP, or as a break-glass admin), or are they dev/test only with production federation-only? If allowed, should A01.1 / CAP-SSO.1 be minted and REQAML-SEC-SSO retitled, accepting the approval-clear and suspect ripple?
+**Dan (2026-10-07):** "We don't have to [have local accounts], but we will need an oauth method for mcp integrations. That may pass through the user's provider, but that has to be thought about. It's not always that simple... but could be." Local accounts → locked optional (table above). MCP OAuth → locked mandatory. Upstream "pass through" → design space.
 
-**Why it blocks:** It decides whether ARCH-AUTH-LOCAL is enabled in production and whether the approved A01 line must be re-approved.
+**Design doc:** [`../auth/mcp-upstream-identity.md`](../auth/mcp-upstream-identity.md) — options (a) brokered federation (default, encoded), (a′) MCP Enterprise-Managed Authorization / ID-JAG, (b) RFC 8693 token exchange for outbound provider APIs, (c) stored upstream grants (connector-style), (d) direct passthrough (**rejected** per MCP spec). Hard cases: non-OIDC/SAML IdPs, multi-IdP per tenant, consent/scope mapping, upstream logout, refresh vs upstream, step-up MFA, headless/agent clients, audit attribution.
+
+**Questions still open (see the doc for options and tradeoffs):**
+
+1. Adopt MCP Enterprise-Managed Authorization (ID-JAG) as an optional per-connector capability when an enterprise client asks for zero-touch MCP?
+2. For outbound provider APIs (ADO sync, Graph, …): prefer (c) stored grants, (b) token exchange where the provider supports it, or decide per provider?
+3. How many upstream connectors per client tenant, and how is home-realm discovery done?
+4. Should upstream groups auto-provision or deprovision ReqAML grants (JIT / SCIM), or keep grants as ReqAML records only (current encoding)?
+5. For IdPs without back-channel logout: SCIM deprovision, periodic userinfo check, or rely on the connector maximum authentication age?
+6. Headless / agent MCP clients: device authorization grant, OAuth client credentials (MCP extension), or wait for EMA? Attribution model for non-human principals?
+7. May a client tenant override the deployment auth profile (local_accounts / identity_mode)?
+
+**Why it blocks:** Outbound connector architecture (J04/J05), MCP host onboarding for enterprise zero-touch, and whether ARCH-AUTH-CLAIM-MAP ever writes grants automatically.
+
+**A01 minting:** Prefer refining ARCH-AUTH-LOCAL (done as `.1`) over minting A01.1. A01's "no local password store" remains the default. Mint A01.1 only if Dan later wants the A01 statement itself to mention the optional profile path (would clear `ar-a01` and suspect R0 / contracts).
 
 ---
 
@@ -133,13 +149,13 @@ Each remaining item: question, options if clear, why it blocks encoding.
 
 ---
 
-## 10. MCP → API downstream credential
+## 10. MCP → API downstream credential (inbound ReqAML path)
 
-**Status:** Open. No token passthrough is locked. The MCP server calls business logic as the principal.
+**Status:** Open. Distinct from §5 outbound provider-API access. No token passthrough is locked. The MCP server calls ReqAML business logic as the principal.
 
-**Question:** Should the MCP role call the API with an RFC 8693 token exchange (aud=API, on behalf of the user), or by in-process service calls (possible because both roles share the app container)?
+**Question:** When the MCP and API roles later run in separate containers, should the MCP role call the API with an RFC 8693 token exchange (aud=API, on behalf of the user), or continue with an internal service credential? Same-container in-process calls remain fine for the foundation slice.
 
-**Why it blocks:** It determines whether a split MCP container (later) needs token exchange from day one.
+**Why it blocks:** Whether a split MCP container needs token exchange from day one. See also §5 for *upstream* provider API access.
 
 ---
 
@@ -208,4 +224,5 @@ These were encoded with documented locked policy:
 - ≤1 active per line; prior active → `superseded` in-place on D04.
 - Mint kinds + suspect queue + ConformsTo request/apply as locked above.
 - Developer environment (2026-10-07): Docker Compose is the single supported dev entry point; hybrid + full-container modes; clone-to-running; migrations + dogfood seed (idempotent); local identity stub disabled in production; no secrets committed; deploy Dockerfile parity; Compose health/readiness (`SEC-DEVENV` / `ARCH-DEVENV-*`). Dev identity resolved as internal OAuth (§2). StrictDoc-in-Compose (§3) and the package manager (§4) remain open.
-- Auth foundation (2026-10-07): internal OAuth 2.1 AS (`ARCH-AUTH-*`), credential store (`ARCH-CRED-*`), key store with OpenBao Transit default (`ARCH-KEY-*`), minimal containers (`ARCH-DEPLOY-*`), deployment-scoped Key custodian (`kim-key-custodian`, `platform_grants`), and build order (`SEC-BUILD` / `ARCH-BUILD-FOUNDATION`). Open items are §5–§15.
+- Auth foundation (2026-10-07): internal OAuth 2.1 AS (`ARCH-AUTH-*`), credential store (`ARCH-CRED-*`), key store with OpenBao Transit default (`ARCH-KEY-*`), minimal containers (`ARCH-DEPLOY-*`), deployment-scoped Key custodian (`kim-key-custodian`, `platform_grants`), and build order (`SEC-BUILD` / `ARCH-BUILD-FOUNDATION`).
+- Local accounts optional + MCP OAuth mandatory (2026-10-07 follow-up): `ARCH-AUTH-LOCAL.1` / `ARCH-AUTH-PROFILE` / `ARCH-AUTH-MCP-REQUIRED` / `ARCH-AUTH-LOCAL-BREAKGLASS`; settled upstream pieces `ARCH-AUTH-UPSTREAM-CONNECTOR` / `CLAIM-MAP` / `UPSTREAM-REVOKE` / `AGENT-ATTRIBUTION`. Upstream design options: `auth/mcp-upstream-identity.md`. Open items remain §5 (design tradeoffs) and §6–§15.

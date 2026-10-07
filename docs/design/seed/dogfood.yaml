@@ -1996,7 +1996,7 @@ requirement_lines:
   project_id: reqaml
   parent: ARCH-AUTH-AS
   kind: requirement
-  title: Local accounts in the internal identity store
+  title: 'Local accounts: optional per auth profile (off by default in production)'
 - base_uid: ARCH-CRED
   project_id: reqaml
   parent: SEC-SEC
@@ -2212,6 +2212,71 @@ requirement_lines:
   parent: SEC-FIX
   kind: requirement
   title: App roles toggle by env; split without rebuild
+- base_uid: ARCH-AUTH-PROFILE
+  project_id: reqaml
+  parent: ARCH-AUTH-AS
+  kind: requirement
+  title: 'Auth profile: identity mode and local-account setting per deployment'
+- base_uid: ARCH-AUTH-MCP-REQUIRED
+  project_id: reqaml
+  parent: ARCH-AUTH-AS
+  kind: requirement
+  title: Internal AS is mandatory for MCP in every identity mode
+- base_uid: ARCH-AUTH-LOCAL-BREAKGLASS
+  project_id: reqaml
+  parent: ARCH-AUTH-LOCAL
+  kind: requirement
+  title: Break-glass local recovery admin (profile-enabled, MFA, dual control)
+- base_uid: ARCH-AUTH-UPSTREAM-CONNECTOR
+  project_id: reqaml
+  parent: ARCH-AUTH-FEDERATION
+  kind: requirement
+  title: Pluggable upstream IdP connector per client tenant
+- base_uid: ARCH-AUTH-CLAIM-MAP
+  project_id: reqaml
+  parent: ARCH-AUTH-FEDERATION
+  kind: requirement
+  title: Upstream claim-to-identity/grant mapping is explicit, tenant-bounded config
+- base_uid: ARCH-AUTH-UPSTREAM-REVOKE
+  project_id: reqaml
+  parent: ARCH-AUTH-FEDERATION
+  kind: requirement
+  title: Upstream session end and revocation are honored
+- base_uid: ARCH-AUTH-AGENT-ATTRIBUTION
+  project_id: reqaml
+  parent: ARCH-AUTH-AS
+  kind: requirement
+  title: Agent (MCP) actions attributed to the human subject and OAuth client
+- base_uid: FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Local login denied/absent when profile disables local accounts
+- base_uid: FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Break-glass local admin allowed only when enabled, with MFA, recovery-scoped
+- base_uid: FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: MCP OAuth works with local accounts disabled (federated-only)
+- base_uid: FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Upstream back-channel logout revokes ReqAML sessions and MCP tokens
+- base_uid: FIX-DENY-CROSS-TENANT-CONNECTOR
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Client A's IdP connector cannot establish client B access
+- base_uid: FIX-ALLOW-AGENT-ATTRIBUTION
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: MCP mutation audit names human subject + OAuth client
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -5397,7 +5462,7 @@ requirement_versions:
 - uid: ARCH-AUTH-LOCAL
   base_uid: ARCH-AUTH-LOCAL
   version_n: 0
-  status: active
+  status: superseded
   statement: The internal identity store supports local accounts that bind to the same identity rows and grants as federated identities. Local accounts are required for development (seeded dev accounts, ARCH-DEVENV-IDENTITY.1) and available to deployments whose policy enables them; production enablement and eligible users are an open question. Every local credential is subject to ARCH-CRED-*. Account create/modify/disable/remove is automated and audited, and unnecessary or built-in accounts are disabled.
   priority: 10
   iteration: iter-r1
@@ -5945,6 +6010,169 @@ requirement_versions:
     catalog_ref: CM-7
     verification_note: CM-7; ASD V-222662 default passwords / V-222661 built-in accounts.
   mint_kind: content
+- uid: ARCH-AUTH-PROFILE
+  base_uid: ARCH-AUTH-PROFILE
+  version_n: 0
+  status: active
+  statement: 'Each deployment has an auth profile that sets identity_mode (federated, local, or hybrid), local_accounts (disabled, breakglass_only, or enabled; see ARCH-AUTH-LOCAL.1), and the security presets (ARCH-CRED-POLICY / ARCH-CRED-MFA / ARCH-CRED-SESSION / ARCH-KEY-FIPS). Production defaults: identity_mode=federated, local_accounts=disabled. The profile is deployment configuration validated at startup, not a runtime toggle. A production profile that enables local accounts must name the reason and is logged at startup and in the audit trail. A dev profile (dev seed, dev KeyProvider) is refused in production. Whether a client tenant may override the deployment profile is an open question.'
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:policy:configure
+  security:
+    catalog_ref: CM-6
+    verification_note: CM-6 configuration settings; CM-7 least functionality (local accounts off by default).
+  grooming_state: detailed
+- uid: ARCH-AUTH-MCP-REQUIRED
+  base_uid: ARCH-AUTH-MCP-REQUIRED
+  version_n: 0
+  status: active
+  statement: "OAuth 2.1 through the internal AS (ARCH-AUTH-AS) is mandatory for MCP in every identity mode: federated, local, or hybrid. MCP hosts always authorize at the internal AS (ARCH-AUTH-PKCE / ARCH-AUTH-METADATA), and the MCP server accepts only internal-AS tokens whose audience is the MCP resource (ARCH-AUTH-AUDIENCE). How the user authenticates behind the AS (upstream IdP, or a local account where the profile allows it) never changes the MCP credential. Upstream provider tokens are never accepted by the MCP server and never forwarded by it. If an MCP tool must call an upstream provider's own APIs, the mechanism (token exchange vs stored upstream grants) is an open design choice (docs/design/auth/mcp-upstream-identity.md), but the AS token remains the MCP credential."
+  priority: 5
+  iteration: iter-r1
+  rbac_op: auth:oauth:authorize, mcp:session:create
+  security:
+    catalog_ref: IA-2
+    verification_note: IA-2 / IA-8; SC-23 audience-bound session authenticity; MCP authorization spec (no token passthrough).
+  grooming_state: detailed
+- uid: ARCH-AUTH-LOCAL-BREAKGLASS
+  base_uid: ARCH-AUTH-LOCAL-BREAKGLASS
+  version_n: 0
+  status: active
+  statement: When the auth profile sets local_accounts=breakglass_only or enabled, a deployment may configure break-glass local recovery admin accounts for when the upstream IdP or its connector is unavailable or misconfigured. These accounts are created only from deployment configuration, never through self-service or the dev seed. Their credentials are long random secrets held under split knowledge and dual control, the same custody model as ARCH-KEY-BREAKGLASS. MFA is always required (ARCH-CRED-MFA), and sessions use the admin idle and absolute timeouts (ARCH-CRED-SESSION). Privileges are limited to recovery operations (restore an upstream connector or admin grants), with no requirement-content access. Every use raises an alert, is audited (ARCH-CRED-AUDIT), and is reviewed, and the credential is rotated after use. Break-glass accounts are protected from removal or disabling except by the documented process, and are exercised on a schedule.
+  priority: 15
+  iteration: iter-r1
+  rbac_op: auth:breakglass:signin, auth:connector:configure
+  security:
+    catalog_ref: AC-2.2
+    verification_note: AC-2(2) emergency accounts; IA-2(1) MFA; AU-2; ASD V-222410 / V-222523.
+  grooming_state: detailed
+- uid: ARCH-AUTH-UPSTREAM-CONNECTOR
+  base_uid: ARCH-AUTH-UPSTREAM-CONNECTOR
+  version_n: 0
+  status: active
+  statement: "Upstream identity providers attach through a pluggable connector interface (built in: OIDC RP and SAML 2.0 SP; other protocols through additional connectors). Each connector is registered to exactly one client tenant (client_id). Its client secrets and signing or decryption keys are stored under the key store (ARCH-KEY-SCOPE). A connector's assertions can only establish sessions for identities linked within that tenant (A06): a subject from client A's connector never obtains grants in client B, and cross-tenant access goes through ReqAML grants, not the connector. Connector configuration is managed by Client admin, needs step-up (ARCH-CRED-REAUTH), and is audited. How many connectors a tenant may have, how one is selected (home-realm discovery), and which non-OIDC/SAML protocols are supported are open questions (docs/design/auth/mcp-upstream-identity.md)."
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:connector:configure
+  security:
+    catalog_ref: IA-8
+    verification_note: IA-8 non-organizational users / federation; AC-3 tenant isolation; ASD V-222559 / V-222560.
+  grooming_state: detailed
+- uid: ARCH-AUTH-CLAIM-MAP
+  base_uid: ARCH-AUTH-CLAIM-MAP
+  version_n: 0
+  status: active
+  statement: Mapping from upstream claims or attributes (sub/NameID, email, groups, amr/acr) to ReqAML identity, and optionally to grants, is explicit per-connector configuration. It is versioned, step-up gated, and audited, and is never implicit trust in upstream attributes. The identity key is the upstream issuer plus subject, never email alone. A mapping can never grant beyond its connector's tenant and never grants deployment-scoped roles (for example, Key custodian). Whether upstream groups may provision or deprovision ReqAML grants automatically is an open question. Until it is decided, grants come only from ReqAML grant records (A07 / A08), and upstream claims establish identity and MFA evidence only.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:connector:configure
+  security:
+    catalog_ref: AC-2
+    verification_note: AC-2 account management; AC-6 least privilege; AU-2.
+  grooming_state: detailed
+- uid: ARCH-AUTH-UPSTREAM-REVOKE
+  base_uid: ARCH-AUTH-UPSTREAM-REVOKE
+  version_n: 0
+  status: active
+  statement: Upstream session end and revocation are honored. On an upstream back-channel logout (OIDC Back-Channel Logout or SAML SLO) where the connector supports it, the AS ends the linked ReqAML sessions and revokes their token families, including MCP refresh tokens. Each connector sets a maximum upstream authentication age; ReqAML refresh and session lifetimes never extend access past it without upstream re-authentication. An identity disabled or unlinked in ReqAML (A06 / A08) loses all sessions and tokens immediately. Revocation-propagation events are audited. Handling for IdPs without back-channel logout (polling, SCIM deprovisioning) is an open question, bounded meanwhile by the maximum authentication age.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:oauth:revoke
+  security:
+    catalog_ref: AC-12
+    verification_note: AC-12 session termination; AC-2(3); ASD V-222549 / V-222391.
+  grooming_state: detailed
+- uid: ARCH-AUTH-AGENT-ATTRIBUTION
+  base_uid: ARCH-AUTH-AGENT-ATTRIBUTION
+  version_n: 0
+  status: active
+  statement: "Every action taken through MCP is attributed in audit to the human subject who authorized the MCP host (token sub), together with the OAuth client_id of the MCP host, the token id (jti), and source=mcp. There is no shared or elevated agent principal: an agent acts with the delegating user's grants under RBAC (MC01.1 / MC03). Attribution for headless or agent-only clients that act without a delegating human (client credentials, device flow) is an open question. Until it is decided, such clients are not supported."
+  priority: 10
+  iteration: iter-r1
+  rbac_op: audit:write
+  security:
+    catalog_ref: AU-3
+    verification_note: AU-3 content of audit records; AU-10 non-repudiation; ASD V-222438.
+  grooming_state: detailed
+- uid: FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+  base_uid: FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+  version_n: 0
+  status: active
+  statement: "FIXTURE / TEST BED (not a product feature). Production auth profile with local_accounts=disabled: the local login route returns 404 (absent) and the AS sign-in page offers only the configured upstream connector(s). Seeding or creating a local credential is refused. The inspection oracle finds no local credential rows, so A01 'no local password store' holds."
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:local:signin
+  security:
+    catalog_ref: CM-7
+    verification_note: Pairs ARCH-AUTH-LOCAL.1 / ARCH-AUTH-PROFILE.
+- uid: FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+  base_uid: FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+  version_n: 0
+  status: active
+  statement: 'FIXTURE / TEST BED (not a product feature). Profile local_accounts=breakglass_only with the upstream IdP connector down. A configured break-glass admin signs in with password + MFA and restores the connector (auth:connector:configure) → 200. An alert fires, audit rows are written, and the session uses the admin timeouts. Negative cases in the same bed: the break-glass account without MFA → denied; a requirement-content operation from that session → 403; an ordinary (non-break-glass) local login → denied.'
+  priority: 15
+  iteration: iter-r1
+  rbac_op: auth:breakglass:signin, auth:connector:configure
+  security:
+    catalog_ref: AC-2.2
+    verification_note: Pairs ARCH-AUTH-LOCAL-BREAKGLASS.
+- uid: FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+  base_uid: FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). Profile identity_mode=federated, local_accounts=disabled. An MCP host (as alex-author) completes discovery and authorize at the internal AS, the AS brokers to the upstream connector, and returns an aud=MCP token. update_draft then succeeds, showing MCP OAuth does not depend on local accounts.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:oauth:authorize, requirement:version:update_draft
+  security:
+    catalog_ref: IA-2
+    verification_note: Pairs ARCH-AUTH-MCP-REQUIRED.
+- uid: FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+  base_uid: FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). dan has a UI session and an MCP refresh token, both from the upstream connector. The upstream IdP sends a back-channel logout for oidc:dan-raby, and the AS ends the sessions and revokes both token families. The next MCP refresh → invalid_grant and the UI call → 401. An audit row records the propagation.
+  priority: 15
+  iteration: iter-r1
+  rbac_op: auth:oauth:revoke
+  security:
+    catalog_ref: AC-12
+    verification_note: Pairs ARCH-AUTH-UPSTREAM-REVOKE.
+- uid: FIX-DENY-CROSS-TENANT-CONNECTOR
+  base_uid: FIX-DENY-CROSS-TENANT-CONNECTOR
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). A valid assertion from raby-family's connector for a subject with no identity linked in other-family, used to sign in to other-family → no session for other-family. No identity is linked or created there, no grants are loaded, and the attempt is audited.
+  priority: 15
+  iteration: iter-r1
+  rbac_op: auth:signin
+  security:
+    catalog_ref: AC-3
+    verification_note: Pairs ARCH-AUTH-UPSTREAM-CONNECTOR / ARCH-CP-SCOPE.
+- uid: FIX-ALLOW-AGENT-ATTRIBUTION
+  base_uid: FIX-ALLOW-AGENT-ATTRIBUTION
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). MCP update_draft by alex-author through MCP host client cursor-mcp → the audit row has identity_id=alex-author, oauth_client_id=cursor-mcp, jti, and source=mcp. There is no agent-only principal.
+  priority: 15
+  iteration: iter-r1
+  rbac_op: requirement:version:update_draft
+  security:
+    catalog_ref: AU-3
+    verification_note: Pairs ARCH-AUTH-AGENT-ATTRIBUTION.
+- uid: ARCH-AUTH-LOCAL.1
+  base_uid: ARCH-AUTH-LOCAL
+  version_n: 1
+  status: active
+  statement: "Local password accounts are an optional capability of the auth profile (ARCH-AUTH-PROFILE), not a baseline. The setting local_accounts takes one of three values: disabled (default for every production profile), breakglass_only (only ARCH-AUTH-LOCAL-BREAKGLASS accounts), or enabled (a profile that explicitly opts in). The development profile uses enabled with seeded dev accounts (ARCH-DEVENV-IDENTITY.1). With disabled: no local credential records exist, the local login route and form are absent, and sign-in is federated only. This keeps A01 / CAP-SSO / REQAML-SEC-SSO ('no local password store; MFA at the IdP') as the default production posture, so A01 is not minted. Where local accounts are enabled, they bind to the same identity rows and grants as federated identities, every local credential is subject to ARCH-CRED-*, account lifecycle is automated and audited, and unnecessary or built-in accounts are disabled. The internal AS and OAuth for MCP are required whatever this setting is (ARCH-AUTH-MCP-REQUIRED)."
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:local:signin, identity:account:manage
+  security:
+    catalog_ref: AC-2
+    verification_note: AC-2 account management; CM-7 local accounts off by default; ASD V-222407 / V-222412 / V-222661.
+  grooming_state: detailed
+  mint_kind: content
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -6036,6 +6264,18 @@ capability_artifacts:
 - requirement_version_uid: ARCH-KEY-JWKS
   kind: other
   uri: ../c4/sequences/KS02-token-signing-keyprovider.puml
+- requirement_version_uid: ARCH-AUTH-FEDERATION
+  kind: other
+  uri: ../auth/mcp-upstream-identity.md
+- requirement_version_uid: ARCH-AUTH-MCP-REQUIRED
+  kind: other
+  uri: ../auth/mcp-upstream-identity.md
+- requirement_version_uid: ARCH-AUTH-UPSTREAM-REVOKE
+  kind: other
+  uri: ../c4/sequences/AS03-federated-sso-via-as.puml
+- requirement_version_uid: ARCH-AUTH-MCP-REQUIRED
+  kind: other
+  uri: ../c4/sequences/AS04-mcp-upstream-api-access.puml
 edges:
 - from: CAP-SSO
   to: A01
@@ -9870,7 +10110,7 @@ edges:
   to: ARCH-CRED
   kind: refines
 - from: ARCH-CRED-LOCKOUT
-  to: ARCH-AUTH-LOCAL
+  to: ARCH-AUTH-LOCAL.1
   kind: refines
 - from: ARCH-CRED-MFA
   to: ARCH-CRED
@@ -10032,7 +10272,7 @@ edges:
   to: ARCH-AUTH-AS
   kind: uses
 - from: ARCH-DEVENV-IDENTITY.1
-  to: ARCH-AUTH-LOCAL
+  to: ARCH-AUTH-LOCAL.1
   kind: uses
 - from: ARCH-DEVENV-IDENTITY.1
   to: ARCH-DEVENV-SEED
@@ -10821,6 +11061,386 @@ edges:
   to: CM-7
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL.1
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-LOCAL.1
+  to: ARCH-CRED
+  kind: uses
+- from: ARCH-AUTH-LOCAL.1
+  to: ARCH-AUTH-PROFILE
+  kind: uses
+- from: ARCH-AUTH-LOCAL.1
+  to: A01
+  kind: refines
+- from: ARCH-AUTH-LOCAL.1
+  to: ARCH-AUTH-LOCAL
+  kind: refines
+- from: ARCH-AUTH-PROFILE
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-PROFILE
+  to: A01
+  kind: refines
+- from: ARCH-AUTH-PROFILE
+  to: ARCH-CRED-POLICY
+  kind: uses
+- from: ARCH-AUTH-PROFILE
+  to: ARCH-KEY-FIPS
+  kind: uses
+- from: ARCH-AUTH-PROFILE
+  to: ARCH-DEVENV-IDENTITY.1
+  kind: uses
+- from: ARCH-AUTH-MCP-REQUIRED
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-MCP-REQUIRED
+  to: MC01.1
+  kind: refines
+- from: ARCH-AUTH-MCP-REQUIRED
+  to: CAP-MCP-DESK
+  kind: refines
+- from: ARCH-AUTH-MCP-REQUIRED
+  to: ARCH-AUTH-AUDIENCE
+  kind: uses
+- from: ARCH-AUTH-MCP-REQUIRED
+  to: ARCH-AUTH-PROFILE
+  kind: uses
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: ARCH-AUTH-LOCAL.1
+  kind: refines
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: ARCH-KEY-BREAKGLASS
+  kind: uses
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: ARCH-CRED-MFA
+  kind: uses
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: ARCH-CRED-SESSION
+  kind: uses
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: ARCH-CRED-AUDIT
+  kind: uses
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: ARCH-AUTH-FEDERATION
+  kind: refines
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: ARCH-CP-SCOPE
+  kind: uses
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: ARCH-KEY-SCOPE
+  kind: uses
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: A06
+  kind: uses
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: ARCH-CRED-REAUTH
+  kind: uses
+- from: ARCH-AUTH-CLAIM-MAP
+  to: ARCH-AUTH-FEDERATION
+  kind: refines
+- from: ARCH-AUTH-CLAIM-MAP
+  to: ARCH-AUTH-UPSTREAM-CONNECTOR
+  kind: uses
+- from: ARCH-AUTH-CLAIM-MAP
+  to: A06
+  kind: uses
+- from: ARCH-AUTH-CLAIM-MAP
+  to: A07
+  kind: uses
+- from: ARCH-AUTH-CLAIM-MAP
+  to: ARCH-API-RBAC
+  kind: uses
+- from: ARCH-AUTH-UPSTREAM-REVOKE
+  to: ARCH-AUTH-FEDERATION
+  kind: refines
+- from: ARCH-AUTH-UPSTREAM-REVOKE
+  to: ARCH-AUTH-REVOKE
+  kind: refines
+- from: ARCH-AUTH-UPSTREAM-REVOKE
+  to: ARCH-CRED-SESSION
+  kind: uses
+- from: ARCH-AUTH-UPSTREAM-REVOKE
+  to: A08
+  kind: uses
+- from: ARCH-AUTH-AGENT-ATTRIBUTION
+  to: ARCH-CRED-AUDIT
+  kind: refines
+- from: ARCH-AUTH-AGENT-ATTRIBUTION
+  to: ARCH-AUTH-MCP-REQUIRED
+  kind: uses
+- from: ARCH-AUTH-AGENT-ATTRIBUTION
+  to: MC02
+  kind: uses
+- from: ARCH-AUTH-AGENT-ATTRIBUTION
+  to: ARCH-OTEL
+  kind: uses
+- from: FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+  to: ARCH-AUTH-LOCAL.1
+  kind: uses
+- from: FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+  to: ARCH-AUTH-PROFILE
+  kind: uses
+- from: FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+  to: A01
+  kind: uses
+- from: FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+  to: ARCH-AUTH-LOCAL-BREAKGLASS
+  kind: uses
+- from: FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+  to: ARCH-CRED-MFA
+  kind: uses
+- from: FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+  to: ARCH-AUTH-MCP-REQUIRED
+  kind: uses
+- from: FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+  to: ARCH-AUTH-FEDERATION
+  kind: uses
+- from: FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+  to: ARCH-AUTH-UPSTREAM-REVOKE
+  kind: uses
+- from: FIX-DENY-CROSS-TENANT-CONNECTOR
+  to: ARCH-AUTH-UPSTREAM-CONNECTOR
+  kind: uses
+- from: FIX-DENY-CROSS-TENANT-CONNECTOR
+  to: ARCH-CP-SCOPE
+  kind: uses
+- from: FIX-ALLOW-AGENT-ATTRIBUTION
+  to: ARCH-AUTH-AGENT-ATTRIBUTION
+  kind: uses
+- from: FIX-ALLOW-AGENT-ATTRIBUTION
+  to: MC02
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-AUTH-MCP-REQUIRED
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-AUTH-PROFILE
+  kind: uses
+- from: ARCH-AUTH-LOCAL.1
+  to: AC-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL.1
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL.1
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL.1
+  to: V-222407
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL.1
+  to: V-222412
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL.1
+  to: V-222661
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-PROFILE
+  to: CM-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-PROFILE
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-PROFILE
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-MCP-REQUIRED
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-MCP-REQUIRED
+  to: IA-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-MCP-REQUIRED
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-MCP-REQUIRED
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-MCP-REQUIRED
+  to: V-222522
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: AC-2.2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: IA-2.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: AC-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: V-222410
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: V-222523
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL-BREAKGLASS
+  to: V-222390
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: IA-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: V-222400
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: V-222401
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: V-222403
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: V-222404
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: V-222559
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-UPSTREAM-CONNECTOR
+  to: V-222560
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-CLAIM-MAP
+  to: AC-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-CLAIM-MAP
+  to: AC-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-CLAIM-MAP
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-UPSTREAM-REVOKE
+  to: AC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-UPSTREAM-REVOKE
+  to: AC-2.3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-UPSTREAM-REVOKE
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-UPSTREAM-REVOKE
+  to: V-222549
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-UPSTREAM-REVOKE
+  to: V-222391
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-AGENT-ATTRIBUTION
+  to: AU-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-AGENT-ATTRIBUTION
+  to: AU-10
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-AGENT-ATTRIBUTION
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-AGENT-ATTRIBUTION
+  to: V-222438
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-AGENT-ATTRIBUTION
+  to: V-222441
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+  to: AC-2.2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+  to: IA-2.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+  to: V-222410
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+  to: IA-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+  to: AC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+  to: V-222549
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-CROSS-TENANT-CONNECTOR
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-CROSS-TENANT-CONNECTOR
+  to: IA-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-AGENT-ATTRIBUTION
+  to: AU-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-AGENT-ATTRIBUTION
+  to: AU-10
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-AGENT-ATTRIBUTION
+  to: V-222438
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -11026,7 +11646,7 @@ releases:
   - ARCH-AUTH-REVOKE
   - ARCH-AUTH-CLIENTREG
   - ARCH-AUTH-FEDERATION
-  - ARCH-AUTH-LOCAL
+  - ARCH-AUTH-LOCAL.1
   - ARCH-CRED
   - ARCH-CRED-HASH
   - ARCH-CRED-POLICY
@@ -11060,6 +11680,13 @@ releases:
   - ARCH-API-RBAC
   - ARCH-UI-GUARD
   - M04
+  - ARCH-AUTH-PROFILE
+  - ARCH-AUTH-MCP-REQUIRED
+  - ARCH-AUTH-LOCAL-BREAKGLASS
+  - ARCH-AUTH-UPSTREAM-CONNECTOR
+  - ARCH-AUTH-CLAIM-MAP
+  - ARCH-AUTH-UPSTREAM-REVOKE
+  - ARCH-AUTH-AGENT-ATTRIBUTION
   notes: 'Build sequencing only (ARCH-BUILD-FOUNDATION): first implementation slice = platform shell + internal OAuth AS + local accounts/credential store + key store + RBAC + audit + health + minimal-container Compose. No v1 scope cut. planned_on / cyber_gate pending Dan (open-questions).'
 - id: rel-r1-core-alm
   project_id: reqaml
@@ -11742,6 +12369,35 @@ audit_events:
   outcome: allow
   http_status: 200
   notes: 'FIX-ALLOW-KEK-REWRAP-ONLINE sample row: KEK v1->v2 via OpenBao Transit; DEK re-wrap started. No key material logged.'
+- id: ae-mcp-update-draft-attrib
+  at: '2026-10-07T15:30:00-04:00'
+  identity_id: alex-author
+  client_id: raby-family
+  project_id: reqaml
+  action: requirement:version:update_draft
+  outcome: allow
+  http_status: 200
+  notes: 'FIX-ALLOW-AGENT-ATTRIBUTION sample row: agent action attributed to the human subject + MCP host client.'
+  oauth_client_id: cursor-mcp
+  source: mcp
+- id: ae-deny-local-login-profile-off
+  at: '2026-10-07T15:35:00-04:00'
+  identity_id: pat-client-admin
+  client_id:
+  project_id:
+  action: auth:local:signin
+  outcome: deny
+  http_status: 404
+  notes: 'FIX-DENY-LOCAL-LOGIN-PROFILE-OFF sample row: production profile local_accounts=disabled; local route absent (attempted username recorded, not authenticated).'
+- id: ae-upstream-logout-dan
+  at: '2026-10-07T15:40:00-04:00'
+  identity_id: dan
+  client_id: raby-family
+  project_id:
+  action: auth:upstream:logout
+  outcome: allow
+  http_status: 200
+  notes: 'FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED sample row: back-channel logout from raby-family connector; UI session + MCP token families revoked.'
 client_grants:
 - id: grant-pat-raby-client-admin
   client_id: raby-family

@@ -8,7 +8,7 @@ Scope: Client Scoped View is assumed for most project work.
 
 ## A. Identity & access
 1. Sign in via SSO (OIDC/SAML)
-1a. Sign in with local account at internal AS (lockout / MFA / step-up) — AS02
+1a. Sign in with local account at internal AS (only if auth profile enables local accounts; lockout / MFA / step-up) — AS02
 1b. Federated SSO through the internal AS (AS mints tokens) — AS03
 1c. Authorize MCP client (OAuth 2.1 + PKCE S256, audience-bound token; refresh / revoke) — AS01
 2. Sign out
@@ -20,6 +20,8 @@ Scope: Client Scoped View is assumed for most project work.
 8. Revoke project role
 8a. Unlock locked local account (`auth:account:unlock`)
 8b. Register / approve OAuth client (pre-registered baseline; CIMD / DCR policy-gated)
+8c. Configure upstream IdP connector + claim mapping for a client tenant (Client admin; step-up)
+8d. Break-glass local recovery sign-in (profile-enabled; MFA; alerted)
 9. Grant catalog-steward at global / client / project
 10. Revoke catalog-steward
 11. List who has access to a project

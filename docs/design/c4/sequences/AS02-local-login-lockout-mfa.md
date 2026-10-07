@@ -1,11 +1,11 @@
 # AS02 — Local account login with lockout and MFA
 
-How a local account (seeded in dev, optionally in prod — see open questions) signs in through the internal AS: lockout and throttling, password verification against salted one-way hashes, MFA for privileged roles, session timeouts, and step-up for approvals and pin applies.
+How a local account signs in through the internal AS. This applies only where the auth profile enables local accounts: seeded dev accounts, break-glass recovery admin (ARCH-AUTH-LOCAL-BREAKGLASS), or an explicit opt-in. The production default is `local_accounts=disabled` (ARCH-AUTH-LOCAL.1 / ARCH-AUTH-PROFILE). Covers lockout and throttling, password verification against salted one-way hashes, MFA for privileged roles, session timeouts, and step-up for approvals and pin applies.
 
 | Field | Value |
 |-------|--------|
 | Status | draft |
-| Requirements | ARCH-AUTH-LOCAL, ARCH-CRED-*, ARCH-CRED-LOCKOUT, ARCH-CRED-MFA, ARCH-CRED-SESSION, ARCH-CRED-REAUTH, ARCH-CRED-HASH |
+| Requirements | ARCH-AUTH-LOCAL.1, ARCH-AUTH-PROFILE, ARCH-AUTH-LOCAL-BREAKGLASS, ARCH-CRED-*, ARCH-CRED-LOCKOUT, ARCH-CRED-MFA, ARCH-CRED-SESSION, ARCH-CRED-REAUTH, ARCH-CRED-HASH |
 | Fixtures | FIX-DENY-LOCKOUT, FIX-DENY-PRIV-NO-MFA, FIX-DENY-STEPUP-STALE-AUTH, FIX-DENY-SESSION-IDLE, FIX-ALLOW-CRED-HASH-ONLY |
 | RBAC ops | `auth:local:signin`, `auth:account:unlock`, `project:grant:create`, `requirement:line:approve`, `catalog:pin:apply` |
 | Macros | LockoutCheck, MfaChallenge, AuthAuditLog, TokenValidate (via API) |
