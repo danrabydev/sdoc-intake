@@ -853,6 +853,7 @@ edge: ← uses from FIX-DENY-READER-GRANT
 edge: ← uses from FIX-DENY-MCP-ESCALATE
 edge: ← uses from FIX-DENY-NO-GRANT
 edge: ← uses from FIX-DENY-REVOKED
+edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -2589,6 +2590,7 @@ edge: ← refines from A03
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← uses from FIX-DENY-CROSS-TENANT-CONNECTOR
+edge: ← satisfies from CAP-SVC-PROJECT-READ
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
@@ -7222,6 +7224,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from CAP-AUTH-AUDIT
+edge: ← satisfies from CAP-SVC-AUDIT-APPEND
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8315,6 +8318,8 @@ edge: ← refines from ARCH-CRED-AUDIT
 edge: ← uses from ARCH-KEY-LIFECYCLE
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
+edge: ← satisfies from CAP-SVC-AUDIT-APPEND
+edge: ← satisfies from CAP-SVC-STRUCTURED-LOG
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -8380,6 +8385,7 @@ edge: ← uses from ARCH-AUTH-AS
 edge: ← uses from ARCH-DEPLOY-MINIMAL
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-API-DOCS-SEED-SUMMARY
+edge: ← satisfies from CAP-SVC-RESULT-ENVELOPE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -8443,6 +8449,10 @@ edge: ← uses from ARCH-AUTH-AUDIENCE
 edge: ← uses from ARCH-KEY-CUSTODIAN
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-CLAIM-MAP
+edge: ← satisfies from CAP-SVC-REQUEST-CONTEXT
+edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR
+edge: ← satisfies from CAP-SVC-ROUTE-REGISTRY
+edge: ← satisfies from CAP-SVC-PROJECT-READ
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -8494,6 +8504,9 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: Architecture enforces AC-3 via adapters/guards/layers.
 edge: ← uses from ARCH-API
+edge: ← satisfies from CAP-SVC-RESULT-ENVELOPE
+edge: ← satisfies from CAP-SVC-REQUEST-CONTEXT
+edge: ← satisfies from CAP-SVC-MODULE-BOOTSTRAP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
@@ -8549,6 +8562,240 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-RESULT-ENVELOPE
+STATUS: Draft
+TITLE: ServiceResult + HTTP Problem Details envelope
+STATEMENT: >>>
+Typed ServiceResult (ok/err codes) and mapServiceResultToHttp for data and errors with request_id.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-RESULT-ENVELOPE
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until service-foundation PR merges.
+delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-LAYERS
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-service-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-REQUEST-CONTEXT
+STATUS: Draft
+TITLE: Per-request RequestContext for services
+STATEMENT: >>>
+buildRequestContext supplies identity, grants, roles, agent attribution, logger, pool, and request id.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-REQUEST-CONTEXT
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until service-foundation PR merges.
+delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-API-LAYERS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-service-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-OPERATION-EXECUTOR
+STATUS: Draft
+TITLE: Operation executor (authorize → execute → audit → log)
+STATEMENT: >>>
+runOperation enforces RBAC + project scope, writes audit_events, structured logs, returns ServiceResult.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-OPERATION-EXECUTOR
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until service-foundation PR merges.
+delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-service-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-AUDIT-APPEND
+STATUS: Draft
+TITLE: Append-only business audit_events table
+STATEMENT: >>>
+Migration 006 + writeBusinessAudit; auth events remain in auth_audit_events.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-AUDIT-APPEND
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until service-foundation PR merges.
+delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: CAP-AUDIT
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CRED-AUDIT
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-service-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-STRUCTURED-LOG
+STATUS: Draft
+TITLE: Structured operation logging with redaction
+STATEMENT: >>>
+logOperation + redactForLog; secrets/tokens/password keys redacted in log payloads.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-STRUCTURED-LOG
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until service-foundation PR merges.
+delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-service-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-ROUTE-REGISTRY
+STATUS: Draft
+TITLE: Fail-closed API route security registration
+STATEMENT: >>>
+Every /api /oauth /mcp /health /ready route declares public, authenticated, or permission; test enforces.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-ROUTE-REGISTRY
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until service-foundation PR merges.
+delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-service-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-MODULE-BOOTSTRAP
+STATUS: Draft
+TITLE: Feature module convention + registration
+STATEMENT: >>>
+src/modules/<feature>/ with service, routes, tests; register.ts entrypoint and README.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-MODULE-BOOTSTRAP
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until service-foundation PR merges.
+delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-API-LAYERS
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-service-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-PROJECT-READ
+STATUS: Draft
+TITLE: Reference vertical GET /api/v1/projects/:projectId
+STATEMENT: >>>
+Project read gated on requirement:read, project-scoped 404 without grant, enveloped response, audited.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-PROJECT-READ
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until service-foundation PR merges.
+delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CP-SCOPE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
 
 [[/SECTION]]
@@ -9199,6 +9446,7 @@ edge: ← uses from ARCH-AUTH-AS
 edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← refines from ARCH-AUTH-AGENT-ATTRIBUTION
 edge: ← satisfies from CAP-AUTH-AUDIT
+edge: ← satisfies from CAP-SVC-AUDIT-APPEND
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14692,7 +14940,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-RENAME-REQALM
-STATUS: Draft
+STATUS: Active
 TITLE: Product name correction: ReqALM (ALM, not AML)
 STATEMENT: >>>
 Repository, runtime identifiers, OAuth client IDs, env vars, and dogfood seed use the product name ReqALM (requirements + application lifecycle management). Persisted identifiers keep the legacy ReqAML spelling where renaming would orphan existing data: Compose volume names (reqaml-pg, reqaml-openbao, reqaml-secrets), OpenBao Transit key names (reqaml-kek, reqaml-dek-*) and an existing Postgres role/database. Existing dev stacks upgrade in place: migration 005 renames OAuth client ids, the project id and seeded grant ids, and `pnpm devenv:init` migrates .reqaml/ and REQAML_* names keeping secret values. Active requirement statements keep historical ReqAML prose until a content successor.

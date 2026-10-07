@@ -10,7 +10,7 @@ import type pg from "pg";
 import type { AppConfig, AppRole } from "../config.js";
 import { bootstrapAuth } from "../auth/bootstrap.js";
 import { registerAuthRoutes } from "../auth/routes.js";
-import { authProfileFromEnv, loadAuthProfile } from "../auth/profile.js";
+import { loadAuthProfile } from "../auth/profile.js";
 import { createOpenBaoKeyProvider, type KeyProvider } from "../key/provider.js";
 import { getSeedSummary } from "../seed/load-dogfood.js";
 import { resolveWebIndexPath } from "../readiness/paths.js";
@@ -18,10 +18,8 @@ import type { ReadinessContext } from "../readiness/report.js";
 import type { SyncHandle } from "../roles/sync-worker.js";
 import { registerProbeRoutes } from "./routes-probes.js";
 import { createBearerGuard, type AuthedRequest } from "./middleware/bearer-auth.js";
-import { resolveRequestAuth } from "../auth/request-auth.js";
-import { authorize } from "../rbac/enforce.js";
-import { effectiveRoles } from "../rbac/agent-role.js";
-import { writeAuthAudit } from "../audit/auth-audit.js";
+import { installRouteCapture } from "./route-security.js";
+import { registerFeatureModules } from "../modules/register.js";
 
 export type RuntimeState = {
   config: AppConfig;
@@ -62,6 +60,8 @@ export async function buildApiServer(state: RuntimeState) {
   const openapiPath = path.join(process.cwd(), "openapi/openapi.yaml");
   const openapiSpec = await readFile(openapiPath, "utf8");
 
+  installRouteCapture(app);
+
   registerProbeRoutes(app, config, readiness);
 
   await bootstrapAuth(pool, config, keyProvider);
@@ -87,69 +87,24 @@ export async function buildApiServer(state: RuntimeState) {
   if (roles.has("api")) {
     readiness.roleAssets.apiRoutesMounted = true;
 
-    app.get("/api/v1/seed/summary", async () => getSeedSummary(state.pool));
+    app.get(
+      "/api/v1/seed/summary",
+      { config: { reqalmSecurity: { kind: "public" } } },
+      async () => getSeedSummary(state.pool),
+    );
 
-    app.get("/api/v1/me", async (req, reply) => {
-        const auth = await resolveRequestAuth(req, pool, config, keyProvider);
-        if (!auth) {
-          return reply.code(401).send({ error: "unauthorized" });
-        }
-        const sub = auth.accessToken.sub!;
-        const grants = await pool.query(
-          `
-          SELECT project_id, role FROM project_grants
-          WHERE identity_id = $1 AND revoked_at IS NULL
-        `,
-          [sub],
-        );
-        return {
-          identity_id: sub,
-          auth_profile: authProfileFromEnv(config),
-          grants: grants.rows,
-          agent_name: (auth.accessToken as { agent_name?: string }).agent_name ?? null,
-          token_role: (auth.accessToken as { reqalm_role?: string }).reqalm_role ?? null,
-          effective_roles: effectiveRoles(
-            grants.rows.map((g: { role: string }) => g.role),
-            auth.accessToken,
-          ),
-        };
-      });
-
-    app.post("/api/v1/projects/:projectId/grants", async (req, reply) => {
-        const auth = await resolveRequestAuth(req, pool, config, keyProvider);
-        if (!auth) {
-          return reply.code(401).send({ error: "unauthorized" });
-        }
-        const sub = auth.accessToken.sub!;
-        const projectId = (req.params as { projectId: string }).projectId;
-        const allowed = await authorize(pool, sub, "grant:manage", projectId, auth.accessToken);
-        // Every mutation attempt is audited with agent attribution (allow and deny).
-        await writeAuthAudit(pool, {
-          eventType: allowed ? "grant.manage" : "rbac.deny",
-          outcome: allowed ? "success" : "deny",
-          identityId: sub,
-          clientId: auth.accessToken.client_id as string | undefined,
-          detail: {
-            permission: "grant:manage",
-            projectId,
-            agent_name: (auth.accessToken as { agent_name?: string }).agent_name,
-            token_role: (auth.accessToken as { reqalm_role?: string }).reqalm_role,
-            acting_for: (auth.accessToken as { act?: { sub?: string } }).act?.sub,
-          },
-          ip: req.ip,
-        });
-        if (!allowed) {
-          return reply.code(403).send({ error: "forbidden" });
-        }
-        return reply.send({ ok: true, message: "grant manage authorized (stub)" });
-      });
+    const ctxDeps = { pool, config, keyProvider, logger: app.log };
+    registerFeatureModules(app, ctxDeps);
   }
 
   if (roles.has("mcp")) {
     readiness.roleAssets.mcpRouteMounted = true;
     app.post(
       "/mcp",
-      { preHandler: mcpGuard },
+      {
+        preHandler: mcpGuard,
+        config: { reqalmSecurity: { kind: "authenticated" } },
+      },
       async (req: AuthedRequest) => ({
         jsonrpc: "2.0",
         result: {
