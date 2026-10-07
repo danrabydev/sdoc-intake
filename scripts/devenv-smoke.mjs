@@ -122,7 +122,12 @@ async function main() {
   if (ready.status !== 200 || ready.body.ready !== true) fail("/ready not ready", ready);
 
   const summary1 = (await getJson("/api/v1/seed/summary")).body;
-  if (!summary1.identities || summary1.sample_identity_id !== "taylor-tester") {
+  if (
+    !summary1.identities ||
+    summary1.sample_identity_id !== "taylor-tester" ||
+    !summary1.capabilities ||
+    !summary1.release_count
+  ) {
     fail("Seed summary unexpected", summary1);
   }
 
@@ -138,7 +143,15 @@ async function main() {
   }
 
   const summary2 = (await getJson("/api/v1/seed/summary")).body;
-  for (const key of ["identities", "project_grants", "requirement_lines", "requirement_versions"]) {
+  for (const key of [
+    "identities",
+    "project_grants",
+    "requirement_lines",
+    "requirement_versions",
+    "capabilities",
+    "release_count",
+    "release_delivers",
+  ]) {
     if (summary1[key] !== summary2[key]) {
       fail(`Count drift for ${key}: ${summary1[key]} -> ${summary2[key]}`);
     }

@@ -15,6 +15,7 @@ export type DogfoodSeed = {
   project_grants: Record<string, unknown>[];
   requirement_lines?: Record<string, unknown>[];
   requirement_versions?: Record<string, unknown>[];
+  releases?: Record<string, unknown>[];
 };
 
 export type SeedResult = {
@@ -56,6 +57,8 @@ export async function loadDogfoodSeed(
     project_grants: 0,
     requirement_lines: 0,
     requirement_versions: 0,
+    releases: 0,
+    release_delivers: 0,
     dev_local_accounts: 0,
   };
 
@@ -85,6 +88,9 @@ export async function loadDogfoodSeed(
     }
     for (const ver of seed.requirement_versions ?? []) {
       await upsertVersion(client, ver, lineProject, inserted);
+    }
+    for (const [position, rel] of (seed.releases ?? []).entries()) {
+      await upsertRelease(client, rel, position, inserted);
     }
 
     // ARCH-DEVENV-IDENTITY.1: no committed/default dev credential. Use the local .env value, or
@@ -146,6 +152,8 @@ async function countSeedRows(client: pg.PoolClient) {
     "project_grants",
     "requirement_lines",
     "requirement_versions",
+    "releases",
+    "release_delivers",
     "dev_local_accounts",
   ] as const;
   const counts: Record<string, number> = {};
@@ -304,6 +312,60 @@ async function upsertVersion(
   if (r.rowCount) inserted.requirement_versions++;
 }
 
+/**
+ * Releases are seed-owned metadata (status flips planned → shipped as PRs merge), so unlike the
+ * insert-if-absent fixtures above they are updated in place and their delivers set is synced to
+ * the seed. Only genuinely new rows count as inserted, so a re-run with no seed change is a no-op.
+ */
+async function upsertRelease(
+  client: pg.PoolClient,
+  row: Record<string, unknown>,
+  position: number,
+  inserted: Record<string, number>,
+) {
+  const r = await client.query(
+    `
+    INSERT INTO releases (id, project_id, name, status, planned_on, shipped_on, cyber_gate, notes, position)
+    VALUES ($1, $2, $3, $4, $5::date, $6::date, $7, $8, $9)
+    ON CONFLICT (id) DO UPDATE SET
+      project_id = EXCLUDED.project_id, name = EXCLUDED.name, status = EXCLUDED.status,
+      planned_on = EXCLUDED.planned_on, shipped_on = EXCLUDED.shipped_on,
+      cyber_gate = EXCLUDED.cyber_gate, notes = EXCLUDED.notes, position = EXCLUDED.position
+    RETURNING (xmax = 0) AS inserted
+  `,
+    [
+      row.id,
+      row.project_id,
+      row.name,
+      row.status,
+      row.planned_on ?? null,
+      row.shipped_on ?? null,
+      row.cyber_gate === true,
+      row.notes ?? null,
+      position,
+    ],
+  );
+  if (r.rows[0]?.inserted) inserted.releases++;
+
+  const delivers = ((row.delivers as unknown[] | undefined) ?? []).map(String);
+  await client.query(
+    "DELETE FROM release_delivers WHERE release_id = $1 AND NOT (version_uid = ANY($2::text[]))",
+    [row.id, delivers],
+  );
+  for (const [position, uid] of delivers.entries()) {
+    const d = await client.query(
+      `
+      INSERT INTO release_delivers (release_id, version_uid, position)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (release_id, version_uid) DO UPDATE SET position = EXCLUDED.position
+      RETURNING (xmax = 0) AS inserted
+    `,
+      [row.id, uid, position],
+    );
+    if (d.rows[0]?.inserted) inserted.release_delivers++;
+  }
+}
+
 async function upsertDevLocalAccounts(
   client: pg.PoolClient,
   identities: Record<string, unknown>[],
@@ -340,11 +402,30 @@ export async function getSeedSummary(pool: pg.Pool) {
     "SELECT id FROM identities WHERE id = $1 LIMIT 1",
     ["taylor-tester"],
   );
+  const caps = await pool.query(
+    "SELECT count(*)::int AS c FROM requirement_lines WHERE kind = 'capability'",
+  );
+  const releases = await pool.query(`
+    SELECT r.id, r.name, r.status, r.planned_on::text AS planned_on, r.shipped_on::text AS shipped_on,
+           count(d.version_uid)::int AS delivers,
+           count(l.base_uid)::int AS capabilities
+      FROM releases r
+      LEFT JOIN release_delivers d ON d.release_id = r.id
+      LEFT JOIN requirement_versions v ON v.uid = d.version_uid
+      LEFT JOIN requirement_lines l
+        ON l.base_uid = v.base_uid AND l.project_id = v.project_id AND l.kind = 'capability'
+     GROUP BY r.id
+     ORDER BY r.position, r.id
+  `);
   return {
     identities: counts.identities ?? 0,
     project_grants: counts.project_grants ?? 0,
     requirement_lines: counts.requirement_lines ?? 0,
     requirement_versions: counts.requirement_versions ?? 0,
+    capabilities: (caps.rows[0]?.c as number | undefined) ?? 0,
+    release_count: counts.releases ?? 0,
+    release_delivers: counts.release_delivers ?? 0,
+    releases: releases.rows,
     sample_identity_id: (sample.rows[0]?.id as string | undefined) ?? null,
   };
 }

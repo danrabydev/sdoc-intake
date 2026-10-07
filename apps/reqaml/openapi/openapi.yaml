@@ -98,6 +98,35 @@ components:
           type: integer
         requirement_versions:
           type: integer
+        capabilities:
+          type: integer
+          description: requirement lines of kind capability
+        release_count:
+          type: integer
+        release_delivers:
+          type: integer
+          description: rows in the release → version delivers junction
+        releases:
+          type: array
+          items:
+            type: object
+            required: [id, name, status, delivers, capabilities]
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              status:
+                type: string
+                enum: [planned, shipped]
+              planned_on:
+                type: [string, "null"]
+              shipped_on:
+                type: [string, "null"]
+              delivers:
+                type: integer
+              capabilities:
+                type: integer
         sample_identity_id:
           type: string
           description: e.g. taylor-tester for smoke queries
