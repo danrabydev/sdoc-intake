@@ -23,15 +23,21 @@ REPO = "../../.."
 PR12_SHA = "67131da"
 PR12_URL = "https://github.com/danrabydev/sdoc-intake/pull/12"
 
-# Evidence: Dan verified Docker smoke through 44a727a; follow-up commits add devenv:init/MFA/agent/BFF hardening.
-# Cloud agent re-runs unit/typecheck/build/seed --validate (no Docker in agent VM).
+# Evidence: local Docker verification of the PR #13 follow-up (6a5f0db + fixes), fresh worktree, 2026-10-07.
 EVIDENCE = (
-    "Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, "
-    "`pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, "
-    "privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh "
-    "rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username "
-    "normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; "
-    "`@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass"
+    "Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: "
+    "`pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the "
+    "Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without "
+    "the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with "
+    "it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth "
+    "handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username "
+    "normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie "
+    "HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via "
+    "`devenv:mfa`, TOTP replay rejected, agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, "
+    "agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 "
+    "failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless "
+    "Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; "
+    "seed yaml_to_strictdoc --validate pass"
 )
 
 yaml = YAML()
@@ -238,8 +244,10 @@ DELIVERED = [
         title="TOTP MFA enrollment (UI + devenv:mfa CLI)",
         statement=(
             "Privileged roles require MFA in all modes. First login can return `mfa_enrollment_required` with otpauth URI; "
-            "`pnpm devenv:mfa <identity-id>` enrolls dev users (or prints QR/URI). TOTP secrets are envelope-encrypted; "
-            "replay within the TOTP window is rejected."
+            "the sign-in card shows a setup key and the otpauth URI (no QR code) and asks for the 6-digit code. "
+            "`pnpm devenv:mfa <identity-id>` enrolls dev users inside the app container (or `--interactive` prints the "
+            "URI + ticket, confirmed with `--ticket=… --confirm=<code>`). TOTP secrets are envelope-encrypted; a code is "
+            "accepted once (replay of the matched time step is rejected)."
         ),
         satisfies=["ARCH-CRED-MFA"],
         security=("IA-2", f"IA-2 MFA enrollment. Verified: {EVIDENCE}."),
@@ -253,9 +261,11 @@ DELIVERED = [
         parent="SEC-IA",
         title="Dev agent OAuth client_credentials tokens",
         statement=(
-            "`pnpm devenv:agent-token --agent <name> --role <role>` mints short-lived audience-bound tokens via "
-            "registered `reqaml-agent-dev` client_credentials (not a backdoor password). Agent name and optional "
-            "acting-for are recorded on token issue and RBAC mutation audit."
+            "`pnpm devenv:agent-token --agent <name> [--role Reader|Author]` mints short-lived (<= 1 h) audience-bound "
+            "tokens via registered `reqaml-agent-dev` client_credentials (not a backdoor password). The agent is its own "
+            "principal (`agent-<name>`) with explicit project grants; each token carries one role (default Reader), "
+            "roles above Author or not granted are refused, and authorization uses only the token's role. Agent name, "
+            "token role and optional acting-for are recorded on token issue and mutation audit."
         ),
         satisfies=["ARCH-AUTH-AGENT-ATTRIBUTION"],
         security=("IA-2", f"IA-2 agent attribution. Verified: {EVIDENCE}."),
@@ -269,8 +279,10 @@ DELIVERED = [
         parent="SEC-IA",
         title="Auth hardening: handoffs, BFF session, throttle, prod issuer",
         statement=(
-            "Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF, "
-            "per-IP throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default, "
+            "Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF "
+            "required on every cookie-authenticated mutation, per-IP failed-login throttle alongside account lockout, "
+            "prod REQAML_ISSUER_URL self-check, trustProxy off by default (production requires an explicit "
+            "REQAML_TRUSTED_PROXIES list), "
             "auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, "
             "JWT signature verify before access-token revocation, normalized usernames."
         ),
