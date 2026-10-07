@@ -103,7 +103,7 @@ export REQALM_OTEL_ENABLED=true
 pnpm dev:reqalm
 ```
 
-In Docker, set the same env vars on the **app** service only when you want export; leave them unset for zero overhead. The app entrypoint loads `dist/telemetry/register.js` before `main.js`.
+In Docker, set the same env vars on the **app** service only when you want export, pointing at a collector the container can reach (e.g. `http://jaeger:4318` on the compose network; `127.0.0.1` inside the container is the app itself). With them unset, `dist/telemetry/register.js` (loaded before `main.js`) imports no SDK code and opens no sockets. `/health` and `/ready` are not traced, and the OAuth `code` query parameter is redacted from spans as it is from logs.
 
 ## SDoc Intake editor
 

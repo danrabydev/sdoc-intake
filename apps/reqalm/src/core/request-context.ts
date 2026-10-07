@@ -6,7 +6,6 @@ import { resolveRequestAuth } from "../auth/request-auth.js";
 import type { KeyProvider } from "../key/provider.js";
 import { effectiveRoles } from "../rbac/agent-role.js";
 import { listActiveRoles, permissionsForRoles } from "../rbac/enforce.js";
-import { requestIdFromFastify } from "../telemetry/request-id.js";
 import { activeTraceIds } from "../telemetry/trace-context.js";
 
 export type ProjectGrantRow = { project_id: string; role: string };
@@ -49,7 +48,8 @@ export async function buildRequestContext(
   req: FastifyRequest,
   deps: RequestContextDeps,
 ): Promise<RequestContext> {
-  const requestId = requestIdFromFastify(req);
+  // One id per request: Fastify already validated/replaced x-request-id in genReqId (logs use it too).
+  const requestId = req.id;
   const trace = activeTraceIds();
   const auth = await resolveRequestAuth(req, deps.pool, deps.config, deps.keyProvider);
   const identityId = auth?.accessToken.sub ?? null;

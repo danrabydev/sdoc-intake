@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { createServer, type Server } from "node:http";
 import { after, before, beforeEach, describe, it } from "node:test";
-import { SpanStatusCode } from "@opentelemetry/api";
+import { SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
 import { bindOperationLogCapture } from "../core/logging/structured-log.js";
+import { buildRequestContext } from "../core/request-context.js";
 import { createOpenBaoKeyProvider } from "../key/provider.js";
 import { loadConfig } from "../config.js";
 import {
@@ -15,7 +16,9 @@ import {
   type TestApp,
 } from "../test/harness.js";
 import { normalizeRequestId } from "./request-id.js";
-import { finishedSpans, resetTelemetrySpans } from "./testing.js";
+import { traceLogFields } from "./trace-context.js";
+import { REDACTED_SERVER_QUERY_PARAMS } from "./instrumentations.js";
+import { finishedSpans, resetTelemetrySpans } from "../test/otel-testing.js";
 
 function spanByNameIncludes(needle: string) {
   return finishedSpans().find((s) => s.name.includes(needle) || s.name === needle);
@@ -168,12 +171,21 @@ describe("OpenTelemetry tracing", () => {
       resetTelemetrySpans();
       const provider = createOpenBaoKeyProvider(config);
       await provider.wrapSecret(Buffer.from("hello"), "test-purpose");
-      const depSpan = spanByNameIncludes("openbao.transit.encrypt");
-      assert.ok(depSpan, "expected OpenBao dependency span");
-      const attrs = depSpan!.attributes;
-      assert.equal(attrs["dependency.name"], "openbao");
-      const serialized = JSON.stringify(attrs);
+      const keySpan = spanByNameIncludes("key.wrapSecret");
+      assert.ok(keySpan, "expected KeyProvider span");
+      assert.equal(keySpan!.attributes["dependency.name"], "openbao");
+      assert.equal(keySpan!.attributes["key.purpose"], "test-purpose");
+      // The OpenBao HTTP call itself comes from the standard undici instrumentation, as a child.
+      const httpSpan = finishedSpans().find(
+        (s) =>
+          s.parentSpanContext?.spanId === keySpan!.spanContext().spanId &&
+          String(s.attributes["url.path"] ?? "").includes("/v1/transit/encrypt/"),
+      );
+      assert.ok(httpSpan, "expected undici HTTP span under the KeyProvider span");
+      const serialized = JSON.stringify(finishedSpans().map((s) => s.attributes));
       assert.ok(!serialized.includes("test-token"), "token must not appear in span attributes");
+      assert.ok(!serialized.toLowerCase().includes("x-vault-token"));
+      assert.ok(!serialized.includes("aGVsbG8"), "plaintext must not appear in span attributes");
       assert.ok(!serialized.includes(TEST_AGENT_SECRET));
     } finally {
       await new Promise<void>((resolve) => server?.close(() => resolve()));
@@ -264,5 +276,74 @@ describe("OpenTelemetry tracing", () => {
     const blob = JSON.stringify(opSpan!.attributes);
     assert.ok(!blob.includes("eyJhbGci"));
     assert.ok(!blob.toLowerCase().includes("password"));
+  });
+  it("RequestContext reuses Fastify's request id, so logs, audit and response agree", async () => {
+    const rc = await buildRequestContext(
+      { id: "fastify-req-id", headers: { "x-request-id": "bad id" }, ip: "127.0.0.1" } as never,
+      { pool: ctx.pool, config: ctx.config, keyProvider: ctx.keyProvider, logger: ctx.app.log },
+    );
+    assert.equal(rc.requestId, "fastify-req-id");
+  });
+
+  it("missing or invalid x-request-id yields one generated id across response and audit", async () => {
+    const variants: Record<string, string>[] = [{}, { "x-request-id": "x".repeat(129) }];
+    for (const headers of variants) {
+      const res = await inject({ method: "GET", url: "/api/v1/projects/reqalm", headers });
+      const body = res.json() as { request_id: string };
+      assert.match(body.request_id, /^[0-9a-f-]{36}$/i);
+      const audit = await ctx.pool.query(`SELECT 1 FROM audit_events WHERE request_id = $1`, [
+        body.request_id,
+      ]);
+      assert.equal(audit.rowCount, 1);
+    }
+  });
+
+  it("log mixin adds trace_id/span_id only while a span is active", () => {
+    // Wired into the app logger (pino keeps it under a private symbol).
+    let mixin: unknown;
+    for (let o: object | null = ctx.app.log; o && !mixin; o = Object.getPrototypeOf(o)) {
+      const sym = Object.getOwnPropertySymbols(o).find((x) => x.description === "pino.mixin");
+      if (sym) mixin = (o as Record<symbol, unknown>)[sym];
+    }
+    assert.equal(mixin, traceLogFields, "app logger must use the trace mixin");
+    assert.deepEqual(traceLogFields(), {});
+    trace.getTracer("t").startActiveSpan("log-mixin", (span) => {
+      const fields = traceLogFields();
+      assert.equal(fields.trace_id, span.spanContext().traceId);
+      assert.equal(fields.span_id, span.spanContext().spanId);
+      span.end();
+    });
+  });
+
+  it("real HTTP: server span parents Fastify, and the OAuth code is redacted from url.query", async () => {
+    const address = await ctx.app.listen({ port: 0, host: "127.0.0.1" });
+    resetTelemetrySpans();
+    await fetch(`${address}/oauth/web/callback?code=SECRETCODE123&state=st`, { redirect: "manual" });
+    const server = finishedSpans().find(
+      (s) => s.kind === SpanKind.SERVER && s.attributes["url.path"] === "/oauth/web/callback",
+    );
+    assert.ok(server, "expected http server span");
+    assert.ok(!String(server!.attributes["url.query"]).includes("SECRETCODE123"));
+    // Only the test's own outgoing fetch (undici client span) may carry the URL it requested.
+    const appSpans = finishedSpans().filter((s) => s.kind !== SpanKind.CLIENT);
+    assert.ok(!JSON.stringify(appSpans.map((s) => s.attributes)).includes("SECRETCODE123"));
+    const fastifyRequest = finishedSpans().find(
+      (s) => s.name === "request" && s.parentSpanContext?.spanId === server!.spanContext().spanId,
+    );
+    assert.ok(fastifyRequest, "Fastify request span should be a child of the http server span");
+    assert.ok(REDACTED_SERVER_QUERY_PARAMS.includes("code"));
+  });
+
+  it("probe routes are not traced", async () => {
+    resetTelemetrySpans();
+    const address = ctx.app.server.address();
+    assert.ok(address && typeof address === "object");
+    await fetch(`http://127.0.0.1:${address.port}/health`);
+    const appSpans = finishedSpans().filter((s) => s.kind !== SpanKind.CLIENT);
+    assert.deepEqual(
+      appSpans.map((s) => s.name),
+      [],
+      "health probe must not create http or Fastify spans",
+    );
   });
 });

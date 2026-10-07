@@ -21,6 +21,7 @@ import { createBearerGuard, type AuthedRequest } from "./middleware/bearer-auth.
 import { installRouteCapture } from "./route-security.js";
 import { registerFeatureModules } from "../modules/register.js";
 import { requestIdFromHeaders } from "../telemetry/request-id.js";
+import { traceLogFields } from "../telemetry/trace-context.js";
 
 export type RuntimeState = {
   config: AppConfig;
@@ -30,15 +31,15 @@ export type RuntimeState = {
   readiness: ReadinessContext;
   /** Test seam: inject an in-memory KeyProvider instead of OpenBao. */
   keyProvider?: KeyProvider;
-  /** Test seam: capture structured logs from Fastify. */
-  testLogger?: import("fastify").FastifyBaseLogger;
 };
 
 export async function buildApiServer(state: RuntimeState) {
   const { config, pool, roles, readiness } = state;
   const app = Fastify({
-    logger: state.testLogger ?? {
+    logger: {
       level: "info",
+      // trace_id/span_id on every log line while a span is active (no-op when tracing is off).
+      mixin: traceLogFields,
       serializers: {
         req(req) {
           const url = req.url?.replace(/([?&]code=)[^&]+/gi, "$1[REDACTED]");

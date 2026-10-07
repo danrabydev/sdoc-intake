@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import type { IncomingHttpHeaders } from "node:http";
-import type { FastifyRequest } from "fastify";
 
 /** Printable ASCII (no control chars), max 128 — W3C / gateway friendly. */
 const REQUEST_ID_RE = /^[\x21-\x7E]{1,128}$/;
@@ -17,8 +16,4 @@ export function requestIdFromHeaders(headers: IncomingHttpHeaders): string {
   const header = headers["x-request-id"];
   const raw = typeof header === "string" ? header : Array.isArray(header) ? header[0] : undefined;
   return normalizeRequestId(raw);
-}
-
-export function requestIdFromFastify(req: FastifyRequest): string {
-  return requestIdFromHeaders(req.headers);
 }

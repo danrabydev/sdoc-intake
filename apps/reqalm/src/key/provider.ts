@@ -1,9 +1,6 @@
 import type { AppConfig } from "../config.js";
 import { isProduction } from "../config.js";
-import {
-  fetchWithDependencySpan,
-  traceKeyProvider,
-} from "../telemetry/key-provider-tracing.js";
+import { traceKeyProvider } from "../telemetry/key-provider-tracing.js";
 import { probeOpenBao, TRANSIT_KEK_NAME } from "./openbao.js";
 
 export type KeyProvider = {
@@ -22,8 +19,7 @@ async function transitEncrypt(
   keyName: string,
 ): Promise<string> {
   const base = normalizeAddr(config.OPENBAO_ADDR!);
-  const url = `${base}/v1/transit/encrypt/${keyName}`;
-  const res = await fetchWithDependencySpan("openbao.transit.encrypt", "POST", url, {
+  const res = await fetch(`${base}/v1/transit/encrypt/${keyName}`, {
     method: "POST",
     headers: {
       "X-Vault-Token": config.OPENBAO_TOKEN!,
@@ -48,8 +44,7 @@ async function transitDecrypt(
   keyName: string,
 ): Promise<string> {
   const base = normalizeAddr(config.OPENBAO_ADDR!);
-  const url = `${base}/v1/transit/decrypt/${keyName}`;
-  const res = await fetchWithDependencySpan("openbao.transit.decrypt", "POST", url, {
+  const res = await fetch(`${base}/v1/transit/decrypt/${keyName}`, {
     method: "POST",
     headers: {
       "X-Vault-Token": config.OPENBAO_TOKEN!,
