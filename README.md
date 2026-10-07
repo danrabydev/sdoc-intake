@@ -18,9 +18,11 @@ Design source of truth: `docs/design/seed/dogfood.yaml` and `docs/design/c4/ARCH
 ```sh
 git clone <repo-url> sdoc-intake && cd sdoc-intake
 pnpm install
-pnpm devenv:init          # random secrets → .reqaml/devenv.env + .env (printed once)
+pnpm devenv:init          # random secrets → .reqaml/devenv.env + .env (mode 600, printed once)
 docker compose up --build # app listens on 127.0.0.1:3000 only
 ```
+
+`pnpm devenv:init --rotate` issues new secrets; because Postgres keeps its first password in the volume, follow it with `docker compose down -v && docker compose up --build -d --wait` (dev data is reset).
 
 1. Open **http://127.0.0.1:3000/login** (or `http://localhost:3000/login`).
 2. Sign in as `<identity-id>@dev.local` using the dev password from `devenv:init`.

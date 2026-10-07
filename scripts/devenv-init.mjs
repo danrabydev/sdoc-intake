@@ -4,7 +4,7 @@
  * Usage: pnpm devenv:init [--rotate]
  */
 import { randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
@@ -33,8 +33,15 @@ function secret(bytes = 24) {
   return randomBytes(bytes).toString("base64url");
 }
 
+function base32Secret(chars = 32) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  return Array.from(randomBytes(chars), (b) => alphabet[b & 31]).join("");
+}
+
+let created = false;
+
 function loadOrCreateSecrets() {
-  mkdirSync(secretsDir, { recursive: true });
+  mkdirSync(secretsDir, { recursive: true, mode: 0o700 });
   let cur = {};
   if (existsSync(secretsFile) && !rotate) {
     cur = parseEnv(readFileSync(secretsFile, "utf8"));
@@ -45,9 +52,12 @@ function loadOrCreateSecrets() {
     REQAML_AGENT_CLIENT_SECRET: cur.REQAML_AGENT_CLIENT_SECRET ?? secret(24),
     REQAML_SESSION_SECRET: cur.REQAML_SESSION_SECRET ?? secret(32),
     REQAML_CSRF_SECRET: cur.REQAML_CSRF_SECRET ?? secret(16),
-    REQAML_MFA_DEV_SECRET: cur.REQAML_MFA_DEV_SECRET ?? secret(16).replace(/[^A-Z2-7]/gi, "A").slice(0, 16),
+    REQAML_MFA_DEV_SECRET: cur.REQAML_MFA_DEV_SECRET ?? base32Secret(32),
   };
-  writeFileSync(secretsFile, serializeEnv(needed));
+  const text = serializeEnv(needed);
+  created = !existsSync(secretsFile) || readFileSync(secretsFile, "utf8") !== text;
+  writeFileSync(secretsFile, text, { mode: 0o600 });
+  chmodSync(secretsFile, 0o600);
   return needed;
 }
 
@@ -72,18 +82,28 @@ function mergeRootEnv(secrets) {
   map.DATABASE_URL = `postgresql://${map.POSTGRES_USER}:${secrets.POSTGRES_PASSWORD}@127.0.0.1:5432/${map.POSTGRES_DB}`;
   map.OPENBAO_ADDR = map.OPENBAO_ADDR ?? "http://127.0.0.1:8200";
   map.REQAML_HOST_BIND = map.REQAML_HOST_BIND ?? "127.0.0.1";
-  writeFileSync(envFile, serializeEnv(map));
+  writeFileSync(envFile, serializeEnv(map), { mode: 0o600 });
+  chmodSync(envFile, 0o600);
 }
 
 function main() {
   const secrets = loadOrCreateSecrets();
   mergeRootEnv(secrets);
-  const firstTime = !process.env.DEVENV_INIT_QUIET;
-  if (firstTime) {
+  if (!process.env.DEVENV_INIT_QUIET) {
     console.log("ReqAML devenv initialized (.reqaml/devenv.env + .env updated).");
-    console.log("Secrets (also in .reqaml/devenv.env — gitignored):");
-    for (const [k, v] of Object.entries(secrets)) {
-      console.log(`  ${k}=${v}`);
+    if (created) {
+      // Print new secrets once; later runs only point at the gitignored file.
+      console.log("New secrets (also in .reqaml/devenv.env — gitignored):");
+      for (const [k, v] of Object.entries(secrets)) {
+        console.log(`  ${k}=${v}`);
+      }
+    } else {
+      console.log("Secrets unchanged; see .reqaml/devenv.env (gitignored).");
+    }
+    if (rotate) {
+      console.log(
+        "\n--rotate changed POSTGRES_PASSWORD: an existing Postgres volume keeps the old one. Reset dev data with\n  docker compose down -v && docker compose up --build -d --wait",
+      );
     }
     console.log("\nNext steps:");
     console.log("  1. docker compose up --build");
