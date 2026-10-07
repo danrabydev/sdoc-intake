@@ -23,10 +23,15 @@ REPO = "../../.."
 PR12_SHA = "67131da"
 PR12_URL = "https://github.com/danrabydev/sdoc-intake/pull/12"
 
+# Real local runs (Docker box, 2026-10-07). PR head bb8e02c had never run the smoke and failed it:
+# the app crash-looped on ES256 key generation; fixed in 0d7700e, auth hardening in 827fb14.
 EVIDENCE = (
-    "`pnpm --filter @reqaml/app test` (22/22 pass), "
-    "`pnpm --filter @reqaml/app typecheck` pass, "
-    "`pnpm devenv:smoke` with auth-flow-smoke (PKCE login, refresh reuse, revoke, lockout, RBAC deny) pass locally"
+    "local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on "
+    "ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke "
+    "(PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and "
+    "access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace "
+    "variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev "
+    "accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass"
 )
 
 yaml = YAML()
@@ -94,7 +99,8 @@ DELIVERED = [
             "Acceptance: unauthenticated `/app` redirects to login; authenticated shell renders `/api/v1/me` grants."
         ),
         satisfies=["ARCH-UI", "ARCH-UI-GUARD"],
-        security=("AC-3", f"AC-3 guard enforcement. Verified: {EVIDENCE}."),
+        security=("AC-3", f"AC-3 guard enforcement. Verified: {EVIDENCE}; headless Chrome: `/` and `/app` "
+                  "redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000."),
         artifacts=[
             ("other", "apps/reqaml/src/web/public/app.js"),
             ("other", "apps/reqaml/src/web/public/styles.css"),
@@ -137,7 +143,10 @@ DELIVERED = [
             "ARCH-AUTH-LOCAL.1", "ARCH-CRED", "ARCH-CRED-HASH", "ARCH-CRED-POLICY",
             "ARCH-CRED-LOCKOUT", "ARCH-CRED-MFA", "ARCH-CRED-TOKENS",
         ],
-        security=("IA-5", f"IA-5 / AC-7 credential controls. Verified: {EVIDENCE}."),
+        security=("IA-5", f"IA-5 / AC-7 credential controls. Verified: {EVIDENCE}; stored hashes are "
+                  "argon2id m=19456 t=2 p=1; refresh tokens and codes stored as SHA-256 hashes; privileged login "
+                  "returns mfa_required and a wrong TOTP is 401. Gap: no MFA enrollment path yet, so privileged dev "
+                  "accounts (dan, sam-security, jamie-ao, kim-key-custodian) cannot complete login."),
         artifacts=[
             ("other", "apps/reqaml/src/credential/password.ts"),
             ("other", "apps/reqaml/src/credential/lockout.ts"),
@@ -158,7 +167,8 @@ DELIVERED = [
             "ARCH-KEY", "ARCH-KEY-PROVIDER", "ARCH-KEY-SCOPE", "ARCH-KEY-JWKS",
             "ARCH-KEY-LIFECYCLE", "ARCH-KEY-FAILCLOSED",
         ],
-        security=("SC-12", f"SC-12 / SC-28(3). Verified: {EVIDENCE}."),
+        security=("SC-12", f"SC-12 / SC-28(3). Verified: {EVIDENCE}; `/oauth/jwks` serves the Transit-wrapped "
+                  "ES256 key across restart. Rotation/overlap code path not exercised yet."),
         artifacts=[
             ("other", "apps/reqaml/src/key/provider.ts"),
             ("other", "apps/reqaml/src/key/signing.ts"),
@@ -174,7 +184,8 @@ DELIVERED = [
             "Acceptance: auth-flow-smoke exercises login, refresh reuse, revoke, lockout, and RBAC deny paths."
         ),
         satisfies=["ARCH-CRED-AUDIT"],
-        security=("AU-2", f"AU-2 / AU-3 / AU-12. Verified: {EVIDENCE}."),
+        security=("AU-2", f"AU-2 / AU-3 / AU-12. Verified: {EVIDENCE}; auth_audit_events rows observed for "
+                  "login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny."),
         artifacts=[("other", "apps/reqaml/src/audit/auth-audit.ts")],
     ),
     dict(

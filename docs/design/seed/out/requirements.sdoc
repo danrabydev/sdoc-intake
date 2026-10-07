@@ -847,7 +847,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: AC-3 enforcement. Verified: `pnpm --filter @reqaml/app test` (22/22 pass), `pnpm --filter @reqaml/app typecheck` pass, `pnpm devenv:smoke` with auth-flow-smoke (PKCE login, refresh reuse, revoke, lockout, RBAC deny) pass locally.
+security.verification_note: AC-3 enforcement. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass.
 edge: ← uses from MC03
 edge: ← uses from FIX-DENY-READER-GRANT
 edge: ← uses from FIX-DENY-MCP-ESCALATE
@@ -1910,7 +1910,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
-security.verification_note: IA-2 / SC-23 OAuth beds. Verified: `pnpm --filter @reqaml/app test` (22/22 pass), `pnpm --filter @reqaml/app typecheck` pass, `pnpm devenv:smoke` with auth-flow-smoke (PKCE login, refresh reuse, revoke, lockout, RBAC deny) pass locally.
+security.verification_note: IA-2 / SC-23 OAuth beds. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -7648,7 +7648,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AU-2
-security.verification_note: AU-2 / AU-3 / AU-12. Verified: `pnpm --filter @reqaml/app test` (22/22 pass), `pnpm --filter @reqaml/app typecheck` pass, `pnpm devenv:smoke` with auth-flow-smoke (PKCE login, refresh reuse, revoke, lockout, RBAC deny) pass locally.
+security.verification_note: AU-2 / AU-3 / AU-12. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8077,7 +8077,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: AC-3 guard enforcement. Verified: `pnpm --filter @reqaml/app test` (22/22 pass), `pnpm --filter @reqaml/app typecheck` pass, `pnpm devenv:smoke` with auth-flow-smoke (PKCE login, refresh reuse, revoke, lockout, RBAC deny) pass locally.
+security.verification_note: AC-3 guard enforcement. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -9511,7 +9511,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-5
-security.verification_note: IA-5 / AC-7 credential controls. Verified: `pnpm --filter @reqaml/app test` (22/22 pass), `pnpm --filter @reqaml/app typecheck` pass, `pnpm devenv:smoke` with auth-flow-smoke (PKCE login, refresh reuse, revoke, lockout, RBAC deny) pass locally.
+security.verification_note: IA-5 / AC-7 credential controls. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; stored hashes are argon2id m=19456 t=2 p=1; refresh tokens and codes stored as SHA-256 hashes; privileged login returns mfa_required and a wrong TOTP is 401. Gap: no MFA enrollment path yet, so privileged dev accounts (dan, sam-security, jamie-ao, kim-key-custodian) cannot complete login.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -9566,7 +9566,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: SC-12
-security.verification_note: SC-12 / SC-28(3). Verified: `pnpm --filter @reqaml/app test` (22/22 pass), `pnpm --filter @reqaml/app typecheck` pass, `pnpm devenv:smoke` with auth-flow-smoke (PKCE login, refresh reuse, revoke, lockout, RBAC deny) pass locally.
+security.verification_note: SC-12 / SC-28(3). Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; `/oauth/jwks` serves the Transit-wrapped ES256 key across restart. Rotation/overlap code path not exercised yet.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
