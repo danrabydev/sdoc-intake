@@ -29,11 +29,13 @@ async function createSigningKey(
   pool: pg.Pool,
   keyProvider: KeyProvider,
 ): Promise<string> {
-  const { publicKey, privateKey } = await generateKeyPair("ES256");
+  const { publicKey, privateKey } = await generateKeyPair("ES256", { extractable: true });
   const pubJwk = await exportJWK(publicKey);
   const privJwk = await exportJWK(privateKey);
   const kid = `reqaml-${Date.now()}`;
   pubJwk.kid = kid;
+  pubJwk.alg = "ES256";
+  pubJwk.use = "sig";
   privJwk.kid = kid;
   const wrapped = await keyProvider.wrapSecret(
     Buffer.from(JSON.stringify(privJwk), "utf8"),
