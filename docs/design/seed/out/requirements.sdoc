@@ -101,6 +101,11 @@ edge: ← refines from ARCH-OTEL
 edge: ← refines from MC01.1
 edge: ← refines from ARCH-DEVENV-IDENTITY
 edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN
+edge: ← refines from ARCH-DEVENV-IDENTITY.1
+edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN.1
+edge: ← refines from ARCH-AUTH-AS
+edge: ← refines from ARCH-AUTH-FEDERATION
+edge: ← uses from FIX-ALLOW-FEDERATED-SSO-VIA-AS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -177,6 +182,9 @@ iteration: iter-r0
 security.catalog_ref: AC-12
 security.verification_note: AC-12 session termination; AU-2/3/12 logout audit. ASD STIG V6R4 V-222578 / V-222391 / V-222550.
 edge: ← satisfies from CAP-SSO
+edge: ← refines from ARCH-AUTH-REVOKE
+edge: ← refines from ARCH-CRED-SESSION
+edge: ← uses from FIX-DENY-REVOKED-TOKEN
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Fixture doc-walk
@@ -400,6 +408,7 @@ iteration: iter-r0
 security.catalog_ref: IA-2
 security.verification_note: IA-2/AC-2 account/identity linkage; AU-2/3/12 admin actions. ASD STIG V6R4 V-222542 / V-222407.
 edge: ← satisfies from CAP-RBAC
+edge: ← uses from ARCH-AUTH-FEDERATION
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -464,6 +473,8 @@ iteration: iter-r0
 security.catalog_ref: AC-2
 security.verification_note: AC-2/AC-3/AC-6 grant administration. ASD STIG V6R4 V-222542 / V-222467 / V-222429.
 edge: ← satisfies from CAP-RBAC
+edge: ← refines from ARCH-CRED-REAUTH
+edge: ← uses from FIX-DENY-PRIV-NO-MFA
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -814,6 +825,459 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-AS
+STATUS: Active
+TITLE: Internal OAuth 2.1 authorization server (single token issuer)
+STATEMENT: >>>
+ReqAML includes its own OAuth 2.1 authorization server (AS) and it is the single token issuer for the Web UI, API, and MCP clients. It runs in the app container's API role. Only the authorization code grant with PKCE is supported for user-delegated access (no implicit, no resource-owner password grant). The AS conforms to the MCP authorization specification (OAuth 2.1, RFC 8414, RFC 9728, RFC 8707, RFC 9207 iss). Users authenticate at the AS either with a local account (ARCH-AUTH-LOCAL) or through a federated enterprise IdP (ARCH-AUTH-FEDERATION); either way the API and MCP server only accept tokens issued by this AS. Signing uses KeyProvider keys (ARCH-KEY-JWKS), and every auth event is audited (ARCH-CRED-AUDIT).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-AS
+VERSION_N: 0
+rbac_op: auth:oauth:authorize, auth:oauth:token
+priority: 5
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: IA-2/IA-5/IA-8/SC-23; single issuer for UI, API, MCP. ASD V-222522.
+edge: ← refines from ARCH-AUTH-PKCE
+edge: ← refines from ARCH-AUTH-METADATA
+edge: ← refines from ARCH-AUTH-AUDIENCE
+edge: ← refines from ARCH-AUTH-REFRESH
+edge: ← refines from ARCH-AUTH-REVOKE
+edge: ← refines from ARCH-AUTH-CLIENTREG
+edge: ← refines from ARCH-AUTH-FEDERATION
+edge: ← refines from ARCH-AUTH-LOCAL
+edge: ← uses from ARCH-DEVENV-COMPOSE.1
+edge: ← uses from ARCH-DEVENV-IDENTITY.1
+edge: ← uses from ARCH-BUILD-FOUNDATION
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222522 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: MC01.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-KEY-JWKS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CRED-AUDIT
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-MINIMAL
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-5
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-8
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-23
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222522
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[[SECTION]]
+UID: ARCH-AUTH-AS-CHILDREN
+TITLE: Children of ARCH-AUTH-AS
+
+[REQUIREMENT]
+UID: ARCH-AUTH-PKCE
+STATUS: Active
+TITLE: Authorization code + PKCE S256 only
+STATEMENT: >>>
+The authorization endpoint requires PKCE with code_challenge_method=S256. Requests that use plain or omit the challenge are rejected (invalid_request) and no code is issued. AS metadata advertises code_challenge_methods_supported=["S256"]. Authorization codes are single-use and short-lived, bound to client_id, redirect_uri (exact match), and code_challenge. State is required, and the authorization response carries iss (RFC 9207).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-PKCE
+VERSION_N: 0
+rbac_op: auth:oauth:authorize
+priority: 5
+iteration: iter-r1
+security.catalog_ref: IA-2.8
+security.verification_note: Replay-resistant authentication (IA-2(8)); ASD V-222530 / V-222531.
+edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
+edge: ← uses from FIX-DENY-PKCE-PLAIN
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-2.8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222530 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222531 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: IA-2.8
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222530
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222531
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-METADATA
+STATUS: Active
+TITLE: AS metadata (RFC 8414) + protected resource metadata (RFC 9728)
+STATEMENT: >>>
+The AS publishes Authorization Server Metadata (RFC 8414) at /.well-known/oauth-authorization-server, plus OpenID Connect discovery for interop. The metadata issuer is identical to the issuer URL. The MCP server and the API each publish OAuth Protected Resource Metadata (RFC 9728) at /.well-known/oauth-protected-resource, listing the internal AS in authorization_servers and stating their canonical resource URI. A request without a valid token gets 401 with WWW-Authenticate: Bearer resource_metadata="…" so MCP clients can discover the AS.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-METADATA
+VERSION_N: 0
+priority: 5
+iteration: iter-r1
+security.catalog_ref: REQAML-SEC-OAUTH
+security.verification_note: MCP authorization spec discovery (RFC 8414 / RFC 9728). Interop requirement; no direct NIST pin.
+edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
+edge: ← uses from FIX-DENY-MCP-WRONG-AUDIENCE
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: MC01.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SC-23
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-AUDIENCE
+STATUS: Active
+TITLE: Audience-bound tokens via resource indicators (RFC 8707); no passthrough
+STATEMENT: >>>
+Clients send the RFC 8707 resource parameter on both authorization and token requests. Access tokens are audience-bound to exactly one canonical resource (the API or the MCP server). Each resource server rejects tokens whose audience is not its own (401 invalid_token). The MCP server never passes the token it received through to the API. Downstream API calls use a separately issued API-audience token for the same subject; that mechanism is an open question. RBAC (ARCH-API-RBAC / MC03) still decides every operation after the audience check.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-AUDIENCE
+VERSION_N: 0
+rbac_op: auth:token:validate
+priority: 5
+iteration: iter-r1
+security.catalog_ref: SC-23
+security.verification_note: SC-23 session authenticity; AC-3 enforcement at each resource server.
+edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
+edge: ← uses from FIX-DENY-MCP-WRONG-AUDIENCE
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: MC03
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-23
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-REFRESH
+STATUS: Active
+TITLE: Refresh token rotation with reuse detection
+STATEMENT: >>>
+Refresh tokens rotate on every use: the AS issues a new refresh token, invalidates the old one, and keeps them in one token family. Presenting an already-rotated refresh token is treated as theft: the AS returns invalid_grant, revokes the whole family (and derived access tokens where introspectable), and emits an audit event. Refresh tokens are bound to client_id and resource, stored hashed server-side (ARCH-CRED-TOKENS), and their idle and absolute lifetimes are configurable.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-REFRESH
+VERSION_N: 0
+rbac_op: auth:oauth:token
+priority: 5
+iteration: iter-r1
+security.catalog_ref: SC-23
+security.verification_note: SC-23 / IA-5 authenticator protection; replay-resistant refresh.
+edge: ← uses from FIX-DENY-REFRESH-REUSE
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-CRED-TOKENS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-23
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-5
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-REVOKE
+STATUS: Active
+TITLE: Token revocation and session-linked teardown
+STATEMENT: >>>
+The AS exposes token revocation (RFC 7009) for refresh and access tokens. Sign-out (A02) revokes the session's refresh tokens and desk attachments. Disabling or deleting an account, or revoking a grant that removes all access, terminates that subject's sessions and token families. Resource servers reject revoked tokens through introspection or short access-token lifetimes plus revocation checks.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-REVOKE
+VERSION_N: 0
+rbac_op: auth:oauth:revoke, auth:signout
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-12
+security.verification_note: AC-12 session termination; ASD V-222549 / V-222578 / V-222391.
+edge: ← uses from FIX-DENY-REVOKED-TOKEN
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222549 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222578 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222391 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: A02
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222549
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222578
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222391
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-CLIENTREG
+STATUS: Active
+TITLE: Client registration: pre-registered baseline; CIMD/DCR policy-gated
+STATEMENT: >>>
+First-party clients (Web UI, admin-configured ReqAML MCP clients) are pre-registered with exact redirect URIs. Client ID Metadata Documents and Dynamic Client Registration (RFC 7591; deprecated in the MCP 2026-07-28 revision) ship disabled by default. An admin can enable either one per deployment or per client policy, and every registration is audited. When DCR is disabled, registration_endpoint is omitted from AS metadata and registration requests are refused. Confidential-client secrets are stored hashed (ARCH-CRED-TOKENS).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-CLIENTREG
+VERSION_N: 0
+rbac_op: auth:client:register
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-7
+security.verification_note: CM-7 least functionality: open registration off unless policy enables it.
+edge: ← uses from FIX-DENY-DCR-DISABLED
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-CRED-TOKENS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-FEDERATION
+STATUS: Active
+TITLE: Enterprise SSO federated upstream through the internal AS
+STATEMENT: >>>
+The enterprise IdP (OIDC or SAML), formerly the direct sign-in path in A01 / CAP-SSO / REQAML-SEC-SSO, is an upstream identity provider federated through the internal AS, not a separate token path. The AS acts as the OIDC RP / SAML SP. It validates the upstream response (signature, issuer, audience, nonce, NotBefore/NotOnOrAfter, single-use assertion ID), maps external_sub to a linked identity (A06), and then issues ReqAML tokens through the normal code + PKCE flow. When the role needs MFA (ARCH-CRED-MFA), the AS requires upstream MFA evidence (amr/acr). The API and MCP server never accept upstream IdP tokens directly.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-FEDERATION
+VERSION_N: 0
+rbac_op: auth:signin
+priority: 5
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: IA-2 / IA-8 federated identification; ASD V-222400 / V-222401 / V-222403 / V-222404 SAML assertion checks.
+edge: ← uses from FIX-DENY-UPSTREAM-TOKEN-AT-API
+edge: ← uses from FIX-ALLOW-FEDERATED-SSO-VIA-AS
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222400 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222401 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222403 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222404 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222522 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CAP-SSO
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: A06
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CRED-MFA
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-8
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222400
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222401
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222403
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222404
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222522
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-LOCAL
+STATUS: Active
+TITLE: Local accounts in the internal identity store
+STATEMENT: >>>
+The internal identity store supports local accounts that bind to the same identity rows and grants as federated identities. Local accounts are required for development (seeded dev accounts, ARCH-DEVENV-IDENTITY.1) and available to deployments whose policy enables them; production enablement and eligible users are an open question. Every local credential is subject to ARCH-CRED-*. Account create/modify/disable/remove is automated and audited, and unnecessary or built-in accounts are disabled.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-LOCAL
+VERSION_N: 0
+rbac_op: auth:local:signin, identity:account:manage
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-2
+security.verification_note: AC-2 account management; ASD V-222407 / V-222412 / V-222661.
+edge: ← refines from ARCH-CRED-LOCKOUT
+edge: ← uses from ARCH-DEVENV-IDENTITY.1
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222407 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222412 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222661 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222407
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222412
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222661
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[[/SECTION]]
 
 [[/SECTION]]
 
@@ -1236,6 +1700,7 @@ iteration: iter-r0
 security.catalog_ref: REQAML-SEC-SCOPE
 security.verification_note: Maps to ReqAML project catalog SCOPE item.
 edge: ← refines from A03
+edge: ← uses from ARCH-BUILD-FOUNDATION
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
@@ -2280,6 +2745,8 @@ security.catalog_ref: AC-3
 security.verification_note: Approver = RoleBinding slot (profile-configurable). AC-3/AU-2/3/12.
 edge: ← uses from FIX-DENY-APPROVE-WITHOUT-SLOT
 edge: ← uses from FIX-ALLOW-APPROVE-LINE
+edge: ← refines from ARCH-CRED-REAUTH
+edge: ← uses from FIX-DENY-STEPUP-STALE-AUTH
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -2402,6 +2869,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from ARCH-CRED-REAUTH
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3621,6 +4089,7 @@ iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: Ship is a high-value auditable event (AU-2/3/12).
 edge: ← refines from ARCH-OTEL
+edge: ← refines from ARCH-CRED-REAUTH
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -6007,6 +6476,8 @@ priority: 50
 iteration: iter-r2
 security.catalog_ref: AU-12
 security.verification_note: AU-12 audit generation pipeline config.
+edge: ← refines from ARCH-CRED-TOKENS
+edge: ← uses from ARCH-KEY-SCOPE
 in_scope_of_contract: Security package
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -6043,7 +6514,11 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from ARCH-DEVENV-HEALTH
 edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
+edge: ← uses from ARCH-KEY-FAILCLOSED
+edge: ← uses from ARCH-DEPLOY-MINIMAL
+edge: ← uses from ARCH-BUILD-FOUNDATION
 in_scope_of_contract: Platform baseline
+delivered_by_release: R1-foundation-shell-auth
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -6068,6 +6543,9 @@ RELATIONS:
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -6542,6 +7020,8 @@ priority: 20
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: Architecture enforces AC-3 via adapters/guards/layers.
+edge: ← uses from ARCH-DEPLOY-MINIMAL
+edge: ← uses from ARCH-BUILD-FOUNDATION
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -6591,8 +7071,10 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: Route guards are AC-3 enforcement in the UI shell.
 edge: ← uses from ARCH-UI
+edge: ← uses from ARCH-CRED-SESSION
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
@@ -6607,6 +7089,9 @@ RELATIONS:
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
 
 [[/SECTION]]
 
@@ -6797,6 +7282,9 @@ security.catalog_ref: AU-2
 security.verification_note: AU-2/3/6/12. ASD STIG V6R4 V-222578 (session ID destroy complements audit lifecycle).
 edge: ← satisfies from CAP-AUDIT
 edge: ← uses from M03
+edge: ← refines from ARCH-CRED-AUDIT
+edge: ← uses from ARCH-KEY-LIFECYCLE
+edge: ← uses from ARCH-BUILD-FOUNDATION
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -6858,6 +7346,9 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: Architecture enforces AC-3 via adapters/guards/layers.
 edge: ← uses from MC02
+edge: ← uses from ARCH-AUTH-AS
+edge: ← uses from ARCH-DEPLOY-MINIMAL
+edge: ← uses from ARCH-BUILD-FOUNDATION
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -6917,8 +7408,12 @@ security.catalog_ref: REQAML-SEC-RBAC
 security.verification_note: Maps to ReqAML RBAC catalog item.
 edge: ← uses from ARCH-API
 edge: ← satisfies from CAP-RBAC
+edge: ← uses from ARCH-AUTH-AUDIENCE
+edge: ← uses from ARCH-KEY-CUSTODIAN
+edge: ← uses from ARCH-BUILD-FOUNDATION
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -6945,6 +7440,9 @@ RELATIONS:
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
 
 [REQUIREMENT]
 UID: ARCH-API-LAYERS
@@ -6966,6 +7464,7 @@ security.verification_note: Architecture enforces AC-3 via adapters/guards/layer
 edge: ← uses from ARCH-API
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
@@ -6980,6 +7479,9 @@ RELATIONS:
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
 
 [[/SECTION]]
 
@@ -7014,6 +7516,8 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 catalog_drift: status=flagged class=normative item=AC-3 from=nist-800-53@rev5-dogfood-20261006 to=nist-800-53@rev5-dogfood-20261006
 edge: ← uses from ARCH-DEVENV-IDENTITY
+edge: ← uses from ARCH-DEVENV-IDENTITY.1
+edge: ← refines from ARCH-AUTH-FEDERATION
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -7202,6 +7706,968 @@ RELATIONS:
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
+[REQUIREMENT]
+UID: ARCH-CRED
+STATUS: Active
+TITLE: Credential store controls
+STATEMENT: >>>
+Credential store controls cover every credential ReqAML holds or verifies: local passwords, MFA authenticators, OAuth refresh tokens, authorization codes, client secrets, and session identifiers. Credentials are never stored or logged in plaintext. Each one is either one-way hashed (verify-only) or wrapped by the key store (must be usable), per ARCH-KEY.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CRED
+VERSION_N: 0
+priority: 5
+iteration: iter-r1
+security.catalog_ref: IA-5
+security.verification_note: IA-5 authenticator management umbrella.
+edge: ← uses from ARCH-AUTH-LOCAL
+edge: ← refines from ARCH-CRED-HASH
+edge: ← refines from ARCH-CRED-POLICY
+edge: ← refines from ARCH-CRED-LOCKOUT
+edge: ← refines from ARCH-CRED-MFA
+edge: ← refines from ARCH-CRED-TOKENS
+edge: ← refines from ARCH-CRED-SESSION
+edge: ← refines from ARCH-CRED-REAUTH
+edge: ← refines from ARCH-CRED-AUDIT
+edge: ← uses from ARCH-BUILD-FOUNDATION
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: IA-5
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[[SECTION]]
+UID: ARCH-CRED-CHILDREN
+TITLE: Children of ARCH-CRED
+
+[REQUIREMENT]
+UID: ARCH-CRED-HASH
+STATUS: Active
+TITLE: Passwords stored only as salted approved one-way hashes (configurable params)
+STATEMENT: >>>
+Local passwords are stored only as salted, approved one-way hashes with a per-credential random salt. Algorithm and cost parameters are configuration, not a hard-coded library: Argon2id where FIPS mode is not required, PBKDF2-HMAC-SHA-256/512 (FIPS-approved) where FIPS-validated crypto is required (ARCH-KEY-FIPS). Each stored hash records its algorithm and parameters, and an outdated hash is re-hashed on the next successful login. Passwords travel only over TLS and are never displayed or logged.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CRED-HASH
+VERSION_N: 0
+rbac_op: auth:local:signin
+priority: 5
+iteration: iter-r1
+security.catalog_ref: IA-5.1
+security.verification_note: IA-5(1) password-based auth; ASD V-222542 / V-222543 / V-222554 / V-222571.
+edge: ← uses from FIX-ALLOW-CRED-HASH-ONLY
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-5.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-13 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222542 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222543 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222554 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222571 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-CRED
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-FIPS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-5.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-13
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222542
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222543
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222554
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222571
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-CRED-POLICY
+STATUS: Active
+TITLE: Password / authenticator policy presets
+STATEMENT: >>>
+Password and authenticator policy (minimum length, composition or blocklist, change distance, minimum and maximum lifetime, reuse history, temporary password with forced change) is a configurable preset per deployment. The DoD-facing preset meets ASD STIG V6R4 values. Default and seeded credentials must be changed before first use, and production must not contain any.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CRED-POLICY
+VERSION_N: 0
+rbac_op: auth:policy:configure
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-5.1
+security.verification_note: IA-5(1); ASD V-222536..V-222541, V-222544..V-222548, V-222662.
+edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN.1
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-5.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222536 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222537 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222538 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222539 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222540 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222541 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222544 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222545 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222546 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222547 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222548 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222662 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-CRED
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: IA-5.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222536
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222537
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222538
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222539
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222540
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222541
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222544
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222545
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222546
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222547
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222548
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222662
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-CRED-LOCKOUT
+STATUS: Active
+TITLE: Throttling and lockout after failed attempts
+STATEMENT: >>>
+The AS throttles authentication per account and per source, and locks a local account after N consecutive failed attempts within a window (configurable; DoD preset 3 in 15 minutes). While locked, even a correct password is refused with the same generic error, and failures never reveal whether an account exists. Unlock happens only through an approved admin process (auth:account:unlock) or the configured timer. Every failure, lockout, and unlock is audited.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CRED-LOCKOUT
+VERSION_N: 0
+rbac_op: auth:local:signin, auth:account:unlock
+priority: 5
+iteration: iter-r1
+security.catalog_ref: AC-7
+security.verification_note: AC-7 unsuccessful logon attempts; ASD V-222432 / V-222433 / V-222462.
+edge: ← uses from FIX-DENY-LOCKOUT
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AC-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222432 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222433 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222462 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-CRED
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222432
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222433
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222462
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-CRED-MFA
+STATUS: Active
+TITLE: MFA for privileged roles
+STATEMENT: >>>
+Privileged roles must use multi-factor authentication. Privileged means roles holding admin, approve, apply, sign-off, ship, steward, or key-custodian permissions in the permission tree. For local accounts the AS enforces a second factor, with MFA secrets wrapped by the key store. For federated logins the AS requires upstream MFA evidence (amr/acr). A session without MFA cannot perform privileged operations. MFA for non-privileged users is a policy preset; factor types and the confirmed privileged-role list are open questions.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CRED-MFA
+VERSION_N: 0
+rbac_op: auth:mfa:verify
+priority: 5
+iteration: iter-r1
+security.catalog_ref: IA-2.1
+security.verification_note: IA-2(1) MFA privileged; ASD V-222523 / V-222527.
+edge: ← uses from ARCH-AUTH-FEDERATION
+edge: ← uses from ARCH-KEY-CUSTODIAN
+edge: ← uses from FIX-DENY-PRIV-NO-MFA
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222523 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222527 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-CRED
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-SCOPE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-2.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222523
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222527
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-CRED-TOKENS
+STATUS: Active
+TITLE: Server-side tokens and client secrets stored hashed
+STATEMENT: >>>
+Server-side bearer credentials (refresh tokens, authorization codes, confidential-client secrets, MFA recovery codes) are stored only as hashes (keyed hash or one-way hash), compared in constant time, and never retrievable. Secrets ReqAML must present to others (upstream IdP client secret, Azure DevOps connector tokens, SMTP credentials, OTEL sink credentials) are stored encrypted under key-store DEKs (ARCH-KEY-SCOPE) and never returned by APIs.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CRED-TOKENS
+VERSION_N: 0
+priority: 5
+iteration: iter-r1
+security.catalog_ref: IA-5.6
+security.verification_note: IA-5(6) protection of authenticators; SC-28(1); ASD V-222542 / V-222588.
+edge: ← uses from ARCH-AUTH-REFRESH
+edge: ← uses from ARCH-AUTH-CLIENTREG
+edge: ← uses from FIX-ALLOW-CRED-HASH-ONLY
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-5.6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-28.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222542 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-CRED
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-SCOPE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: M03
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: IA-5.6
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-28.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222542
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-CRED-SESSION
+STATUS: Active
+TITLE: Session management: idle/absolute timeout, fixation, cookies
+STATEMENT: >>>
+Sessions use system-generated unique identifiers from an approved RNG and rotate on login (anti-fixation). Session IDs are never in URLs or otherwise exposed. Cookies are HttpOnly and Secure, sessions are validated server-side, and IDs are never reused. Idle and absolute timeouts are configurable (DoD preset: 15 minutes idle non-privileged, 10 minutes admin), as are concurrent-session limits. Timeout, sign-out, and account deletion destroy the session and its token family. Session create, renew, timeout, and destroy are audited.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CRED-SESSION
+VERSION_N: 0
+rbac_op: auth:session:manage
+priority: 5
+iteration: iter-r1
+security.catalog_ref: AC-12
+security.verification_note: AC-12 / AC-2(5) / AC-10 / SC-23(3); ASD V-222387 / V-222389 / V-222390 / V-222575 / V-222576 / V-222577 / V-222579 / V-222581 / V-222582 / V-222583.
+edge: ← uses from FIX-DENY-SESSION-IDLE
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-2.5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-23.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222387 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222389 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222390 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222575 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222576 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222577 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222579 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222581 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222582 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222583 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-CRED
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: A02
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-2.5
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-23
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-23.3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222387
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222389
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222390
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222575
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222576
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222577
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222579
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222581
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222582
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222583
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-CRED-REAUTH
+STATUS: Active
+TITLE: Re-authentication (step-up) for sensitive actions
+STATEMENT: >>>
+Sensitive actions require recent authentication (step-up): line or tree approve (D12/D13), capability approve, ConformsTo pin apply/deny, gate sign-off, release ship, grant and role administration, client registration, and key operations. If auth_time is older than the configured max_age, or MFA is missing for a privileged slot, the action returns a step-up challenge and nothing is written.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CRED-REAUTH
+VERSION_N: 0
+rbac_op: auth:stepup
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-11
+security.verification_note: IA-11 re-authentication; ASD V-222520.
+edge: ← uses from FIX-DENY-STEPUP-STALE-AUTH
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222520 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-CRED
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: D12
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: D13
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-CAP-APPROVE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-GATE-SIGNOFF
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: G05
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: A07
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: IA-11
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222520
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-CRED-AUDIT
+STATUS: Active
+TITLE: Audit every authentication event
+STATEMENT: >>>
+Every authentication event is audited through the existing AuditLog pattern (ARCH-OTEL) with subject, client_id, source IP, user agent, outcome, and timestamp. Covered events: login success and failure, lockout and unlock, MFA result, step-up, token issue / refresh / rotation-reuse / revoke, client registration, session create / renew / timeout / destroy, account create / modify / disable / remove, and key operations. Secrets, tokens, and password material never appear in audit payloads.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CRED-AUDIT
+VERSION_N: 0
+priority: 5
+iteration: iter-r1
+security.catalog_ref: AU-2
+security.verification_note: AU-2/3/12; ASD V-222462 / V-222441 / V-222442 / V-222443 / V-222445 / V-222467.
+edge: ← uses from ARCH-AUTH-AS
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222462 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222441 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222442 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222443 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222445 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222467 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-CRED
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222462
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222441
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222442
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222443
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222445
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222467
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[[/SECTION]]
+
+[REQUIREMENT]
+UID: ARCH-KEY
+STATUS: Active
+TITLE: Key / secret store — envelope encryption root of trust
+STATEMENT: >>>
+ReqAML's encryption root of trust is an external key / secret store using envelope encryption. A key-encryption key (KEK) is held outside the application database by the KeyProvider and wraps data-encryption keys (DEKs). DEKs are persisted only in wrapped form. Plaintext key material exists only in process memory, is never written to the database, logs, or source, and is zeroized when no longer needed.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-KEY
+VERSION_N: 0
+priority: 5
+iteration: iter-r1
+security.catalog_ref: SC-12
+security.verification_note: SC-12 key establishment/management; SC-28(3) cryptographic keys at rest.
+edge: ← refines from ARCH-KEY-PROVIDER
+edge: ← refines from ARCH-KEY-SCOPE
+edge: ← refines from ARCH-KEY-JWKS
+edge: ← refines from ARCH-KEY-LIFECYCLE
+edge: ← refines from ARCH-KEY-CUSTODIAN
+edge: ← refines from ARCH-KEY-BREAKGLASS
+edge: ← refines from ARCH-KEY-FIPS
+edge: ← refines from ARCH-KEY-FAILCLOSED
+edge: ← uses from ARCH-DEPLOY-PERIPHERALS
+edge: ← uses from ARCH-BUILD-FOUNDATION
+edge: ← uses from FIX-ALLOW-CRED-HASH-ONLY
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-28 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-28.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-28.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SECRETS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-28
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-28.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-28.3
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[[SECTION]]
+UID: ARCH-KEY-CHILDREN
+TITLE: Children of ARCH-KEY
+
+[REQUIREMENT]
+UID: ARCH-KEY-PROVIDER
+STATUS: Active
+TITLE: Pluggable KeyProvider; OpenBao Transit default
+STATEMENT: >>>
+Key operations go through a pluggable KeyProvider abstraction: wrap/unwrap DEK, re-wrap, generate, rotate, revoke/disable, destroy, and sign with non-exportable signing keys. The default backend is OpenBao with the Transit engine (envelope encrypt/decrypt/rewrap plus sign) for dev, and it is suitable for production. The same interface also accepts a cloud KMS or an HSM over PKCS#11 (SoftHSM2 is used only to test the PKCS#11 path). HashiCorp Vault (BUSL) and LocalStack KMS are not defaults. Access to the KeyProvider is authenticated with deployment credentials injected at runtime, never committed (ARCH-DEVENV-SECRETS).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-KEY-PROVIDER
+VERSION_N: 0
+priority: 5
+iteration: iter-r1
+security.catalog_ref: IA-7
+security.verification_note: IA-7 cryptographic module authentication; ASD V-222555.
+edge: ← uses from ARCH-KEY-JWKS
+edge: ← refines from ARCH-DEVENV-KEYS
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to IA-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222555 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SECRETS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222555
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-KEY-SCOPE
+STATUS: Active
+TITLE: What the key store protects (signing keys, secrets, sensitive fields)
+STATEMENT: >>>
+The key store protects: (1) OAuth token signing keys (ARCH-KEY-JWKS); (2) secrets the app must use (DB credentials, SMTP credentials, Azure DevOps connector tokens, upstream IdP client secrets, OTEL sink credentials, MFA secrets), encrypted under DEKs; (3) peppers or HMAC keys used to hash server-side tokens (ARCH-CRED-TOKENS). Verify-only credentials are hashed, not encrypted. Field-level encryption applies only to columns that hold such secrets. Requirement content is not field-encrypted and relies on storage-level encryption at rest per deployment.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-KEY-SCOPE
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: SC-28.1
+security.verification_note: SC-28(1) cryptographic protection at rest; ASD V-222588 / V-222589 / V-222642.
+edge: ← uses from ARCH-CRED-MFA
+edge: ← uses from ARCH-CRED-TOKENS
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to SC-28.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222588 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222589 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222642 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: M03
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-28.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222588
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222589
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222642
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-KEY-JWKS
+STATUS: Active
+TITLE: Token signing keys: kid, JWKS, rotation with overlap window
+STATEMENT: >>>
+Each token signing key has a kid. By default it is a non-exportable OpenBao Transit key, so signing happens inside the KeyProvider and the kid is the key name plus version. The AS publishes public keys at its jwks_uri for the active key and any retired keys still inside the overlap window. Rotation is scheduled and on demand: a new key version starts signing, the prior version stays verify-only until the overlap window passes (at least the maximum access-token lifetime plus clock skew), and is then removed. After that, tokens with the retired kid are rejected.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-KEY-JWKS
+VERSION_N: 0
+rbac_op: key:signing:rotate
+priority: 5
+iteration: iter-r1
+security.catalog_ref: SC-12.3
+security.verification_note: SC-12(3) asymmetric keys; SC-13; ASD V-222570.
+edge: ← uses from ARCH-AUTH-AS
+edge: ← uses from FIX-JWKS-ROTATION-OVERLAP
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to SC-12.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-13 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222570 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-PROVIDER
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-12.3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-13
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222570
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-KEY-LIFECYCLE
+STATUS: Active
+TITLE: Key lifecycle: generate, rotate, revoke, destroy, online re-wrap
+STATEMENT: >>>
+Key lifecycle operations are generate, rotate (scheduled and on demand), revoke/disable, and destroy, for KEKs and DEKs. KEK rotation creates a new key version and re-wraps every DEK online (Transit rewrap, so plaintext is never exposed). Prior versions still unwrap until re-wrap finishes and is verified, then the minimum decryption version is raised to disable them. Reads and writes continue throughout with no downtime. Destroy is irreversible, needs the Key custodian (ARCH-KEY-CUSTODIAN), and requires confirmation that no live ciphertext depends on the key. Every key operation emits an audit event through the AuditLog pattern (operation, key id/version, actor, outcome) and never includes key material.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-KEY-LIFECYCLE
+VERSION_N: 0
+rbac_op: key:kek:rotate, key:dek:rewrap, key:revoke, key:destroy
+priority: 5
+iteration: iter-r1
+security.catalog_ref: SC-12
+security.verification_note: SC-12 / SC-12(2) / SC-12(3); AU-2.
+edge: ← uses from FIX-ALLOW-KEK-REWRAP-ONLINE
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-12.2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-12.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-CUSTODIAN
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-12.2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-12.3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-KEY-CUSTODIAN
+STATUS: Active
+TITLE: Key custodian role (separation of duties)
+STATEMENT: >>>
+Key operations (KEK/DEK rotate, revoke, destroy, provider reconfigure, recovery) need the deployment-scoped Key custodian role. No existing role fits: project and client roles are tenant-scoped, and the permission tree has no ops or deployment role ('No separate Deployer in v1'). For separation of duties, the Key custodian is distinct from Client admin and Project admin, and holding both on one deployment is refused unless a documented exception is approved. The role grants no access to requirement content. Scheduled automatic rotation runs as an audited system principal.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-KEY-CUSTODIAN
+VERSION_N: 0
+rbac_op: key:*
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-5
+security.verification_note: AC-5 separation of duties; AC-6 least privilege.
+edge: ← uses from ARCH-KEY-LIFECYCLE
+edge: ← uses from ARCH-KEY-BREAKGLASS
+edge: ← uses from FIX-DENY-KEYOP-NO-CUSTODIAN
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to AC-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CRED-MFA
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-5
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-6
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-KEY-BREAKGLASS
+STATUS: Active
+TITLE: Key recovery / break-glass procedure
+STATEMENT: >>>
+A documented key recovery / break-glass procedure covers KEK or KeyProvider loss and custodian unavailability. It uses OpenBao unseal/recovery shares or provider-native recovery held under split knowledge and dual control (M-of-N custodians), restores without exposing plaintext keys, and rotates keys afterward. Every break-glass use is audited and reviewed, and a restore exercise runs on a schedule.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-KEY-BREAKGLASS
+VERSION_N: 0
+rbac_op: key:recover
+priority: 15
+iteration: iter-r1
+security.catalog_ref: SC-12.1
+security.verification_note: SC-12(1) key availability; AC-5 dual control.
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to SC-12.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-CUSTODIAN
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-12.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-5
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-KEY-FIPS
+STATUS: Active
+TITLE: FIPS-validated cryptographic modules where applicable
+STATEMENT: >>>
+Where a deployment requires it (DoD/federal profile), all cryptographic operations (hashing, signing, encryption, key wrap, and RNG for session IDs and tokens) use FIPS 140-validated modules (FIPS mode). Password hashing then uses PBKDF2 (ARCH-CRED-HASH), and a KeyProvider build that is not FIPS-validated is refused in that mode. Whether FIPS mode is the default for commercial deployments is an open question.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-KEY-FIPS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: SC-13
+security.verification_note: SC-13 cryptographic protection; ASD V-222570 / V-222571 / V-222572 / V-222583.
+edge: ← uses from ARCH-CRED-HASH
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to SC-13 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222570 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222571 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222572 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222583 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SC-13
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222570
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222571
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222572
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222583
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-KEY-FAILCLOSED
+STATUS: Active
+TITLE: Fail closed when the KEK / KeyProvider is unavailable
+STATEMENT: >>>
+In production, ReqAML fails closed when the KEK or KeyProvider is unreachable or sealed. The app does not start or reports not ready (ARCH-DEVENV-HEALTH / M04), and it refuses operations that need key material. It never falls back to plaintext, cached plaintext KEKs on disk, or a dev provider. Unavailability is audited and alerted.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-KEY-FAILCLOSED
+VERSION_N: 0
+priority: 5
+iteration: iter-r1
+security.catalog_ref: SC-24
+security.verification_note: SC-24 fail in known state; SC-12(1).
+edge: ← uses from FIX-DENY-KEK-UNREACHABLE-PROD
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to SC-24 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-12.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-HEALTH
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: M04
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-24
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-12.1
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[[/SECTION]]
+
 [[/SECTION]]
 
 [[SECTION]]
@@ -7231,6 +8697,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← uses from ARCH-DEPLOY-MINIMAL
 in_scope_of_contract: Security package
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7319,6 +8786,8 @@ iteration: iter-r1
 security.catalog_ref: SC-8
 security.verification_note: Draft successor refining desk-seal wording. ASD STIG V6R4 V-222567 / V-222396.
 edge: ← satisfies from CAP-MCP-DESK
+edge: ← refines from ARCH-AUTH-AS
+edge: ← refines from ARCH-AUTH-METADATA
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -7374,6 +8843,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3/CM-3/AU; mutations not on desk socket. ASD STIG V6R4 V-222567.
 edge: ← satisfies from CAP-MCP-DESK
+edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -7428,6 +8898,7 @@ security.catalog_ref: REQAML-SEC-RBAC
 security.verification_note: MCP uses same RBAC pack as UI.
 edge: ← satisfies from CAP-MCP-DESK
 edge: ← refines from FIX-DENY-MCP-ESCALATE
+edge: ← refines from ARCH-AUTH-AUDIENCE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
@@ -9228,8 +10699,8 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: FIX-DENY-DEVENV-PROD-LOGIN
-STATUS: Active
-TITLE: Dev identity path denied or absent in production builds
+STATUS: Draft
+TITLE: No seeded dev accounts or default credentials in production
 STATEMENT: >>>
 FIXTURE / TEST BED (not a product feature). With a production build or production configuration, attempting the local/dev identity path (OIDC stub or dev-login) is denied or the route/config is absent → expect unauthorized/forbidden (or missing endpoint). Enterprise SSO (A01) remains the only sign-in path. Pairs ARCH-DEVENV-IDENTITY and REQAML-SEC-SSO.
 <<<
@@ -9242,6 +10713,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3: production builds must not accept the local-only identity path.
+edge: ← refines from FIX-DENY-DEVENV-PROD-LOGIN.1
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222518 (pin imprint=asd-stig@v6r4)
 <<<
@@ -9259,6 +10731,51 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Parent
   VALUE: V-222518
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-DEVENV-PROD-LOGIN.1
+STATUS: Active
+TITLE: No seeded dev accounts or default credentials in production
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Production build or production configuration: (a) no seeded dev accounts exist, so logging in as a dev account (for example taylor-tester's dev local account) → generic invalid-credentials and an audit failure; (b) running the dev seed loader in production mode → refused (non-zero exit), no accounts created; (c) the startup self-check finds no default or seeded credentials, and fails startup if it does. Pairs ARCH-DEVENV-IDENTITY.1 and ARCH-CRED-POLICY.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-DEVENV-PROD-LOGIN
+VERSION_N: 1
+rbac_op: auth:local:signin
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-7
+security.verification_note: CM-7; ASD V-222662 default passwords / V-222661 built-in accounts.
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222662 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222661 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-IDENTITY.1
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: FIX-DENY-DEVENV-PROD-LOGIN
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-CRED-POLICY
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222662
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222661
   ROLE: ConformsTo
 
 [REQUIREMENT]
@@ -9286,6 +10803,625 @@ RELATIONS:
   ROLE: Uses
 - TYPE: Parent
   VALUE: CM-6
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-ALLOW-MCP-OAUTH-PKCE
+STATUS: Active
+TITLE: MCP client authorizes via discovery + PKCE; audience-bound tool call
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). MCP host (as alex-author) calls the MCP server without a token → 401 + WWW-Authenticate resource_metadata. It fetches PRM, then AS metadata (issuer match, S256 advertised), authorizes with S256 + resource=MCP URI, and exchanges code + verifier + resource for an aud=MCP access token plus a rotating refresh token. The tool update_draft then succeeds (200) after the audience check and RBAC.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-ALLOW-MCP-OAUTH-PKCE
+VERSION_N: 0
+rbac_op: auth:oauth:authorize, requirement:version:update_draft
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: Happy path for ARCH-AUTH-* / MCP spec.
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-METADATA
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-AUTH-PKCE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AUDIENCE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: MC02
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-PKCE-PLAIN
+STATUS: Active
+TITLE: Deny authorize with plain or missing PKCE
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Authorize request with code_challenge_method=plain, or no code_challenge → expect 400 invalid_request, no authorization code issued, audit deny.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-PKCE-PLAIN
+VERSION_N: 0
+rbac_op: auth:oauth:authorize
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-2.8
+security.verification_note: Pairs ARCH-AUTH-PKCE; ASD V-222530.
+edge: → conforms_to to IA-2.8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222530 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-PKCE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-2.8
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222530
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-MCP-WRONG-AUDIENCE
+STATUS: Active
+TITLE: Deny token with wrong audience at MCP server / API
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). aud=API access token presented to the MCP server → 401 invalid_token + WWW-Authenticate resource_metadata. An aud=MCP token presented to the API → 401. No tool or business call runs.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-MCP-WRONG-AUDIENCE
+VERSION_N: 0
+rbac_op: auth:token:validate
+priority: 10
+iteration: iter-r1
+security.catalog_ref: SC-23
+security.verification_note: Pairs ARCH-AUTH-AUDIENCE.
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AUDIENCE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-AUTH-METADATA
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-23
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-UPSTREAM-TOKEN-AT-API
+STATUS: Active
+TITLE: Deny upstream IdP token presented directly to API/MCP
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). A token minted by the upstream enterprise IdP, presented directly to the API or MCP server → 401 (issuer not trusted). Only internal-AS tokens are accepted.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-UPSTREAM-TOKEN-AT-API
+VERSION_N: 0
+rbac_op: auth:token:validate
+priority: 15
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: Pairs ARCH-AUTH-FEDERATION: no separate token path.
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-FEDERATION
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-REFRESH-REUSE
+STATUS: Active
+TITLE: Deny reuse of a rotated refresh token; revoke family
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Refresh token R1 rotated to R2; presenting R1 again → 400 invalid_grant. R2 and its derived access tokens are revoked (token family), and an audit row records reuse detection.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-REFRESH-REUSE
+VERSION_N: 0
+rbac_op: auth:oauth:token
+priority: 10
+iteration: iter-r1
+security.catalog_ref: SC-23
+security.verification_note: Pairs ARCH-AUTH-REFRESH.
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-REFRESH
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-23
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-REVOKED-TOKEN
+STATUS: Active
+TITLE: Deny revoked refresh/access token after sign-out
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). After sign-out (A02) or RFC 7009 revocation: the revoked refresh token → invalid_grant, and the revoked access token is rejected at the API → 401.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-REVOKED-TOKEN
+VERSION_N: 0
+rbac_op: auth:oauth:revoke
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-12
+security.verification_note: Pairs ARCH-AUTH-REVOKE; ASD V-222578.
+edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222578 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-REVOKE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: A02
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222578
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-DCR-DISABLED
+STATUS: Active
+TITLE: Deny dynamic client registration when policy is off
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). With DCR policy off (default), AS metadata omits registration_endpoint and POST /register → 403 (or 404). No client row is created, and the attempt is audited.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-DCR-DISABLED
+VERSION_N: 0
+rbac_op: auth:client:register
+priority: 20
+iteration: iter-r1
+security.catalog_ref: CM-7
+security.verification_note: Pairs ARCH-AUTH-CLIENTREG.
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-CLIENTREG
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-ALLOW-FEDERATED-SSO-VIA-AS
+STATUS: Active
+TITLE: Federated SSO yields internal-AS tokens for linked identity
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). dan signs in through the upstream IdP (external_sub oidc:dan-raby). The AS validates the assertion, maps it to identity dan, and issues internal-AS tokens (iss = ReqAML AS). The API accepts them and loads dan's reqaml grants; the upstream token never reaches the API.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-ALLOW-FEDERATED-SSO-VIA-AS
+VERSION_N: 0
+rbac_op: auth:signin
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-8
+security.verification_note: Pairs ARCH-AUTH-FEDERATION / A01.
+edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-AUTH-FEDERATION
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-8
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-LOCKOUT
+STATUS: Active
+TITLE: Lockout after N consecutive failed logins
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Local dev account for taylor-tester: N consecutive wrong passwords inside the window (DoD preset 3 in 15 minutes) → account locked. The next login with the correct password is refused with the same generic error. Audit records each failure and the lockout. Unlock only via auth:account:unlock or the timer.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-LOCKOUT
+VERSION_N: 0
+rbac_op: auth:local:signin
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-7
+security.verification_note: Pairs ARCH-CRED-LOCKOUT; ASD V-222432.
+edge: → conforms_to to AC-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222432 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-CRED-LOCKOUT
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222432
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-PRIV-NO-MFA
+STATUS: Active
+TITLE: Deny privileged action on a session without MFA
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). dan (Project admin) with a session lacking MFA evidence attempts project:grant:create → step-up required / 403. No grant is written, and the attempt is audited.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-PRIV-NO-MFA
+VERSION_N: 0
+rbac_op: project:grant:create
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-2.1
+security.verification_note: Pairs ARCH-CRED-MFA; ASD V-222523.
+edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222523 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-CRED-MFA
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: A07
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-2.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222523
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-STEPUP-STALE-AUTH
+STATUS: Active
+TITLE: Deny approval/pin apply with stale authentication
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). pat-client-admin calls requirement:line:approve, or sam-security calls catalog:pin:apply, with auth_time older than max_age → 401 step-up challenge (insufficient_user_authentication). No ApprovalRecord or pin is written.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-STEPUP-STALE-AUTH
+VERSION_N: 0
+rbac_op: requirement:line:approve, catalog:pin:apply
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-11
+security.verification_note: Pairs ARCH-CRED-REAUTH; ASD V-222520.
+edge: → conforms_to to IA-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222520 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-CRED-REAUTH
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: D12
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-11
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222520
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-SESSION-IDLE
+STATUS: Active
+TITLE: Deny after idle session timeout
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Session idle past the configured timeout (DoD preset 15 minutes non-privileged, 10 minutes admin) → next API call 401. The session is destroyed and a session-timeout audit row is emitted.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-SESSION-IDLE
+VERSION_N: 0
+rbac_op: auth:session:manage
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-12
+security.verification_note: Pairs ARCH-CRED-SESSION; ASD V-222389 / V-222390 / V-222445.
+edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222389 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-CRED-SESSION
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222389
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-ALLOW-CRED-HASH-ONLY
+STATUS: Active
+TITLE: Credential store holds only hashes / wrapped secrets
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Inspection oracle on a seeded instance: no plaintext passwords, refresh tokens, authorization codes, or client secrets (hashes only, with algorithm and params recorded). Usable secrets exist only as DEK ciphertext, and DEKs exist only wrapped by the OpenBao Transit KEK.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-ALLOW-CRED-HASH-ONLY
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: IA-5.1
+security.verification_note: Pairs ARCH-CRED-HASH / ARCH-CRED-TOKENS / ARCH-KEY; ASD V-222542.
+edge: → conforms_to to IA-5.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222542 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-CRED-HASH
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CRED-TOKENS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-5.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222542
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-KEK-UNREACHABLE-PROD
+STATUS: Active
+TITLE: Prod start fails closed when KEK unreachable
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Production config with OpenBao unreachable or sealed → app refuses to start or readiness stays not-ready, and health reports unhealthy. No plaintext or dev-key fallback. Audited and alerted.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-KEK-UNREACHABLE-PROD
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: SC-24
+security.verification_note: Pairs ARCH-KEY-FAILCLOSED.
+edge: → conforms_to to SC-24 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-KEY-FAILCLOSED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-24
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-DEV-KEK-IN-PROD
+STATUS: Active
+TITLE: Deny dev OpenBao / dev keys in a prod build
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Production build or config pointing at a dev OpenBao (dev-marked address, dev root token, or dev-marked Transit keys) → startup refused with an explicit error. No keys are unwrapped.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-DEV-KEK-IN-PROD
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-7
+security.verification_note: Pairs ARCH-DEVENV-KEYS.
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-KEYS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-JWKS-ROTATION-OVERLAP
+STATUS: Active
+TITLE: Rotated signing key verifies within overlap, rejected after
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). Transit signing key rotated v1 → v2. A token with kid=v1 still verifies inside the overlap window, and JWKS lists v1 and v2. After the window, v1 leaves JWKS and the same token → 401. New tokens carry kid=v2.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-JWKS-ROTATION-OVERLAP
+VERSION_N: 0
+rbac_op: key:signing:rotate
+priority: 10
+iteration: iter-r1
+security.catalog_ref: SC-12.3
+security.verification_note: Pairs ARCH-KEY-JWKS.
+edge: → conforms_to to SC-12.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-KEY-JWKS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-12.3
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-KEYOP-NO-CUSTODIAN
+STATUS: Active
+TITLE: Deny key operation without Key custodian
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). pat-client-admin (Client admin, not Key custodian) attempts key:kek:rotate → 403 + audit deny. kim-key-custodian performing the same op → allowed after step-up.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-KEYOP-NO-CUSTODIAN
+VERSION_N: 0
+rbac_op: key:kek:rotate
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-5
+security.verification_note: Pairs ARCH-KEY-CUSTODIAN.
+edge: → conforms_to to AC-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-KEY-CUSTODIAN
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-5
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-ALLOW-KEK-REWRAP-ONLINE
+STATUS: Active
+TITLE: KEK rotation re-wraps DEKs without downtime
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). KEK v1 → v2 while the app serves traffic. Every wrapped DEK is re-wrapped (Transit rewrap), and reads and writes succeed throughout. After verification the minimum decryption version is raised; v1 unwrap then fails and nothing depends on it. Each step is audited.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-ALLOW-KEK-REWRAP-ONLINE
+VERSION_N: 0
+rbac_op: key:kek:rotate, key:dek:rewrap
+priority: 15
+iteration: iter-r1
+security.catalog_ref: SC-12
+security.verification_note: Pairs ARCH-KEY-LIFECYCLE.
+edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-KEY-LIFECYCLE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-12
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-ALLOW-DEVENV-MIN-CONTAINERS
+STATUS: Active
+TITLE: Default dev stack is at most 2 containers
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). From a fresh clone, the default compose up starts at most 2 containers (app + peripherals) and both report healthy. Hybrid mode starts only the peripherals container. The optional SoftHSM2 profile changes the app build target and does not add a peripheral container.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-ALLOW-DEVENV-MIN-CONTAINERS
+VERSION_N: 0
+priority: 15
+iteration: iter-r0
+security.catalog_ref: CM-2
+security.verification_note: Pairs ARCH-DEPLOY-MINIMAL / ARCH-DEPLOY-PERIPHERALS.
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-MINIMAL
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-PERIPHERALS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-MODES.1
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-ALLOW-APP-ROLE-SPLIT
+STATUS: Active
+TITLE: App roles toggle by env; split without rebuild
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). The same app image started with REQAML_ROLES=sync runs only the sync worker (API/MCP/web endpoints absent, readiness reports sync only). With all roles enabled it serves API+AS, Web UI, and MCP and runs sync. No rebuild between runs.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-ALLOW-APP-ROLE-SPLIT
+VERSION_N: 0
+priority: 20
+iteration: iter-r1
+security.catalog_ref: CM-7
+security.verification_note: Pairs ARCH-DEPLOY-MINIMAL; roles not enabled are not exposed.
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-MINIMAL
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-7
   ROLE: ConformsTo
 
 [[/SECTION]]
@@ -9673,6 +11809,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from ARCH-CRED-REAUTH
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9925,6 +12062,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from FIX-DENY-SHIP-UNSIGNED
+edge: ← refines from ARCH-CRED-REAUTH
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9957,18 +12095,18 @@ RELATIONS:
 
 [[SECTION]]
 UID: SEC-DEVENV
-TITLE: Developer environment
+TITLE: Developer environment & deployment topology
 
 [TEXT]
 UID: SEC-DEVENV-INTRO
 STATEMENT: >>>
-Developer environment for ReqAML: Docker Compose is the single supported local stand-up path. Compose services cover the C4 L2 containers (Postgres, API, Web UI, Sync worker) plus a non-prod local identity stub. Hybrid (deps in Compose, app native with hot reload) and full-container modes are both supported. Clone-to-running must be short and documented; migrations and dogfood seed load automatically or with one command; secrets stay out of source; production builds disable local identity.
+Developer environment and deployment topology for ReqAML. Docker Compose is the single supported local stand-up path and runs the fewest containers practical: one multi-role app container (API + internal OAuth AS, Web UI, MCP server, sync worker) and one peripherals container (Postgres + OpenBao), both built from one Dockerfile. Hybrid mode (peripherals only, app native with hot reload) and full-container mode are both supported. The clone-to-running path is short and documented, and migrations and the dogfood seed (with seeded dev accounts) load automatically or with one command. Sign-in goes through the internal AS, keys come from a dev OpenBao, and secrets stay out of source. Production builds ship no dev accounts, default credentials, or dev keys.
 <<<
 
 [REQUIREMENT]
 UID: ARCH-DEVENV-COMPOSE
-STATUS: Active
-TITLE: Compose is the single supported dev entry point
+STATUS: Draft
+TITLE: Compose is the single supported dev entry point (app + peripherals)
 STATEMENT: >>>
 Docker Compose is the single supported developer entry point for ReqAML. The repository includes the Compose file(s) and an env template. Compose services derive from the C4 L2 containers: Postgres (database), API (Node/TypeScript OpenAPI), Web UI (React), and Sync worker (DevOps work-item sync), plus a non-prod local identity stub for A01-aligned sign-in. Operators do not invent ad-hoc local wiring outside Compose for first-time stand-up.
 <<<
@@ -9981,11 +12119,8 @@ iteration: iter-r0
 security.catalog_ref: CM-2
 security.verification_note: CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.
 edge: ← refines from ARCH-DEVENV-MODES
-edge: ← refines from ARCH-DEVENV-CLONE
-edge: ← refines from ARCH-DEVENV-SEED
 edge: ← refines from ARCH-DEVENV-PARITY
-edge: ← refines from ARCH-DEVENV-HEALTH
-edge: ← uses from ARCH-DEVENV-SECRETS
+edge: ← refines from ARCH-DEVENV-COMPOSE.1
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
@@ -9995,14 +12130,66 @@ RELATIONS:
   VALUE: CM-2
   ROLE: ConformsTo
 
+[REQUIREMENT]
+UID: ARCH-DEVENV-COMPOSE.1
+STATUS: Active
+TITLE: Compose is the single supported dev entry point (app + peripherals)
+STATEMENT: >>>
+Docker Compose is the single supported developer entry point for ReqAML; the repository includes the Compose file(s) and an env template. The default stack is 2 containers, both from the repo's single Dockerfile: app (API with internal OAuth 2.1 AS, Web UI, MCP server, sync worker roles; ARCH-DEPLOY-MINIMAL) and peripherals (Postgres + OpenBao; ARCH-DEPLOY-PERIPHERALS). There is no third-party identity-stub container: local sign-in uses the internal AS with seeded dev accounts (ARCH-DEVENV-IDENTITY.1). An optional hsm-test profile builds the app with SoftHSM2 to exercise the PKCS#11 KeyProvider path without adding a peripheral container. Operators do not invent ad-hoc local wiring outside Compose for first-time stand-up.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-COMPOSE
+VERSION_N: 1
+priority: 15
+iteration: iter-r0
+security.catalog_ref: CM-2
+security.verification_note: CM-2 baseline: one Dockerfile + Compose define the supported local/deploy baseline.
+edge: ← refines from ARCH-DEVENV-CLONE
+edge: ← refines from ARCH-DEVENV-SEED
+edge: ← refines from ARCH-DEVENV-HEALTH
+edge: ← uses from ARCH-DEVENV-SECRETS
+edge: ← refines from ARCH-DEVENV-MODES.1
+edge: ← refines from ARCH-DEVENV-PARITY.1
+edge: ← refines from ARCH-DEPLOY-MINIMAL
+edge: ← refines from ARCH-DEPLOY-PERIPHERALS
+edge: ← uses from ARCH-BUILD-FOUNDATION
+delivered_by_release: R1-foundation-shell-auth
+edge: → uses to ARCH-DEPLOY-MINIMAL (RELATIONS TYPE: Child; Parent would cycle)
+edge: → uses to ARCH-DEPLOY-PERIPHERALS (RELATIONS TYPE: Child; Parent would cycle)
+edge: → uses to ARCH-AUTH-AS (RELATIONS TYPE: Child; Parent would cycle)
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: ARCH-DEPLOY-MINIMAL
+  ROLE: Uses
+- TYPE: Child
+  VALUE: ARCH-DEPLOY-PERIPHERALS
+  ROLE: Uses
+- TYPE: Child
+  VALUE: ARCH-AUTH-AS
+  ROLE: Uses
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
 [[SECTION]]
 UID: ARCH-DEVENV-COMPOSE-CHILDREN
 TITLE: Children of ARCH-DEVENV-COMPOSE
 
 [REQUIREMENT]
 UID: ARCH-DEVENV-MODES
-STATUS: Active
-TITLE: Hybrid and full-container run modes
+STATUS: Draft
+TITLE: Hybrid (peripherals only + native app) and full-container run modes
 STATEMENT: >>>
 ReqAML supports two Compose-backed run modes: (1) hybrid — Compose provides dependencies (at least Postgres and the local identity stub); the API and/or Web UI run as native Node processes with hot reload against those deps; (2) full-container — API, Web UI, Sync worker, and dependencies all run as Compose services from built images. Both modes share the same Compose project and env contract so developers can switch without re-wiring.
 <<<
@@ -10015,17 +12202,60 @@ iteration: iter-r0
 security.catalog_ref: CM-2
 security.verification_note: CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.
 edge: ← uses from ARCH-DEVENV-PARITY
+edge: ← refines from ARCH-DEVENV-MODES.1
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-COMPOSE
+  VALUE: ARCH-DEVENV-COMPOSE.1
 - TYPE: Parent
   VALUE: ARCH-DEVENV-COMPOSE
   ROLE: Refines
 - TYPE: Parent
   VALUE: CM-2
   ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-MODES.1
+STATUS: Active
+TITLE: Hybrid (peripherals only + native app) and full-container run modes
+STATEMENT: >>>
+ReqAML supports two Compose-backed run modes. (1) Hybrid: Compose runs only the peripherals container (Postgres + OpenBao), and the app runs natively as one Node process with all roles enabled and hot reload. (2) Full-container: Compose runs the app container (same image as deployment) plus the peripherals container. Both modes share the same Compose project, env contract, and OpenBao dev KeyProvider, so developers can switch without re-wiring.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-MODES
+VERSION_N: 1
+priority: 15
+iteration: iter-r0
+security.catalog_ref: CM-2
+security.verification_note: CM-2 baseline: one Dockerfile + Compose define the supported local/deploy baseline.
+edge: ← uses from ARCH-DEVENV-PARITY.1
+edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE.1
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-MODES
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-KEYS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-PERIPHERALS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
 
 [REQUIREMENT]
 UID: ARCH-DEVENV-CLONE
@@ -10044,13 +12274,14 @@ security.catalog_ref: CM-2
 security.verification_note: CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.
 edge: ← uses from ARCH-DEVENV-SEED
 edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
+delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-COMPOSE
+  VALUE: ARCH-DEVENV-COMPOSE.1
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-COMPOSE
+  VALUE: ARCH-DEVENV-COMPOSE.1
   ROLE: Refines
 - TYPE: Parent
   VALUE: ARCH-DEVENV-HEALTH
@@ -10059,11 +12290,14 @@ RELATIONS:
   VALUE: ARCH-DEVENV-SEED
   ROLE: Uses
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-IDENTITY
+  VALUE: ARCH-DEVENV-IDENTITY.1
   ROLE: Uses
 - TYPE: Parent
   VALUE: CM-2
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
 
 [REQUIREMENT]
 UID: ARCH-DEVENV-SEED
@@ -10083,14 +12317,16 @@ security.verification_note: CM-6 configuration settings via Compose + .env; no s
 edge: ← uses from ARCH-DEVENV-CLONE
 edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
 edge: ← uses from FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+edge: ← uses from ARCH-DEVENV-IDENTITY.1
+delivered_by_release: R1-foundation-shell-auth
 edge: → uses to ARCH-DEVENV-CLONE (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-COMPOSE
+  VALUE: ARCH-DEVENV-COMPOSE.1
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-COMPOSE
+  VALUE: ARCH-DEVENV-COMPOSE.1
   ROLE: Refines
 - TYPE: Parent
   VALUE: CM-6
@@ -10098,11 +12334,14 @@ RELATIONS:
 - TYPE: Child
   VALUE: ARCH-DEVENV-CLONE
   ROLE: Uses
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
 
 [REQUIREMENT]
 UID: ARCH-DEVENV-PARITY
-STATUS: Active
-TITLE: Full-container Dockerfile matches deployment image
+STATUS: Draft
+TITLE: Single Dockerfile; app target matches deployment image
 STATEMENT: >>>
 The container image used for full-container development is built from the same Dockerfile used for deployment (multi-stage builds are allowed). Dev/prod differences are configuration and Compose overrides (ports, env, volume mounts, hot-reload sidecars), not a divergent Dockerfile tree, so local container runs exercise the deployable image contract.
 <<<
@@ -10114,11 +12353,12 @@ priority: 20
 iteration: iter-r0
 security.catalog_ref: CM-2
 security.verification_note: CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.
+edge: ← refines from ARCH-DEVENV-PARITY.1
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-COMPOSE
+  VALUE: ARCH-DEVENV-COMPOSE.1
 - TYPE: Parent
   VALUE: ARCH-DEVENV-COMPOSE
   ROLE: Refines
@@ -10128,6 +12368,49 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-2
   ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-PARITY.1
+STATUS: Active
+TITLE: Single Dockerfile; app target matches deployment image
+STATEMENT: >>>
+There is one Dockerfile with multi-stage targets. The app target that full-container dev runs is the same target used for deployment. Dev/prod differences are configuration, enabled roles, and Compose overrides only (ports, env, mounts), never a divergent Dockerfile tree. The peripherals target is for dev/test only; production runs Postgres and OpenBao as separate units (ARCH-DEPLOY-PERIPHERALS). The hsm-test target (SoftHSM2) is never deployed.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-PARITY
+VERSION_N: 1
+priority: 20
+iteration: iter-r0
+security.catalog_ref: CM-2
+security.verification_note: CM-2 baseline: one Dockerfile + Compose define the supported local/deploy baseline.
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE.1
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-MODES.1
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-PARITY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-MINIMAL
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-PERIPHERALS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
 
 [REQUIREMENT]
 UID: ARCH-DEVENV-HEALTH
@@ -10147,13 +12430,15 @@ security.catalog_ref: CM-6
 security.verification_note: CM-6 configuration settings via Compose + .env; no secrets in source.
 edge: ← uses from ARCH-DEVENV-CLONE
 edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
+edge: ← uses from ARCH-KEY-FAILCLOSED
+delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-COMPOSE
+  VALUE: ARCH-DEVENV-COMPOSE.1
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-COMPOSE
+  VALUE: ARCH-DEVENV-COMPOSE.1
   ROLE: Refines
 - TYPE: Parent
   VALUE: M04
@@ -10161,13 +12446,16 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-6
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
 
 [[/SECTION]]
 
 [REQUIREMENT]
 UID: ARCH-DEVENV-IDENTITY
-STATUS: Active
-TITLE: Local identity stub for non-prod; disabled in production builds
+STATUS: Draft
+TITLE: Seeded dev accounts on the internal AS; none in production
 STATEMENT: >>>
 Local development provides a way to sign in without the enterprise IdP (a local OIDC stub or equivalent dev-login path) so A01 session establishment, grants, and Scoped View can be exercised offline. The local identity path is clearly disabled or omitted in production builds and configurations (CM-7 / V-222518). Production continues to require enterprise SSO only (A01 / REQAML-SEC-SSO); no local password store is introduced for production. Which stub implementation is used is an open product choice until Dan locks it.
 <<<
@@ -10180,8 +12468,8 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: CM-7
 security.verification_note: CM-7 least functionality: local identity stub is non-essential and disabled in production.
-edge: ← uses from ARCH-DEVENV-CLONE
 edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN
+edge: ← refines from ARCH-DEVENV-IDENTITY.1
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222518 (pin imprint=asd-stig@v6r4)
@@ -10206,6 +12494,75 @@ RELATIONS:
   ROLE: ConformsTo
 
 [REQUIREMENT]
+UID: ARCH-DEVENV-IDENTITY.1
+STATUS: Active
+TITLE: Seeded dev accounts on the internal AS; none in production
+STATEMENT: >>>
+Local development signs in through ReqAML's internal OAuth AS (ARCH-AUTH-AS) with seeded dev local accounts mapped to the dogfood seed identities, so A01/A02 sessions, grants, Scoped View, and MCP authorization can be exercised offline. Dev account credentials are never committed: they come from the local env file or are generated at first seed and shown locally. Seeded dev accounts and the dev seed loader are dev-only. Production builds and configs ship no seeded dev accounts and no default credentials, and the seed loader refuses to create accounts in production mode. In production, enterprise SSO federates through the same AS (ARCH-AUTH-FEDERATION). This replaces the earlier third-party local OIDC stub idea.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-IDENTITY
+VERSION_N: 1
+rbac_op: auth:signin
+priority: 10
+iteration: iter-r0
+security.catalog_ref: CM-7
+security.verification_note: CM-7 least functionality; IA-5 default authenticators; ASD V-222662 / V-222661 / V-222642.
+edge: ← uses from ARCH-DEVENV-CLONE
+edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN.1
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222662 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222661 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222642 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CAP-SSO
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-IDENTITY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-5
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222662
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222661
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222642
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
 UID: ARCH-DEVENV-SECRETS
 STATUS: Active
 TITLE: No secrets committed; .env.example; prod config separate
@@ -10220,6 +12577,9 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: IA-5
 security.verification_note: IA-5 authenticator protection: no secrets/authenticators committed to source.
+edge: ← refines from ARCH-KEY
+edge: ← uses from ARCH-KEY-PROVIDER
+delivered_by_release: R1-foundation-shell-auth
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -10227,7 +12587,7 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SEC-DEVENV
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-COMPOSE
+  VALUE: ARCH-DEVENV-COMPOSE.1
   ROLE: Uses
 - TYPE: Parent
   VALUE: CM-6
@@ -10235,5 +12595,221 @@ RELATIONS:
 - TYPE: Parent
   VALUE: IA-5
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-KEYS
+STATUS: Active
+TITLE: Dev KeyProvider: OpenBao dev instance; dev keys never valid in prod
+STATEMENT: >>>
+Development uses OpenBao (Transit engine) in the peripherals container as the default KeyProvider, which is the same provider type as the production default. On first start it initializes with dev-only seal/unseal material and a root token generated locally into git-ignored files (never committed). Storage persists so wrapped DEKs survive restarts, and Transit keys are dev-marked. Dev OpenBao instances and dev keys are never valid in production: production runs its own OpenBao with its own seal, and the app refuses dev-marked addresses or keys in prod mode. SoftHSM2 is optional and exists only to exercise the PKCS#11 provider path (app hsm-test build target).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-KEYS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-7
+security.verification_note: CM-7 least functionality; dev key path non-essential in prod. ASD V-222642.
+edge: ← uses from ARCH-DEVENV-MODES.1
+edge: ← uses from FIX-DENY-DEV-KEK-IN-PROD
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222642 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: ARCH-KEY-PROVIDER
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-PERIPHERALS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222642
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-DEPLOY-MINIMAL
+STATUS: Active
+TITLE: One Dockerfile; one multi-role app container (API+AS, Web UI, MCP, sync)
+STATEMENT: >>>
+One Dockerfile with multi-stage targets (app, peripherals, optional hsm-test) builds every ReqAML image. A single app container runs the API (including the internal OAuth AS), Web UI (static assets served by the API role), MCP server (Streamable HTTP), and sync worker together, as one Node process or under a lightweight supervisor. Roles are toggled by env/config (for example REQAML_ROLES=api,web,mcp,sync), so any role can later run as its own container from the same image without a rebuild, and health/readiness is reported per enabled role. Rationale (Dan, 2026-10-07): run as few containers as possible for fast clone-to-running and small deployments. C4 L2 containers are logical runtime containers, not mandated deploy units.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEPLOY-MINIMAL
+VERSION_N: 0
+priority: 5
+iteration: iter-r0
+security.catalog_ref: CM-2
+security.verification_note: CM-2 baseline: one Dockerfile + role config is the deployable baseline; CM-7 roles off when not needed.
+edge: ← uses from ARCH-AUTH-AS
+edge: ← uses from ARCH-DEVENV-COMPOSE.1
+edge: ← uses from ARCH-DEVENV-PARITY.1
+edge: ← uses from ARCH-BUILD-FOUNDATION
+edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
+edge: ← uses from FIX-ALLOW-APP-ROLE-SPLIT
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CAP-MCP-DESK
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: M04
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-DEPLOY-PERIPHERALS
+STATUS: Active
+TITLE: Peripherals in as few containers as sensible (key store isolated in prod)
+STATEMENT: >>>
+Peripherals run in as few containers as is sensible. Dev/test: one peripherals container (Dockerfile peripherals target) runs Postgres and OpenBao under a lightweight supervisor, each with its own named volume. Co-locating them in dev is acceptable because dev keys are dev-only and protect no real data, and separate volumes keep reset and backup independent. Production: Postgres and OpenBao are separate deploy units with separate host, volume, and backup set. Rationale: envelope encryption protects data only if the KEK store does not share a compromise domain or backup set with the database whose DEKs it wraps (ARCH-KEY, SC-28(3)), and the two have different durability models (database backups/PITR versus OpenBao seal plus snapshots). SoftHSM2 is a PKCS#11 library loaded in-process, so it is not a peripheral container: it is an optional app hsm-test target and is never deployed. Reference topology: dev 2 containers (app + peripherals); prod 3 units (app, Postgres, OpenBao).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEPLOY-PERIPHERALS
+VERSION_N: 0
+priority: 5
+iteration: iter-r0
+security.catalog_ref: SC-28.3
+security.verification_note: SC-28(3) key storage separated from protected data in prod; CP-9 independent backups.
+edge: ← uses from ARCH-DEVENV-KEYS
+edge: ← uses from ARCH-DEVENV-COMPOSE.1
+edge: ← uses from ARCH-DEVENV-MODES.1
+edge: ← uses from ARCH-DEVENV-PARITY.1
+edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to SC-28.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CP-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-28.3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CP-9
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[[/SECTION]]
+
+[[SECTION]]
+UID: SEC-BUILD
+TITLE: Build sequencing
+
+[TEXT]
+UID: SEC-BUILD-INTRO
+STATEMENT: >>>
+Build sequencing for ReqAML implementation. This is ordering only: it does not cut v1 scope or mark any requirement out of scope.
+<<<
+
+[REQUIREMENT]
+UID: ARCH-BUILD-FOUNDATION
+STATUS: Active
+TITLE: Foundation slice first: platform shell + authentication + key store
+STATEMENT: >>>
+The first implementation slice is the foundation: platform shell (App shell, routes and guards, layout: ARCH-UI / ARCH-UI-GUARD), API layering and OpenAPI (ARCH-API / ARCH-API-LAYERS), tenancy scope (ARCH-CP-SCOPE), internal OAuth AS (ARCH-AUTH-*), local accounts and credential store (ARCH-CRED-*), key / secret store with OpenBao (ARCH-KEY-*), RBAC enforcement points (ARCH-API-RBAC / CAP-RBAC), audit (ARCH-OTEL / ARCH-CRED-AUDIT), health (M04), and the minimal-container Compose environment (ARCH-DEVENV-*, ARCH-DEPLOY-*). All other requirements layer on this foundation. This records build order only: no v1 requirement is deferred, descoped, or marked out of scope. Planned release rel-r1-foundation-shell-auth tracks the slice.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-BUILD-FOUNDATION
+VERSION_N: 0
+priority: 1
+iteration: iter-r1
+security.catalog_ref: SA-8
+security.verification_note: SA-8 security engineering: security foundations built first.
+delivered_by_release: R1-foundation-shell-auth
+edge: → conforms_to to SA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-BUILD
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CP-SCOPE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: M04
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE.1
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-MINIMAL
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SA-8
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
 
 [[/SECTION]]

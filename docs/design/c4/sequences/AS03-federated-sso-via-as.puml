@@ -1,0 +1,41 @@
+@startuml AS03-federated-sso-via-as
+!include ../includes/C4_Sequence_Macros.puml
+
+title AS03 — Federated enterprise SSO through the internal AS\n(upstream IdP → AS maps identity → AS mints tokens; no upstream token at API)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_AuthServer()
+C4Seq_CredStore()
+C4Seq_KeyProvider()
+C4Seq_IdP()
+C4Seq_API()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== Browser initiates sign-in at the AS ==
+
+seqUser -> seqWebUI : Sign in (A01)
+seqWebUI -> seqAuthServer : GET /authorize (response_type=code, PKCE S256,\nresource=API or UI audience)
+ControlNote(seqAuthServer, "IA-2, IA-8", "V-222400, V-222401, V-222522", "AS is the single issuer; IdP is federated upstream (ARCH-AUTH-FEDERATION / CAP-SSO)")
+
+seqAuthServer -> seqIdP : redirect / OIDC authorize (or SAML)
+seqIdP --> seqUser : IdP login UI
+seqUser -> seqIdP : credentials / MFA at enterprise IdP
+seqIdP --> seqAuthServer : id_token / assertion (code + tokens to AS only)
+ControlNote(seqAuthServer, "IA-5, SC-23", "V-222403, V-222404", "AS validates assertion (iss, aud=AS client, signature, nonce); IdP tokens never reach ReqAML API")
+
+seqAuthServer -> seqCredStore : map external_sub → identity (e.g. oidc:dan-raby → dan)\nload grants server-side
+AuthAuditLog("auth:federated:signin allow")
+seqAuthServer -> seqKeyProvider : sign(access token, kid) — Transit
+seqAuthServer --> seqWebUI : code → tokens (iss=ReqAML AS, aud=API/UI)\n+ rotating refresh
+ControlNote(seqAuthServer, "SC-12(3), IA-5(6)", "V-222570", "Tokens minted by AS; signing keys in OpenBao (KS02)")
+
+== API accepts only internal-AS tokens ==
+
+seqWebUI -> seqAPI : AuthenticatedCall (Bearer AS token)
+TokenValidate(seqAPI, "https://reqaml/api")
+ControlNote(seqAPI, "IA-2, AC-3", "TBD (ASD V6R4)", "Upstream IdP token presented at API → 401 (FIX-DENY-UPSTREAM-TOKEN-AT-API)")
+seqAPI --> seqWebUI : 200 + Scoped View context
+
+@enduml

@@ -161,3 +161,15 @@ Workflow / Cyber+QA (ActionHook pipeline via `HookEval` / `GateCheck` / `HookEff
 | E41 / E41a | ConformsTo pin request / apply-deny |
 | E46a | Suspect queue |
 | G61 | Ship release (`cyber_gate` trigger; `gate_signoff` pass) |
+
+Auth foundation (first build slice: internal OAuth AS, credential store, key store; macros `ProtectedResourceDiscovery` / `PkceAuthorize` / `TokenIssue` / `TokenValidate` / `RefreshRotate` / `LockoutCheck` / `MfaChallenge` / `AuthAuditLog` / `KeyOp`):
+
+| ID | Diagram |
+|----|---------|
+| AS01 | MCP client authorization via internal OAuth 2.1 AS (PKCE S256, PRM, audience, refresh, revoke) |
+| AS02 | Local login with lockout + MFA |
+| AS03 | Federated enterprise SSO through the internal AS |
+| KS01 | KEK rotation + online DEK re-wrap (OpenBao Transit) |
+| KS02 | Token signing via KeyProvider + JWKS rotation overlap |
+
+C4 L2 ([`c4/L2-containers.puml`](./c4/L2-containers.puml)) now shows the MCP server and the OpenBao key store. Web/API(+AS)/MCP/sync are logical containers deployed as one app container (ARCH-DEPLOY-MINIMAL).

@@ -84,19 +84,19 @@ Re-run `patch_catalog_reverse_conforms.py` after re-copying catalogs from sdoc-i
 
 | Entity | Count (approx.) |
 |--------|----------------:|
-| requirement_lines | ~249 (sections + req/capability; + ARCH-DEVENV-* + ARCH-MINT/SUSPECT/GATE-SIGNOFF + Cyber+QA FIX beds) |
-| requirement_versions | ~254 (incl. FIX-SUCC-2HOP superseded hops; + ARCH-DEVENV-* + locked-decision ARCH/FIX) |
-| edges | ~964 (conforms_to + uses/satisfies/refines; + ARCH-DEVENV + suspect detect bed) |
+| requirement_lines | 301 (sections + req/capability; + ARCH-AUTH/CRED/KEY/DEPLOY/BUILD + ARCH-DEVENV-* + ARCH-MINT/SUSPECT/GATE-SIGNOFF + Cyber+QA and auth FIX beds) |
+| requirement_versions | 312 (incl. FIX-SUCC-2HOP superseded hops; DEVENV content successors `.1` with `.0` superseded; + auth foundation ARCH/FIX) |
+| edges | 1269 (conforms_to + uses/satisfies/refines; + auth foundation NIST/ASD pins + suspect detect bed) |
 | catalog_imprints | 2 (`nist-800-53@rev5-dogfood-20261006`, `asd-stig@v6r4`) |
 | contracts | 5 (Design-2026-10, Security package, Platform baseline, **Legacy intake closed**, Fixture doc-walk) |
-| releases | 2 (R0-sequences **shipped**, R1-core-ALM **planned** — includes obsolete `ARCH-CONTRACT` for stale-backlog UX) |
-| identities / grants | 12 / 11 project + 1 client_grant (incl. jordan Auditor, morgan steward, **pat-client-admin**, **jamie-ao**, **drew-developer**, no-grant-user, tombstone `grant-alex-author-revoked`) |
+| releases | 3 (R0-sequences **shipped**, **R1-foundation-shell-auth planned** (build sequencing only; dates/cyber_gate open), R1-core-ALM **planned** — includes obsolete `ARCH-CONTRACT` for stale-backlog UX) |
+| identities / grants | 13 / 11 project + 1 client_grant + 1 platform_grant (incl. jordan Auditor, morgan steward, **pat-client-admin**, **jamie-ao**, **drew-developer**, **kim-key-custodian** (deployment-scoped Key custodian via `platform_grants`), no-grant-user, tombstone `grant-alex-author-revoked`) |
 | catalog_steward_grants | 1 (`steward-morgan-reqaml-project` on `cat-reqaml-security`) |
 | clients (extra) | 1 (`other-family` — cross-client denial; no projects/grants into reqaml) |
-| audit_events | ~41 (prior + mint/suspect/pin/approve/signoff FIX samples) |
+| audit_events | 47 (prior + mint/suspect/pin/approve/signoff + auth/key FIX samples; deployment-scoped key ops have null client/project) |
 | change_sets | 3 (1 leaf, 1 SDLC parent + 1 nested leaf) |
 | work_item_links | 2 (FIX-SAMPLE-APPROVED, A01) |
-| catalog entries | 6 project `REQAML-SEC-*` only; NIST/STIG via imprints → `catalog/*.sdoc` |
+| catalog entries | 9 project `REQAML-SEC-*` (incl. OAUTH / CRED / KEYS) only; NIST/STIG via imprints → `catalog/*.sdoc` |
 | iterations | 3 (R0 / R1 / R2) |
 | capability_artifacts | 23 (sequences A01–A08/MC*, C4 L1–L3/ERD, mockups **01–04** only) |
 
@@ -104,7 +104,7 @@ Re-run `patch_catalog_reverse_conforms.py` after re-copying catalogs from sdoc-i
 
 | Section | Focus | Action UIDs |
 |---------|-------|-------------|
-| SEC-IA | Identity & access | A01–A12 |
+| SEC-IA | Identity & access | A01–A12, ARCH-AUTH-AS/PKCE/METADATA/AUDIENCE/REFRESH/REVOKE/CLIENTREG/FEDERATION/LOCAL |
 | SEC-CP | Client & project | B01–B08, ARCH-CP-* |
 | SEC-RL | Lines & versions + approval/verification | C01–C08, D01–D12, ARCH-VER-*, ARCH-APPROVAL, ARCH-VERIFICATION |
 | SEC-EDGE | Traces | E01–E07 |
@@ -118,11 +118,12 @@ Re-run `patch_catalog_reverse_conforms.py` after re-copying catalogs from sdoc-i
 | SEC-AUDIT | Audit & ops + change sets | M01–M07, ARCH-CHANGESET*, CAP-AUDIT |
 | SEC-UI | UI architecture + chrome | N01–N03, ARCH-UI* |
 | SEC-API | API architecture | ARCH-API*, ARCH-OTEL |
-| SEC-SEC | Security / RBAC | CAP-SSO/SCOPED-VIEW/RBAC; product ConformsTo catalog `AC-*`/`AU-*`/`IA-*`/`SC-*`/`CM-*`/`SI-*` + STIG `V-*` |
+| SEC-SEC | Security / RBAC + credential & key stores | CAP-SSO/SCOPED-VIEW/RBAC; ARCH-CRED-* (HASH/POLICY/LOCKOUT/MFA/TOKENS/SESSION/REAUTH/AUDIT); ARCH-KEY-* (PROVIDER/SCOPE/JWKS/LIFECYCLE/CUSTODIAN/BREAKGLASS/FIPS/FAILCLOSED); product ConformsTo catalog `AC-*`/`AU-*`/`IA-*`/`SC-*`/`CM-*`/`SI-*` + STIG `V-*` |
 | SEC-MCP | MCP desks | MC01–MC03, CAP-MCP-DESK |
-| SEC-FIX | Cyber+QA fixtures (test beds) | FIX-DENY-*, FIX-ALLOW-*, FIX-COMPARE-2HOP, FIX-EXPORT-L02-GOLDEN, FIX-SUCC-2HOP, FIX-CONTRACT-DOC-*, FIX-REL-SNAP, FIX-DENY-NOOP-CONTENT, FIX-*-SUSPECT-*, FIX-*-PIN-*, FIX-*-APPROVE-*, FIX-DENY-SHIP-UNSIGNED, FIX-*-DEVENV-*, … |
+| SEC-FIX | Cyber+QA fixtures (test beds) | FIX-DENY-*, FIX-ALLOW-*, FIX-COMPARE-2HOP, FIX-EXPORT-L02-GOLDEN, FIX-SUCC-2HOP, FIX-CONTRACT-DOC-*, FIX-REL-SNAP, FIX-DENY-NOOP-CONTENT, FIX-*-SUSPECT-*, FIX-*-PIN-*, FIX-*-APPROVE-*, FIX-DENY-SHIP-UNSIGNED, FIX-*-DEVENV-*, auth/cred/key beds (FIX-*-MCP-*, FIX-DENY-PKCE-PLAIN, FIX-DENY-LOCKOUT, FIX-DENY-REFRESH-REUSE, FIX-*-KEK-*, FIX-JWKS-ROTATION-OVERLAP, FIX-DENY-KEYOP-NO-CUSTODIAN, FIX-ALLOW-DEVENV-MIN-CONTAINERS, FIX-ALLOW-APP-ROLE-SPLIT), … |
 | SEC-WF | Workflow + Cyber+QA locked ARCH | ARCH-WORKFLOW…, ARCH-MINT-KIND, ARCH-SUSPECT, ARCH-SUSPECT-QUEUE, ARCH-GATE-SIGNOFF |
-| SEC-DEVENV | Developer environment (Compose) | ARCH-DEVENV-COMPOSE/MODES/CLONE/SEED/IDENTITY/SECRETS/PARITY/HEALTH; FIX-ALLOW-DEVENV-SMOKE, FIX-DENY-DEVENV-PROD-LOGIN, FIX-ALLOW-DEVENV-SEED-IDEMPOTENT |
+| SEC-DEVENV | Developer environment & deployment topology | ARCH-DEVENV-COMPOSE.1/MODES.1/CLONE/SEED/IDENTITY.1/SECRETS/PARITY.1/HEALTH/KEYS; ARCH-DEPLOY-MINIMAL/PERIPHERALS; FIX-ALLOW-DEVENV-SMOKE, FIX-DENY-DEVENV-PROD-LOGIN.1, FIX-ALLOW-DEVENV-SEED-IDEMPOTENT |
+| SEC-BUILD | Build sequencing (no scope cut) | ARCH-BUILD-FOUNDATION (shell + auth first slice; `rel-r1-foundation-shell-auth`) |
 
 ### Cyber+QA minimal cut
 

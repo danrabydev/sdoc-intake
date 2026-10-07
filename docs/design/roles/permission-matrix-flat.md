@@ -14,6 +14,7 @@ Where this flat matrix disagrees with `permission-tree.html`, **prefer the permi
 - **Keep Author / Developer / Tester split** — DoD-like separation of statement vs implementation vs evidence.
 - **Map COR/PM → Client admin / Project admin** — not Author by default.
 - **No separate Deployer in v1** — Release manager ships; ops deploy under that or out of band.
+- **Key custodian (deployment-scoped, 2026-10-07)** — owns key-store operations (`key:*`: KEK/DEK rotate, revoke, destroy, recover) per ARCH-KEY-CUSTODIAN. It sits outside the project/client role columns below, grants no requirement-content access, and must be distinct from Client admin / Project admin (AC-5). Seed: `kim-key-custodian` via `platform_grants`.
 - **Keep Catalog steward ≠ Security** — steward owns imprint/entry mutate; Security owns conformance & review.
 - **Auditor** stays read-only on history.
 

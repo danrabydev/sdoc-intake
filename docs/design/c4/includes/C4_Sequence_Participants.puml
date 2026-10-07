@@ -3,7 +3,8 @@
 '
 ' Canonical aliases:
 '   seqUser, seqWebUI, seqRouteGuard, seqAPI, seqRBAC, seqBusiness, seqData, seqPostgres,
-'   seqIdP, seqAzureDevOps, seqOTEL, seqAudit
+'   seqIdP, seqAzureDevOps, seqOTEL, seqAudit,
+'   seqAuthServer, seqCredStore, seqKeyProvider, seqKeyCustodian (auth foundation: ARCH-AUTH-* / ARCH-CRED-* / ARCH-KEY-*)
 
 !include ./C4_Sequence_Styles.puml
 
@@ -70,6 +71,24 @@ participant "ReqAML MCP\nserver" as seqMcpServer #438DD5
 participant "Desk channel\n(WSS, session-sealed)" as seqDeskWs #85BBF0
 !endprocedure
 
+' --- Auth foundation (ARCH-AUTH-* / ARCH-CRED-* / ARCH-KEY-*) ---
+
+!unquoted procedure C4Seq_AuthServer()
+participant "Internal OAuth 2.1 AS\n(app container, API role)" as seqAuthServer #438DD5
+!endprocedure
+
+!unquoted procedure C4Seq_CredStore()
+database "Credential store\n(hashes, token hashes)" as seqCredStore #85BBF0
+!endprocedure
+
+!unquoted procedure C4Seq_KeyProvider()
+participant "KeyProvider\n(OpenBao Transit)" as seqKeyProvider #6B4E9B
+!endprocedure
+
+!unquoted procedure C4Seq_KeyCustodian()
+participant "Key custodian" as seqKeyCustodian #08427B
+!endprocedure
+
 ' --- Preset bundles (common participant sets) ---
 
 !unquoted procedure C4Seq_Bundle_McpDesk()
@@ -120,6 +139,47 @@ C4Seq_Business()
 C4Seq_Data()
 C4Seq_Postgres()
 C4Seq_AzureDevOps()
+C4Seq_OTEL()
+!endprocedure
+
+!unquoted procedure C4Seq_Bundle_McpOAuth()
+C4Seq_McpHost()
+C4Seq_User()
+C4Seq_ReqAmlMcp()
+C4Seq_AuthServer()
+C4Seq_CredStore()
+C4Seq_KeyProvider()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+!endprocedure
+
+!unquoted procedure C4Seq_Bundle_LocalAuth()
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_AuthServer()
+C4Seq_CredStore()
+C4Seq_KeyProvider()
+C4Seq_IdP()
+C4Seq_API()
+C4Seq_Audit()
+C4Seq_OTEL()
+!endprocedure
+
+!unquoted procedure C4Seq_Bundle_KeyOps()
+C4Seq_KeyCustodian()
+C4Seq_WebUI()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_KeyProvider()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
 C4Seq_OTEL()
 !endprocedure
 

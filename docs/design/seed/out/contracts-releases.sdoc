@@ -607,6 +607,155 @@ RELATIONS:
   ROLE: Delivers
 
 [REQUIREMENT]
+UID: RELEASE-rel-r1-foundation-shell-auth
+STATUS: Draft
+TITLE: Release R1-foundation-shell-auth
+STATEMENT: >>>
+ReqAML release `R1-foundation-shell-auth` (status=planned, planned_on=None). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-foundation-shell-auth
+project_id: reqaml
+shipped_on: None
+raw_status: planned
+delivers: ARCH-BUILD-FOUNDATION, ARCH-AUTH-AS, ARCH-AUTH-PKCE, ARCH-AUTH-METADATA, ARCH-AUTH-AUDIENCE, ARCH-AUTH-REFRESH, ARCH-AUTH-REVOKE, ARCH-AUTH-CLIENTREG, ARCH-AUTH-FEDERATION, ARCH-AUTH-LOCAL, ARCH-CRED, ARCH-CRED-HASH, ARCH-CRED-POLICY, AR...
+delivers_count: 43
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: ARCH-BUILD-FOUNDATION
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-PKCE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-METADATA
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AUDIENCE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-REFRESH
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-REVOKE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-CLIENTREG
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-FEDERATION
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CRED-HASH
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CRED-POLICY
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CRED-LOCKOUT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CRED-MFA
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CRED-TOKENS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CRED-SESSION
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CRED-REAUTH
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CRED-AUDIT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-KEY-PROVIDER
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-KEY-SCOPE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-KEY-JWKS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-KEY-LIFECYCLE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-KEY-CUSTODIAN
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-KEY-BREAKGLASS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-KEY-FIPS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-KEY-FAILCLOSED
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-MINIMAL
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-PERIPHERALS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE.1
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-MODES.1
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-PARITY.1
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-IDENTITY.1
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-KEYS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-CLONE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SECRETS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-HEALTH
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-API-LAYERS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: M04
+  ROLE: Delivers
+
+[REQUIREMENT]
 UID: RELEASE-rel-r1-core-alm
 STATUS: Draft
 TITLE: Release R1-core-ALM

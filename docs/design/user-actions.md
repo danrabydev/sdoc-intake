@@ -1,6 +1,6 @@
 # User actions inventory (draft)
 
-Roles in play (draft): Reader, Author, Developer, Tester, Release manager, Security, AO (approve-only), Catalog steward (global/client/project), Project admin, Client admin, Auditor.
+Roles in play (draft): Reader, Author, Developer, Tester, Release manager, Security, AO (approve-only), Catalog steward (global/client/project), Project admin, Client admin, Auditor; **Key custodian** (deployment-scoped, key-store ops only — ARCH-KEY-CUSTODIAN).
 
 Note: approver roles are **WorkflowProfile RoleBinding** (project/client configurable) — commercial dogfood binds stakeholder → Client admin; AO remains cyber/migrate slot. Approval grain = **line** (D12/D13). See `roles/workflow-system.md`.
 
@@ -8,6 +8,9 @@ Scope: Client Scoped View is assumed for most project work.
 
 ## A. Identity & access
 1. Sign in via SSO (OIDC/SAML)
+1a. Sign in with local account at internal AS (lockout / MFA / step-up) — AS02
+1b. Federated SSO through the internal AS (AS mints tokens) — AS03
+1c. Authorize MCP client (OAuth 2.1 + PKCE S256, audience-bound token; refresh / revoke) — AS01
 2. Sign out
 3. Select Client Scoped View
 4. Clear / change Scoped View
@@ -15,6 +18,8 @@ Scope: Client Scoped View is assumed for most project work.
 6. Invite / link identity to client or project (admin)
 7. Grant project role
 8. Revoke project role
+8a. Unlock locked local account (`auth:account:unlock`)
+8b. Register / approve OAuth client (pre-registered baseline; CIMD / DCR policy-gated)
 9. Grant catalog-steward at global / client / project
 10. Revoke catalog-steward
 11. List who has access to a project
@@ -150,6 +155,9 @@ Scope: Client Scoped View is assumed for most project work.
 102d. View approval queue tree (unapproved primary; approved dimmed/collapsed) — line grain
 102e. Configure WorkflowProfile (gates, slots, hooks, planning_gate_actions) — Client/Project admin
 102f. Select project WorkflowProfile / override RoleBindings
+102g. Rotate KEK + online DEK re-wrap (Key custodian; step-up) — KS01
+102h. Rotate token signing key (scheduled or on demand; JWKS overlap) — KS02
+102i. Revoke / destroy key; break-glass key recovery (Key custodian, dual control)
 
 ## N. UI chrome (no domain write)
 103. Toggle mind-map vs tree vs document view

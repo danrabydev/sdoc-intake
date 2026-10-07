@@ -67,6 +67,17 @@ flowchart LR
   Browser -.->|client telemetry| Otel2
 ```
 
+### 2a. Authentication, key store, and deploy topology (foundation slice)
+
+- **Internal OAuth 2.1 AS** (ARCH-AUTH-AS) runs in the API role and is the **only** token issuer for the Web UI, API, and MCP server. It supports authorization code + PKCE (S256 only), RFC 8414 metadata, RFC 9728 protected-resource metadata on both the API and MCP, RFC 8707 audience-bound tokens, refresh rotation with reuse detection, and revocation. Clients are pre-registered; CIMD and DCR are policy-gated, and DCR is off by default.
+- **Enterprise SSO** (A01 / CAP-SSO) federates **upstream through the AS** (ARCH-AUTH-FEDERATION). Upstream IdP tokens never reach the API or MCP.
+- **Credential store** (ARCH-CRED-*): salted one-way hashes (Argon2id, or PBKDF2 under FIPS), password policy, lockout/throttle, MFA for privileged roles, hashed server-side tokens, idle/absolute session timeouts, step-up for approvals and pin applies, and audit through the AuditLog pattern.
+- **Key store** (ARCH-KEY-*): envelope encryption. The KEK lives in the KeyProvider (default **OpenBao Transit**; cloud KMS and HSM/PKCS#11 can be plugged in). DEKs are stored only wrapped. Signing keys are non-exportable with a `kid` and a rotation overlap. Key ops require the deployment-scoped **Key custodian**. Production fails closed if the KeyProvider is unavailable.
+- **Deploy units** (ARCH-DEPLOY-MINIMAL / ARCH-DEPLOY-PERIPHERALS): one Dockerfile builds everything. A single **app** container runs the API (+AS), Web UI, MCP server, and sync worker, with roles toggled by `REQAML_ROLES` so they can split later. In dev, one **peripherals** container runs Postgres + OpenBao. In production, Postgres and OpenBao are separate units (the key store is isolated from the DB it protects). The C4 L2 boxes are logical containers.
+- **Build order** (ARCH-BUILD-FOUNDATION): shell + auth + credential store + key store + RBAC + audit + health ship first. This is sequencing only, not a v1 scope cut.
+
+Sequences: [AS01](./sequences/AS01-mcp-oauth-authorize.puml), [AS02](./sequences/AS02-local-login-lockout-mfa.puml), [AS03](./sequences/AS03-federated-sso-via-as.puml), [KS01](./sequences/KS01-kek-rotate-dek-rewrap.puml), [KS02](./sequences/KS02-token-signing-keyprovider.puml).
+
 ## 3. Domain object graph
 
 ```mermaid

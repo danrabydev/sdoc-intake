@@ -68,6 +68,10 @@ identities:
   email: drew.developer@therabyfamily.com
   display_name: Drew Developer
   notes: Developer — leaf change-set only (permission-tree); cannot open SDLC parent.
+- id: kim-key-custodian
+  external_sub: oidc:kim-key-custodian
+  email: kim.keycustodian@therabyfamily.com
+  display_name: Kim Key-Custodian
 project_grants:
 - id: grant-dan-reqaml-author
   project_id: reqaml
@@ -154,6 +158,12 @@ catalogs:
     title: OTEL-exported audit for security-relevant actions
   - id: REQAML-SEC-CATALOG
     title: Standard catalog reference without copy; steward-gated edits
+  - id: REQAML-SEC-OAUTH
+    title: Internal OAuth 2.1 AS is the single token issuer for UI, API, and MCP (PKCE S256, audience-bound tokens)
+  - id: REQAML-SEC-CRED
+    title: 'Credential store controls: salted one-way hashes, lockout, MFA for privileged roles, hashed server-side tokens'
+  - id: REQAML-SEC-KEYS
+    title: Envelope encryption under an external KeyProvider (OpenBao Transit default); custodian-gated key ops
   notes: 'Project catalog (REQAML-SEC-*): steward-mutable without an imprint until publish. Standards always require imprint publish (H03 / ARCH-CAT-SCOPE).'
 - id: cat-stig-asd-v6r4
   scope: global
@@ -1886,17 +1896,17 @@ requirement_lines:
   project_id: reqaml
   parent:
   kind: section
-  title: Developer environment
+  title: Developer environment & deployment topology
 - base_uid: ARCH-DEVENV-COMPOSE
   project_id: reqaml
   parent: SEC-DEVENV
   kind: requirement
-  title: Compose is the single supported dev entry point
+  title: Compose is the single supported dev entry point (app + peripherals)
 - base_uid: ARCH-DEVENV-MODES
   project_id: reqaml
   parent: ARCH-DEVENV-COMPOSE
   kind: requirement
-  title: Hybrid and full-container run modes
+  title: Hybrid (peripherals only + native app) and full-container run modes
 - base_uid: ARCH-DEVENV-CLONE
   project_id: reqaml
   parent: ARCH-DEVENV-COMPOSE
@@ -1911,7 +1921,7 @@ requirement_lines:
   project_id: reqaml
   parent: SEC-DEVENV
   kind: requirement
-  title: Local identity stub for non-prod; disabled in production builds
+  title: Seeded dev accounts on the internal AS; none in production
 - base_uid: ARCH-DEVENV-SECRETS
   project_id: reqaml
   parent: SEC-DEVENV
@@ -1921,7 +1931,7 @@ requirement_lines:
   project_id: reqaml
   parent: ARCH-DEVENV-COMPOSE
   kind: requirement
-  title: Full-container Dockerfile matches deployment image
+  title: Single Dockerfile; app target matches deployment image
 - base_uid: ARCH-DEVENV-HEALTH
   project_id: reqaml
   parent: ARCH-DEVENV-COMPOSE
@@ -1936,12 +1946,272 @@ requirement_lines:
   project_id: reqaml
   parent: SEC-FIX
   kind: requirement
-  title: Dev identity path denied or absent in production builds
+  title: No seeded dev accounts or default credentials in production
 - base_uid: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
   project_id: reqaml
   parent: SEC-FIX
   kind: requirement
   title: Re-run migrations and dogfood seed is idempotent
+- base_uid: ARCH-AUTH-AS
+  project_id: reqaml
+  parent: SEC-IA
+  kind: requirement
+  title: Internal OAuth 2.1 authorization server (single token issuer)
+- base_uid: ARCH-AUTH-PKCE
+  project_id: reqaml
+  parent: ARCH-AUTH-AS
+  kind: requirement
+  title: Authorization code + PKCE S256 only
+- base_uid: ARCH-AUTH-METADATA
+  project_id: reqaml
+  parent: ARCH-AUTH-AS
+  kind: requirement
+  title: AS metadata (RFC 8414) + protected resource metadata (RFC 9728)
+- base_uid: ARCH-AUTH-AUDIENCE
+  project_id: reqaml
+  parent: ARCH-AUTH-AS
+  kind: requirement
+  title: Audience-bound tokens via resource indicators (RFC 8707); no passthrough
+- base_uid: ARCH-AUTH-REFRESH
+  project_id: reqaml
+  parent: ARCH-AUTH-AS
+  kind: requirement
+  title: Refresh token rotation with reuse detection
+- base_uid: ARCH-AUTH-REVOKE
+  project_id: reqaml
+  parent: ARCH-AUTH-AS
+  kind: requirement
+  title: Token revocation and session-linked teardown
+- base_uid: ARCH-AUTH-CLIENTREG
+  project_id: reqaml
+  parent: ARCH-AUTH-AS
+  kind: requirement
+  title: 'Client registration: pre-registered baseline; CIMD/DCR policy-gated'
+- base_uid: ARCH-AUTH-FEDERATION
+  project_id: reqaml
+  parent: ARCH-AUTH-AS
+  kind: requirement
+  title: Enterprise SSO federated upstream through the internal AS
+- base_uid: ARCH-AUTH-LOCAL
+  project_id: reqaml
+  parent: ARCH-AUTH-AS
+  kind: requirement
+  title: Local accounts in the internal identity store
+- base_uid: ARCH-CRED
+  project_id: reqaml
+  parent: SEC-SEC
+  kind: requirement
+  title: Credential store controls
+- base_uid: ARCH-CRED-HASH
+  project_id: reqaml
+  parent: ARCH-CRED
+  kind: requirement
+  title: Passwords stored only as salted approved one-way hashes (configurable params)
+- base_uid: ARCH-CRED-POLICY
+  project_id: reqaml
+  parent: ARCH-CRED
+  kind: requirement
+  title: Password / authenticator policy presets
+- base_uid: ARCH-CRED-LOCKOUT
+  project_id: reqaml
+  parent: ARCH-CRED
+  kind: requirement
+  title: Throttling and lockout after failed attempts
+- base_uid: ARCH-CRED-MFA
+  project_id: reqaml
+  parent: ARCH-CRED
+  kind: requirement
+  title: MFA for privileged roles
+- base_uid: ARCH-CRED-TOKENS
+  project_id: reqaml
+  parent: ARCH-CRED
+  kind: requirement
+  title: Server-side tokens and client secrets stored hashed
+- base_uid: ARCH-CRED-SESSION
+  project_id: reqaml
+  parent: ARCH-CRED
+  kind: requirement
+  title: 'Session management: idle/absolute timeout, fixation, cookies'
+- base_uid: ARCH-CRED-REAUTH
+  project_id: reqaml
+  parent: ARCH-CRED
+  kind: requirement
+  title: Re-authentication (step-up) for sensitive actions
+- base_uid: ARCH-CRED-AUDIT
+  project_id: reqaml
+  parent: ARCH-CRED
+  kind: requirement
+  title: Audit every authentication event
+- base_uid: ARCH-KEY
+  project_id: reqaml
+  parent: SEC-SEC
+  kind: requirement
+  title: Key / secret store — envelope encryption root of trust
+- base_uid: ARCH-KEY-PROVIDER
+  project_id: reqaml
+  parent: ARCH-KEY
+  kind: requirement
+  title: Pluggable KeyProvider; OpenBao Transit default
+- base_uid: ARCH-KEY-SCOPE
+  project_id: reqaml
+  parent: ARCH-KEY
+  kind: requirement
+  title: What the key store protects (signing keys, secrets, sensitive fields)
+- base_uid: ARCH-KEY-JWKS
+  project_id: reqaml
+  parent: ARCH-KEY
+  kind: requirement
+  title: 'Token signing keys: kid, JWKS, rotation with overlap window'
+- base_uid: ARCH-KEY-LIFECYCLE
+  project_id: reqaml
+  parent: ARCH-KEY
+  kind: requirement
+  title: 'Key lifecycle: generate, rotate, revoke, destroy, online re-wrap'
+- base_uid: ARCH-KEY-CUSTODIAN
+  project_id: reqaml
+  parent: ARCH-KEY
+  kind: requirement
+  title: Key custodian role (separation of duties)
+- base_uid: ARCH-KEY-BREAKGLASS
+  project_id: reqaml
+  parent: ARCH-KEY
+  kind: requirement
+  title: Key recovery / break-glass procedure
+- base_uid: ARCH-KEY-FIPS
+  project_id: reqaml
+  parent: ARCH-KEY
+  kind: requirement
+  title: FIPS-validated cryptographic modules where applicable
+- base_uid: ARCH-KEY-FAILCLOSED
+  project_id: reqaml
+  parent: ARCH-KEY
+  kind: requirement
+  title: Fail closed when the KEK / KeyProvider is unavailable
+- base_uid: ARCH-DEVENV-KEYS
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: requirement
+  title: 'Dev KeyProvider: OpenBao dev instance; dev keys never valid in prod'
+- base_uid: ARCH-DEPLOY-MINIMAL
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: requirement
+  title: One Dockerfile; one multi-role app container (API+AS, Web UI, MCP, sync)
+- base_uid: ARCH-DEPLOY-PERIPHERALS
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: requirement
+  title: Peripherals in as few containers as sensible (key store isolated in prod)
+- base_uid: SEC-BUILD
+  project_id: reqaml
+  parent:
+  kind: section
+  title: Build sequencing
+- base_uid: ARCH-BUILD-FOUNDATION
+  project_id: reqaml
+  parent: SEC-BUILD
+  kind: requirement
+  title: 'Foundation slice first: platform shell + authentication + key store'
+- base_uid: FIX-ALLOW-MCP-OAUTH-PKCE
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: MCP client authorizes via discovery + PKCE; audience-bound tool call
+- base_uid: FIX-DENY-PKCE-PLAIN
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Deny authorize with plain or missing PKCE
+- base_uid: FIX-DENY-MCP-WRONG-AUDIENCE
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Deny token with wrong audience at MCP server / API
+- base_uid: FIX-DENY-UPSTREAM-TOKEN-AT-API
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Deny upstream IdP token presented directly to API/MCP
+- base_uid: FIX-DENY-REFRESH-REUSE
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Deny reuse of a rotated refresh token; revoke family
+- base_uid: FIX-DENY-REVOKED-TOKEN
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Deny revoked refresh/access token after sign-out
+- base_uid: FIX-DENY-DCR-DISABLED
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Deny dynamic client registration when policy is off
+- base_uid: FIX-ALLOW-FEDERATED-SSO-VIA-AS
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Federated SSO yields internal-AS tokens for linked identity
+- base_uid: FIX-DENY-LOCKOUT
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Lockout after N consecutive failed logins
+- base_uid: FIX-DENY-PRIV-NO-MFA
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Deny privileged action on a session without MFA
+- base_uid: FIX-DENY-STEPUP-STALE-AUTH
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Deny approval/pin apply with stale authentication
+- base_uid: FIX-DENY-SESSION-IDLE
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Deny after idle session timeout
+- base_uid: FIX-ALLOW-CRED-HASH-ONLY
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Credential store holds only hashes / wrapped secrets
+- base_uid: FIX-DENY-KEK-UNREACHABLE-PROD
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Prod start fails closed when KEK unreachable
+- base_uid: FIX-DENY-DEV-KEK-IN-PROD
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Deny dev OpenBao / dev keys in a prod build
+- base_uid: FIX-JWKS-ROTATION-OVERLAP
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Rotated signing key verifies within overlap, rejected after
+- base_uid: FIX-DENY-KEYOP-NO-CUSTODIAN
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Deny key operation without Key custodian
+- base_uid: FIX-ALLOW-KEK-REWRAP-ONLINE
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: KEK rotation re-wraps DEKs without downtime
+- base_uid: FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Default dev stack is at most 2 containers
+- base_uid: FIX-ALLOW-APP-ROLE-SPLIT
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: App roles toggle by env; split without rebuild
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -4906,12 +5176,12 @@ requirement_versions:
 - uid: SEC-DEVENV
   base_uid: SEC-DEVENV
   version_n: 0
-  status: active
+  status: superseded
   statement: 'Developer environment for ReqAML: Docker Compose is the single supported local stand-up path. Compose services cover the C4 L2 containers (Postgres, API, Web UI, Sync worker) plus a non-prod local identity stub. Hybrid (deps in Compose, app native with hot reload) and full-container modes are both supported. Clone-to-running must be short and documented; migrations and dogfood seed load automatically or with one command; secrets stay out of source; production builds disable local identity.'
 - uid: ARCH-DEVENV-COMPOSE
   base_uid: ARCH-DEVENV-COMPOSE
   version_n: 0
-  status: active
+  status: superseded
   statement: 'Docker Compose is the single supported developer entry point for ReqAML. The repository includes the Compose file(s) and an env template. Compose services derive from the C4 L2 containers: Postgres (database), API (Node/TypeScript OpenAPI), Web UI (React), and Sync worker (DevOps work-item sync), plus a non-prod local identity stub for A01-aligned sign-in. Operators do not invent ad-hoc local wiring outside Compose for first-time stand-up.'
   priority: 15
   iteration: iter-r0
@@ -4922,7 +5192,7 @@ requirement_versions:
 - uid: ARCH-DEVENV-MODES
   base_uid: ARCH-DEVENV-MODES
   version_n: 0
-  status: active
+  status: superseded
   statement: 'ReqAML supports two Compose-backed run modes: (1) hybrid — Compose provides dependencies (at least Postgres and the local identity stub); the API and/or Web UI run as native Node processes with hot reload against those deps; (2) full-container — API, Web UI, Sync worker, and dependencies all run as Compose services from built images. Both modes share the same Compose project and env contract so developers can switch without re-wiring.'
   priority: 15
   iteration: iter-r0
@@ -4955,7 +5225,7 @@ requirement_versions:
 - uid: ARCH-DEVENV-IDENTITY
   base_uid: ARCH-DEVENV-IDENTITY
   version_n: 0
-  status: active
+  status: superseded
   statement: Local development provides a way to sign in without the enterprise IdP (a local OIDC stub or equivalent dev-login path) so A01 session establishment, grants, and Scoped View can be exercised offline. The local identity path is clearly disabled or omitted in production builds and configurations (CM-7 / V-222518). Production continues to require enterprise SSO only (A01 / REQAML-SEC-SSO); no local password store is introduced for production. Which stub implementation is used is an open product choice until Dan locks it.
   priority: 10
   iteration: iter-r0
@@ -4978,7 +5248,7 @@ requirement_versions:
 - uid: ARCH-DEVENV-PARITY
   base_uid: ARCH-DEVENV-PARITY
   version_n: 0
-  status: active
+  status: superseded
   statement: The container image used for full-container development is built from the same Dockerfile used for deployment (multi-stage builds are allowed). Dev/prod differences are configuration and Compose overrides (ports, env, volume mounts, hot-reload sidecars), not a divergent Dockerfile tree, so local container runs exercise the deployable image contract.
   priority: 20
   iteration: iter-r0
@@ -5011,7 +5281,7 @@ requirement_versions:
 - uid: FIX-DENY-DEVENV-PROD-LOGIN
   base_uid: FIX-DENY-DEVENV-PROD-LOGIN
   version_n: 0
-  status: active
+  status: superseded
   statement: FIXTURE / TEST BED (not a product feature). With a production build or production configuration, attempting the local/dev identity path (OIDC stub or dev-login) is denied or the route/config is absent → expect unauthorized/forbidden (or missing endpoint). Enterprise SSO (A01) remains the only sign-in path. Pairs ARCH-DEVENV-IDENTITY and REQAML-SEC-SSO.
   priority: 15
   iteration: iter-r1
@@ -5029,6 +5299,652 @@ requirement_versions:
   security:
     catalog_ref: CM-6
     verification_note: FIXTURE / TEST BED for developer environment smoke and prod-disable.
+- uid: ARCH-AUTH-AS
+  base_uid: ARCH-AUTH-AS
+  version_n: 0
+  status: active
+  statement: ReqAML includes its own OAuth 2.1 authorization server (AS) and it is the single token issuer for the Web UI, API, and MCP clients. It runs in the app container's API role. Only the authorization code grant with PKCE is supported for user-delegated access (no implicit, no resource-owner password grant). The AS conforms to the MCP authorization specification (OAuth 2.1, RFC 8414, RFC 9728, RFC 8707, RFC 9207 iss). Users authenticate at the AS either with a local account (ARCH-AUTH-LOCAL) or through a federated enterprise IdP (ARCH-AUTH-FEDERATION); either way the API and MCP server only accept tokens issued by this AS. Signing uses KeyProvider keys (ARCH-KEY-JWKS), and every auth event is audited (ARCH-CRED-AUDIT).
+  priority: 5
+  iteration: iter-r1
+  rbac_op: auth:oauth:authorize, auth:oauth:token
+  security:
+    catalog_ref: IA-2
+    verification_note: IA-2/IA-5/IA-8/SC-23; single issuer for UI, API, MCP. ASD V-222522.
+  grooming_state: detailed
+- uid: ARCH-AUTH-PKCE
+  base_uid: ARCH-AUTH-PKCE
+  version_n: 0
+  status: active
+  statement: The authorization endpoint requires PKCE with code_challenge_method=S256. Requests that use plain or omit the challenge are rejected (invalid_request) and no code is issued. AS metadata advertises code_challenge_methods_supported=["S256"]. Authorization codes are single-use and short-lived, bound to client_id, redirect_uri (exact match), and code_challenge. State is required, and the authorization response carries iss (RFC 9207).
+  priority: 5
+  iteration: iter-r1
+  rbac_op: auth:oauth:authorize
+  security:
+    catalog_ref: IA-2.8
+    verification_note: Replay-resistant authentication (IA-2(8)); ASD V-222530 / V-222531.
+  grooming_state: detailed
+- uid: ARCH-AUTH-METADATA
+  base_uid: ARCH-AUTH-METADATA
+  version_n: 0
+  status: active
+  statement: 'The AS publishes Authorization Server Metadata (RFC 8414) at /.well-known/oauth-authorization-server, plus OpenID Connect discovery for interop. The metadata issuer is identical to the issuer URL. The MCP server and the API each publish OAuth Protected Resource Metadata (RFC 9728) at /.well-known/oauth-protected-resource, listing the internal AS in authorization_servers and stating their canonical resource URI. A request without a valid token gets 401 with WWW-Authenticate: Bearer resource_metadata="…" so MCP clients can discover the AS.'
+  priority: 5
+  iteration: iter-r1
+  security:
+    catalog_ref: REQAML-SEC-OAUTH
+    verification_note: MCP authorization spec discovery (RFC 8414 / RFC 9728). Interop requirement; no direct NIST pin.
+  grooming_state: detailed
+- uid: ARCH-AUTH-AUDIENCE
+  base_uid: ARCH-AUTH-AUDIENCE
+  version_n: 0
+  status: active
+  statement: Clients send the RFC 8707 resource parameter on both authorization and token requests. Access tokens are audience-bound to exactly one canonical resource (the API or the MCP server). Each resource server rejects tokens whose audience is not its own (401 invalid_token). The MCP server never passes the token it received through to the API. Downstream API calls use a separately issued API-audience token for the same subject; that mechanism is an open question. RBAC (ARCH-API-RBAC / MC03) still decides every operation after the audience check.
+  priority: 5
+  iteration: iter-r1
+  rbac_op: auth:token:validate
+  security:
+    catalog_ref: SC-23
+    verification_note: SC-23 session authenticity; AC-3 enforcement at each resource server.
+  grooming_state: detailed
+- uid: ARCH-AUTH-REFRESH
+  base_uid: ARCH-AUTH-REFRESH
+  version_n: 0
+  status: active
+  statement: 'Refresh tokens rotate on every use: the AS issues a new refresh token, invalidates the old one, and keeps them in one token family. Presenting an already-rotated refresh token is treated as theft: the AS returns invalid_grant, revokes the whole family (and derived access tokens where introspectable), and emits an audit event. Refresh tokens are bound to client_id and resource, stored hashed server-side (ARCH-CRED-TOKENS), and their idle and absolute lifetimes are configurable.'
+  priority: 5
+  iteration: iter-r1
+  rbac_op: auth:oauth:token
+  security:
+    catalog_ref: SC-23
+    verification_note: SC-23 / IA-5 authenticator protection; replay-resistant refresh.
+  grooming_state: detailed
+- uid: ARCH-AUTH-REVOKE
+  base_uid: ARCH-AUTH-REVOKE
+  version_n: 0
+  status: active
+  statement: The AS exposes token revocation (RFC 7009) for refresh and access tokens. Sign-out (A02) revokes the session's refresh tokens and desk attachments. Disabling or deleting an account, or revoking a grant that removes all access, terminates that subject's sessions and token families. Resource servers reject revoked tokens through introspection or short access-token lifetimes plus revocation checks.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:oauth:revoke, auth:signout
+  security:
+    catalog_ref: AC-12
+    verification_note: AC-12 session termination; ASD V-222549 / V-222578 / V-222391.
+  grooming_state: detailed
+- uid: ARCH-AUTH-CLIENTREG
+  base_uid: ARCH-AUTH-CLIENTREG
+  version_n: 0
+  status: active
+  statement: First-party clients (Web UI, admin-configured ReqAML MCP clients) are pre-registered with exact redirect URIs. Client ID Metadata Documents and Dynamic Client Registration (RFC 7591; deprecated in the MCP 2026-07-28 revision) ship disabled by default. An admin can enable either one per deployment or per client policy, and every registration is audited. When DCR is disabled, registration_endpoint is omitted from AS metadata and registration requests are refused. Confidential-client secrets are stored hashed (ARCH-CRED-TOKENS).
+  priority: 15
+  iteration: iter-r1
+  rbac_op: auth:client:register
+  security:
+    catalog_ref: CM-7
+    verification_note: 'CM-7 least functionality: open registration off unless policy enables it.'
+  grooming_state: detailed
+- uid: ARCH-AUTH-FEDERATION
+  base_uid: ARCH-AUTH-FEDERATION
+  version_n: 0
+  status: active
+  statement: The enterprise IdP (OIDC or SAML), formerly the direct sign-in path in A01 / CAP-SSO / REQAML-SEC-SSO, is an upstream identity provider federated through the internal AS, not a separate token path. The AS acts as the OIDC RP / SAML SP. It validates the upstream response (signature, issuer, audience, nonce, NotBefore/NotOnOrAfter, single-use assertion ID), maps external_sub to a linked identity (A06), and then issues ReqAML tokens through the normal code + PKCE flow. When the role needs MFA (ARCH-CRED-MFA), the AS requires upstream MFA evidence (amr/acr). The API and MCP server never accept upstream IdP tokens directly.
+  priority: 5
+  iteration: iter-r1
+  rbac_op: auth:signin
+  security:
+    catalog_ref: IA-2
+    verification_note: IA-2 / IA-8 federated identification; ASD V-222400 / V-222401 / V-222403 / V-222404 SAML assertion checks.
+  grooming_state: detailed
+- uid: ARCH-AUTH-LOCAL
+  base_uid: ARCH-AUTH-LOCAL
+  version_n: 0
+  status: active
+  statement: The internal identity store supports local accounts that bind to the same identity rows and grants as federated identities. Local accounts are required for development (seeded dev accounts, ARCH-DEVENV-IDENTITY.1) and available to deployments whose policy enables them; production enablement and eligible users are an open question. Every local credential is subject to ARCH-CRED-*. Account create/modify/disable/remove is automated and audited, and unnecessary or built-in accounts are disabled.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:local:signin, identity:account:manage
+  security:
+    catalog_ref: AC-2
+    verification_note: AC-2 account management; ASD V-222407 / V-222412 / V-222661.
+  grooming_state: detailed
+- uid: ARCH-CRED
+  base_uid: ARCH-CRED
+  version_n: 0
+  status: active
+  statement: 'Credential store controls cover every credential ReqAML holds or verifies: local passwords, MFA authenticators, OAuth refresh tokens, authorization codes, client secrets, and session identifiers. Credentials are never stored or logged in plaintext. Each one is either one-way hashed (verify-only) or wrapped by the key store (must be usable), per ARCH-KEY.'
+  priority: 5
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-5
+    verification_note: IA-5 authenticator management umbrella.
+  grooming_state: detailed
+- uid: ARCH-CRED-HASH
+  base_uid: ARCH-CRED-HASH
+  version_n: 0
+  status: active
+  statement: 'Local passwords are stored only as salted, approved one-way hashes with a per-credential random salt. Algorithm and cost parameters are configuration, not a hard-coded library: Argon2id where FIPS mode is not required, PBKDF2-HMAC-SHA-256/512 (FIPS-approved) where FIPS-validated crypto is required (ARCH-KEY-FIPS). Each stored hash records its algorithm and parameters, and an outdated hash is re-hashed on the next successful login. Passwords travel only over TLS and are never displayed or logged.'
+  priority: 5
+  iteration: iter-r1
+  rbac_op: auth:local:signin
+  security:
+    catalog_ref: IA-5.1
+    verification_note: IA-5(1) password-based auth; ASD V-222542 / V-222543 / V-222554 / V-222571.
+  grooming_state: detailed
+- uid: ARCH-CRED-POLICY
+  base_uid: ARCH-CRED-POLICY
+  version_n: 0
+  status: active
+  statement: Password and authenticator policy (minimum length, composition or blocklist, change distance, minimum and maximum lifetime, reuse history, temporary password with forced change) is a configurable preset per deployment. The DoD-facing preset meets ASD STIG V6R4 values. Default and seeded credentials must be changed before first use, and production must not contain any.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:policy:configure
+  security:
+    catalog_ref: IA-5.1
+    verification_note: IA-5(1); ASD V-222536..V-222541, V-222544..V-222548, V-222662.
+  grooming_state: detailed
+- uid: ARCH-CRED-LOCKOUT
+  base_uid: ARCH-CRED-LOCKOUT
+  version_n: 0
+  status: active
+  statement: The AS throttles authentication per account and per source, and locks a local account after N consecutive failed attempts within a window (configurable; DoD preset 3 in 15 minutes). While locked, even a correct password is refused with the same generic error, and failures never reveal whether an account exists. Unlock happens only through an approved admin process (auth:account:unlock) or the configured timer. Every failure, lockout, and unlock is audited.
+  priority: 5
+  iteration: iter-r1
+  rbac_op: auth:local:signin, auth:account:unlock
+  security:
+    catalog_ref: AC-7
+    verification_note: AC-7 unsuccessful logon attempts; ASD V-222432 / V-222433 / V-222462.
+  grooming_state: detailed
+- uid: ARCH-CRED-MFA
+  base_uid: ARCH-CRED-MFA
+  version_n: 0
+  status: active
+  statement: Privileged roles must use multi-factor authentication. Privileged means roles holding admin, approve, apply, sign-off, ship, steward, or key-custodian permissions in the permission tree. For local accounts the AS enforces a second factor, with MFA secrets wrapped by the key store. For federated logins the AS requires upstream MFA evidence (amr/acr). A session without MFA cannot perform privileged operations. MFA for non-privileged users is a policy preset; factor types and the confirmed privileged-role list are open questions.
+  priority: 5
+  iteration: iter-r1
+  rbac_op: auth:mfa:verify
+  security:
+    catalog_ref: IA-2.1
+    verification_note: IA-2(1) MFA privileged; ASD V-222523 / V-222527.
+  grooming_state: detailed
+- uid: ARCH-CRED-TOKENS
+  base_uid: ARCH-CRED-TOKENS
+  version_n: 0
+  status: active
+  statement: Server-side bearer credentials (refresh tokens, authorization codes, confidential-client secrets, MFA recovery codes) are stored only as hashes (keyed hash or one-way hash), compared in constant time, and never retrievable. Secrets ReqAML must present to others (upstream IdP client secret, Azure DevOps connector tokens, SMTP credentials, OTEL sink credentials) are stored encrypted under key-store DEKs (ARCH-KEY-SCOPE) and never returned by APIs.
+  priority: 5
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-5.6
+    verification_note: IA-5(6) protection of authenticators; SC-28(1); ASD V-222542 / V-222588.
+  grooming_state: detailed
+- uid: ARCH-CRED-SESSION
+  base_uid: ARCH-CRED-SESSION
+  version_n: 0
+  status: active
+  statement: 'Sessions use system-generated unique identifiers from an approved RNG and rotate on login (anti-fixation). Session IDs are never in URLs or otherwise exposed. Cookies are HttpOnly and Secure, sessions are validated server-side, and IDs are never reused. Idle and absolute timeouts are configurable (DoD preset: 15 minutes idle non-privileged, 10 minutes admin), as are concurrent-session limits. Timeout, sign-out, and account deletion destroy the session and its token family. Session create, renew, timeout, and destroy are audited.'
+  priority: 5
+  iteration: iter-r1
+  rbac_op: auth:session:manage
+  security:
+    catalog_ref: AC-12
+    verification_note: AC-12 / AC-2(5) / AC-10 / SC-23(3); ASD V-222387 / V-222389 / V-222390 / V-222575 / V-222576 / V-222577 / V-222579 / V-222581 / V-222582 / V-222583.
+  grooming_state: detailed
+- uid: ARCH-CRED-REAUTH
+  base_uid: ARCH-CRED-REAUTH
+  version_n: 0
+  status: active
+  statement: 'Sensitive actions require recent authentication (step-up): line or tree approve (D12/D13), capability approve, ConformsTo pin apply/deny, gate sign-off, release ship, grant and role administration, client registration, and key operations. If auth_time is older than the configured max_age, or MFA is missing for a privileged slot, the action returns a step-up challenge and nothing is written.'
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:stepup
+  security:
+    catalog_ref: IA-11
+    verification_note: IA-11 re-authentication; ASD V-222520.
+  grooming_state: detailed
+- uid: ARCH-CRED-AUDIT
+  base_uid: ARCH-CRED-AUDIT
+  version_n: 0
+  status: active
+  statement: 'Every authentication event is audited through the existing AuditLog pattern (ARCH-OTEL) with subject, client_id, source IP, user agent, outcome, and timestamp. Covered events: login success and failure, lockout and unlock, MFA result, step-up, token issue / refresh / rotation-reuse / revoke, client registration, session create / renew / timeout / destroy, account create / modify / disable / remove, and key operations. Secrets, tokens, and password material never appear in audit payloads.'
+  priority: 5
+  iteration: iter-r1
+  security:
+    catalog_ref: AU-2
+    verification_note: AU-2/3/12; ASD V-222462 / V-222441 / V-222442 / V-222443 / V-222445 / V-222467.
+  grooming_state: detailed
+- uid: ARCH-KEY
+  base_uid: ARCH-KEY
+  version_n: 0
+  status: active
+  statement: ReqAML's encryption root of trust is an external key / secret store using envelope encryption. A key-encryption key (KEK) is held outside the application database by the KeyProvider and wraps data-encryption keys (DEKs). DEKs are persisted only in wrapped form. Plaintext key material exists only in process memory, is never written to the database, logs, or source, and is zeroized when no longer needed.
+  priority: 5
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-12
+    verification_note: SC-12 key establishment/management; SC-28(3) cryptographic keys at rest.
+  grooming_state: detailed
+- uid: ARCH-KEY-PROVIDER
+  base_uid: ARCH-KEY-PROVIDER
+  version_n: 0
+  status: active
+  statement: 'Key operations go through a pluggable KeyProvider abstraction: wrap/unwrap DEK, re-wrap, generate, rotate, revoke/disable, destroy, and sign with non-exportable signing keys. The default backend is OpenBao with the Transit engine (envelope encrypt/decrypt/rewrap plus sign) for dev, and it is suitable for production. The same interface also accepts a cloud KMS or an HSM over PKCS#11 (SoftHSM2 is used only to test the PKCS#11 path). HashiCorp Vault (BUSL) and LocalStack KMS are not defaults. Access to the KeyProvider is authenticated with deployment credentials injected at runtime, never committed (ARCH-DEVENV-SECRETS).'
+  priority: 5
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-7
+    verification_note: IA-7 cryptographic module authentication; ASD V-222555.
+  grooming_state: detailed
+- uid: ARCH-KEY-SCOPE
+  base_uid: ARCH-KEY-SCOPE
+  version_n: 0
+  status: active
+  statement: 'The key store protects: (1) OAuth token signing keys (ARCH-KEY-JWKS); (2) secrets the app must use (DB credentials, SMTP credentials, Azure DevOps connector tokens, upstream IdP client secrets, OTEL sink credentials, MFA secrets), encrypted under DEKs; (3) peppers or HMAC keys used to hash server-side tokens (ARCH-CRED-TOKENS). Verify-only credentials are hashed, not encrypted. Field-level encryption applies only to columns that hold such secrets. Requirement content is not field-encrypted and relies on storage-level encryption at rest per deployment.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-28.1
+    verification_note: SC-28(1) cryptographic protection at rest; ASD V-222588 / V-222589 / V-222642.
+  grooming_state: detailed
+- uid: ARCH-KEY-JWKS
+  base_uid: ARCH-KEY-JWKS
+  version_n: 0
+  status: active
+  statement: 'Each token signing key has a kid. By default it is a non-exportable OpenBao Transit key, so signing happens inside the KeyProvider and the kid is the key name plus version. The AS publishes public keys at its jwks_uri for the active key and any retired keys still inside the overlap window. Rotation is scheduled and on demand: a new key version starts signing, the prior version stays verify-only until the overlap window passes (at least the maximum access-token lifetime plus clock skew), and is then removed. After that, tokens with the retired kid are rejected.'
+  priority: 5
+  iteration: iter-r1
+  rbac_op: key:signing:rotate
+  security:
+    catalog_ref: SC-12.3
+    verification_note: SC-12(3) asymmetric keys; SC-13; ASD V-222570.
+  grooming_state: detailed
+- uid: ARCH-KEY-LIFECYCLE
+  base_uid: ARCH-KEY-LIFECYCLE
+  version_n: 0
+  status: active
+  statement: Key lifecycle operations are generate, rotate (scheduled and on demand), revoke/disable, and destroy, for KEKs and DEKs. KEK rotation creates a new key version and re-wraps every DEK online (Transit rewrap, so plaintext is never exposed). Prior versions still unwrap until re-wrap finishes and is verified, then the minimum decryption version is raised to disable them. Reads and writes continue throughout with no downtime. Destroy is irreversible, needs the Key custodian (ARCH-KEY-CUSTODIAN), and requires confirmation that no live ciphertext depends on the key. Every key operation emits an audit event through the AuditLog pattern (operation, key id/version, actor, outcome) and never includes key material.
+  priority: 5
+  iteration: iter-r1
+  rbac_op: key:kek:rotate, key:dek:rewrap, key:revoke, key:destroy
+  security:
+    catalog_ref: SC-12
+    verification_note: SC-12 / SC-12(2) / SC-12(3); AU-2.
+  grooming_state: detailed
+- uid: ARCH-KEY-CUSTODIAN
+  base_uid: ARCH-KEY-CUSTODIAN
+  version_n: 0
+  status: active
+  statement: "Key operations (KEK/DEK rotate, revoke, destroy, provider reconfigure, recovery) need the deployment-scoped Key custodian role. No existing role fits: project and client roles are tenant-scoped, and the permission tree has no ops or deployment role ('No separate Deployer in v1'). For separation of duties, the Key custodian is distinct from Client admin and Project admin, and holding both on one deployment is refused unless a documented exception is approved. The role grants no access to requirement content. Scheduled automatic rotation runs as an audited system principal."
+  priority: 10
+  iteration: iter-r1
+  rbac_op: key:*
+  security:
+    catalog_ref: AC-5
+    verification_note: AC-5 separation of duties; AC-6 least privilege.
+  grooming_state: detailed
+- uid: ARCH-KEY-BREAKGLASS
+  base_uid: ARCH-KEY-BREAKGLASS
+  version_n: 0
+  status: active
+  statement: A documented key recovery / break-glass procedure covers KEK or KeyProvider loss and custodian unavailability. It uses OpenBao unseal/recovery shares or provider-native recovery held under split knowledge and dual control (M-of-N custodians), restores without exposing plaintext keys, and rotates keys afterward. Every break-glass use is audited and reviewed, and a restore exercise runs on a schedule.
+  priority: 15
+  iteration: iter-r1
+  rbac_op: key:recover
+  security:
+    catalog_ref: SC-12.1
+    verification_note: SC-12(1) key availability; AC-5 dual control.
+  grooming_state: detailed
+- uid: ARCH-KEY-FIPS
+  base_uid: ARCH-KEY-FIPS
+  version_n: 0
+  status: active
+  statement: Where a deployment requires it (DoD/federal profile), all cryptographic operations (hashing, signing, encryption, key wrap, and RNG for session IDs and tokens) use FIPS 140-validated modules (FIPS mode). Password hashing then uses PBKDF2 (ARCH-CRED-HASH), and a KeyProvider build that is not FIPS-validated is refused in that mode. Whether FIPS mode is the default for commercial deployments is an open question.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-13
+    verification_note: SC-13 cryptographic protection; ASD V-222570 / V-222571 / V-222572 / V-222583.
+  grooming_state: detailed
+- uid: ARCH-KEY-FAILCLOSED
+  base_uid: ARCH-KEY-FAILCLOSED
+  version_n: 0
+  status: active
+  statement: In production, ReqAML fails closed when the KEK or KeyProvider is unreachable or sealed. The app does not start or reports not ready (ARCH-DEVENV-HEALTH / M04), and it refuses operations that need key material. It never falls back to plaintext, cached plaintext KEKs on disk, or a dev provider. Unavailability is audited and alerted.
+  priority: 5
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-24
+    verification_note: SC-24 fail in known state; SC-12(1).
+  grooming_state: detailed
+- uid: ARCH-DEVENV-KEYS
+  base_uid: ARCH-DEVENV-KEYS
+  version_n: 0
+  status: active
+  statement: 'Development uses OpenBao (Transit engine) in the peripherals container as the default KeyProvider, which is the same provider type as the production default. On first start it initializes with dev-only seal/unseal material and a root token generated locally into git-ignored files (never committed). Storage persists so wrapped DEKs survive restarts, and Transit keys are dev-marked. Dev OpenBao instances and dev keys are never valid in production: production runs its own OpenBao with its own seal, and the app refuses dev-marked addresses or keys in prod mode. SoftHSM2 is optional and exists only to exercise the PKCS#11 provider path (app hsm-test build target).'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-7
+    verification_note: CM-7 least functionality; dev key path non-essential in prod. ASD V-222642.
+  grooming_state: detailed
+- uid: ARCH-DEPLOY-MINIMAL
+  base_uid: ARCH-DEPLOY-MINIMAL
+  version_n: 0
+  status: active
+  statement: 'One Dockerfile with multi-stage targets (app, peripherals, optional hsm-test) builds every ReqAML image. A single app container runs the API (including the internal OAuth AS), Web UI (static assets served by the API role), MCP server (Streamable HTTP), and sync worker together, as one Node process or under a lightweight supervisor. Roles are toggled by env/config (for example REQAML_ROLES=api,web,mcp,sync), so any role can later run as its own container from the same image without a rebuild, and health/readiness is reported per enabled role. Rationale (Dan, 2026-10-07): run as few containers as possible for fast clone-to-running and small deployments. C4 L2 containers are logical runtime containers, not mandated deploy units.'
+  priority: 5
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: 'CM-2 baseline: one Dockerfile + role config is the deployable baseline; CM-7 roles off when not needed.'
+  grooming_state: detailed
+- uid: ARCH-DEPLOY-PERIPHERALS
+  base_uid: ARCH-DEPLOY-PERIPHERALS
+  version_n: 0
+  status: active
+  statement: 'Peripherals run in as few containers as is sensible. Dev/test: one peripherals container (Dockerfile peripherals target) runs Postgres and OpenBao under a lightweight supervisor, each with its own named volume. Co-locating them in dev is acceptable because dev keys are dev-only and protect no real data, and separate volumes keep reset and backup independent. Production: Postgres and OpenBao are separate deploy units with separate host, volume, and backup set. Rationale: envelope encryption protects data only if the KEK store does not share a compromise domain or backup set with the database whose DEKs it wraps (ARCH-KEY, SC-28(3)), and the two have different durability models (database backups/PITR versus OpenBao seal plus snapshots). SoftHSM2 is a PKCS#11 library loaded in-process, so it is not a peripheral container: it is an optional app hsm-test target and is never deployed. Reference topology: dev 2 containers (app + peripherals); prod 3 units (app, Postgres, OpenBao).'
+  priority: 5
+  iteration: iter-r0
+  security:
+    catalog_ref: SC-28.3
+    verification_note: SC-28(3) key storage separated from protected data in prod; CP-9 independent backups.
+  grooming_state: detailed
+- uid: SEC-BUILD
+  base_uid: SEC-BUILD
+  version_n: 0
+  status: active
+  statement: 'Build sequencing for ReqAML implementation. This is ordering only: it does not cut v1 scope or mark any requirement out of scope.'
+- uid: ARCH-BUILD-FOUNDATION
+  base_uid: ARCH-BUILD-FOUNDATION
+  version_n: 0
+  status: active
+  statement: 'The first implementation slice is the foundation: platform shell (App shell, routes and guards, layout: ARCH-UI / ARCH-UI-GUARD), API layering and OpenAPI (ARCH-API / ARCH-API-LAYERS), tenancy scope (ARCH-CP-SCOPE), internal OAuth AS (ARCH-AUTH-*), local accounts and credential store (ARCH-CRED-*), key / secret store with OpenBao (ARCH-KEY-*), RBAC enforcement points (ARCH-API-RBAC / CAP-RBAC), audit (ARCH-OTEL / ARCH-CRED-AUDIT), health (M04), and the minimal-container Compose environment (ARCH-DEVENV-*, ARCH-DEPLOY-*). All other requirements layer on this foundation. This records build order only: no v1 requirement is deferred, descoped, or marked out of scope. Planned release rel-r1-foundation-shell-auth tracks the slice.'
+  priority: 1
+  iteration: iter-r1
+  security:
+    catalog_ref: SA-8
+    verification_note: 'SA-8 security engineering: security foundations built first.'
+  grooming_state: detailed
+- uid: FIX-ALLOW-MCP-OAUTH-PKCE
+  base_uid: FIX-ALLOW-MCP-OAUTH-PKCE
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). MCP host (as alex-author) calls the MCP server without a token → 401 + WWW-Authenticate resource_metadata. It fetches PRM, then AS metadata (issuer match, S256 advertised), authorizes with S256 + resource=MCP URI, and exchanges code + verifier + resource for an aud=MCP access token plus a rotating refresh token. The tool update_draft then succeeds (200) after the audience check and RBAC.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:oauth:authorize, requirement:version:update_draft
+  security:
+    catalog_ref: IA-2
+    verification_note: Happy path for ARCH-AUTH-* / MCP spec.
+- uid: FIX-DENY-PKCE-PLAIN
+  base_uid: FIX-DENY-PKCE-PLAIN
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). Authorize request with code_challenge_method=plain, or no code_challenge → expect 400 invalid_request, no authorization code issued, audit deny.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:oauth:authorize
+  security:
+    catalog_ref: IA-2.8
+    verification_note: Pairs ARCH-AUTH-PKCE; ASD V-222530.
+- uid: FIX-DENY-MCP-WRONG-AUDIENCE
+  base_uid: FIX-DENY-MCP-WRONG-AUDIENCE
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). aud=API access token presented to the MCP server → 401 invalid_token + WWW-Authenticate resource_metadata. An aud=MCP token presented to the API → 401. No tool or business call runs.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:token:validate
+  security:
+    catalog_ref: SC-23
+    verification_note: Pairs ARCH-AUTH-AUDIENCE.
+- uid: FIX-DENY-UPSTREAM-TOKEN-AT-API
+  base_uid: FIX-DENY-UPSTREAM-TOKEN-AT-API
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). A token minted by the upstream enterprise IdP, presented directly to the API or MCP server → 401 (issuer not trusted). Only internal-AS tokens are accepted.
+  priority: 15
+  iteration: iter-r1
+  rbac_op: auth:token:validate
+  security:
+    catalog_ref: IA-2
+    verification_note: 'Pairs ARCH-AUTH-FEDERATION: no separate token path.'
+- uid: FIX-DENY-REFRESH-REUSE
+  base_uid: FIX-DENY-REFRESH-REUSE
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). Refresh token R1 rotated to R2; presenting R1 again → 400 invalid_grant. R2 and its derived access tokens are revoked (token family), and an audit row records reuse detection.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:oauth:token
+  security:
+    catalog_ref: SC-23
+    verification_note: Pairs ARCH-AUTH-REFRESH.
+- uid: FIX-DENY-REVOKED-TOKEN
+  base_uid: FIX-DENY-REVOKED-TOKEN
+  version_n: 0
+  status: active
+  statement: 'FIXTURE / TEST BED (not a product feature). After sign-out (A02) or RFC 7009 revocation: the revoked refresh token → invalid_grant, and the revoked access token is rejected at the API → 401.'
+  priority: 15
+  iteration: iter-r1
+  rbac_op: auth:oauth:revoke
+  security:
+    catalog_ref: AC-12
+    verification_note: Pairs ARCH-AUTH-REVOKE; ASD V-222578.
+- uid: FIX-DENY-DCR-DISABLED
+  base_uid: FIX-DENY-DCR-DISABLED
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). With DCR policy off (default), AS metadata omits registration_endpoint and POST /register → 403 (or 404). No client row is created, and the attempt is audited.
+  priority: 20
+  iteration: iter-r1
+  rbac_op: auth:client:register
+  security:
+    catalog_ref: CM-7
+    verification_note: Pairs ARCH-AUTH-CLIENTREG.
+- uid: FIX-ALLOW-FEDERATED-SSO-VIA-AS
+  base_uid: FIX-ALLOW-FEDERATED-SSO-VIA-AS
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). dan signs in through the upstream IdP (external_sub oidc:dan-raby). The AS validates the assertion, maps it to identity dan, and issues internal-AS tokens (iss = ReqAML AS). The API accepts them and loads dan's reqaml grants; the upstream token never reaches the API.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:signin
+  security:
+    catalog_ref: IA-8
+    verification_note: Pairs ARCH-AUTH-FEDERATION / A01.
+- uid: FIX-DENY-LOCKOUT
+  base_uid: FIX-DENY-LOCKOUT
+  version_n: 0
+  status: active
+  statement: 'FIXTURE / TEST BED (not a product feature). Local dev account for taylor-tester: N consecutive wrong passwords inside the window (DoD preset 3 in 15 minutes) → account locked. The next login with the correct password is refused with the same generic error. Audit records each failure and the lockout. Unlock only via auth:account:unlock or the timer.'
+  priority: 10
+  iteration: iter-r1
+  rbac_op: auth:local:signin
+  security:
+    catalog_ref: AC-7
+    verification_note: Pairs ARCH-CRED-LOCKOUT; ASD V-222432.
+- uid: FIX-DENY-PRIV-NO-MFA
+  base_uid: FIX-DENY-PRIV-NO-MFA
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). dan (Project admin) with a session lacking MFA evidence attempts project:grant:create → step-up required / 403. No grant is written, and the attempt is audited.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: project:grant:create
+  security:
+    catalog_ref: IA-2.1
+    verification_note: Pairs ARCH-CRED-MFA; ASD V-222523.
+- uid: FIX-DENY-STEPUP-STALE-AUTH
+  base_uid: FIX-DENY-STEPUP-STALE-AUTH
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). pat-client-admin calls requirement:line:approve, or sam-security calls catalog:pin:apply, with auth_time older than max_age → 401 step-up challenge (insufficient_user_authentication). No ApprovalRecord or pin is written.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: requirement:line:approve, catalog:pin:apply
+  security:
+    catalog_ref: IA-11
+    verification_note: Pairs ARCH-CRED-REAUTH; ASD V-222520.
+- uid: FIX-DENY-SESSION-IDLE
+  base_uid: FIX-DENY-SESSION-IDLE
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). Session idle past the configured timeout (DoD preset 15 minutes non-privileged, 10 minutes admin) → next API call 401. The session is destroyed and a session-timeout audit row is emitted.
+  priority: 15
+  iteration: iter-r1
+  rbac_op: auth:session:manage
+  security:
+    catalog_ref: AC-12
+    verification_note: Pairs ARCH-CRED-SESSION; ASD V-222389 / V-222390 / V-222445.
+- uid: FIX-ALLOW-CRED-HASH-ONLY
+  base_uid: FIX-ALLOW-CRED-HASH-ONLY
+  version_n: 0
+  status: active
+  statement: 'FIXTURE / TEST BED (not a product feature). Inspection oracle on a seeded instance: no plaintext passwords, refresh tokens, authorization codes, or client secrets (hashes only, with algorithm and params recorded). Usable secrets exist only as DEK ciphertext, and DEKs exist only wrapped by the OpenBao Transit KEK.'
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-5.1
+    verification_note: Pairs ARCH-CRED-HASH / ARCH-CRED-TOKENS / ARCH-KEY; ASD V-222542.
+- uid: FIX-DENY-KEK-UNREACHABLE-PROD
+  base_uid: FIX-DENY-KEK-UNREACHABLE-PROD
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). Production config with OpenBao unreachable or sealed → app refuses to start or readiness stays not-ready, and health reports unhealthy. No plaintext or dev-key fallback. Audited and alerted.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-24
+    verification_note: Pairs ARCH-KEY-FAILCLOSED.
+- uid: FIX-DENY-DEV-KEK-IN-PROD
+  base_uid: FIX-DENY-DEV-KEK-IN-PROD
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). Production build or config pointing at a dev OpenBao (dev-marked address, dev root token, or dev-marked Transit keys) → startup refused with an explicit error. No keys are unwrapped.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-7
+    verification_note: Pairs ARCH-DEVENV-KEYS.
+- uid: FIX-JWKS-ROTATION-OVERLAP
+  base_uid: FIX-JWKS-ROTATION-OVERLAP
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). Transit signing key rotated v1 → v2. A token with kid=v1 still verifies inside the overlap window, and JWKS lists v1 and v2. After the window, v1 leaves JWKS and the same token → 401. New tokens carry kid=v2.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: key:signing:rotate
+  security:
+    catalog_ref: SC-12.3
+    verification_note: Pairs ARCH-KEY-JWKS.
+- uid: FIX-DENY-KEYOP-NO-CUSTODIAN
+  base_uid: FIX-DENY-KEYOP-NO-CUSTODIAN
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). pat-client-admin (Client admin, not Key custodian) attempts key:kek:rotate → 403 + audit deny. kim-key-custodian performing the same op → allowed after step-up.
+  priority: 10
+  iteration: iter-r1
+  rbac_op: key:kek:rotate
+  security:
+    catalog_ref: AC-5
+    verification_note: Pairs ARCH-KEY-CUSTODIAN.
+- uid: FIX-ALLOW-KEK-REWRAP-ONLINE
+  base_uid: FIX-ALLOW-KEK-REWRAP-ONLINE
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). KEK v1 → v2 while the app serves traffic. Every wrapped DEK is re-wrapped (Transit rewrap), and reads and writes succeed throughout. After verification the minimum decryption version is raised; v1 unwrap then fails and nothing depends on it. Each step is audited.
+  priority: 15
+  iteration: iter-r1
+  rbac_op: key:kek:rotate, key:dek:rewrap
+  security:
+    catalog_ref: SC-12
+    verification_note: Pairs ARCH-KEY-LIFECYCLE.
+- uid: FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  base_uid: FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). From a fresh clone, the default compose up starts at most 2 containers (app + peripherals) and both report healthy. Hybrid mode starts only the peripherals container. The optional SoftHSM2 profile changes the app build target and does not add a peripheral container.
+  priority: 15
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: Pairs ARCH-DEPLOY-MINIMAL / ARCH-DEPLOY-PERIPHERALS.
+- uid: FIX-ALLOW-APP-ROLE-SPLIT
+  base_uid: FIX-ALLOW-APP-ROLE-SPLIT
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). The same app image started with REQAML_ROLES=sync runs only the sync worker (API/MCP/web endpoints absent, readiness reports sync only). With all roles enabled it serves API+AS, Web UI, and MCP and runs sync. No rebuild between runs.
+  priority: 20
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-7
+    verification_note: Pairs ARCH-DEPLOY-MINIMAL; roles not enabled are not exposed.
+- uid: SEC-DEVENV.1
+  base_uid: SEC-DEVENV
+  version_n: 1
+  status: active
+  statement: 'Developer environment and deployment topology for ReqAML. Docker Compose is the single supported local stand-up path and runs the fewest containers practical: one multi-role app container (API + internal OAuth AS, Web UI, MCP server, sync worker) and one peripherals container (Postgres + OpenBao), both built from one Dockerfile. Hybrid mode (peripherals only, app native with hot reload) and full-container mode are both supported. The clone-to-running path is short and documented, and migrations and the dogfood seed (with seeded dev accounts) load automatically or with one command. Sign-in goes through the internal AS, keys come from a dev OpenBao, and secrets stay out of source. Production builds ship no dev accounts, default credentials, or dev keys.'
+  mint_kind: content
+- uid: ARCH-DEVENV-COMPOSE.1
+  base_uid: ARCH-DEVENV-COMPOSE
+  version_n: 1
+  status: active
+  statement: "Docker Compose is the single supported developer entry point for ReqAML; the repository includes the Compose file(s) and an env template. The default stack is 2 containers, both from the repo's single Dockerfile: app (API with internal OAuth 2.1 AS, Web UI, MCP server, sync worker roles; ARCH-DEPLOY-MINIMAL) and peripherals (Postgres + OpenBao; ARCH-DEPLOY-PERIPHERALS). There is no third-party identity-stub container: local sign-in uses the internal AS with seeded dev accounts (ARCH-DEVENV-IDENTITY.1). An optional hsm-test profile builds the app with SoftHSM2 to exercise the PKCS#11 KeyProvider path without adding a peripheral container. Operators do not invent ad-hoc local wiring outside Compose for first-time stand-up."
+  priority: 15
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: 'CM-2 baseline: one Dockerfile + Compose define the supported local/deploy baseline.'
+  grooming_state: detailed
+  mint_kind: content
+- uid: ARCH-DEVENV-MODES.1
+  base_uid: ARCH-DEVENV-MODES
+  version_n: 1
+  status: active
+  statement: 'ReqAML supports two Compose-backed run modes. (1) Hybrid: Compose runs only the peripherals container (Postgres + OpenBao), and the app runs natively as one Node process with all roles enabled and hot reload. (2) Full-container: Compose runs the app container (same image as deployment) plus the peripherals container. Both modes share the same Compose project, env contract, and OpenBao dev KeyProvider, so developers can switch without re-wiring.'
+  priority: 15
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: 'CM-2 baseline: one Dockerfile + Compose define the supported local/deploy baseline.'
+  grooming_state: detailed
+  mint_kind: content
+- uid: ARCH-DEVENV-PARITY.1
+  base_uid: ARCH-DEVENV-PARITY
+  version_n: 1
+  status: active
+  statement: There is one Dockerfile with multi-stage targets. The app target that full-container dev runs is the same target used for deployment. Dev/prod differences are configuration, enabled roles, and Compose overrides only (ports, env, mounts), never a divergent Dockerfile tree. The peripherals target is for dev/test only; production runs Postgres and OpenBao as separate units (ARCH-DEPLOY-PERIPHERALS). The hsm-test target (SoftHSM2) is never deployed.
+  priority: 20
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: 'CM-2 baseline: one Dockerfile + Compose define the supported local/deploy baseline.'
+  grooming_state: detailed
+  mint_kind: content
+- uid: ARCH-DEVENV-IDENTITY.1
+  base_uid: ARCH-DEVENV-IDENTITY
+  version_n: 1
+  status: active
+  statement: "Local development signs in through ReqAML's internal OAuth AS (ARCH-AUTH-AS) with seeded dev local accounts mapped to the dogfood seed identities, so A01/A02 sessions, grants, Scoped View, and MCP authorization can be exercised offline. Dev account credentials are never committed: they come from the local env file or are generated at first seed and shown locally. Seeded dev accounts and the dev seed loader are dev-only. Production builds and configs ship no seeded dev accounts and no default credentials, and the seed loader refuses to create accounts in production mode. In production, enterprise SSO federates through the same AS (ARCH-AUTH-FEDERATION). This replaces the earlier third-party local OIDC stub idea."
+  priority: 10
+  iteration: iter-r0
+  rbac_op: auth:signin
+  security:
+    catalog_ref: CM-7
+    verification_note: CM-7 least functionality; IA-5 default authenticators; ASD V-222662 / V-222661 / V-222642.
+  grooming_state: detailed
+  mint_kind: content
+- uid: FIX-DENY-DEVENV-PROD-LOGIN.1
+  base_uid: FIX-DENY-DEVENV-PROD-LOGIN
+  version_n: 1
+  status: active
+  statement: "FIXTURE / TEST BED (not a product feature). Production build or production configuration: (a) no seeded dev accounts exist, so logging in as a dev account (for example taylor-tester's dev local account) → generic invalid-credentials and an audit failure; (b) running the dev seed loader in production mode → refused (non-zero exit), no accounts created; (c) the startup self-check finds no default or seeded credentials, and fails startup if it does. Pairs ARCH-DEVENV-IDENTITY.1 and ARCH-CRED-POLICY."
+  priority: 15
+  iteration: iter-r1
+  rbac_op: auth:local:signin
+  security:
+    catalog_ref: CM-7
+    verification_note: CM-7; ASD V-222662 default passwords / V-222661 built-in accounts.
+  mint_kind: content
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -5099,6 +6015,27 @@ capability_artifacts:
 - requirement_version_uid: C06
   kind: mock
   uri: ../mockups/01-requirements-tree-detail.jpg
+- requirement_version_uid: ARCH-AUTH-METADATA
+  kind: other
+  uri: ../c4/sequences/AS01-mcp-oauth-authorize.puml
+- requirement_version_uid: ARCH-AUTH-AUDIENCE
+  kind: other
+  uri: ../c4/sequences/AS01-mcp-oauth-authorize.puml
+- requirement_version_uid: ARCH-CRED-LOCKOUT
+  kind: other
+  uri: ../c4/sequences/AS02-local-login-lockout-mfa.puml
+- requirement_version_uid: ARCH-CRED-MFA
+  kind: other
+  uri: ../c4/sequences/AS02-local-login-lockout-mfa.puml
+- requirement_version_uid: ARCH-AUTH-FEDERATION
+  kind: other
+  uri: ../c4/sequences/AS03-federated-sso-via-as.puml
+- requirement_version_uid: ARCH-KEY-LIFECYCLE
+  kind: other
+  uri: ../c4/sequences/KS01-kek-rotate-dek-rewrap.puml
+- requirement_version_uid: ARCH-KEY-JWKS
+  kind: other
+  uri: ../c4/sequences/KS02-token-signing-keyprovider.puml
 edges:
 - from: CAP-SSO
   to: A01
@@ -8687,10 +9624,10 @@ edges:
   to: ARCH-DEVENV-COMPOSE
   kind: refines
 - from: ARCH-DEVENV-CLONE
-  to: ARCH-DEVENV-COMPOSE
+  to: ARCH-DEVENV-COMPOSE.1
   kind: refines
 - from: ARCH-DEVENV-SEED
-  to: ARCH-DEVENV-COMPOSE
+  to: ARCH-DEVENV-COMPOSE.1
   kind: refines
 - from: ARCH-DEVENV-SEED
   to: ARCH-DEVENV-CLONE
@@ -8702,7 +9639,7 @@ edges:
   to: ARCH-DEVENV-MODES
   kind: uses
 - from: ARCH-DEVENV-HEALTH
-  to: ARCH-DEVENV-COMPOSE
+  to: ARCH-DEVENV-COMPOSE.1
   kind: refines
 - from: ARCH-DEVENV-HEALTH
   to: M04
@@ -8714,7 +9651,7 @@ edges:
   to: CAP-SSO
   kind: uses
 - from: ARCH-DEVENV-SECRETS
-  to: ARCH-DEVENV-COMPOSE
+  to: ARCH-DEVENV-COMPOSE.1
   kind: uses
 - from: ARCH-DEVENV-CLONE
   to: ARCH-DEVENV-HEALTH
@@ -8723,7 +9660,7 @@ edges:
   to: ARCH-DEVENV-SEED
   kind: uses
 - from: ARCH-DEVENV-CLONE
-  to: ARCH-DEVENV-IDENTITY
+  to: ARCH-DEVENV-IDENTITY.1
   kind: uses
 - from: FIX-ALLOW-DEVENV-SMOKE
   to: ARCH-DEVENV-CLONE
@@ -8804,6 +9741,1084 @@ edges:
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
   to: CM-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: SEC-DEVENV.1
+  to: SEC-DEVENV
+  kind: refines
+- from: ARCH-DEVENV-COMPOSE.1
+  to: ARCH-DEVENV-COMPOSE
+  kind: refines
+- from: ARCH-DEVENV-MODES.1
+  to: ARCH-DEVENV-COMPOSE.1
+  kind: refines
+- from: ARCH-DEVENV-MODES.1
+  to: ARCH-DEVENV-MODES
+  kind: refines
+- from: ARCH-DEVENV-PARITY.1
+  to: ARCH-DEVENV-COMPOSE.1
+  kind: refines
+- from: ARCH-DEVENV-PARITY.1
+  to: ARCH-DEVENV-MODES.1
+  kind: uses
+- from: ARCH-DEVENV-PARITY.1
+  to: ARCH-DEVENV-PARITY
+  kind: refines
+- from: ARCH-DEVENV-IDENTITY.1
+  to: A01
+  kind: refines
+- from: ARCH-DEVENV-IDENTITY.1
+  to: CAP-SSO
+  kind: uses
+- from: ARCH-DEVENV-IDENTITY.1
+  to: ARCH-DEVENV-IDENTITY
+  kind: refines
+- from: FIX-DENY-DEVENV-PROD-LOGIN.1
+  to: ARCH-DEVENV-IDENTITY.1
+  kind: uses
+- from: FIX-DENY-DEVENV-PROD-LOGIN.1
+  to: A01
+  kind: uses
+- from: FIX-DENY-DEVENV-PROD-LOGIN.1
+  to: FIX-DENY-DEVENV-PROD-LOGIN
+  kind: refines
+- from: ARCH-AUTH-AS
+  to: A01
+  kind: refines
+- from: ARCH-AUTH-AS
+  to: MC01.1
+  kind: refines
+- from: ARCH-AUTH-AS
+  to: ARCH-API
+  kind: uses
+- from: ARCH-AUTH-AS
+  to: ARCH-KEY-JWKS
+  kind: uses
+- from: ARCH-AUTH-AS
+  to: ARCH-CRED-AUDIT
+  kind: uses
+- from: ARCH-AUTH-AS
+  to: ARCH-DEPLOY-MINIMAL
+  kind: uses
+- from: ARCH-AUTH-PKCE
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-METADATA
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-METADATA
+  to: MC01.1
+  kind: refines
+- from: ARCH-AUTH-AUDIENCE
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-AUDIENCE
+  to: MC03
+  kind: refines
+- from: ARCH-AUTH-AUDIENCE
+  to: ARCH-API-RBAC
+  kind: uses
+- from: ARCH-AUTH-REFRESH
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-REFRESH
+  to: ARCH-CRED-TOKENS
+  kind: uses
+- from: ARCH-AUTH-REVOKE
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-REVOKE
+  to: A02
+  kind: refines
+- from: ARCH-AUTH-CLIENTREG
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-CLIENTREG
+  to: ARCH-CRED-TOKENS
+  kind: uses
+- from: ARCH-AUTH-FEDERATION
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-FEDERATION
+  to: A01
+  kind: refines
+- from: ARCH-AUTH-FEDERATION
+  to: CAP-SSO
+  kind: refines
+- from: ARCH-AUTH-FEDERATION
+  to: A06
+  kind: uses
+- from: ARCH-AUTH-FEDERATION
+  to: ARCH-CRED-MFA
+  kind: uses
+- from: ARCH-AUTH-LOCAL
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-LOCAL
+  to: ARCH-CRED
+  kind: uses
+- from: ARCH-CRED-HASH
+  to: ARCH-CRED
+  kind: refines
+- from: ARCH-CRED-HASH
+  to: ARCH-KEY-FIPS
+  kind: uses
+- from: ARCH-CRED-POLICY
+  to: ARCH-CRED
+  kind: refines
+- from: ARCH-CRED-LOCKOUT
+  to: ARCH-CRED
+  kind: refines
+- from: ARCH-CRED-LOCKOUT
+  to: ARCH-AUTH-LOCAL
+  kind: refines
+- from: ARCH-CRED-MFA
+  to: ARCH-CRED
+  kind: refines
+- from: ARCH-CRED-MFA
+  to: ARCH-KEY-SCOPE
+  kind: uses
+- from: ARCH-CRED-TOKENS
+  to: ARCH-CRED
+  kind: refines
+- from: ARCH-CRED-TOKENS
+  to: ARCH-KEY-SCOPE
+  kind: uses
+- from: ARCH-CRED-TOKENS
+  to: M03
+  kind: refines
+- from: ARCH-CRED-SESSION
+  to: ARCH-CRED
+  kind: refines
+- from: ARCH-CRED-SESSION
+  to: A02
+  kind: refines
+- from: ARCH-CRED-SESSION
+  to: ARCH-UI-GUARD
+  kind: uses
+- from: ARCH-CRED-REAUTH
+  to: ARCH-CRED
+  kind: refines
+- from: ARCH-CRED-REAUTH
+  to: D12
+  kind: refines
+- from: ARCH-CRED-REAUTH
+  to: D13
+  kind: refines
+- from: ARCH-CRED-REAUTH
+  to: ARCH-CAP-APPROVE
+  kind: refines
+- from: ARCH-CRED-REAUTH
+  to: ARCH-GATE-SIGNOFF
+  kind: refines
+- from: ARCH-CRED-REAUTH
+  to: G05
+  kind: refines
+- from: ARCH-CRED-REAUTH
+  to: A07
+  kind: refines
+- from: ARCH-CRED-AUDIT
+  to: ARCH-CRED
+  kind: refines
+- from: ARCH-CRED-AUDIT
+  to: ARCH-OTEL
+  kind: refines
+- from: ARCH-KEY
+  to: ARCH-DEVENV-SECRETS
+  kind: refines
+- from: ARCH-KEY-PROVIDER
+  to: ARCH-KEY
+  kind: refines
+- from: ARCH-KEY-PROVIDER
+  to: ARCH-DEVENV-SECRETS
+  kind: uses
+- from: ARCH-KEY-SCOPE
+  to: ARCH-KEY
+  kind: refines
+- from: ARCH-KEY-SCOPE
+  to: M03
+  kind: uses
+- from: ARCH-KEY-JWKS
+  to: ARCH-KEY
+  kind: refines
+- from: ARCH-KEY-JWKS
+  to: ARCH-KEY-PROVIDER
+  kind: uses
+- from: ARCH-KEY-LIFECYCLE
+  to: ARCH-KEY
+  kind: refines
+- from: ARCH-KEY-LIFECYCLE
+  to: ARCH-KEY-CUSTODIAN
+  kind: uses
+- from: ARCH-KEY-LIFECYCLE
+  to: ARCH-OTEL
+  kind: uses
+- from: ARCH-KEY-CUSTODIAN
+  to: ARCH-KEY
+  kind: refines
+- from: ARCH-KEY-CUSTODIAN
+  to: ARCH-API-RBAC
+  kind: uses
+- from: ARCH-KEY-CUSTODIAN
+  to: ARCH-CRED-MFA
+  kind: uses
+- from: ARCH-KEY-BREAKGLASS
+  to: ARCH-KEY
+  kind: refines
+- from: ARCH-KEY-BREAKGLASS
+  to: ARCH-KEY-CUSTODIAN
+  kind: uses
+- from: ARCH-KEY-FIPS
+  to: ARCH-KEY
+  kind: refines
+- from: ARCH-KEY-FAILCLOSED
+  to: ARCH-KEY
+  kind: refines
+- from: ARCH-KEY-FAILCLOSED
+  to: ARCH-DEVENV-HEALTH
+  kind: uses
+- from: ARCH-KEY-FAILCLOSED
+  to: M04
+  kind: uses
+- from: ARCH-DEVENV-KEYS
+  to: ARCH-KEY-PROVIDER
+  kind: refines
+- from: ARCH-DEVENV-KEYS
+  to: ARCH-DEPLOY-PERIPHERALS
+  kind: uses
+- from: ARCH-DEPLOY-MINIMAL
+  to: ARCH-DEVENV-COMPOSE.1
+  kind: refines
+- from: ARCH-DEPLOY-MINIMAL
+  to: ARCH-API
+  kind: uses
+- from: ARCH-DEPLOY-MINIMAL
+  to: ARCH-UI
+  kind: uses
+- from: ARCH-DEPLOY-MINIMAL
+  to: CAP-MCP-DESK
+  kind: uses
+- from: ARCH-DEPLOY-MINIMAL
+  to: M04
+  kind: uses
+- from: ARCH-DEPLOY-PERIPHERALS
+  to: ARCH-DEVENV-COMPOSE.1
+  kind: refines
+- from: ARCH-DEPLOY-PERIPHERALS
+  to: ARCH-KEY
+  kind: uses
+- from: ARCH-DEVENV-COMPOSE.1
+  to: ARCH-DEPLOY-MINIMAL
+  kind: uses
+- from: ARCH-DEVENV-COMPOSE.1
+  to: ARCH-DEPLOY-PERIPHERALS
+  kind: uses
+- from: ARCH-DEVENV-COMPOSE.1
+  to: ARCH-AUTH-AS
+  kind: uses
+- from: ARCH-DEVENV-MODES.1
+  to: ARCH-DEVENV-KEYS
+  kind: uses
+- from: ARCH-DEVENV-MODES.1
+  to: ARCH-DEPLOY-PERIPHERALS
+  kind: uses
+- from: ARCH-DEVENV-PARITY.1
+  to: ARCH-DEPLOY-MINIMAL
+  kind: uses
+- from: ARCH-DEVENV-PARITY.1
+  to: ARCH-DEPLOY-PERIPHERALS
+  kind: uses
+- from: ARCH-DEVENV-IDENTITY.1
+  to: ARCH-AUTH-AS
+  kind: uses
+- from: ARCH-DEVENV-IDENTITY.1
+  to: ARCH-AUTH-LOCAL
+  kind: uses
+- from: ARCH-DEVENV-IDENTITY.1
+  to: ARCH-DEVENV-SEED
+  kind: uses
+- from: FIX-DENY-DEVENV-PROD-LOGIN.1
+  to: ARCH-CRED-POLICY
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-UI
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-API
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-CP-SCOPE
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-AUTH-AS
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-CRED
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-KEY
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-API-RBAC
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-OTEL
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: M04
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-DEVENV-COMPOSE.1
+  kind: uses
+- from: ARCH-BUILD-FOUNDATION
+  to: ARCH-DEPLOY-MINIMAL
+  kind: uses
+- from: FIX-ALLOW-MCP-OAUTH-PKCE
+  to: ARCH-AUTH-METADATA
+  kind: uses
+- from: FIX-ALLOW-MCP-OAUTH-PKCE
+  to: ARCH-AUTH-PKCE
+  kind: uses
+- from: FIX-ALLOW-MCP-OAUTH-PKCE
+  to: ARCH-AUTH-AUDIENCE
+  kind: uses
+- from: FIX-ALLOW-MCP-OAUTH-PKCE
+  to: MC02
+  kind: uses
+- from: FIX-DENY-PKCE-PLAIN
+  to: ARCH-AUTH-PKCE
+  kind: uses
+- from: FIX-DENY-MCP-WRONG-AUDIENCE
+  to: ARCH-AUTH-AUDIENCE
+  kind: uses
+- from: FIX-DENY-MCP-WRONG-AUDIENCE
+  to: ARCH-AUTH-METADATA
+  kind: uses
+- from: FIX-DENY-UPSTREAM-TOKEN-AT-API
+  to: ARCH-AUTH-FEDERATION
+  kind: uses
+- from: FIX-DENY-REFRESH-REUSE
+  to: ARCH-AUTH-REFRESH
+  kind: uses
+- from: FIX-DENY-REVOKED-TOKEN
+  to: ARCH-AUTH-REVOKE
+  kind: uses
+- from: FIX-DENY-REVOKED-TOKEN
+  to: A02
+  kind: uses
+- from: FIX-DENY-DCR-DISABLED
+  to: ARCH-AUTH-CLIENTREG
+  kind: uses
+- from: FIX-ALLOW-FEDERATED-SSO-VIA-AS
+  to: ARCH-AUTH-FEDERATION
+  kind: uses
+- from: FIX-ALLOW-FEDERATED-SSO-VIA-AS
+  to: A01
+  kind: uses
+- from: FIX-DENY-LOCKOUT
+  to: ARCH-CRED-LOCKOUT
+  kind: uses
+- from: FIX-DENY-PRIV-NO-MFA
+  to: ARCH-CRED-MFA
+  kind: uses
+- from: FIX-DENY-PRIV-NO-MFA
+  to: A07
+  kind: uses
+- from: FIX-DENY-STEPUP-STALE-AUTH
+  to: ARCH-CRED-REAUTH
+  kind: uses
+- from: FIX-DENY-STEPUP-STALE-AUTH
+  to: D12
+  kind: uses
+- from: FIX-DENY-SESSION-IDLE
+  to: ARCH-CRED-SESSION
+  kind: uses
+- from: FIX-ALLOW-CRED-HASH-ONLY
+  to: ARCH-CRED-HASH
+  kind: uses
+- from: FIX-ALLOW-CRED-HASH-ONLY
+  to: ARCH-CRED-TOKENS
+  kind: uses
+- from: FIX-ALLOW-CRED-HASH-ONLY
+  to: ARCH-KEY
+  kind: uses
+- from: FIX-DENY-KEK-UNREACHABLE-PROD
+  to: ARCH-KEY-FAILCLOSED
+  kind: uses
+- from: FIX-DENY-DEV-KEK-IN-PROD
+  to: ARCH-DEVENV-KEYS
+  kind: uses
+- from: FIX-JWKS-ROTATION-OVERLAP
+  to: ARCH-KEY-JWKS
+  kind: uses
+- from: FIX-DENY-KEYOP-NO-CUSTODIAN
+  to: ARCH-KEY-CUSTODIAN
+  kind: uses
+- from: FIX-ALLOW-KEK-REWRAP-ONLINE
+  to: ARCH-KEY-LIFECYCLE
+  kind: uses
+- from: FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  to: ARCH-DEPLOY-MINIMAL
+  kind: uses
+- from: FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  to: ARCH-DEPLOY-PERIPHERALS
+  kind: uses
+- from: FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  to: ARCH-DEVENV-MODES.1
+  kind: uses
+- from: FIX-ALLOW-APP-ROLE-SPLIT
+  to: ARCH-DEPLOY-MINIMAL
+  kind: uses
+- from: ARCH-AUTH-AS
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-AS
+  to: IA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-AS
+  to: IA-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-AS
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-AS
+  to: V-222522
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-PKCE
+  to: IA-2.8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-PKCE
+  to: V-222530
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-PKCE
+  to: V-222531
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-METADATA
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-AUDIENCE
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-AUDIENCE
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-REFRESH
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-REFRESH
+  to: IA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-REVOKE
+  to: AC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-REVOKE
+  to: V-222549
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-REVOKE
+  to: V-222578
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-REVOKE
+  to: V-222391
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-CLIENTREG
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-CLIENTREG
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-FEDERATION
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-FEDERATION
+  to: IA-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-FEDERATION
+  to: V-222400
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-FEDERATION
+  to: V-222401
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-FEDERATION
+  to: V-222403
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-FEDERATION
+  to: V-222404
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-FEDERATION
+  to: V-222522
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL
+  to: AC-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL
+  to: V-222407
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL
+  to: V-222412
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL
+  to: V-222661
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED
+  to: IA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-HASH
+  to: IA-5.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-HASH
+  to: SC-13
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-HASH
+  to: V-222542
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-HASH
+  to: V-222543
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-HASH
+  to: V-222554
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-HASH
+  to: V-222571
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: IA-5.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-POLICY
+  to: V-222536
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: V-222537
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: V-222538
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: V-222539
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: V-222540
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: V-222541
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: V-222544
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: V-222545
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: V-222546
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: V-222547
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: V-222548
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-POLICY
+  to: V-222662
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-LOCKOUT
+  to: AC-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-LOCKOUT
+  to: V-222432
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-LOCKOUT
+  to: V-222433
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-LOCKOUT
+  to: V-222462
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-MFA
+  to: IA-2.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-MFA
+  to: V-222523
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-MFA
+  to: V-222527
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-TOKENS
+  to: IA-5.6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-TOKENS
+  to: SC-28.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-TOKENS
+  to: V-222542
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-SESSION
+  to: AC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-SESSION
+  to: AC-2.5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-SESSION
+  to: AC-10
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-SESSION
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-SESSION
+  to: SC-23.3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-SESSION
+  to: V-222387
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-SESSION
+  to: V-222389
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-SESSION
+  to: V-222390
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-SESSION
+  to: V-222575
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-SESSION
+  to: V-222576
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-SESSION
+  to: V-222577
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-SESSION
+  to: V-222579
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-SESSION
+  to: V-222581
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-SESSION
+  to: V-222582
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-SESSION
+  to: V-222583
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-REAUTH
+  to: IA-11
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-REAUTH
+  to: V-222520
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-AUDIT
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-AUDIT
+  to: AU-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-AUDIT
+  to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRED-AUDIT
+  to: V-222462
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-AUDIT
+  to: V-222441
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-AUDIT
+  to: V-222442
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-AUDIT
+  to: V-222443
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-AUDIT
+  to: V-222445
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CRED-AUDIT
+  to: V-222467
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY
+  to: SC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY
+  to: SC-28
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY
+  to: SC-28.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY
+  to: SC-28.3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-PROVIDER
+  to: IA-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-PROVIDER
+  to: SC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-PROVIDER
+  to: V-222555
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-SCOPE
+  to: SC-28.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-SCOPE
+  to: V-222588
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-SCOPE
+  to: V-222589
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-SCOPE
+  to: V-222642
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-JWKS
+  to: SC-12.3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-JWKS
+  to: SC-13
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-JWKS
+  to: V-222570
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-LIFECYCLE
+  to: SC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-LIFECYCLE
+  to: SC-12.2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-LIFECYCLE
+  to: SC-12.3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-LIFECYCLE
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-CUSTODIAN
+  to: AC-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-CUSTODIAN
+  to: AC-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-BREAKGLASS
+  to: SC-12.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-BREAKGLASS
+  to: AC-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-FIPS
+  to: SC-13
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-FIPS
+  to: V-222570
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-FIPS
+  to: V-222571
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-FIPS
+  to: V-222572
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-FIPS
+  to: V-222583
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-FAILCLOSED
+  to: SC-24
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-FAILCLOSED
+  to: SC-12.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-KEYS
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-KEYS
+  to: V-222642
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-DEPLOY-MINIMAL
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEPLOY-MINIMAL
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEPLOY-PERIPHERALS
+  to: SC-28.3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEPLOY-PERIPHERALS
+  to: SC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEPLOY-PERIPHERALS
+  to: CP-9
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-BUILD-FOUNDATION
+  to: SA-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-COMPOSE.1
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-MODES.1
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-PARITY.1
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-IDENTITY.1
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-IDENTITY.1
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-IDENTITY.1
+  to: IA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-IDENTITY.1
+  to: V-222662
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-DEVENV-IDENTITY.1
+  to: V-222661
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-DEVENV-IDENTITY.1
+  to: V-222642
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-DEVENV-PROD-LOGIN.1
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-DEVENV-PROD-LOGIN.1
+  to: V-222662
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-DEVENV-PROD-LOGIN.1
+  to: V-222661
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-ALLOW-MCP-OAUTH-PKCE
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-PKCE-PLAIN
+  to: IA-2.8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-PKCE-PLAIN
+  to: V-222530
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-MCP-WRONG-AUDIENCE
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-UPSTREAM-TOKEN-AT-API
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-REFRESH-REUSE
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-REVOKED-TOKEN
+  to: AC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-REVOKED-TOKEN
+  to: V-222578
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-DCR-DISABLED
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-FEDERATED-SSO-VIA-AS
+  to: IA-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-LOCKOUT
+  to: AC-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-LOCKOUT
+  to: V-222432
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-PRIV-NO-MFA
+  to: IA-2.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-PRIV-NO-MFA
+  to: V-222523
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-STEPUP-STALE-AUTH
+  to: IA-11
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-STEPUP-STALE-AUTH
+  to: V-222520
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-SESSION-IDLE
+  to: AC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-SESSION-IDLE
+  to: V-222389
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-ALLOW-CRED-HASH-ONLY
+  to: IA-5.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-CRED-HASH-ONLY
+  to: V-222542
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-KEK-UNREACHABLE-PROD
+  to: SC-24
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-DEV-KEK-IN-PROD
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-JWKS-ROTATION-OVERLAP
+  to: SC-12.3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-KEYOP-NO-CUSTODIAN
+  to: AC-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-KEK-REWRAP-ONLINE
+  to: SC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-APP-ROLE-SPLIT
+  to: CM-7
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 contracts:
@@ -8995,6 +11010,57 @@ releases:
   - MC01.1
   - MC02
   cyber_gate: false
+- id: rel-r1-foundation-shell-auth
+  project_id: reqaml
+  name: R1-foundation-shell-auth
+  planned_on:
+  shipped_on:
+  status: planned
+  delivers:
+  - ARCH-BUILD-FOUNDATION
+  - ARCH-AUTH-AS
+  - ARCH-AUTH-PKCE
+  - ARCH-AUTH-METADATA
+  - ARCH-AUTH-AUDIENCE
+  - ARCH-AUTH-REFRESH
+  - ARCH-AUTH-REVOKE
+  - ARCH-AUTH-CLIENTREG
+  - ARCH-AUTH-FEDERATION
+  - ARCH-AUTH-LOCAL
+  - ARCH-CRED
+  - ARCH-CRED-HASH
+  - ARCH-CRED-POLICY
+  - ARCH-CRED-LOCKOUT
+  - ARCH-CRED-MFA
+  - ARCH-CRED-TOKENS
+  - ARCH-CRED-SESSION
+  - ARCH-CRED-REAUTH
+  - ARCH-CRED-AUDIT
+  - ARCH-KEY
+  - ARCH-KEY-PROVIDER
+  - ARCH-KEY-SCOPE
+  - ARCH-KEY-JWKS
+  - ARCH-KEY-LIFECYCLE
+  - ARCH-KEY-CUSTODIAN
+  - ARCH-KEY-BREAKGLASS
+  - ARCH-KEY-FIPS
+  - ARCH-KEY-FAILCLOSED
+  - ARCH-DEPLOY-MINIMAL
+  - ARCH-DEPLOY-PERIPHERALS
+  - ARCH-DEVENV-COMPOSE.1
+  - ARCH-DEVENV-MODES.1
+  - ARCH-DEVENV-PARITY.1
+  - ARCH-DEVENV-IDENTITY.1
+  - ARCH-DEVENV-KEYS
+  - ARCH-DEVENV-CLONE
+  - ARCH-DEVENV-SEED
+  - ARCH-DEVENV-SECRETS
+  - ARCH-DEVENV-HEALTH
+  - ARCH-API-LAYERS
+  - ARCH-API-RBAC
+  - ARCH-UI-GUARD
+  - M04
+  notes: 'Build sequencing only (ARCH-BUILD-FOUNDATION): first implementation slice = platform shell + internal OAuth AS + local accounts/credential store + key store + RBAC + audit + health + minimal-container Compose. No v1 scope cut. planned_on / cyber_gate pending Dan (open-questions).'
 - id: rel-r1-core-alm
   project_id: reqaml
   name: R1-core-ALM
@@ -9622,9 +11688,69 @@ audit_events:
   subject_id:
   payload:
     fixture: FIX-DENY-SHIP-UNSIGNED
+- id: ae-deny-pkce-plain
+  at: '2026-10-07T09:00:00-04:00'
+  identity_id: alex-author
+  client_id: raby-family
+  project_id: reqaml
+  action: auth:oauth:authorize
+  outcome: deny
+  http_status: 400
+  notes: 'FIX-DENY-PKCE-PLAIN sample row: code_challenge_method=plain rejected (invalid_request).'
+- id: ae-deny-mcp-wrong-audience
+  at: '2026-10-07T09:05:00-04:00'
+  identity_id: alex-author
+  client_id: raby-family
+  project_id: reqaml
+  action: auth:token:validate
+  outcome: deny
+  http_status: 401
+  notes: 'FIX-DENY-MCP-WRONG-AUDIENCE sample row: aud=API token at MCP server.'
+- id: ae-auth-lockout-taylor
+  at: '2026-10-07T09:10:00-04:00'
+  identity_id: taylor-tester
+  client_id: raby-family
+  project_id: reqaml
+  action: auth:local:lockout
+  outcome: deny
+  http_status: 401
+  notes: 'FIX-DENY-LOCKOUT sample row: threshold reached; account locked (generic error to client).'
+- id: ae-deny-refresh-reuse
+  at: '2026-10-07T09:15:00-04:00'
+  identity_id: alex-author
+  client_id: raby-family
+  project_id: reqaml
+  action: auth:oauth:token
+  outcome: deny
+  http_status: 400
+  notes: 'FIX-DENY-REFRESH-REUSE sample row: rotated refresh token replayed; family revoked.'
+- id: ae-deny-keyop-pat
+  at: '2026-10-07T09:20:00-04:00'
+  identity_id: pat-client-admin
+  client_id:
+  project_id:
+  action: key:kek:rotate
+  outcome: deny
+  http_status: 403
+  notes: 'FIX-DENY-KEYOP-NO-CUSTODIAN sample row: deployment-scoped key op; no client/project scope.'
+- id: ae-key-kek-rotate-kim
+  at: '2026-10-07T09:25:00-04:00'
+  identity_id: kim-key-custodian
+  client_id:
+  project_id:
+  action: key:kek:rotate
+  outcome: allow
+  http_status: 200
+  notes: 'FIX-ALLOW-KEK-REWRAP-ONLINE sample row: KEK v1->v2 via OpenBao Transit; DEK re-wrap started. No key material logged.'
 client_grants:
 - id: grant-pat-raby-client-admin
   client_id: raby-family
   identity_id: pat-client-admin
   role: Client admin
   notes: Enables B01 client:create / FIX-ALLOW-CLIENT-CREATE.
+platform_grants:
+- id: pgrant-kim-key-custodian
+  identity_id: kim-key-custodian
+  role: Key custodian
+  scope: deployment
+  notes: Deployment-scoped Key custodian (ARCH-KEY-CUSTODIAN); distinct from Client/Project admin (AC-5). Grants no requirement-content access.

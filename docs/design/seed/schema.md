@@ -31,6 +31,7 @@ Mirrors the relational ERD at `../c4/data-erd.puml` (workflow encode 2026-10-07;
 | `action_hooks` | array (optional) | ActionHook rows: action_id → gates_before / effects_after |
 | `role_bindings` | array (optional) | Fills Gate approver_slots from project/client config |
 | `approval_records` | array (optional) | Line-grain approval SoT (RequirementLine / CapabilityLine) |
+| `platform_grants` | array (optional) | Deployment-scoped role grants outside client/project tenancy (`id`, `identity_id`, `role` e.g. `Key custodian`, `scope: deployment`, `notes`) — ARCH-KEY-CUSTODIAN |
 
 ---
 

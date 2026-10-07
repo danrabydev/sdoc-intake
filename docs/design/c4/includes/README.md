@@ -7,7 +7,7 @@ Reusable PlantUML fragments for **user-action sequence diagrams** (RBAC + system
 | File | Purpose |
 |------|---------|
 | `C4_Sequence_Styles.puml` | Skinparams aligned with C4-PlantUML colors |
-| `C4_Sequence_Participants.puml` | Canonical participant aliases + `C4Seq_*` / bundle procedures (incl. `C4Seq_McpHost`, `C4Seq_ReqAmlMcp`, `C4Seq_DeskSocket`, `C4Seq_Bundle_McpDesk`) |
+| `C4_Sequence_Participants.puml` | Canonical participant aliases + `C4Seq_*` / bundle procedures (incl. `C4Seq_McpHost`, `C4Seq_ReqAmlMcp`, `C4Seq_DeskSocket`, `C4Seq_Bundle_McpDesk`; auth foundation `C4Seq_AuthServer`, `C4Seq_CredStore`, `C4Seq_KeyProvider`, `C4Seq_KeyCustodian`, bundles `C4Seq_Bundle_McpOAuth` / `LocalAuth` / `KeyOps`) |
 | `C4_Sequence_Controls.puml` | **`ControlNote`** / **`ComplianceNote`** — one place for control annotations |
 | `C4_Sequence_Macros.puml` | Flow macros (`RbacCheck`, `AuditLog`, `HookEval`, `GateCheck`, `HookEffectsAfter`, …) — includes the files above |
 
@@ -95,3 +95,21 @@ Use these instead of copy-pasting the gate/mutate/effects flow (ARCH-WORKFLOW / 
 | `AuditLog(action, entity)` | Structured audit + OTEL export |
 
 Canonical shared diagram: [`../sequences/WF01-actionhook-eval.puml`](../sequences/WF01-actionhook-eval.puml).
+
+## Auth foundation macros (ARCH-AUTH-* / ARCH-CRED-* / ARCH-KEY-*)
+
+Use these with `C4Seq_AuthServer`, `C4Seq_CredStore`, and `C4Seq_KeyProvider`. Authentication runs **before** the ActionHook pipeline: `TokenValidate` → `RbacCheck` → `HookEval` → `GateCheck`* → mutate → `HookEffectsAfter` → `AuditLog`.
+
+| Macro | Role |
+|-------|------|
+| `ProtectedResourceDiscovery(rs, client)` | 401 + `WWW-Authenticate resource_metadata` → RFC 9728 PRM → RFC 8414 AS metadata; issuer check |
+| `PkceAuthorize(client, resource)` | Authorize with S256 + `resource` (RFC 8707); `plain` → 400 |
+| `TokenIssue(client, aud)` | Code + verifier → audience-bound access token (signed in KeyProvider) + hashed rotating refresh |
+| `TokenValidate(rs, aud)` | `iss`/`aud`/`exp`/`kid`/revocation check at a resource server; no passthrough |
+| `RefreshRotate(client)` | Refresh rotation; reuse → family revoke |
+| `LockoutCheck(account)` | Lockout/throttle + salted one-way hash verify |
+| `MfaChallenge(role)` | MFA / step-up for privileged roles and approvals |
+| `AuthAuditLog(event)` | AS-side audit via the same Audit → OTEL path; never logs secrets |
+| `KeyOp(op, key)` | KeyProvider (OpenBao Transit) op with fail-closed branch; KEK never leaves provider |
+
+Examples: [AS01](../sequences/AS01-mcp-oauth-authorize.puml), [AS02](../sequences/AS02-local-login-lockout-mfa.puml), [AS03](../sequences/AS03-federated-sso-via-as.puml), [KS01](../sequences/KS01-kek-rotate-dek-rewrap.puml), [KS02](../sequences/KS02-token-signing-keyprovider.puml).
