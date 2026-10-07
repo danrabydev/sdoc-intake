@@ -116,4 +116,25 @@ IDs **`MC**`** avoid collision with inventory section **M** (audit ops M01–M04
 | Global | ID | Action | Status | RBAC op | Primary control families | Diagram / companion |
 |--------|-----|--------|--------|---------|--------------------------|---------------------|
 | — | MC01 | MCP authenticate session & desk bind | draft | `mcp:session:create`, `desk:list`, `desk:attach`, `desk:detach` (proposed) | IA, AC, AU, SC | [MC01-mcp-auth-desk-bind.puml](./MC01-mcp-auth-desk-bind.puml), [MC01-mcp-auth-desk-bind.md](./MC01-mcp-auth-desk-bind.md) |
-| — | MC02 | MCP mutating tool with desk attached (draft req version) | draft | `requirement:version:update_draft` (proposed) | AC, AU, CM, SC | [MC02-mcp-mutate-requirement-version.puml](./MC02-mcp-mutate-requirement-version.puml), [MC02-mcp-mutate-requirement-version.md](./MC02-mcp-mutate-requirement-version.md) |
+| — | MC02 | MCP mutating tool with desk attached (**draft** update_draft; not mint) | draft | `requirement:version:update_draft` (proposed) | AC, AU, CM, SC | [MC02-mcp-mutate-requirement-version.puml](./MC02-mcp-mutate-requirement-version.puml), [MC02-mcp-mutate-requirement-version.md](./MC02-mcp-mutate-requirement-version.md) |
+
+
+## Workflow / Cyber+QA sequences (ActionHook pipeline)
+
+IDs align with [`../../user-actions.md`](../../user-actions.md) / locked seed (ARCH-WORKFLOW, ARCH-MINT-KIND, ARCH-APPROVAL-LINE, ARCH-SUSPECT*, ARCH-GATE-SIGNOFF). All diagrams compose **`HookEval` / `GateCheck` / `HookEffectsAfter`** — see [WF01](./WF01-actionhook-eval.puml).
+
+| Global | ID | Action | Status | RBAC op | Primary control families | Diagram / companion |
+|--------|-----|--------|--------|---------|--------------------------|---------------------|
+| — | WF01 | ActionHook evaluator (shared pattern) | draft | `{action_id}` | AC, AU, CM | [WF01-actionhook-eval.puml](./WF01-actionhook-eval.puml), [WF01-actionhook-eval.md](./WF01-actionhook-eval.md) |
+| 39a | D12 | Stakeholder Approve line (+ children); clears planning_blocked (D39f) | draft | `requirement:line:approve` | AC, AU, CM | [D12-approve-line.puml](./D12-approve-line.puml), [D12-approve-line.md](./D12-approve-line.md) |
+| 39d | D39d | Mint successor `.N` with mint_kind | draft | `requirement:version:mint` | AC, AU, CM | [D39d-mint-successor.puml](./D39d-mint-successor.puml), [D39d-mint-successor.md](./D39d-mint-successor.md) |
+| 39g | D39g | Gate sign-off (Security/AO slots) | draft | `gate:signoff` | AC, AU, CM | [D39g-gate-signoff.puml](./D39g-gate-signoff.puml), [D39g-gate-signoff.md](./D39g-gate-signoff.md) |
+| 41 | E41 | Request ConformsTo pin | draft | `catalog:pin:request` | AC, AU, CM | [E41-pin-request.puml](./E41-pin-request.puml), [E41-pin-request.md](./E41-pin-request.md) |
+| 41a | E41a | Apply / deny ConformsTo pin | draft | `catalog:pin:apply\|deny` | AC, AU, CM | [E41a-pin-apply-deny.puml](./E41a-pin-apply-deny.puml), [E41a-pin-apply-deny.md](./E41a-pin-apply-deny.md) |
+| 46a | E46a | Suspect queue (carry-forward / keep-pinned / drop) | draft | `trace:suspect:*` | AC, AU, CM | [E46a-suspect-queue.puml](./E46a-suspect-queue.puml), [E46a-suspect-queue.md](./E46a-suspect-queue.md) |
+| 61 | G61 | Ship release (cyber_gate trigger; gate_signoff pass) | draft | `release:ship` | AC, AU, CM | [G61-ship-release.puml](./G61-ship-release.puml), [G61-ship-release.md](./G61-ship-release.md) |
+
+**Notes**
+
+- **D39f** (resolve `planning_blocked`) is folded into **D12** via `effects_after: clear_planning_blocked`.
+- Soft: **`cyber_gate`** = ship Gate **trigger**; **`gate_signoff`** rows = **pass condition** (see G61 + D39g).
