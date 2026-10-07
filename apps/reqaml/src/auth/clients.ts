@@ -14,21 +14,28 @@ export async function ensureBootstrapClients(
   pool: pg.Pool,
   issuer: string,
 ): Promise<void> {
-  const webRedirect = `${issuer}/oauth/callback`;
+  // In dev (no REQAML_ISSUER_URL) the issuer follows the Host header, so register the loopback
+  // spellings people actually browse to (localhost and 127.0.0.1) for the web client.
+  const issuers = [issuer];
+  const loopback = /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.exec(issuer);
+  if (loopback && !process.env.REQAML_ISSUER_URL) {
+    const port = loopback[2] ?? "";
+    issuers.splice(0, 1, `http://127.0.0.1${port}`, `http://localhost${port}`);
+  }
   const clients: Array<Omit<OAuthClient, "clientSecretHash"> & { secret?: string }> = [
     {
       clientId: "reqaml-web",
       clientName: "ReqAML Web UI",
       clientType: "public",
-      redirectUris: [webRedirect, `${issuer}/`],
-      allowedResources: [`${issuer}/api`, `${issuer}/mcp`],
+      redirectUris: issuers.flatMap((i) => [`${i}/oauth/callback`, `${i}/`]),
+      allowedResources: issuers.flatMap((i) => [`${i}/api`, `${i}/mcp`]),
     },
     {
       clientId: "reqaml-mcp-dev",
       clientName: "ReqAML MCP (dev)",
       clientType: "public",
       redirectUris: ["http://127.0.0.1:8765/callback", "http://localhost:8765/callback"],
-      allowedResources: [`${issuer}/mcp`, `${issuer}/api`],
+      allowedResources: issuers.flatMap((i) => [`${i}/mcp`, `${i}/api`]),
     },
   ];
   for (const c of clients) {
@@ -36,7 +43,10 @@ export async function ensureBootstrapClients(
       `
       INSERT INTO oauth_clients (client_id, client_name, client_type, redirect_uris, allowed_resources)
       VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)
-      ON CONFLICT (client_id) DO NOTHING
+      ON CONFLICT (client_id) DO UPDATE SET
+        client_name = EXCLUDED.client_name,
+        redirect_uris = EXCLUDED.redirect_uris,
+        allowed_resources = EXCLUDED.allowed_resources
     `,
       [
         c.clientId,

@@ -17,6 +17,7 @@
  *      REQAML_SMOKE_DOWN=1 to run `docker compose down -v` at the end.
  */
 import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 
 const baseUrl = process.env.REQAML_SMOKE_URL ?? "http://127.0.0.1:3000";
@@ -106,16 +107,22 @@ function lastJsonObject(text) {
   return JSON.parse(text.slice(start === -1 ? text.indexOf("{") : start + 1));
 }
 
+// The auth smoke needs to know the dev account password. Never commit a default one
+// (ARCH-DEVENV-IDENTITY.1): reuse the local .env value if set, else generate a random one for this
+// checkout and write it to the (gitignored) .env so the seeded accounts and the smoke agree.
 function ensureSmokeDevPassword() {
-  const smokePassword =
-    process.env.REQAML_DEV_ACCOUNT_PASSWORD ??
-    process.env.REQAML_SMOKE_DEV_PASSWORD ??
-    "reqaml-dev-smoke-fixed-2026";
   if (!existsSync(".env")) {
     console.log("No .env found; copying .env.example (README clone-to-running step).");
     copyFileSync(".env.example", ".env");
   }
   let envText = readFileSync(".env", "utf8");
+  const existing = /^REQAML_DEV_ACCOUNT_PASSWORD=(.+)$/m.exec(envText)?.[1]?.trim();
+  if (existing) {
+    process.env.REQAML_DEV_ACCOUNT_PASSWORD = existing;
+    return existing;
+  }
+  const smokePassword =
+    process.env.REQAML_DEV_ACCOUNT_PASSWORD || randomBytes(18).toString("base64url");
   if (/^REQAML_DEV_ACCOUNT_PASSWORD=.*$/m.test(envText)) {
     envText = envText.replace(
       /^REQAML_DEV_ACCOUNT_PASSWORD=.*$/m,
@@ -125,6 +132,7 @@ function ensureSmokeDevPassword() {
     envText += `\nREQAML_DEV_ACCOUNT_PASSWORD=${smokePassword}\n`;
   }
   writeFileSync(".env", envText);
+  console.log("Wrote a generated REQAML_DEV_ACCOUNT_PASSWORD to the local .env for the auth smoke.");
   process.env.REQAML_DEV_ACCOUNT_PASSWORD = smokePassword;
   return smokePassword;
 }

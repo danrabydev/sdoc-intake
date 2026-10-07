@@ -410,7 +410,7 @@ async function upsertDevLocalAccounts(
       `
       INSERT INTO local_credentials (identity_id, username, password_hash, is_dev_seeded)
       VALUES ($1, $2, $3, true)
-      ON CONFLICT (identity_id) DO UPDATE SET password_hash = EXCLUDED.password_hash
+      ON CONFLICT (identity_id) DO NOTHING
       RETURNING identity_id
     `,
       [identityId, username, hash],

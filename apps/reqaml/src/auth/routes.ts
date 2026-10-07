@@ -9,6 +9,7 @@ import {
   issuerUrl,
   mcpResource,
 } from "./resources.js";
+import { clearLoginFailures } from "../credential/lockout.js";
 import {
   authenticateLocalUser,
   createAuthorizationCode,
@@ -226,6 +227,41 @@ export async function registerAuthRoutes(
     if (!body.username || !body.password || !body.pending) {
       return reply.code(400).send({ error: "invalid_request" });
     }
+    // The pending handoff comes back from the browser, so it is untrusted: re-run the authorize
+    // checks (registered client, exact redirect_uri, allowed resource, S256) before issuing a code.
+    let pending: {
+      clientId: string;
+      redirectUri: string;
+      codeChallenge: string;
+      resource: string;
+      scope?: string;
+      state?: string;
+    };
+    try {
+      pending = JSON.parse(Buffer.from(body.pending, "base64url").toString("utf8"));
+    } catch {
+      return reply.code(400).send({ error: "invalid_request" });
+    }
+    const host = hostFromRequest(req, config);
+    const revalidated = await validateAuthorizeRequest(
+      pool,
+      config,
+      {
+        response_type: "code",
+        client_id: pending?.clientId,
+        redirect_uri: pending?.redirectUri,
+        code_challenge: pending?.codeChallenge,
+        code_challenge_method: "S256",
+        resource: pending?.resource,
+        scope: pending?.scope,
+        state: pending?.state,
+      },
+      issuerUrl(config, host),
+      host,
+    );
+    if (!revalidated.ok) {
+      return reply.code(400).send({ error: revalidated.error });
+    }
     const auth = await authenticateLocalUser(
       pool,
       profile,
@@ -257,6 +293,7 @@ export async function registerAuthRoutes(
         });
         return reply.code(401).send({ error: "invalid_mfa" });
       }
+      await clearLoginFailures(pool, auth.identityId);
       await writeAuthAudit(pool, {
         eventType: "mfa.verify",
         outcome: "success",
@@ -264,30 +301,20 @@ export async function registerAuthRoutes(
         ip: req.ip,
       });
     }
-    const pending = JSON.parse(
-      Buffer.from(body.pending, "base64url").toString("utf8"),
-    ) as {
-      clientId: string;
-      redirectUri: string;
-      codeChallenge: string;
-      resource: string;
-      scope?: string;
-      state?: string;
-    };
     const code = await createAuthorizationCode(pool, {
-      clientId: pending.clientId,
+      clientId: revalidated.client.clientId,
       identityId: auth.identityId,
-      redirectUri: pending.redirectUri,
-      codeChallenge: pending.codeChallenge,
+      redirectUri: revalidated.redirectUri,
+      codeChallenge: revalidated.codeChallenge,
       codeChallengeMethod: "S256",
-      resource: pending.resource,
-      scope: pending.scope,
-      state: pending.state,
+      resource: revalidated.resource.canonicalUri,
+      scope: revalidated.scope,
+      state: revalidated.state,
       mfaVerified,
     });
-    const redirect = new URL(pending.redirectUri);
+    const redirect = new URL(revalidated.redirectUri);
     redirect.searchParams.set("code", code);
-    redirect.searchParams.set("state", pending.state ?? "");
+    redirect.searchParams.set("state", revalidated.state ?? "");
     redirect.searchParams.set("iss", issuerUrl(config, hostFromRequest(req, config)));
     return reply.send({ redirect: redirect.toString() });
   });

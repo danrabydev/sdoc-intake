@@ -46,7 +46,7 @@ async function getJson(path) {
   return { status: res.status, body };
 }
 
-async function loginAndExchange(username, password, resource) {
+async function authorizePending(resource) {
   const { verifier, challenge } = pkcePair();
   const state = randomBytes(8).toString("hex");
   const redirectUri = `${baseUrl}/oauth/callback`;
@@ -69,13 +69,28 @@ async function loginAndExchange(username, password, resource) {
   const loc = authz.headers.get("location") ?? "";
   const pending = new URL(loc, baseUrl).searchParams.get("pending");
   if (!pending) fail("missing pending login handoff", loc);
+  return { pending, verifier, redirectUri };
+}
 
-  const login = await fetch(`${baseUrl}/api/v1/auth/local/login`, {
+async function localLogin(username, password, pending) {
+  const res = await fetch(`${baseUrl}/api/v1/auth/local/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password, pending }),
   });
-  const loginBody = await login.json();
+  let body;
+  try {
+    body = await res.json();
+  } catch {
+    body = null;
+  }
+  return { status: res.status, ok: res.ok, body };
+}
+
+async function loginAndExchange(username, password, resource) {
+  const { pending, verifier, redirectUri } = await authorizePending(resource);
+  const login = await localLogin(username, password, pending);
+  const loginBody = login.body;
   if (!login.ok) fail("local login failed", loginBody);
   const cb = new URL(loginBody.redirect);
   const code = cb.searchParams.get("code");
@@ -168,40 +183,60 @@ export async function runAuthFlowSmoke(devPassword) {
     resource: apiResource,
   });
   if (reuse.status === 200) fail("refresh reuse should be denied", reuse);
-
-  await postForm("/oauth/revoke", {
-    token: refresh1.body.refresh_token,
-    token_type_hint: "refresh_token",
-  });
-  const afterRevoke = await postForm("/oauth/token", {
+  // Reuse revokes the whole family, including the token issued by the legitimate rotation.
+  const afterReuse = await postForm("/oauth/token", {
     grant_type: "refresh_token",
     refresh_token: refresh1.body.refresh_token,
     client_id: "reqaml-web",
     resource: apiResource,
   });
-  if (afterRevoke.status === 200) fail("revoked refresh should fail", afterRevoke);
+  if (afterReuse.status === 200) fail("reuse should revoke the rotated token's family", afterReuse);
 
-  for (let i = 0; i < 3; i++) {
-    await fetch(`${baseUrl}/api/v1/auth/local/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: "taylor-tester@dev.local",
-        password: "definitely-wrong",
-        pending: Buffer.from(JSON.stringify({ clientId: "x" })).toString("base64url"),
-      }),
-    });
-  }
-  const locked = await fetch(`${baseUrl}/api/v1/auth/local/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: "taylor-tester@dev.local",
-      password: devPassword,
-      pending: Buffer.from(JSON.stringify({ clientId: "x" })).toString("base64url"),
-    }),
+  // Revocation (RFC 7009) on a fresh login: refresh token and access token.
+  const fresh = await loginAndExchange(readerUser, devPassword, apiResource);
+  await postForm("/oauth/revoke", {
+    token: fresh.refresh_token,
+    token_type_hint: "refresh_token",
   });
-  if (locked.status !== 423) fail("lockout expected after failures", locked.status);
+  const afterRevoke = await postForm("/oauth/token", {
+    grant_type: "refresh_token",
+    refresh_token: fresh.refresh_token,
+    client_id: "reqaml-web",
+    resource: apiResource,
+  });
+  if (afterRevoke.status === 200) fail("revoked refresh should fail", afterRevoke);
+  await postForm("/oauth/revoke", { token: fresh.access_token, token_type_hint: "access_token" });
+  const revokedAccess = await fetch(`${baseUrl}/api/v1/me`, {
+    headers: { Authorization: `Bearer ${fresh.access_token}` },
+  });
+  if (revokedAccess.status !== 401) fail("revoked access token should 401", revokedAccess.status);
+
+  // The pending handoff round-trips through the browser: a tampered redirect_uri must be refused.
+  {
+    const { pending } = await authorizePending(apiResource);
+    const decoded = JSON.parse(Buffer.from(pending, "base64url").toString("utf8"));
+    decoded.redirectUri = "https://attacker.example/cb";
+    const tampered = Buffer.from(JSON.stringify(decoded)).toString("base64url");
+    const res = await localLogin(readerUser, devPassword, tampered);
+    if (res.ok) fail("tampered pending redirect_uri must be refused", res);
+  }
+
+  const lockUser = "taylor-tester@dev.local";
+  for (let i = 0; i < 3; i++) {
+    const { pending } = await authorizePending(apiResource);
+    await localLogin(lockUser, "definitely-wrong", pending);
+  }
+  {
+    const { pending } = await authorizePending(apiResource);
+    const locked = await localLogin(lockUser, devPassword, pending);
+    if (locked.status !== 423) fail("lockout expected after failures", locked);
+  }
+  // Case/whitespace variants of the username must not get around the lock.
+  for (const variant of ["TAYLOR-TESTER@dev.local", " taylor-tester@dev.local", "taylor-tester@dev.local "]) {
+    const { pending } = await authorizePending(apiResource);
+    const res = await localLogin(variant, devPassword, pending);
+    if (res.ok) fail(`lockout bypassed via username variant ${JSON.stringify(variant)}`, res);
+  }
 
   return {
     ok: true,
@@ -211,7 +246,11 @@ export async function runAuthFlowSmoke(devPassword) {
     auth_code_pkce: true,
     refresh_rotation: true,
     refresh_reuse_denied: true,
+    refresh_reuse_revokes_family: true,
     revocation: true,
+    access_token_revocation: true,
+    pending_tamper_refused: true,
+    lockout_variants_refused: true,
     rbac_deny: true,
     wrong_audience_denied: true,
     lockout: true,

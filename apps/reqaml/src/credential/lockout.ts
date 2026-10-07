@@ -47,44 +47,42 @@ export async function getLockoutState(
   };
 }
 
-export async function recordLoginFailure(
+/**
+ * Atomically count a login attempt before the password is checked. Returns locked=true (and does
+ * not count) while the account is locked. The row lock taken by UPDATE serializes concurrent
+ * attempts, so parallel guesses cannot exceed the threshold. A successful login clears the count.
+ */
+export async function reserveLoginAttempt(
   pool: pg.Pool,
   identityId: string,
 ): Promise<LockoutState> {
-  const now = new Date();
-  const r = await pool.query<{
-    failed_attempts: number;
-    last_failed_at: Date | null;
-  }>(
-    `SELECT failed_attempts, last_failed_at FROM local_credentials WHERE identity_id = $1 FOR UPDATE`,
-    [identityId],
-  );
-  if (!r.rowCount) {
-    return { locked: false, failedAttempts: 0, lockedUntil: null };
-  }
-  let attempts = r.rows[0].failed_attempts;
-  const last = r.rows[0].last_failed_at;
-  if (last && now.getTime() - last.getTime() > LOCKOUT_WINDOW_MS) {
-    attempts = 0;
-  }
-  attempts += 1;
-  let lockedUntil: Date | null = null;
-  if (attempts >= LOCKOUT_THRESHOLD) {
-    lockedUntil = new Date(now.getTime() + LOCKOUT_DURATION_MS);
-  }
-  await pool.query(
+  const r = await pool.query<{ failed_attempts: number; locked_until: Date | null }>(
     `
-    UPDATE local_credentials
-    SET failed_attempts = $2, last_failed_at = $3, locked_until = $4, updated_at = now()
-    WHERE identity_id = $1
+    WITH next AS (
+      SELECT identity_id,
+             CASE WHEN last_failed_at IS NULL
+                       OR last_failed_at < now() - ($2::int * interval '1 millisecond')
+                  THEN 1 ELSE failed_attempts + 1 END AS attempts
+      FROM local_credentials
+      WHERE identity_id = $1
+        AND (locked_until IS NULL OR locked_until <= now())
+      FOR UPDATE
+    )
+    UPDATE local_credentials lc
+    SET failed_attempts = next.attempts,
+        last_failed_at = now(),
+        locked_until = CASE WHEN next.attempts >= $3
+                            THEN now() + ($4::int * interval '1 millisecond') ELSE NULL END,
+        updated_at = now()
+    FROM next
+    WHERE lc.identity_id = next.identity_id
+    RETURNING lc.failed_attempts, lc.locked_until
   `,
-    [identityId, attempts, now, lockedUntil],
+    [identityId, LOCKOUT_WINDOW_MS, LOCKOUT_THRESHOLD, LOCKOUT_DURATION_MS],
   );
-  return {
-    locked: lockedUntil !== null,
-    failedAttempts: attempts,
-    lockedUntil,
-  };
+  if (!r.rowCount) return getLockoutState(pool, identityId);
+  // This attempt was admitted (the lock, if just set, applies to the *next* attempt).
+  return { locked: false, failedAttempts: r.rows[0].failed_attempts, lockedUntil: r.rows[0].locked_until };
 }
 
 export async function clearLoginFailures(

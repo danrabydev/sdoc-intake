@@ -4,8 +4,7 @@ import type { AppConfig } from "../config.js";
 import { writeAuthAudit } from "../audit/auth-audit.js";
 import {
   clearLoginFailures,
-  getLockoutState,
-  recordLoginFailure,
+  reserveLoginAttempt,
 } from "../credential/lockout.js";
 import {
   hashPassword,
@@ -82,7 +81,9 @@ export async function authenticateLocalUser(
   if (profile.localAccounts === "breakglass_only" && !row.is_breakglass) {
     return { ok: false, error: "invalid_credentials" };
   }
-  const lockout = await getLockoutState(pool, row.identity_id);
+  // Count the attempt atomically *before* verifying, so concurrent guesses cannot race past the
+  // threshold. Cleared only when the whole login (password + MFA if required) succeeds.
+  const lockout = await reserveLoginAttempt(pool, row.identity_id);
   if (lockout.locked) {
     await writeAuthAudit(pool, {
       eventType: "login.lockout",
@@ -95,7 +96,6 @@ export async function authenticateLocalUser(
   }
   const valid = await verifyPassword(password, row.password_hash);
   if (!valid) {
-    await recordLoginFailure(pool, row.identity_id);
     await writeAuthAudit(pool, {
       eventType: "login.local",
       outcome: "failure",
@@ -105,7 +105,6 @@ export async function authenticateLocalUser(
     });
     return { ok: false, error: "invalid_credentials" };
   }
-  await clearLoginFailures(pool, row.identity_id);
   if (needsRehash(row.password_hash)) {
     const h = await hashPassword(password);
     await pool.query(
@@ -115,6 +114,9 @@ export async function authenticateLocalUser(
   }
   const privileged = await identityHasPrivilegedRole(pool, row.identity_id);
   const needsMfa = privileged || row.mfa_enabled;
+  // Without MFA the login is complete; with MFA the route clears failures after the code verifies,
+  // so wrong TOTP guesses count toward lockout too.
+  if (!needsMfa) await clearLoginFailures(pool, row.identity_id);
   await writeAuthAudit(pool, {
     eventType: "login.local",
     outcome: "success",
@@ -207,12 +209,15 @@ export async function exchangeAuthorizationCode(
     expires_at: Date;
     used_at: Date | null;
   }>(
-    `SELECT * FROM oauth_authorization_codes WHERE code_hash = $1 FOR UPDATE`,
+    // Single-use: mark used atomically so two concurrent exchanges cannot both redeem the code.
+    `UPDATE oauth_authorization_codes SET used_at = now()
+     WHERE code_hash = $1 AND used_at IS NULL
+     RETURNING *`,
     [codeHash],
   );
   if (!r.rowCount) return { ok: false, error: "invalid_grant" };
   const row = r.rows[0];
-  if (row.used_at || row.expires_at.getTime() < Date.now()) {
+  if (row.expires_at.getTime() < Date.now()) {
     return { ok: false, error: "invalid_grant" };
   }
   if (
@@ -228,11 +233,6 @@ export async function exchangeAuthorizationCode(
   if (!verifyPkceS256(input.codeVerifier, row.code_challenge)) {
     return { ok: false, error: "invalid_grant" };
   }
-  await pool.query(
-    `UPDATE oauth_authorization_codes SET used_at = now() WHERE code_hash = $1`,
-    [codeHash],
-  );
-
   const privileged = await identityHasPrivilegedRole(pool, row.identity_id);
   if (privileged && !row.mfa_verified) {
     return { ok: false, error: "mfa_required" };
@@ -267,6 +267,8 @@ async function issueTokens(
     resource: string;
     issuer: string;
     mfa: boolean;
+    /** Existing refresh family when rotating; a new family is created at code exchange. */
+    familyId?: string;
   },
 ): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
   const authTime = Math.floor(Date.now() / 1000);
@@ -284,11 +286,15 @@ async function issueTokens(
     ACCESS_TTL_SEC,
   );
   const refreshToken = randomToken(48);
-  const familyId = randomToken(16);
-  await pool.query(
-    `INSERT INTO oauth_refresh_families (id, identity_id, client_id, resource) VALUES ($1,$2,$3,$4)`,
-    [familyId, input.identityId, input.clientId, input.resource],
-  );
+  let familyId = input.familyId;
+  if (!familyId) {
+    familyId = randomToken(16);
+    await pool.query(
+      `INSERT INTO oauth_refresh_families (id, identity_id, client_id, resource, mfa_verified)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [familyId, input.identityId, input.clientId, input.resource, input.mfa],
+    );
+  }
   const refreshHash = hashToken(refreshToken);
   const refreshExpires = new Date(Date.now() + REFRESH_TTL_SEC * 1000);
   await pool.query(
@@ -327,21 +333,21 @@ export async function refreshAccessToken(
     client_id: string;
     resource: string;
     revoked_at: Date | null;
+    mfa_verified: boolean;
   }>(
     `
     SELECT rt.token_hash, rt.family_id, rt.rotated_at, rt.expires_at,
-           f.identity_id, f.client_id, f.resource, f.revoked_at
+           f.identity_id, f.client_id, f.resource, f.revoked_at, f.mfa_verified
     FROM oauth_refresh_tokens rt
     JOIN oauth_refresh_families f ON f.id = rt.family_id
     WHERE rt.token_hash = $1
-    FOR UPDATE
   `,
     [tokenHash],
   );
   if (!r.rowCount) return { ok: false, error: "invalid_grant" };
   const row = r.rows[0];
   if (row.revoked_at) return { ok: false, error: "invalid_grant" };
-  if (row.rotated_at) {
+  const reuse = async () => {
     await revokeRefreshFamily(pool, row.family_id);
     await writeAuthAudit(pool, {
       eventType: "token.refresh_reuse",
@@ -352,24 +358,30 @@ export async function refreshAccessToken(
       ip: ctx.ip,
       userAgent: ctx.userAgent,
     });
-    return { ok: false, error: "invalid_grant", reuseDetected: true };
-  }
+    return { ok: false as const, error: "invalid_grant", reuseDetected: true };
+  };
+  if (row.rotated_at) return reuse();
   if (row.expires_at.getTime() < Date.now()) {
     return { ok: false, error: "invalid_grant" };
   }
   if (row.client_id !== input.clientId || row.resource !== input.resource) {
     return { ok: false, error: "invalid_grant" };
   }
-  await pool.query(
-    `UPDATE oauth_refresh_tokens SET rotated_at = now() WHERE token_hash = $1`,
+  // Rotate atomically: if a concurrent request already rotated this token, treat it as reuse.
+  const rotated = await pool.query(
+    `UPDATE oauth_refresh_tokens SET rotated_at = now()
+     WHERE token_hash = $1 AND rotated_at IS NULL`,
     [tokenHash],
   );
+  if (!rotated.rowCount) return reuse();
+  // The new refresh token stays in the same family, so reuse of any earlier token revokes it too.
   const tokens = await issueTokens(pool, config, keyProvider, {
     identityId: row.identity_id,
     clientId: row.client_id,
     resource: row.resource,
     issuer: input.issuer,
-    mfa: true,
+    mfa: row.mfa_verified,
+    familyId: row.family_id,
   });
   await writeAuthAudit(pool, {
     eventType: "token.refresh",

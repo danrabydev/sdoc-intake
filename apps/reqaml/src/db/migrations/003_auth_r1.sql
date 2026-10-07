@@ -44,6 +44,8 @@ CREATE TABLE IF NOT EXISTS oauth_refresh_families (
   identity_id TEXT NOT NULL REFERENCES identities(id),
   client_id TEXT NOT NULL REFERENCES oauth_clients(client_id),
   resource TEXT,
+  -- Whether the login that started this family passed MFA; carried to rotated access tokens (amr).
+  mfa_verified BOOLEAN NOT NULL DEFAULT false,
   revoked_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

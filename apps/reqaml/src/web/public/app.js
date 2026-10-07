@@ -56,9 +56,9 @@ async function loadMe() {
   const res = await api("/api/v1/me");
   if (!res) return;
   const me = await res.json();
-  document.getElementById("me").innerHTML = `
-    <h2>Signed in</h2>
-    <pre>${JSON.stringify(me, null, 2)}</pre>`;
+  const section = document.getElementById("me");
+  section.innerHTML = "<h2>Signed in</h2><pre></pre>";
+  section.querySelector("pre").textContent = JSON.stringify(me, null, 2);
 }
 
 async function signOut() {
@@ -124,7 +124,9 @@ function renderLogin() {
 async function handleOAuthCallback() {
   const code = params.get("code");
   const verifier = sessionStorage.getItem("pkce_verifier");
-  if (!code || !verifier) {
+  const expectedState = sessionStorage.getItem("oauth_state");
+  sessionStorage.removeItem("oauth_state");
+  if (!code || !verifier || !expectedState || params.get("state") !== expectedState) {
     window.location.href = "/login";
     return;
   }
@@ -154,7 +156,9 @@ async function handleOAuthCallback() {
 
 function startPkceLogin() {
   const verifier = crypto.randomUUID() + crypto.randomUUID();
+  const oauthState = crypto.randomUUID();
   sessionStorage.setItem("pkce_verifier", verifier);
+  sessionStorage.setItem("oauth_state", oauthState);
   const digest = crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)).then((buf) => {
     const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
       .replace(/\+/g, "-")
@@ -165,7 +169,7 @@ function startPkceLogin() {
       client_id: "reqaml-web",
       redirect_uri: `${window.location.origin}/oauth/callback`,
       scope: "openid profile",
-      state: crypto.randomUUID(),
+      state: oauthState,
       code_challenge: b64,
       code_challenge_method: "S256",
       resource: `${window.location.origin}/api`,
