@@ -16,11 +16,6 @@ declare module "fastify" {
   }
 }
 
-export const API_ROUTE_PREFIXES = ["/api/", "/oauth/", "/mcp", "/health", "/ready"] as const;
-
-export function isApiRoutePath(path: string): boolean {
-  return API_ROUTE_PREFIXES.some((p) => path === p.replace(/\/$/, "") || path.startsWith(p));
-}
 
 
 export type RegisteredRouteSecurity = {
@@ -61,27 +56,40 @@ export function collectRouteSecurity(app: FastifyInstance): RegisteredRouteSecur
   return out;
 }
 
-/** Enumerate routes using Fastify's `printRoutes` companion: route hooks registry. */
+/** Every route registered after {@link installRouteCapture}, as captured by its onRoute hook. */
 export function listRoutesForSecurityAudit(app: FastifyInstance): RegisteredRouteSecurity[] {
-  type RouteEntry = { method: string; url: string; config?: { reqalmSecurity?: RouteSecurity } };
-  const router = (app as unknown as { radix?: { all?: () => RouteEntry[] } }).radix;
-  if (router?.all) {
-    return router.all().map((r) => ({
-      method: r.method,
-      url: r.url,
-      security: r.config?.reqalmSecurity,
-    }));
-  }
-  // Fastify 5: use onRoute-captured list
+  // A missing capture must fail the audit, never yield an empty (passing) list.
   const captured = (app as unknown as { __reqalmRoutes?: RegisteredRouteSecurity[] }).__reqalmRoutes;
-  return captured ?? [];
+  if (!captured) throw new Error("installRouteCapture(app) was not called before routes were registered");
+  return captured;
 }
 
-const PUBLIC_ROUTE_PREFIXES = ["/oauth/", "/api/v1/auth/", "/docs"] as const;
+/**
+ * Exact routes that are public by protocol (probes, OAuth endpoints that authenticate in-band,
+ * sign-in) plus Swagger UI and the static web bundle. Anything else, including new routes under
+ * /oauth/ or /api/v1/auth/, must declare `config.reqalmSecurity` explicitly.
+ */
+const IMPLICIT_PUBLIC_ROUTES = new Set([
+  "/health",
+  "/ready",
+  "/.well-known/oauth-authorization-server",
+  "/.well-known/oauth-protected-resource/api",
+  "/.well-known/oauth-protected-resource/mcp",
+  "/oauth/jwks",
+  "/oauth/web/start",
+  "/oauth/web/callback",
+  "/oauth/authorize",
+  "/oauth/token",
+  "/oauth/revoke",
+  "/oauth/register",
+  "/api/v1/auth/local/login",
+  "/api/v1/auth/session",
+  "/api/v1/auth/signout",
+  "/*",
+]);
 
 function isImplicitPublicPath(url: string): boolean {
-  if (url === "/health" || url === "/ready") return true;
-  return PUBLIC_ROUTE_PREFIXES.some((p) => url.startsWith(p));
+  return IMPLICIT_PUBLIC_ROUTES.has(url) || url === "/docs" || url.startsWith("/docs/");
 }
 
 /** Single onRoute hook: implicit public markers for auth/oauth probes, then capture for audit test. */
@@ -112,7 +120,6 @@ export function installRouteCapture(app: FastifyInstance): void {
 export function assertAllApiRoutesDeclared(routes: RegisteredRouteSecurity[]): string[] {
   const missing: string[] = [];
   for (const r of routes) {
-    if (!isApiRoutePath(r.url)) continue;
     if (!r.security) {
       missing.push(`${r.method} ${r.url}`);
     }

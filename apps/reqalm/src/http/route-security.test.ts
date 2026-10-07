@@ -14,8 +14,14 @@ after(async () => {
 });
 
 describe("route security registration", () => {
-  it("every API route declares public, authenticated, or permission", () => {
+  it("every registered route declares public, authenticated, or permission", () => {
     const routes = listRoutesForSecurityAudit(ctx.app);
+    // Guard against a vacuous pass (capture not installed or registered too late).
+    const seen = new Map(routes.map((r) => [`${r.method} ${r.url}`, r.security?.kind]));
+    assert.equal(seen.get("GET /api/v1/projects/:projectId"), "permission");
+    assert.equal(seen.get("GET /api/v1/me"), "authenticated");
+    assert.equal(seen.get("GET /api/v1/auth/upstream/connectors"), "authenticated");
+    assert.equal(seen.get("POST /oauth/token"), "public");
     const missing = assertAllApiRoutesDeclared(routes);
     assert.deepEqual(
       missing,
