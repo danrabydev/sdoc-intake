@@ -714,17 +714,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-foundation-shell-auth
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — foundation shell + internal auth
 STATEMENT: >>>
-ReqAML release `R1 — foundation shell + internal auth` (status=planned, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+ReqAML release `R1 — foundation shell + internal auth` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-foundation-shell-auth
 project_id: reqaml
-shipped_on: None
-raw_status: planned
+shipped_on: 2026-10-07
+raw_status: shipped
 delivers: ARCH-API-RBAC, ARCH-AUTH-AGENT-ATTRIBUTION, ARCH-AUTH-AS, ARCH-AUTH-AUDIENCE, ARCH-AUTH-CLIENTREG, ARCH-AUTH-LOCAL.1, ARCH-AUTH-MCP-REQUIRED, ARCH-AUTH-METADATA, ARCH-AUTH-PKCE, ARCH-AUTH-PROFILE, ARCH-AUTH-REFRESH, ARCH-AUTH-REVOKE, ARC...
 delivers_count: 40
 <<<
@@ -1217,6 +1217,38 @@ RELATIONS:
   ROLE: Delivers
 - TYPE: Parent
   VALUE: ARCH-KEY-FIPS
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-test-harness
+STATUS: Draft
+TITLE: Release R1 — in-process test harness (no Docker)
+STATEMENT: >>>
+ReqAML release `R1 — in-process test harness (no Docker)` (status=planned, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-test-harness
+project_id: reqaml
+shipped_on: None
+raw_status: planned
+delivers: CAP-TEST-MEMORY-KEYPROVIDER, CAP-TEST-PGLITE-DB, CAP-TEST-AUTH-ROUTES, CAP-TEST-PNPM-GATE
+delivers_count: 4
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-TEST-MEMORY-KEYPROVIDER
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-TEST-PGLITE-DB
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-TEST-AUTH-ROUTES
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-TEST-PNPM-GATE
   ROLE: Delivers
 
 [[/SECTION]]
