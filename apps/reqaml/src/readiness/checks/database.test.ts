@@ -14,3 +14,13 @@ test("checkDatabase surfaces query errors", async () => {
   assert.equal(result.ok, false);
   assert.match(result.detail ?? "", /connection refused/);
 });
+
+test("checkDatabase times out on a hung database", async () => {
+  const pool = {
+    query: () => new Promise(() => {}),
+  } as unknown as pg.Pool;
+
+  const result = await checkDatabase(pool, 20);
+  assert.equal(result.ok, false);
+  assert.match(result.detail ?? "", /timed out/);
+});

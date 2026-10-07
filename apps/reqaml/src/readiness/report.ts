@@ -32,7 +32,7 @@ export async function buildReadinessReport(
   const checks: ReadinessReport["checks"] = {};
 
   checks.database = await ctx.cache.get("database", () =>
-    checkDatabase(ctx.pool),
+    checkDatabase(ctx.pool, ctx.probeTimeoutMs),
   );
 
   checks.migrations = await ctx.cache.get("migrations", () =>
