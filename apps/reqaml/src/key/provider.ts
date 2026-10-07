@@ -62,8 +62,6 @@ async function transitDecrypt(
   return body.data.plaintext;
 }
 
-export { createMemoryKeyProvider } from "./memory-provider.js";
-
 export function createOpenBaoKeyProvider(config: AppConfig): KeyProvider {
   return {
     async ensureReady() {

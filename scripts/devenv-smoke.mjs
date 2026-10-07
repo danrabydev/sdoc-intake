@@ -13,7 +13,9 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const baseUrl = process.env.REQAML_SMOKE_URL ?? "http://127.0.0.1:3000";
 
+const composeProjectName = process.env.COMPOSE_PROJECT_NAME ?? "sdoc-intake-dev";
 const composeBase = ["-f", "docker-compose.yml", "-f", "docker-compose.hostports.yml"];
+const composeEnv = { COMPOSE_PROJECT_NAME: composeProjectName };
 
 function parseEnv(text) {
   const out = {};
@@ -46,7 +48,7 @@ function run(cmd, args, { env, cwd = root, quiet = false, allowFail = false } = 
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, {
       cwd,
-      env: { ...process.env, ...env },
+      env: { ...process.env, ...composeEnv, ...env },
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "";
@@ -130,6 +132,12 @@ async function main() {
     secrets.DATABASE_URL ??
     `postgresql://${secrets.POSTGRES_USER ?? "reqaml"}:${secrets.POSTGRES_PASSWORD}@127.0.0.1:5432/${secrets.POSTGRES_DB ?? "reqaml"}`;
 
+  console.log(
+    `Compose project name: ${composeProjectName} (set COMPOSE_PROJECT_NAME to override; avoids clashing with a dev stack on port 3000)`,
+  );
+  console.log(
+    "Compose overlays: docker-compose.yml + docker-compose.hostports.yml (hostports publishes Postgres/OpenBao on 127.0.0.1:5432/8200 for host-side migrate/seed; app stays on 127.0.0.1:3000)",
+  );
   console.log("Starting peripherals + app (full-container, hostports for migrate)…");
   await run("docker", [
     "compose",
@@ -287,6 +295,12 @@ async function main() {
   // IP throttle: 20 failed logins from one source IP block that IP. Run from inside the app
   // container (source 127.0.0.1) so the host's shared bridge IP is not throttled for real use.
   console.log("\nIP throttle (from inside the app container)…");
+  // A previous smoke run on the same volume leaves 127.0.0.1 throttled for 15 min; start clean
+  // so re-running against a running dev stack is repeatable.
+  await psql(
+    `DELETE FROM auth_ip_throttle WHERE ip_hash IN (SELECT encode(sha256(convert_to(ip, 'UTF8')), 'hex')
+       FROM unnest(ARRAY['127.0.0.1', '::1', '::ffff:127.0.0.1']) AS ip)`,
+  );
   const throttleScript = `
     const base = "http://127.0.0.1:3000", iss = process.env.REQAML_ISSUER_URL;
     async function handoff() {

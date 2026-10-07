@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { after, before, describe, it } from "node:test";
 import { isIpThrottled } from "../credential/ip-throttle.js";
-import { getLockoutState } from "../credential/lockout.js";
+import { getLockoutState, LOCKOUT_DURATION_MS } from "../credential/lockout.js";
 import {
   createTestApp,
   pkcePair,
@@ -172,17 +172,55 @@ describe("auth routes (in-process)", () => {
     assert.notEqual(afterReuse.statusCode, 200);
   });
 
-  it("lockout after 3 failures and username normalization", async () => {
+  async function lockOutTaylor() {
+    await ctx.pool.query(
+      `UPDATE local_credentials
+       SET failed_attempts = 0, locked_until = NULL, last_failed_at = NULL
+       WHERE identity_id = 'taylor-tester'`,
+    );
     for (let i = 0; i < 3; i++) {
       const { handoff } = await authorizeHandoff();
       await localLogin("taylor-tester@dev.local", "wrong", handoff);
     }
+  }
+
+  it("lockout after 3 failures and username normalization", async () => {
+    await lockOutTaylor();
     const { handoff } = await authorizeHandoff();
     const locked = await localLogin("taylor-tester@dev.local", TEST_PASSWORD, handoff);
     assert.equal(locked.statusCode, 423);
     const { handoff: h2 } = await authorizeHandoff();
     const variant = await localLogin(" TAYLOR-TESTER@dev.local ", TEST_PASSWORD, h2);
-    assert.notEqual(variant.statusCode, 200);
+    assert.equal(variant.statusCode, 423);
+  });
+
+  it("lockout stays enforced during the lock window and clears after it", async () => {
+    await lockOutTaylor();
+    const during = await getLockoutState(ctx.pool, "taylor-tester");
+    assert.equal(during.locked, true);
+    assert.ok(during.lockedUntil);
+    const lockedMs = during.lockedUntil!.getTime() - Date.now();
+    assert.ok(lockedMs > 0 && lockedMs <= LOCKOUT_DURATION_MS + 5_000);
+    const { handoff: mid } = await authorizeHandoff();
+    assert.equal(
+      (await localLogin("taylor-tester@dev.local", TEST_PASSWORD, mid)).statusCode,
+      423,
+    );
+
+    await ctx.pool.query(
+      `UPDATE local_credentials
+       SET locked_until = now() - interval '1 minute',
+           last_failed_at = now() - interval '16 minutes',
+           failed_attempts = 0
+       WHERE identity_id = 'taylor-tester'`,
+    );
+    const after = await getLockoutState(ctx.pool, "taylor-tester");
+    assert.equal(after.locked, false);
+    const { handoff: okHandoff } = await authorizeHandoff();
+    assert.equal(
+      (await localLogin("taylor-tester@dev.local", TEST_PASSWORD, okHandoff)).statusCode,
+      200,
+    );
   });
 
   it("IP throttle counts failures only", async () => {
@@ -315,5 +353,32 @@ describe("auth routes (in-process)", () => {
       payload: "{}",
     });
     assert.equal(wrongAud.statusCode, 401);
+
+    const mcpResource = `${TEST_ISSUER}/mcp`;
+    const mcpMint = await mint({ resource: mcpResource });
+    assert.equal(mcpMint.statusCode, 200);
+    const mcpToken = (mcpMint.json() as { access_token: string }).access_token;
+    const mcpOk = await inject({
+      method: "POST",
+      url: "/mcp",
+      headers: {
+        authorization: `Bearer ${mcpToken}`,
+        "content-type": "application/json",
+      },
+      payload: "{}",
+    });
+    assert.equal(mcpOk.statusCode, 200);
+
+    const revoke = await postForm("/oauth/revoke", {
+      token: ccBody.access_token,
+      token_type_hint: "access_token",
+    });
+    assert.equal(revoke.statusCode, 200);
+    const afterRevoke = await inject({
+      method: "GET",
+      url: "/api/v1/me",
+      headers: { authorization: `Bearer ${ccBody.access_token}` },
+    });
+    assert.equal(afterRevoke.statusCode, 401);
   });
 });

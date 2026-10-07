@@ -1102,6 +1102,7 @@ edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
 edge: ← uses from FIX-DENY-MCP-WRONG-AUDIENCE
 edge: ← uses from ARCH-AUTH-MCP-REQUIRED
 edge: ← satisfies from CAP-OAUTH-AS
+edge: ← satisfies from CAP-TEST-AUTH-HYGIENE
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1189,6 +1190,7 @@ security.verification_note: AC-12 session termination; ASD V-222549 / V-222578 /
 edge: ← uses from FIX-DENY-REVOKED-TOKEN
 edge: ← refines from ARCH-AUTH-UPSTREAM-REVOKE
 edge: ← satisfies from CAP-OAUTH-AS
+edge: ← satisfies from CAP-TEST-AUTH-HYGIENE
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222549 (pin imprint=asd-stig@v6r4)
@@ -1862,6 +1864,7 @@ security.verification_note: AU-3 content of audit records; AU-10 non-repudiation
 edge: ← uses from FIX-ALLOW-AGENT-ATTRIBUTION
 edge: ← satisfies from CAP-AGENT-ACCESS
 edge: ← satisfies from CAP-TEST-AUTH-ROUTES
+edge: ← satisfies from CAP-TEST-AUTH-HYGIENE
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -2124,6 +2127,42 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-test-harness
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-TEST-AUTH-HYGIENE
+STATUS: Draft
+TITLE: Stronger in-process auth regression beds
+STATEMENT: >>>
+In-process auth.integration tests cover lockout window boundaries (SQL clock, no real sleep), username-normalization lockout HTTP 423, MCP audience accept/reject pairs, and agent access-token revocation returning 401 on `/api/v1/me`.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-TEST-AUTH-HYGIENE
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass.
+delivered_by_release: R1 — test/build hygiene (Docker-free test follow-ups)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: ARCH-CRED-LOCKOUT
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AUDIENCE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-AUTH-REVOKE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AGENT-ATTRIBUTION
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-test-hygiene
   ROLE: Delivers
 
 [[/SECTION]]
@@ -8854,6 +8893,7 @@ edge: ← uses from FIX-DENY-LOCKOUT
 edge: ← satisfies from CAP-CRED-STORE
 edge: ← satisfies from CAP-AUTH-HARDEN
 edge: ← satisfies from CAP-TEST-AUTH-ROUTES
+edge: ← satisfies from CAP-TEST-AUTH-HYGIENE
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222432 (pin imprint=asd-stig@v6r4)
@@ -9291,6 +9331,7 @@ edge: ← refines from ARCH-DEVENV-KEYS
 edge: ← satisfies from CAP-DEVENV-OPENBAO-BOOTSTRAP
 edge: ← satisfies from CAP-KEY-ENVELOPE
 edge: ← satisfies from CAP-TEST-MEMORY-KEYPROVIDER
+edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11788,6 +11829,7 @@ security.catalog_ref: CM-6
 security.verification_note: FIXTURE / TEST BED for developer environment smoke and prod-disable.
 edge: ← satisfies from CAP-DEVENV-SMOKE
 edge: ← satisfies from CAP-TEST-PNPM-GATE
+edge: ← satisfies from CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14509,6 +14551,33 @@ RELATIONS:
   VALUE: RELEASE-rel-r1-test-harness
   ROLE: Delivers
 
+[REQUIREMENT]
+UID: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+STATUS: Draft
+TITLE: devenv:smoke pins Compose project name
+STATEMENT: >>>
+`pnpm devenv:smoke` sets `COMPOSE_PROJECT_NAME` (default `sdoc-intake-dev`, overridable) on every Compose invocation, logs the hostports overlay, and clears the loopback IP-throttle row before its throttle check so reruns against a running dev stack are repeatable.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Verified: 2026-10-07 local Docker (maintainer box): `pnpm devenv:smoke` with COMPOSE_PROJECT_NAME unset used project sdoc-intake-dev (no second stack), logged the overlay, and passed on a reused volume incl. IP throttle 200 -> 401.
+delivered_by_release: R1 — test/build hygiene (Docker-free test follow-ups)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: FIX-ALLOW-DEVENV-SMOKE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-test-hygiene
+  ROLE: Delivers
+
 [[/SECTION]]
 
 [[SECTION]]
@@ -14537,6 +14606,7 @@ iteration: iter-r1
 security.catalog_ref: SA-8
 security.verification_note: SA-8 security engineering: security foundations built first.
 edge: ← satisfies from CAP-TEST-PGLITE-DB
+edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14587,6 +14657,36 @@ RELATIONS:
   ROLE: Uses
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-TEST-PROD-BUILD-EXCLUDE
+STATUS: Draft
+TITLE: Production build excludes test harness modules
+STATEMENT: >>>
+TypeScript production build (`tsconfig.build.json`) excludes `src/test/**` and `src/key/memory-provider.ts`; tests import the in-memory KeyProvider from its own module. Docker `dist/` contains no test harness or fake key files.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-TEST-PROD-BUILD-EXCLUDE
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39); `pnpm typecheck` pass; `pnpm --filter @reqaml/app build` dist has no `dist/test/**` or `dist/key/memory-provider.js`.
+delivered_by_release: R1 — test/build hygiene (Docker-free test follow-ups)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-BUILD
+- TYPE: Parent
+  VALUE: ARCH-KEY-PROVIDER
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-BUILD-FOUNDATION
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-test-hygiene
   ROLE: Delivers
 
 [[/SECTION]]
