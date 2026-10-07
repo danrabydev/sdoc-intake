@@ -24,6 +24,8 @@ import { verifyPkceS256, validateAuthorizePkce } from "./pkce.js";
 import { resolveResource, type OAuthResource } from "./resources.js";
 import type { AuthProfile } from "./profile.js";
 import { localLoginAllowed } from "./profile.js";
+import { hashUsernameForAudit, normalizeUsername } from "../credential/username.js";
+import { reserveIpLoginAttempt } from "../credential/ip-throttle.js";
 
 const CODE_TTL_SEC = 120;
 const ACCESS_TTL_SEC = 300;
@@ -48,6 +50,11 @@ export async function authenticateLocalUser(
   | { ok: true; identityId: string; needsMfa: boolean }
   | { ok: false; error: string }
 > {
+  const ipBlock = await reserveIpLoginAttempt(pool, ctx.ip);
+  if (ipBlock.blocked) {
+    return { ok: false, error: "invalid_credentials" };
+  }
+  username = normalizeUsername(username);
   if (!localLoginAllowed(profile)) {
     await writeAuthAudit(pool, {
       eventType: "login.local",
@@ -71,7 +78,7 @@ export async function authenticateLocalUser(
     await writeAuthAudit(pool, {
       eventType: "login.local",
       outcome: "failure",
-      detail: { username },
+      detail: { username_hash: hashUsernameForAudit(username) },
       ip: ctx.ip,
       userAgent: ctx.userAgent,
     });
@@ -136,7 +143,64 @@ export async function verifyMfaForLogin(
 ): Promise<boolean> {
   const secret = await loadMfaSecret(pool, keyProvider, identityId);
   if (!secret) return false;
-  return verifyTotp(secret, code);
+  const { verifyTotpNoReplay } = await import("../credential/mfa.js");
+  return verifyTotpNoReplay(pool, identityId, secret, code);
+}
+
+export async function needsMfaEnrollment(
+  pool: pg.Pool,
+  identityId: string,
+): Promise<boolean> {
+  const privileged = await identityHasPrivilegedRole(pool, identityId);
+  if (!privileged) return false;
+  const r = await pool.query<{ mfa_enabled: boolean }>(
+    `SELECT mfa_enabled FROM local_credentials WHERE identity_id = $1`,
+    [identityId],
+  );
+  return !r.rowCount || !r.rows[0].mfa_enabled;
+}
+
+export async function mintAccessFromRefreshPlain(
+  pool: pg.Pool,
+  keyProvider: KeyProvider,
+  input: {
+    refreshToken: string;
+    clientId: string;
+    resource: string;
+    issuer: string;
+  },
+): Promise<string | null> {
+  const tokenHash = hashToken(input.refreshToken);
+  const r = await pool.query<{
+    identity_id: string;
+    mfa_verified: boolean;
+    revoked_at: Date | null;
+    expires_at: Date;
+  }>(
+    `
+    SELECT f.identity_id, f.mfa_verified, f.revoked_at, rt.expires_at
+    FROM oauth_refresh_tokens rt
+    JOIN oauth_refresh_families f ON f.id = rt.family_id
+    WHERE rt.token_hash = $1 AND rt.rotated_at IS NULL
+  `,
+    [tokenHash],
+  );
+  if (!r.rowCount || r.rows[0].revoked_at) return null;
+  if (r.rows[0].expires_at.getTime() < Date.now()) return null;
+  const { token } = await signAccessToken(
+    pool,
+    keyProvider,
+    {
+      sub: r.rows[0].identity_id,
+      aud: input.resource,
+      iss: input.issuer,
+      clientId: input.clientId,
+      authTime: Math.floor(Date.now() / 1000),
+      mfa: r.rows[0].mfa_verified,
+    },
+    ACCESS_TTL_SEC,
+  );
+  return token;
 }
 
 export async function createAuthorizationCode(
@@ -404,9 +468,12 @@ async function revokeRefreshFamily(pool: pg.Pool, familyId: string): Promise<voi
 
 export async function revokeToken(
   pool: pg.Pool,
+  config: AppConfig,
+  keyProvider: KeyProvider,
   token: string,
   tokenTypeHint: string | undefined,
   ctx: LoginContext,
+  reqHost?: string,
 ): Promise<void> {
   const hash = hashToken(token);
   if (tokenTypeHint === "refresh_token" || tokenTypeHint === undefined) {
@@ -432,12 +499,13 @@ export async function revokeToken(
       return;
     }
   }
-  try {
-    const parts = token.split(".");
-    if (parts.length === 3) {
-      const payload = JSON.parse(
-        Buffer.from(parts[1], "base64url").toString("utf8"),
-      ) as { jti?: string; exp?: number; sub?: string };
+  if (tokenTypeHint === "access_token" || token.includes(".")) {
+    try {
+      const { verifyAccessToken } = await import("./token-verify.js");
+      const { apiResource, issuerUrl } = await import("./resources.js");
+      const host = reqHost ?? `localhost:${config.REQAML_PORT}`;
+      const aud = apiResource(config, host).canonicalUri;
+      const payload = await verifyAccessToken(pool, config, token, aud, host);
       if (payload.jti && payload.exp) {
         await pool.query(
           `
@@ -456,9 +524,9 @@ export async function revokeToken(
           detail: { kind: "access", jti: payload.jti },
         });
       }
+    } catch {
+      /* RFC 7009: invalid tokens are ignored */
     }
-  } catch {
-    /* RFC 7009: invalid tokens are ignored */
   }
 }
 

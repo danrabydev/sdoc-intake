@@ -27,7 +27,11 @@ export async function ensureBootstrapClients(
       clientId: "reqaml-web",
       clientName: "ReqAML Web UI",
       clientType: "public",
-      redirectUris: issuers.flatMap((i) => [`${i}/oauth/callback`, `${i}/`]),
+      redirectUris: issuers.flatMap((i) => [
+        `${i}/oauth/callback`,
+        `${i}/oauth/web/callback`,
+        `${i}/`,
+      ]),
       allowedResources: issuers.flatMap((i) => [`${i}/api`, `${i}/mcp`]),
     },
     {

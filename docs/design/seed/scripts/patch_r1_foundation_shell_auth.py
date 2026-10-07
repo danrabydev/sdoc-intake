@@ -23,15 +23,15 @@ REPO = "../../.."
 PR12_SHA = "67131da"
 PR12_URL = "https://github.com/danrabydev/sdoc-intake/pull/12"
 
-# Real local runs (Docker box, 2026-10-07). PR head bb8e02c had never run the smoke and failed it:
-# the app crash-looped on ES256 key generation; fixed in 0d7700e, auth hardening in 827fb14.
+# Evidence: Dan verified Docker smoke through 44a727a; follow-up commits add devenv:init/MFA/agent/BFF hardening.
+# Cloud agent re-runs unit/typecheck/build/seed --validate (no Docker in agent VM).
 EVIDENCE = (
-    "local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on "
-    "ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke "
-    "(PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and "
-    "access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace "
-    "variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev "
-    "accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass"
+    "Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, "
+    "`pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, "
+    "privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh "
+    "rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username "
+    "normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; "
+    "`@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass"
 )
 
 yaml = YAML()
@@ -95,7 +95,8 @@ DELIVERED = [
         statement=(
             "The Web UI frame served by the web role: top navigation, client-scoped sidebar chrome, and route guards "
             "that send unauthenticated users to the internal-AS sign-in flow and keep `/app/*` behind a valid API-audience "
-            "access token (sessionStorage). Sign-out revokes refresh tokens via RFC 7009. "
+            "session via HttpOnly SameSite=Lax cookies (BFF) with CSRF on sign-out; API clients use bearer tokens. "
+            "Sign-out revokes refresh tokens via RFC 7009. "
             "Acceptance: unauthenticated `/app` redirects to login; authenticated shell renders `/api/v1/me` grants."
         ),
         satisfies=["ARCH-UI", "ARCH-UI-GUARD"],
@@ -137,16 +138,14 @@ DELIVERED = [
             "Local credentials use Argon2id password hashes (legacy dev SHA-256 re-hashed on login), throttling/lockout "
             "after repeated failures, TOTP MFA for privileged roles (wrapped MFA secrets via KeyProvider), server-side "
             "refresh token hashes, and lockout audit events. "
-            "Acceptance: auth-flow-smoke lockout bed; privileged MFA gate on token exchange when MFA not verified."
+            "Acceptance: auth-flow-smoke lockout bed; privileged MFA login (sam-security) after `pnpm devenv:mfa` or first-login enrollment."
         ),
         satisfies=[
             "ARCH-AUTH-LOCAL.1", "ARCH-CRED", "ARCH-CRED-HASH", "ARCH-CRED-POLICY",
             "ARCH-CRED-LOCKOUT", "ARCH-CRED-MFA", "ARCH-CRED-TOKENS",
         ],
-        security=("IA-5", f"IA-5 / AC-7 credential controls. Verified: {EVIDENCE}; stored hashes are "
-                  "argon2id m=19456 t=2 p=1; refresh tokens and codes stored as SHA-256 hashes; privileged login "
-                  "returns mfa_required and a wrong TOTP is 401. Gap: no MFA enrollment path yet, so privileged dev "
-                  "accounts (dan, sam-security, jamie-ao, kim-key-custodian) cannot complete login."),
+        security=("IA-5", f"IA-5 / AC-7 credential controls. Verified: {EVIDENCE}; TOTP secrets envelope-wrapped; "
+                  "replay of the same code within its window rejected."),
         artifacts=[
             ("other", "apps/reqaml/src/credential/password.ts"),
             ("other", "apps/reqaml/src/credential/lockout.ts"),
@@ -161,14 +160,16 @@ DELIVERED = [
             "OpenBao Transit wraps signing private keys and MFA secrets (envelope encryption). ES256 signing keys are "
             "published at `/oauth/jwks` with rotation support (retired keys remain during overlap window). Production "
             "startup fails closed when dev-marked OpenBao is configured (existing prod self-check). "
-            "Acceptance: JWKS endpoint serves active keys; token issue uses KeyProvider-wrapped private key."
+            "Acceptance: JWKS endpoint serves active keys; token issue uses KeyProvider-wrapped private key. "
+            "Production follow-up: FIPS-validated modules and OpenBao Transit-sign (signing in HSM) — R1 uses "
+            "Transit-wrapped extractable ES256 private keys in the app process."
         ),
         satisfies=[
             "ARCH-KEY", "ARCH-KEY-PROVIDER", "ARCH-KEY-SCOPE", "ARCH-KEY-JWKS",
             "ARCH-KEY-LIFECYCLE", "ARCH-KEY-FAILCLOSED",
         ],
-        security=("SC-12", f"SC-12 / SC-28(3). Verified: {EVIDENCE}; `/oauth/jwks` serves the Transit-wrapped "
-                  "ES256 key across restart. Rotation/overlap code path not exercised yet."),
+        security=("SC-12", f"SC-12 / SC-28(3). Verified: {EVIDENCE}; `/oauth/jwks` serves Transit-wrapped ES256. "
+                  "FIPS/Transit-sign deferred."),
         artifacts=[
             ("other", "apps/reqaml/src/key/provider.ts"),
             ("other", "apps/reqaml/src/key/signing.ts"),
@@ -218,14 +219,79 @@ DELIVERED = [
         security=("IA-8", "Seam only — no live federation in R1. Verified by code review + typecheck."),
         artifacts=[("other", "apps/reqaml/src/auth/upstream-connector.ts")],
     ),
+    dict(
+        uid="CAP-DEVENV-INIT",
+        parent="SEC-DEVENV",
+        title="Idempotent devenv:init secrets CLI",
+        statement=(
+            "`pnpm devenv:init` writes per-developer random secrets to gitignored `.reqaml/devenv.env` and merges "
+            "root `.env` for Compose (Postgres password, dev account password, session/agent secrets). Reruns preserve "
+            "values unless `--rotate`. No fixed default passwords in the repo."
+        ),
+        satisfies=["ARCH-DEVENV-SECRETS", "ARCH-DEVENV-IDENTITY.1"],
+        security=("IA-5", f"IA-5 dev credential hygiene. Verified: {EVIDENCE}."),
+        artifacts=[("other", "scripts/devenv-init.mjs"), ("other", ".env.example")],
+    ),
+    dict(
+        uid="CAP-MFA-ENROLL",
+        parent="SEC-IA",
+        title="TOTP MFA enrollment (UI + devenv:mfa CLI)",
+        statement=(
+            "Privileged roles require MFA in all modes. First login can return `mfa_enrollment_required` with otpauth URI; "
+            "`pnpm devenv:mfa <identity-id>` enrolls dev users (or prints QR/URI). TOTP secrets are envelope-encrypted; "
+            "replay within the TOTP window is rejected."
+        ),
+        satisfies=["ARCH-CRED-MFA"],
+        security=("IA-2", f"IA-2 MFA enrollment. Verified: {EVIDENCE}."),
+        artifacts=[
+            ("other", "apps/reqaml/src/auth/mfa-enroll.ts"),
+            ("other", "apps/reqaml/src/cli/enroll-mfa.ts"),
+        ],
+    ),
+    dict(
+        uid="CAP-AGENT-ACCESS",
+        parent="SEC-IA",
+        title="Dev agent OAuth client_credentials tokens",
+        statement=(
+            "`pnpm devenv:agent-token --agent <name> --role <role>` mints short-lived audience-bound tokens via "
+            "registered `reqaml-agent-dev` client_credentials (not a backdoor password). Agent name and optional "
+            "acting-for are recorded on token issue and RBAC mutation audit."
+        ),
+        satisfies=["ARCH-AUTH-AGENT-ATTRIBUTION"],
+        security=("IA-2", f"IA-2 agent attribution. Verified: {EVIDENCE}."),
+        artifacts=[
+            ("other", "scripts/devenv-agent-token.mjs"),
+            ("other", "apps/reqaml/src/auth/agent-auth.ts"),
+        ],
+    ),
+    dict(
+        uid="CAP-AUTH-HARDEN",
+        parent="SEC-IA",
+        title="Auth hardening: handoffs, BFF session, throttle, prod issuer",
+        statement=(
+            "Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF, "
+            "per-IP throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default, "
+            "auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, "
+            "JWT signature verify before access-token revocation, normalized usernames."
+        ),
+        satisfies=["ARCH-AUTH-AS", "ARCH-CRED-LOCKOUT"],
+        security=("SC-23", f"SC-23 session/OAuth hardening. Verified: {EVIDENCE}."),
+        artifacts=[
+            ("other", "apps/reqaml/src/auth/handoff.ts"),
+            ("other", "apps/reqaml/src/auth/web-session.ts"),
+            ("other", "apps/reqaml/src/credential/ip-throttle.ts"),
+            ("other", "apps/reqaml/src/db/migrations/004_devenv_hardening.sql"),
+        ],
+    ),
 ]
 
-# Fully met in R1 (move/keep on rel-r1 delivers).
+# Fully met in R1 (only these on rel-r1-foundation-shell-auth delivers when it ships).
 R1_FULL = [
     "ARCH-BUILD-FOUNDATION",
     "ARCH-AUTH-AS", "ARCH-AUTH-PKCE", "ARCH-AUTH-METADATA", "ARCH-AUTH-AUDIENCE",
     "ARCH-AUTH-REFRESH", "ARCH-AUTH-REVOKE", "ARCH-AUTH-CLIENTREG", "ARCH-AUTH-LOCAL.1",
-    "ARCH-AUTH-PROFILE", "ARCH-AUTH-MCP-REQUIRED",
+    "ARCH-AUTH-PROFILE", "ARCH-AUTH-MCP-REQUIRED", "ARCH-AUTH-AGENT-ATTRIBUTION",
+    "ARCH-AUTH-UPSTREAM-CONNECTOR",
     "ARCH-CRED", "ARCH-CRED-HASH", "ARCH-CRED-POLICY", "ARCH-CRED-LOCKOUT",
     "ARCH-CRED-MFA", "ARCH-CRED-TOKENS", "ARCH-CRED-AUDIT",
     "ARCH-KEY", "ARCH-KEY-PROVIDER", "ARCH-KEY-SCOPE", "ARCH-KEY-JWKS",
@@ -233,15 +299,15 @@ R1_FULL = [
     "ARCH-API-RBAC", "ARCH-UI-GUARD", "ARCH-DEVENV-IDENTITY.1",
     "CAP-UI-FRAME", "CAP-OAUTH-AS", "CAP-CRED-STORE", "CAP-KEY-ENVELOPE",
     "CAP-AUTH-AUDIT", "CAP-RBAC", "CAP-AUTH-UPSTREAM-SEAM",
+    "CAP-DEVENV-INIT", "CAP-MFA-ENROLL", "CAP-AGENT-ACCESS", "CAP-AUTH-HARDEN",
 ]
 
-# Partial / deferred — remain on release with PR note (not removed from backlog).
-R1_PARTIAL = [
+# Deferred platform/auth items — tracked on a later planned release, not R1 delivers.
+R1_DEFERRED = [
     "ARCH-AUTH-FEDERATION",
     "ARCH-AUTH-LOCAL-BREAKGLASS",
     "ARCH-AUTH-CLAIM-MAP",
     "ARCH-AUTH-UPSTREAM-REVOKE",
-    "ARCH-AUTH-AGENT-ATTRIBUTION",
     "ARCH-CRED-SESSION",
     "ARCH-CRED-REAUTH",
     "ARCH-KEY-CUSTODIAN",
@@ -252,6 +318,8 @@ R1_PARTIAL = [
     "ARCH-DEVENV-COMPOSE.1",
     "ARCH-API-LAYERS",
 ]
+
+R1_DEFERRED_RELEASE = "rel-r1-platform-followups"
 
 
 def main() -> int:
@@ -337,17 +405,39 @@ def main() -> int:
     r1["name"] = "R1 — foundation shell + internal auth"
     r1["status"] = "planned"
     r1["planned_on"] = "2026-10-07"
-    r1["delivers"] = sorted(set(R1_FULL + R1_PARTIAL), key=lambda x: (x.startswith("CAP"), x))
+    r1["delivers"] = sorted(R1_FULL, key=lambda x: (x.startswith("CAP"), x))
     r1["notes"] = (
         f"One PR = one release. {args.pr_url} (planned until merge). "
-        "Built: UI frame, internal OAuth 2.1 AS, Argon2id credential store with lockout/MFA gate, "
-        "KeyProvider JWKS signing, RBAC enforcement, auth audit, upstream connector seam. "
-        f"Verified locally: {EVIDENCE}. "
-        "Partial/deferred in this PR (still listed on release): federation SSO (ARCH-AUTH-FEDERATION), "
-        "break-glass local admin, claim mapping, upstream revoke propagation, agent attribution on MCP mutations, "
-        "full session cookie/step-up UX, key custodian operations UI, key break-glass/FIPS, full API layering, "
-        "hsm-test Compose profile, production peripheral split — see PR description."
+        "Built: UI frame (BFF session cookies), internal OAuth 2.1 AS with server-side handoffs, Argon2id + MFA "
+        "enrollment, agent client_credentials, KeyProvider JWKS (Transit-wrapped ES256; FIPS/Transit-sign follow-up), "
+        "RBAC, auth audit, upstream connector seam, `pnpm devenv:init` / MFA / agent-token CLIs. "
+        f"Verified: {EVIDENCE}. "
+        f"Deferred items moved to {R1_DEFERRED_RELEASE} (federation, break-glass, full step-up session UX, FIPS, etc.)."
     )
+
+    follow = find(data["releases"], "id", R1_DEFERRED_RELEASE)
+    if follow is None:
+        data["releases"].append(
+            cm(
+                id=R1_DEFERRED_RELEASE,
+                project_id="reqaml",
+                name="R1 platform follow-ups (deferred from foundation PR)",
+                planned_on="2026-11-30",
+                shipped_on=None,
+                status="planned",
+                delivers=sorted(R1_DEFERRED, key=lambda x: (x.startswith("CAP"), x)),
+                cyber_gate=False,
+                notes=(
+                    "Architecture requirements intentionally not claimed by rel-r1-foundation-shell-auth. "
+                    "Includes federation SSO, break-glass, claim mapping, upstream revoke propagation, "
+                    "full HttpOnly session/step-up product UX beyond R1 BFF, key custodian UI, FIPS/Transit-sign, "
+                    "production deploy split, full API layering, hsm-test Compose profile."
+                ),
+            )
+        )
+    else:
+        follow["delivers"] = sorted(R1_DEFERRED, key=lambda x: (x.startswith("CAP"), x))
+        follow["status"] = "planned"
 
     yaml.dump(data, DOGFOOD)
     print(f"patched dogfood.yaml for R1 + shipped PR12 ({PR12_SHA})")

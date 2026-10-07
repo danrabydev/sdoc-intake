@@ -123,18 +123,28 @@ export async function signAccessToken(
     scope?: string;
     authTime: number;
     mfa?: boolean;
+    agentName?: string;
+    actingFor?: string;
   },
   ttlSeconds: number,
 ): Promise<{ token: string; jti: string }> {
   const { kid, privateKey } = await getActiveSigningKey(pool, keyProvider);
   const jti = crypto.randomUUID();
-  const token = await new SignJWT({
+  const payload: Record<string, unknown> = {
     aud: claims.aud,
     client_id: claims.clientId,
     scope: claims.scope,
     auth_time: claims.authTime,
     amr: claims.mfa ? ["pwd", "mfa"] : ["pwd"],
-  })
+  };
+  if (claims.agentName) {
+    payload.agent_name = claims.agentName;
+    payload.client_type = "agent";
+  }
+  if (claims.actingFor) {
+    payload.act = { sub: claims.actingFor };
+  }
+  const token = await new SignJWT(payload)
     .setProtectedHeader({ alg: "ES256", kid })
     .setIssuer(claims.iss)
     .setSubject(claims.sub)

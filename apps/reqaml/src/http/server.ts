@@ -17,10 +17,8 @@ import { resolveWebIndexPath } from "../readiness/paths.js";
 import type { ReadinessContext } from "../readiness/report.js";
 import type { SyncHandle } from "../roles/sync-worker.js";
 import { registerProbeRoutes } from "./routes-probes.js";
-import {
-  createBearerGuard,
-  type AuthedRequest,
-} from "./middleware/bearer-auth.js";
+import { createBearerGuard, type AuthedRequest } from "./middleware/bearer-auth.js";
+import { resolveRequestAuth } from "../auth/request-auth.js";
 import { authorize } from "../rbac/enforce.js";
 import { writeAuthAudit } from "../audit/auth-audit.js";
 
@@ -34,7 +32,18 @@ export type RuntimeState = {
 
 export async function buildApiServer(state: RuntimeState) {
   const { config, pool, roles, readiness } = state;
-  const app = Fastify({ logger: true, trustProxy: true });
+  const app = Fastify({
+    logger: {
+      level: "info",
+      serializers: {
+        req(req) {
+          const url = req.url?.replace(/([?&]code=)[^&]+/gi, "$1[REDACTED]");
+          return { method: req.method, url, host: req.host };
+        },
+      },
+    },
+    trustProxy: config.REQAML_TRUST_PROXY === true,
+  });
   const keyProvider = createOpenBaoKeyProvider(config);
 
   await app.register(fastifyCookie);
@@ -70,11 +79,12 @@ export async function buildApiServer(state: RuntimeState) {
 
     app.get("/api/v1/seed/summary", async () => getSeedSummary(state.pool));
 
-    app.get(
-      "/api/v1/me",
-      { preHandler: apiGuard },
-      async (req: AuthedRequest) => {
-        const sub = req.accessToken!.sub!;
+    app.get("/api/v1/me", async (req, reply) => {
+        const auth = await resolveRequestAuth(req, pool, config, keyProvider);
+        if (!auth) {
+          return reply.code(401).send({ error: "unauthorized" });
+        }
+        const sub = auth.accessToken.sub!;
         const grants = await pool.query(
           `
           SELECT project_id, role FROM project_grants
@@ -86,15 +96,16 @@ export async function buildApiServer(state: RuntimeState) {
           identity_id: sub,
           auth_profile: authProfileFromEnv(config),
           grants: grants.rows,
+          agent_name: (auth.accessToken as { agent_name?: string }).agent_name ?? null,
         };
-      },
-    );
+      });
 
-    app.post(
-      "/api/v1/projects/:projectId/grants",
-      { preHandler: apiGuard },
-      async (req: AuthedRequest, reply) => {
-        const sub = req.accessToken!.sub!;
+    app.post("/api/v1/projects/:projectId/grants", async (req, reply) => {
+        const auth = await resolveRequestAuth(req, pool, config, keyProvider);
+        if (!auth) {
+          return reply.code(401).send({ error: "unauthorized" });
+        }
+        const sub = auth.accessToken.sub!;
         const projectId = (req.params as { projectId: string }).projectId;
         const allowed = await authorize(pool, sub, "grant:manage", projectId);
         if (!allowed) {
@@ -102,14 +113,19 @@ export async function buildApiServer(state: RuntimeState) {
             eventType: "rbac.deny",
             outcome: "deny",
             identityId: sub,
-            detail: { permission: "grant:manage", projectId },
+            clientId: auth.accessToken.client_id as string | undefined,
+            detail: {
+              permission: "grant:manage",
+              projectId,
+              agent_name: (auth.accessToken as { agent_name?: string }).agent_name,
+              acting_for: (auth.accessToken as { act?: { sub?: string } }).act?.sub,
+            },
             ip: req.ip,
           });
           return reply.code(403).send({ error: "forbidden" });
         }
         return reply.send({ ok: true, message: "grant manage authorized (stub)" });
-      },
-    );
+      });
   }
 
   if (roles.has("mcp")) {

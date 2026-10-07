@@ -2520,6 +2520,26 @@ requirement_lines:
   parent: SEC-IA
   kind: capability
   title: Pluggable upstream IdP connector seam (stub)
+- base_uid: CAP-DEVENV-INIT
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: Idempotent devenv:init secrets CLI
+- base_uid: CAP-MFA-ENROLL
+  project_id: reqaml
+  parent: SEC-IA
+  kind: capability
+  title: TOTP MFA enrollment (UI + devenv:mfa CLI)
+- base_uid: CAP-AGENT-ACCESS
+  project_id: reqaml
+  parent: SEC-IA
+  kind: capability
+  title: Dev agent OAuth client_credentials tokens
+- base_uid: CAP-AUTH-HARDEN
+  project_id: reqaml
+  parent: SEC-IA
+  kind: capability
+  title: 'Auth hardening: handoffs, BFF session, throttle, prod issuer'
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -3945,7 +3965,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: 'AC-3 enforcement. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass.'
+    verification_note: 'AC-3 enforcement. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:07904dc523cccd3c24e8ab49deca0a2aa3cbaaf2882a8d8028c24eaf737ea60b
   grooming_state: detailed
   verification_outcome: pass
@@ -6575,13 +6595,13 @@ requirement_versions:
   base_uid: CAP-UI-FRAME
   version_n: 0
   status: active
-  statement: 'The Web UI frame served by the web role: top navigation, client-scoped sidebar chrome, and route guards that send unauthenticated users to the internal-AS sign-in flow and keep `/app/*` behind a valid API-audience access token (sessionStorage). Sign-out revokes refresh tokens via RFC 7009. Acceptance: unauthenticated `/app` redirects to login; authenticated shell renders `/api/v1/me` grants.'
+  statement: 'The Web UI frame served by the web role: top navigation, client-scoped sidebar chrome, and route guards that send unauthenticated users to the internal-AS sign-in flow and keep `/app/*` behind a valid API-audience session via HttpOnly SameSite=Lax cookies (BFF) with CSRF on sign-out; API clients use bearer tokens. Sign-out revokes refresh tokens via RFC 7009. Acceptance: unauthenticated `/app` redirects to login; authenticated shell renders `/api/v1/me` grants.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: 'AC-3 guard enforcement. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.'
-  statement_hash: sha256:7c0265458539228d98e011564b5fcc847ffa4d85dc65aa45d840e4e410697f9b
+    verification_note: 'AC-3 guard enforcement. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.'
+  statement_hash: sha256:0828332feb654b6ef8c411828750b14e293b41e4400377cb3abf3d6c18aefde6
   grooming_state: detailed
   verification_outcome: pass
 - uid: CAP-OAUTH-AS
@@ -6593,7 +6613,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: IA-2
-    verification_note: 'IA-2 / SC-23 OAuth beds. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass.'
+    verification_note: 'IA-2 / SC-23 OAuth beds. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:2bd4307c791183ba58e460d4c7556b19e61f1d6e469cf4e8a269f00de4f8b49c
   grooming_state: detailed
   verification_outcome: pass
@@ -6601,26 +6621,26 @@ requirement_versions:
   base_uid: CAP-CRED-STORE
   version_n: 0
   status: active
-  statement: 'Local credentials use Argon2id password hashes (legacy dev SHA-256 re-hashed on login), throttling/lockout after repeated failures, TOTP MFA for privileged roles (wrapped MFA secrets via KeyProvider), server-side refresh token hashes, and lockout audit events. Acceptance: auth-flow-smoke lockout bed; privileged MFA gate on token exchange when MFA not verified.'
+  statement: 'Local credentials use Argon2id password hashes (legacy dev SHA-256 re-hashed on login), throttling/lockout after repeated failures, TOTP MFA for privileged roles (wrapped MFA secrets via KeyProvider), server-side refresh token hashes, and lockout audit events. Acceptance: auth-flow-smoke lockout bed; privileged MFA login (sam-security) after `pnpm devenv:mfa` or first-login enrollment.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: IA-5
-    verification_note: 'IA-5 / AC-7 credential controls. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; stored hashes are argon2id m=19456 t=2 p=1; refresh tokens and codes stored as SHA-256 hashes; privileged login returns mfa_required and a wrong TOTP is 401. Gap: no MFA enrollment path yet, so privileged dev accounts (dan, sam-security, jamie-ao, kim-key-custodian) cannot complete login.'
-  statement_hash: sha256:b4ef3d6093b5a77855a3210df3cd2cfe2a7a2b18ff248d4694124c04772e7c59
+    verification_note: 'IA-5 / AC-7 credential controls. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass; TOTP secrets envelope-wrapped; replay of the same code within its window rejected.'
+  statement_hash: sha256:cfd369100cb9be628e6bca2ca3f22c1b00e37e12795e816d999a72f97f1784ec
   grooming_state: detailed
   verification_outcome: pass
 - uid: CAP-KEY-ENVELOPE
   base_uid: CAP-KEY-ENVELOPE
   version_n: 0
   status: active
-  statement: 'OpenBao Transit wraps signing private keys and MFA secrets (envelope encryption). ES256 signing keys are published at `/oauth/jwks` with rotation support (retired keys remain during overlap window). Production startup fails closed when dev-marked OpenBao is configured (existing prod self-check). Acceptance: JWKS endpoint serves active keys; token issue uses KeyProvider-wrapped private key.'
+  statement: 'OpenBao Transit wraps signing private keys and MFA secrets (envelope encryption). ES256 signing keys are published at `/oauth/jwks` with rotation support (retired keys remain during overlap window). Production startup fails closed when dev-marked OpenBao is configured (existing prod self-check). Acceptance: JWKS endpoint serves active keys; token issue uses KeyProvider-wrapped private key. Production follow-up: FIPS-validated modules and OpenBao Transit-sign (signing in HSM) — R1 uses Transit-wrapped extractable ES256 private keys in the app process.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: SC-12
-    verification_note: 'SC-12 / SC-28(3). Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; `/oauth/jwks` serves the Transit-wrapped ES256 key across restart. Rotation/overlap code path not exercised yet.'
-  statement_hash: sha256:e66fc6f6e955c4baf963a1bf2ab16cb7730f3c96be776c5b595f0bdc8cbb5623
+    verification_note: 'SC-12 / SC-28(3). Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass; `/oauth/jwks` serves Transit-wrapped ES256. FIPS/Transit-sign deferred.'
+  statement_hash: sha256:a705e5c39bd7ea6a4f37e3d9bd224f85f22916512c2d9b4fbb1adc0277491299
   grooming_state: detailed
   verification_outcome: pass
 - uid: CAP-AUTH-AUDIT
@@ -6632,7 +6652,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: AU-2
-    verification_note: 'AU-2 / AU-3 / AU-12. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.'
+    verification_note: 'AU-2 / AU-3 / AU-12. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.'
   statement_hash: sha256:9e67395126b2352f3b3448a0f9a9f362d1633b66041b1da79e12d568b185af13
   grooming_state: detailed
   verification_outcome: pass
@@ -6647,6 +6667,58 @@ requirement_versions:
     catalog_ref: IA-8
     verification_note: Seam only — no live federation in R1. Verified by code review + typecheck.
   statement_hash: sha256:1c60bafa0af9a2b69b5439701388213780aa12ceb2513f400ba8193ac4d4dc5d
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-DEVENV-INIT
+  base_uid: CAP-DEVENV-INIT
+  version_n: 0
+  status: active
+  statement: '`pnpm devenv:init` writes per-developer random secrets to gitignored `.reqaml/devenv.env` and merges root `.env` for Compose (Postgres password, dev account password, session/agent secrets). Reruns preserve values unless `--rotate`. No fixed default passwords in the repo.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-5
+    verification_note: 'IA-5 dev credential hygiene. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.'
+  statement_hash: sha256:f2224091a2e630376b036c38cffe22254712e3c5afb5aeef358a3ddd2f043d67
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-MFA-ENROLL
+  base_uid: CAP-MFA-ENROLL
+  version_n: 0
+  status: active
+  statement: Privileged roles require MFA in all modes. First login can return `mfa_enrollment_required` with otpauth URI; `pnpm devenv:mfa <identity-id>` enrolls dev users (or prints QR/URI). TOTP secrets are envelope-encrypted; replay within the TOTP window is rejected.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-2
+    verification_note: 'IA-2 MFA enrollment. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.'
+  statement_hash: sha256:1d1e22841c095ad4827702bfb3ff0dcf74b9f748e9659dfd2557c8cd00288152
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-AGENT-ACCESS
+  base_uid: CAP-AGENT-ACCESS
+  version_n: 0
+  status: active
+  statement: '`pnpm devenv:agent-token --agent <name> --role <role>` mints short-lived audience-bound tokens via registered `reqaml-agent-dev` client_credentials (not a backdoor password). Agent name and optional acting-for are recorded on token issue and RBAC mutation audit.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-2
+    verification_note: 'IA-2 agent attribution. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.'
+  statement_hash: sha256:f0f14b62db55662c9bd6ff3dd74cb872763378967f70f5386c28cfea34dc6718
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-AUTH-HARDEN
+  base_uid: CAP-AUTH-HARDEN
+  version_n: 0
+  status: active
+  statement: Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF, per-IP throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default, auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, JWT signature verify before access-token revocation, normalized usernames.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-23
+    verification_note: 'SC-23 session/OAuth hardening. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.'
+  statement_hash: sha256:4aa2effe0f399d2ef3539888153799a48586be248ec013da70dd13272fb2db36
   grooming_state: detailed
   verification_outcome: pass
 capability_artifacts:
@@ -6914,6 +6986,36 @@ capability_artifacts:
 - requirement_version_uid: CAP-AUTH-UPSTREAM-SEAM
   kind: other
   uri: ../../../apps/reqaml/src/auth/upstream-connector.ts
+- requirement_version_uid: CAP-DEVENV-INIT
+  kind: other
+  uri: ../../../scripts/devenv-init.mjs
+- requirement_version_uid: CAP-DEVENV-INIT
+  kind: other
+  uri: ../../../.env.example
+- requirement_version_uid: CAP-MFA-ENROLL
+  kind: other
+  uri: ../../../apps/reqaml/src/auth/mfa-enroll.ts
+- requirement_version_uid: CAP-MFA-ENROLL
+  kind: other
+  uri: ../../../apps/reqaml/src/cli/enroll-mfa.ts
+- requirement_version_uid: CAP-AGENT-ACCESS
+  kind: other
+  uri: ../../../scripts/devenv-agent-token.mjs
+- requirement_version_uid: CAP-AGENT-ACCESS
+  kind: other
+  uri: ../../../apps/reqaml/src/auth/agent-auth.ts
+- requirement_version_uid: CAP-AUTH-HARDEN
+  kind: other
+  uri: ../../../apps/reqaml/src/auth/handoff.ts
+- requirement_version_uid: CAP-AUTH-HARDEN
+  kind: other
+  uri: ../../../apps/reqaml/src/auth/web-session.ts
+- requirement_version_uid: CAP-AUTH-HARDEN
+  kind: other
+  uri: ../../../apps/reqaml/src/credential/ip-throttle.ts
+- requirement_version_uid: CAP-AUTH-HARDEN
+  kind: other
+  uri: ../../../apps/reqaml/src/db/migrations/004_devenv_hardening.sql
 edges:
 - from: CAP-SSO
   to: A01
@@ -12325,6 +12427,40 @@ edges:
   to: IA-8
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-INIT
+  to: ARCH-DEVENV-SECRETS
+  kind: satisfies
+- from: CAP-DEVENV-INIT
+  to: ARCH-DEVENV-IDENTITY.1
+  kind: satisfies
+- from: CAP-DEVENV-INIT
+  to: IA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-MFA-ENROLL
+  to: ARCH-CRED-MFA
+  kind: satisfies
+- from: CAP-MFA-ENROLL
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-AGENT-ACCESS
+  to: ARCH-AUTH-AGENT-ATTRIBUTION
+  kind: satisfies
+- from: CAP-AGENT-ACCESS
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-AUTH-HARDEN
+  to: ARCH-AUTH-AS
+  kind: satisfies
+- from: CAP-AUTH-HARDEN
+  to: ARCH-CRED-LOCKOUT
+  kind: satisfies
+- from: CAP-AUTH-HARDEN
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -12561,15 +12697,11 @@ releases:
   shipped_on:
   status: planned
   delivers:
-  - ARCH-API-LAYERS
   - ARCH-API-RBAC
   - ARCH-AUTH-AGENT-ATTRIBUTION
   - ARCH-AUTH-AS
   - ARCH-AUTH-AUDIENCE
-  - ARCH-AUTH-CLAIM-MAP
   - ARCH-AUTH-CLIENTREG
-  - ARCH-AUTH-FEDERATION
-  - ARCH-AUTH-LOCAL-BREAKGLASS
   - ARCH-AUTH-LOCAL.1
   - ARCH-AUTH-MCP-REQUIRED
   - ARCH-AUTH-METADATA
@@ -12577,7 +12709,7 @@ releases:
   - ARCH-AUTH-PROFILE
   - ARCH-AUTH-REFRESH
   - ARCH-AUTH-REVOKE
-  - ARCH-AUTH-UPSTREAM-REVOKE
+  - ARCH-AUTH-UPSTREAM-CONNECTOR
   - ARCH-BUILD-FOUNDATION
   - ARCH-CRED
   - ARCH-CRED-AUDIT
@@ -12585,32 +12717,27 @@ releases:
   - ARCH-CRED-LOCKOUT
   - ARCH-CRED-MFA
   - ARCH-CRED-POLICY
-  - ARCH-CRED-REAUTH
-  - ARCH-CRED-SESSION
   - ARCH-CRED-TOKENS
-  - ARCH-DEPLOY-MINIMAL
-  - ARCH-DEPLOY-PERIPHERALS
-  - ARCH-DEVENV-COMPOSE.1
   - ARCH-DEVENV-IDENTITY.1
   - ARCH-KEY
-  - ARCH-KEY-BREAKGLASS
-  - ARCH-KEY-CUSTODIAN
   - ARCH-KEY-FAILCLOSED
-  - ARCH-KEY-FIPS
   - ARCH-KEY-JWKS
   - ARCH-KEY-LIFECYCLE
   - ARCH-KEY-PROVIDER
   - ARCH-KEY-SCOPE
   - ARCH-UI-GUARD
+  - CAP-AGENT-ACCESS
   - CAP-AUTH-AUDIT
+  - CAP-AUTH-HARDEN
   - CAP-AUTH-UPSTREAM-SEAM
   - CAP-CRED-STORE
+  - CAP-DEVENV-INIT
   - CAP-KEY-ENVELOPE
+  - CAP-MFA-ENROLL
   - CAP-OAUTH-AS
   - CAP-RBAC
   - CAP-UI-FRAME
-  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/13 (planned until merge). Built: UI frame, internal OAuth 2.1 AS, Argon2id credential store with lockout/MFA gate, KeyProvider JWKS signing, RBAC enforcement, auth audit, upstream connector seam. Verified locally: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass. Partial/deferred in this PR (still listed on release): federation SSO (ARCH-AUTH-FEDERATION), break-glass local admin, claim mapping, upstream revoke propagation, agent attribution on MCP mutations, full session cookie/step-up UX, key custodian operations UI, key break-glass/FIPS, full API layering, hsm-test Compose profile, production
-    peripheral split — see PR description.'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/13 (planned until merge). Built: UI frame (BFF session cookies), internal OAuth 2.1 AS with server-side handoffs, Argon2id + MFA enrollment, agent client_credentials, KeyProvider JWKS (Transit-wrapped ES256; FIPS/Transit-sign follow-up), RBAC, auth audit, upstream connector seam, `pnpm devenv:init` / MFA / agent-token CLIs. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass. Deferred items moved to rel-r1-platform-followups (federation, break-glass, full step-up session UX, FIPS, etc.).'
 - id: rel-r1-core-alm
   project_id: reqaml
   name: R1-core-ALM
@@ -12716,6 +12843,28 @@ releases:
   - UI-APPROVE-TREE
   notes: 'Includes obsolete ARCH-CONTRACT intentionally for FIX-REL-SNAP stale-backlog UX. cyber_gate=true: G05 ship needs Security sign-off + AO approve (ARCH-CYBER-GATE).'
   cyber_gate: true
+- id: rel-r1-platform-followups
+  project_id: reqaml
+  name: R1 platform follow-ups (deferred from foundation PR)
+  planned_on: '2026-11-30'
+  shipped_on:
+  status: planned
+  delivers:
+  - ARCH-API-LAYERS
+  - ARCH-AUTH-CLAIM-MAP
+  - ARCH-AUTH-FEDERATION
+  - ARCH-AUTH-LOCAL-BREAKGLASS
+  - ARCH-AUTH-UPSTREAM-REVOKE
+  - ARCH-CRED-REAUTH
+  - ARCH-CRED-SESSION
+  - ARCH-DEPLOY-MINIMAL
+  - ARCH-DEPLOY-PERIPHERALS
+  - ARCH-DEVENV-COMPOSE.1
+  - ARCH-KEY-BREAKGLASS
+  - ARCH-KEY-CUSTODIAN
+  - ARCH-KEY-FIPS
+  cyber_gate: false
+  notes: Architecture requirements intentionally not claimed by rel-r1-foundation-shell-auth. Includes federation SSO, break-glass, claim mapping, upstream revoke propagation, full HttpOnly session/step-up product UX beyond R1 BFF, key custodian UI, FIPS/Transit-sign, production deploy split, full API layering, hsm-test Compose profile.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqaml

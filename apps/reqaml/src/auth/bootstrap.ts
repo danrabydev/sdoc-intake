@@ -5,6 +5,7 @@ import { authProfileFromEnv, loadAuthProfile, validateAuthProfileStartup } from 
 import { issuerUrl } from "./resources.js";
 import type { KeyProvider } from "../key/provider.js";
 import { ensureSigningKeys } from "../key/signing.js";
+import { ensureAgentDevClient } from "./agent-auth.js";
 
 export async function bootstrapAuth(
   pool: pg.Pool,
@@ -27,5 +28,17 @@ export async function bootstrapAuth(
   }
   const iss = issuerUrl(config);
   await ensureBootstrapClients(pool, iss);
+  await ensureAgentDevClient(pool, iss, config.REQAML_AGENT_CLIENT_SECRET);
   await ensureSigningKeys(pool, keyProvider);
+  await ensureDefaultAgents(pool);
+}
+
+async function ensureDefaultAgents(pool: pg.Pool): Promise<void> {
+  const { upsertAgentPrincipal } = await import("./agent-auth.js");
+  await upsertAgentPrincipal(pool, {
+    name: "cursor-cloud",
+    identityId: "dan",
+    defaultProjectId: "reqaml",
+    defaultRole: "Developer",
+  });
 }

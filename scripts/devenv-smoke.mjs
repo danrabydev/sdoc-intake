@@ -4,25 +4,34 @@
  *
  * Primary check for the ReqAML dev environment; run locally with `pnpm devenv:smoke`
  * (the GitHub workflow is manual-dispatch only to save Actions minutes).
- *
- * Covers: Compose services healthy (ARCH-DEVENV-HEALTH), /health + /ready + seed summary
- * (FIX-ALLOW-DEVENV-SMOKE), migrate/seed idempotency (FIX-ALLOW-DEVENV-SEED-IDEMPOTENT),
- * exactly 2 containers (FIX-ALLOW-DEVENV-MIN-CONTAINERS), and production-mode refusal of the
- * dev seed loader / dev accounts / dev OpenBao (FIX-DENY-DEVENV-PROD-LOGIN.1, FIX-DENY-DEV-KEK-IN-PROD).
- *
- * Every failing command has its stdout/stderr printed, followed by `docker compose ps -a` and
- * recent `docker compose logs`, so CI/local failures are diagnosable from the log alone.
- *
- * Env: REQAML_SMOKE_URL (default http://127.0.0.1:3000), DATABASE_URL (host DSN),
- *      REQAML_SMOKE_DOWN=1 to run `docker compose down -v` at the end.
  */
 import { spawn } from "node:child_process";
-import { randomBytes } from "node:crypto";
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
+const root = path.dirname(fileURLToPath(import.meta.url));
 const baseUrl = process.env.REQAML_SMOKE_URL ?? "http://127.0.0.1:3000";
-const hostDsn =
-  process.env.DATABASE_URL ?? "postgresql://reqaml:reqaml@127.0.0.1:5432/reqaml";
+
+const composeBase = ["-f", "docker-compose.yml", "-f", "docker-compose.hostports.yml"];
+
+function parseEnv(text) {
+  const out = {};
+  for (const line of text.split("\n")) {
+    const m = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/.exec(line.trim());
+    if (m) out[m[1]] = m[2];
+  }
+  return out;
+}
+
+function loadMergedEnv() {
+  const files = [path.join(root, ".env"), path.join(root, ".reqaml/devenv.env")];
+  const merged = {};
+  for (const f of files) {
+    if (existsSync(f)) Object.assign(merged, parseEnv(readFileSync(f, "utf8")));
+  }
+  return merged;
+}
 
 class CommandError extends Error {
   constructor(label, result) {
@@ -31,12 +40,12 @@ class CommandError extends Error {
   }
 }
 
-/** Run a command, streaming output live (unless quiet) and capturing it for failure reports. */
-function run(cmd, args, { env, quiet = false, allowFail = false } = {}) {
+function run(cmd, args, { env, cwd = root, quiet = false, allowFail = false } = {}) {
   const label = [cmd, ...args].join(" ");
   if (!quiet) console.log(`\n$ ${label}`);
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, {
+      cwd,
       env: { ...process.env, ...env },
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -93,11 +102,11 @@ async function reportFailure(err) {
   }
   if (!(err instanceof CommandError) && !err.detail) console.error(err.stack);
   for (const args of [
-    ["compose", "ps", "-a"],
-    ["compose", "logs", "--no-color", "--tail=150"],
+    [...composeBase, "ps", "-a"],
+    [...composeBase, "logs", "--no-color", "--tail=150"],
   ]) {
-    const r = await run("docker", args, { quiet: true, allowFail: true });
-    console.error(`----- docker ${args.join(" ")} (exit ${r.code}) -----`);
+    const r = await run("docker", ["compose", ...args], { quiet: true, allowFail: true });
+    console.error(`----- docker compose ${args.join(" ")} (exit ${r.code}) -----`);
     console.error((r.stdout + r.stderr).trimEnd());
   }
 }
@@ -107,42 +116,31 @@ function lastJsonObject(text) {
   return JSON.parse(text.slice(start === -1 ? text.indexOf("{") : start + 1));
 }
 
-// The auth smoke needs to know the dev account password. Never commit a default one
-// (ARCH-DEVENV-IDENTITY.1): reuse the local .env value if set, else generate a random one for this
-// checkout and write it to the (gitignored) .env so the seeded accounts and the smoke agree.
-function ensureSmokeDevPassword() {
-  if (!existsSync(".env")) {
-    console.log("No .env found; copying .env.example (README clone-to-running step).");
-    copyFileSync(".env.example", ".env");
-  }
-  let envText = readFileSync(".env", "utf8");
-  const existing = /^REQAML_DEV_ACCOUNT_PASSWORD=(.+)$/m.exec(envText)?.[1]?.trim();
-  if (existing) {
-    process.env.REQAML_DEV_ACCOUNT_PASSWORD = existing;
-    return existing;
-  }
-  const smokePassword =
-    process.env.REQAML_DEV_ACCOUNT_PASSWORD || randomBytes(18).toString("base64url");
-  if (/^REQAML_DEV_ACCOUNT_PASSWORD=.*$/m.test(envText)) {
-    envText = envText.replace(
-      /^REQAML_DEV_ACCOUNT_PASSWORD=.*$/m,
-      `REQAML_DEV_ACCOUNT_PASSWORD=${smokePassword}`,
-    );
-  } else {
-    envText += `\nREQAML_DEV_ACCOUNT_PASSWORD=${smokePassword}\n`;
-  }
-  writeFileSync(".env", envText);
-  console.log("Wrote a generated REQAML_DEV_ACCOUNT_PASSWORD to the local .env for the auth smoke.");
-  process.env.REQAML_DEV_ACCOUNT_PASSWORD = smokePassword;
-  return smokePassword;
-}
-
 async function main() {
-  const smokePassword = ensureSmokeDevPassword();
+  process.env.DEVENV_INIT_QUIET = "1";
+  await run("node", ["scripts/devenv-init.mjs"], { quiet: true });
+  const secrets = loadMergedEnv();
+  const smokePassword = secrets.REQAML_DEV_ACCOUNT_PASSWORD;
+  if (!smokePassword) fail("REQAML_DEV_ACCOUNT_PASSWORD missing after devenv:init");
+  process.env.REQAML_DEV_ACCOUNT_PASSWORD = smokePassword;
+  process.env.REQAML_MFA_DEV_SECRET = secrets.REQAML_MFA_DEV_SECRET;
+  process.env.REQAML_AGENT_CLIENT_SECRET = secrets.REQAML_AGENT_CLIENT_SECRET;
 
-  console.log("Starting peripherals + app (full-container)…");
-  // --wait blocks until every service is healthy and exits non-zero if any becomes unhealthy/exits.
-  await run("docker", ["compose", "up", "--build", "-d", "--wait", "--wait-timeout", "300"]);
+  const hostDsn =
+    secrets.DATABASE_URL ??
+    `postgresql://${secrets.POSTGRES_USER ?? "reqaml"}:${secrets.POSTGRES_PASSWORD}@127.0.0.1:5432/${secrets.POSTGRES_DB ?? "reqaml"}`;
+
+  console.log("Starting peripherals + app (full-container, hostports for migrate)…");
+  await run("docker", [
+    "compose",
+    ...composeBase,
+    "up",
+    "--build",
+    "-d",
+    "--wait",
+    "--wait-timeout",
+    "300",
+  ]);
 
   const health = await getJson("/health");
   if (health.status !== 200 || health.body.status !== "ok") fail("/health not ok", health);
@@ -158,6 +156,11 @@ async function main() {
   ) {
     fail("Seed summary unexpected", summary1);
   }
+
+  console.log("\nEnrolling privileged dev MFA (sam-security) for smoke…");
+  await run("pnpm", ["--silent", "devenv:mfa", "sam-security", "--quiet"], {
+    env: { ...secrets, DATABASE_URL: hostDsn },
+  });
 
   console.log("\nRe-running migrate + seed (idempotency)…");
   const env = { DATABASE_URL: hostDsn };
@@ -185,8 +188,9 @@ async function main() {
     }
   }
 
-  // FIX-ALLOW-DEVENV-MIN-CONTAINERS: count *all* project containers, not just the expected names.
-  const psOut = (await run("docker", ["compose", "ps", "-a", "--format", "json"], { quiet: true })).stdout;
+  const psOut = (
+    await run("docker", ["compose", ...composeBase, "ps", "-a", "--format", "json"], { quiet: true })
+  ).stdout;
   const containers = psOut
     .trim()
     .split("\n")
@@ -213,10 +217,18 @@ async function main() {
   const prodApp = await run(
     "docker",
     [
-      "compose", "run", "--rm", "--no-deps", "-T",
-      "-e", "REQAML_MODE=production",
-      "-e", "REQAML_SEED_ON_START=false",
-      "-e", "REQAML_DEV_ACCOUNT_PASSWORD=",
+      "compose",
+      ...composeBase,
+      "run",
+      "--rm",
+      "--no-deps",
+      "-T",
+      "-e",
+      "REQAML_MODE=production",
+      "-e",
+      "REQAML_SEED_ON_START=false",
+      "-e",
+      "REQAML_DEV_ACCOUNT_PASSWORD=",
       "app",
     ],
     { quiet: true, allowFail: true },
@@ -231,9 +243,14 @@ async function main() {
     fail("App started (or failed for the wrong reason) in production mode with dev accounts/keys", prodApp);
   }
 
-  console.log("\nAuth flow smoke (PKCE login, refresh/reuse, revoke, lockout, RBAC deny)…");
+  console.log("\nAuth flow smoke (PKCE login, refresh/reuse, revoke, lockout, RBAC deny, MFA, agent token)…");
   const { runAuthFlowSmoke } = await import("./auth-flow-smoke.mjs");
-  const authSmoke = await runAuthFlowSmoke(smokePassword);
+  const authSmoke = await runAuthFlowSmoke(smokePassword, {
+    mfaDevSecret: secrets.REQAML_MFA_DEV_SECRET,
+    agentClientSecret: secrets.REQAML_AGENT_CLIENT_SECRET,
+  });
+  if (!authSmoke.privileged_mfa_login) fail("privileged MFA login did not run");
+  if (!authSmoke.agent_client_credentials) fail("agent client_credentials did not run");
 
   console.log(
     "\n" +
@@ -253,7 +270,7 @@ async function main() {
   );
 
   if (process.env.REQAML_SMOKE_DOWN === "1") {
-    await run("docker", ["compose", "down", "-v"]);
+    await run("docker", ["compose", ...composeBase, "down", "-v"]);
   }
 }
 

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import type pg from "pg";
 import type { AppConfig } from "../config.js";
@@ -14,11 +15,33 @@ import {
   authenticateLocalUser,
   createAuthorizationCode,
   exchangeAuthorizationCode,
+  mintAccessFromRefreshPlain,
+  needsMfaEnrollment,
   refreshAccessToken,
   revokeToken,
   validateAuthorizeRequest,
   verifyMfaForLogin,
 } from "./oauth-service.js";
+import {
+  createLoginHandoff,
+  deleteLoginHandoff,
+  handoffFromValidated,
+  loadLoginHandoff,
+} from "./handoff.js";
+import { confirmMfaEnrollment, startMfaEnrollment } from "./mfa-enroll.js";
+import { issueClientCredentialsToken } from "./agent-auth.js";
+import {
+  assertCsrf,
+  clearSessionCookies,
+  createWebSession,
+  loadWebSession,
+  revokeWebSession,
+  setSessionCookies,
+  SESSION_COOKIE,
+  verifySessionCookie,
+} from "./web-session.js";
+import { randomToken } from "../credential/password.js";
+import { reserveLoginAttempt } from "../credential/lockout.js";
 import type { AuthProfile } from "./profile.js";
 import { localLoginAllowed } from "./profile.js";
 
@@ -57,7 +80,7 @@ export async function registerAuthRoutes(
       revocation_endpoint: `${iss}/oauth/revoke`,
       jwks_uri: `${iss}/oauth/jwks`,
       response_types_supported: ["code"],
-      grant_types_supported: ["authorization_code", "refresh_token"],
+      grant_types_supported: ["authorization_code", "refresh_token", "client_credentials"],
       code_challenge_methods_supported: ["S256"],
       token_endpoint_auth_methods_supported: ["none", "client_secret_post"],
       scopes_supported: ["openid", "profile"],
@@ -89,6 +112,43 @@ export async function registerAuthRoutes(
     return reply.send(await getPublicJwks(pool));
   });
 
+  app.get("/oauth/web/start", async (req, reply) => {
+    const host = hostFromRequest(req, config);
+    const iss = issuerUrl(config, host);
+    const verifier = randomToken(48);
+    const challenge = createHash("sha256")
+      .update(verifier)
+      .digest("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+    const state = randomToken(16);
+    const redirectUri = `${iss}/oauth/web/callback`;
+    const resource = apiResource(config, host).canonicalUri;
+    const handoffId = await createLoginHandoff(pool, {
+      clientId: "reqaml-web",
+      redirectUri,
+      codeChallenge: challenge,
+      codeChallengeMethod: "S256",
+      resource,
+      scope: "openid profile",
+      state,
+      codeVerifier: verifier,
+    });
+    const q = new URLSearchParams({
+      response_type: "code",
+      client_id: "reqaml-web",
+      redirect_uri: redirectUri,
+      scope: "openid profile",
+      state,
+      code_challenge: challenge,
+      code_challenge_method: "S256",
+      resource,
+      handoff: handoffId,
+    });
+    return reply.redirect(`/oauth/authorize?${q}`);
+  });
+
   app.get("/oauth/authorize", async (req, reply) => {
     const host = hostFromRequest(req, config);
     const iss = issuerUrl(config, host);
@@ -106,19 +166,28 @@ export async function registerAuthRoutes(
         error_description: validated.errorDescription,
       });
     }
-    const pending = Buffer.from(
-      JSON.stringify({
-        clientId: validated.client.clientId,
-        redirectUri: validated.redirectUri,
-        codeChallenge: validated.codeChallenge,
-        codeChallengeMethod: "S256",
-        resource: validated.resource.canonicalUri,
-        scope: validated.scope,
-        state: validated.state,
-      }),
-    ).toString("base64url");
-    const loginUrl = `/login?pending=${pending}&state=${encodeURIComponent(validated.state ?? "")}`;
-    return reply.redirect(loginUrl);
+    let handoffId = params.handoff;
+    if (!handoffId) {
+      handoffId = await createLoginHandoff(
+        pool,
+        handoffFromValidated(validated, null),
+      );
+    } else {
+      const handoff = await loadLoginHandoff(pool, handoffId);
+      if (
+        !handoff ||
+        handoff.clientId !== validated.client.clientId ||
+        handoff.redirectUri !== validated.redirectUri ||
+        handoff.codeChallenge !== validated.codeChallenge ||
+        handoff.resource !== validated.resource.canonicalUri ||
+        handoff.state !== validated.state
+      ) {
+        return reply.code(400).send({ error: "invalid_request", error_description: "handoff mismatch" });
+      }
+    }
+    return reply.redirect(
+      `/login?h=${encodeURIComponent(handoffId)}&state=${encodeURIComponent(validated.state ?? "")}`,
+    );
   });
 
   app.post("/oauth/token", async (req, reply) => {
@@ -190,15 +259,57 @@ export async function registerAuthRoutes(
         iss,
       });
     }
+    if (grantType === "client_credentials") {
+      if (!body.client_id || !body.client_secret || !body.resource) {
+        return reply.code(400).send({ error: "invalid_request" });
+      }
+      const agentName = body.agent_name ?? body.agent_id;
+      if (!agentName) {
+        return reply.code(400).send({ error: "invalid_request", error_description: "agent_name required" });
+      }
+      const ttl = Math.min(Number(body.ttl_seconds ?? 3600), 86400);
+      const result = await issueClientCredentialsToken(
+        pool,
+        config,
+        keyProvider,
+        {
+          clientId: body.client_id,
+          clientSecret: body.client_secret,
+          agentName,
+          resource: body.resource,
+          issuer: iss,
+          ttlSeconds: ttl,
+          actingForIdentityId: body.acting_for,
+        },
+        ctx,
+      );
+      if ("error" in result) {
+        return reply.code(400).send({ error: result.error });
+      }
+      return reply.send({
+        access_token: result.accessToken,
+        token_type: "Bearer",
+        expires_in: result.expiresIn,
+      });
+    }
     return reply.code(400).send({ error: "unsupported_grant_type" });
   });
 
   app.post("/oauth/revoke", async (req, reply) => {
+    const host = hostFromRequest(req, config);
     const body = req.body as Record<string, string | undefined>;
     if (!body.token) {
       return reply.code(400).send({ error: "invalid_request" });
     }
-    await revokeToken(pool, body.token, body.token_type_hint, requestContext(req));
+    await revokeToken(
+      pool,
+      config,
+      keyProvider,
+      body.token,
+      body.token_type_hint,
+      requestContext(req),
+      host,
+    );
     return reply.code(200).send({});
   });
 
@@ -221,46 +332,19 @@ export async function registerAuthRoutes(
     const body = req.body as {
       username?: string;
       password?: string;
-      pending?: string;
+      h?: string;
+      handoff?: string;
       mfa_code?: string;
+      enrollment_ticket?: string;
+      csrf_token?: string;
     };
-    if (!body.username || !body.password || !body.pending) {
+    const handoffId = body.h ?? body.handoff;
+    if (!body.username || !body.password || !handoffId) {
       return reply.code(400).send({ error: "invalid_request" });
     }
-    // The pending handoff comes back from the browser, so it is untrusted: re-run the authorize
-    // checks (registered client, exact redirect_uri, allowed resource, S256) before issuing a code.
-    let pending: {
-      clientId: string;
-      redirectUri: string;
-      codeChallenge: string;
-      resource: string;
-      scope?: string;
-      state?: string;
-    };
-    try {
-      pending = JSON.parse(Buffer.from(body.pending, "base64url").toString("utf8"));
-    } catch {
-      return reply.code(400).send({ error: "invalid_request" });
-    }
-    const host = hostFromRequest(req, config);
-    const revalidated = await validateAuthorizeRequest(
-      pool,
-      config,
-      {
-        response_type: "code",
-        client_id: pending?.clientId,
-        redirect_uri: pending?.redirectUri,
-        code_challenge: pending?.codeChallenge,
-        code_challenge_method: "S256",
-        resource: pending?.resource,
-        scope: pending?.scope,
-        state: pending?.state,
-      },
-      issuerUrl(config, host),
-      host,
-    );
-    if (!revalidated.ok) {
-      return reply.code(400).send({ error: revalidated.error });
+    const handoff = await loadLoginHandoff(pool, handoffId);
+    if (!handoff) {
+      return reply.code(400).send({ error: "invalid_request", error_description: "handoff expired" });
     }
     const auth = await authenticateLocalUser(
       pool,
@@ -274,7 +358,36 @@ export async function registerAuthRoutes(
       return reply.code(status).send({ error: auth.error });
     }
     let mfaVerified = !auth.needsMfa;
-    if (auth.needsMfa) {
+    if (await needsMfaEnrollment(pool, auth.identityId)) {
+      if (!body.enrollment_ticket) {
+        const enroll = await startMfaEnrollment(
+          pool,
+          keyProvider,
+          auth.identityId,
+          `${body.username}`,
+        );
+        return reply.send({
+          status: "mfa_enrollment_required",
+          enrollment_ticket: enroll.ticketId,
+          otpauth_uri: enroll.otpauthUri,
+        });
+      }
+      if (!body.mfa_code) {
+        return reply.code(400).send({ error: "invalid_request" });
+      }
+      const confirmed = await confirmMfaEnrollment(
+        pool,
+        keyProvider,
+        body.enrollment_ticket,
+        body.mfa_code,
+      );
+      if (!confirmed.ok || confirmed.identityId !== auth.identityId) {
+        await reserveLoginAttempt(pool, auth.identityId);
+        return reply.code(401).send({ error: "invalid_mfa" });
+      }
+      await clearLoginFailures(pool, auth.identityId);
+      mfaVerified = true;
+    } else if (auth.needsMfa) {
       if (!body.mfa_code) {
         return reply.send({ status: "mfa_required", identity_id: auth.identityId });
       }
@@ -285,6 +398,7 @@ export async function registerAuthRoutes(
         body.mfa_code,
       );
       if (!mfaVerified) {
+        await reserveLoginAttempt(pool, auth.identityId);
         await writeAuthAudit(pool, {
           eventType: "mfa.verify",
           outcome: "failure",
@@ -302,24 +416,96 @@ export async function registerAuthRoutes(
       });
     }
     const code = await createAuthorizationCode(pool, {
-      clientId: revalidated.client.clientId,
+      clientId: handoff.clientId,
       identityId: auth.identityId,
-      redirectUri: revalidated.redirectUri,
-      codeChallenge: revalidated.codeChallenge,
+      redirectUri: handoff.redirectUri,
+      codeChallenge: handoff.codeChallenge,
       codeChallengeMethod: "S256",
-      resource: revalidated.resource.canonicalUri,
-      scope: revalidated.scope,
-      state: revalidated.state,
+      resource: handoff.resource,
+      scope: handoff.scope,
+      state: handoff.state,
       mfaVerified,
     });
-    const redirect = new URL(revalidated.redirectUri);
+    await deleteLoginHandoff(pool, handoffId);
+    const host = hostFromRequest(req, config);
+    const iss = issuerUrl(config, host);
+    if (handoff.redirectUri.endsWith("/oauth/web/callback")) {
+      const exchange = await exchangeAuthorizationCode(
+        pool,
+        config,
+        keyProvider,
+        {
+          code,
+          clientId: handoff.clientId,
+          redirectUri: handoff.redirectUri,
+          codeVerifier: handoff.codeVerifier ?? "",
+          resource: handoff.resource,
+          issuer: iss,
+        },
+        requestContext(req),
+      );
+      if (!exchange.ok) {
+        return reply.code(400).send({ error: exchange.error });
+      }
+      const session = await createWebSession(pool, keyProvider, {
+        identityId: auth.identityId,
+        refreshToken: exchange.refreshToken,
+        mfaVerified,
+      });
+      setSessionCookies(reply, config, session.sessionId, session.csrfToken);
+      return reply.send({ redirect: "/app", csrf_token: session.csrfToken });
+    }
+    const redirect = new URL(handoff.redirectUri);
     redirect.searchParams.set("code", code);
-    redirect.searchParams.set("state", revalidated.state ?? "");
-    redirect.searchParams.set("iss", issuerUrl(config, hostFromRequest(req, config)));
+    redirect.searchParams.set("state", handoff.state);
+    redirect.searchParams.set("iss", iss);
     return reply.send({ redirect: redirect.toString() });
   });
 
-  app.get("/api/v1/auth/upstream/connectors", async (_req, reply) => {
+  app.get("/oauth/web/callback", async (req, reply) => {
+    return reply.redirect("/login");
+  });
+
+  app.get("/api/v1/auth/session", async (req, reply) => {
+    const sessionRaw = req.cookies?.[SESSION_COOKIE];
+    const sessionId = verifySessionCookie(sessionRaw, config);
+    if (!sessionId) return reply.send({ authenticated: false });
+    const session = await loadWebSession(pool, sessionId);
+    if (!session) return reply.send({ authenticated: false });
+    return reply.send({ authenticated: true, identity_id: session.identityId });
+  });
+
+  app.post("/api/v1/auth/signout", async (req, reply) => {
+    const sessionRaw = req.cookies?.[SESSION_COOKIE];
+    const sessionId = verifySessionCookie(sessionRaw, config);
+    if (sessionId) {
+      const session = await loadWebSession(pool, sessionId);
+      if (session && assertCsrf(req, session.csrfToken)) {
+        const refresh = (
+          await keyProvider.unwrapSecret(session.refreshTokenCiphertext, "web-session")
+        ).toString("utf8");
+        await revokeToken(
+          pool,
+          config,
+          keyProvider,
+          refresh,
+          "refresh_token",
+          requestContext(req),
+          hostFromRequest(req, config),
+        );
+      }
+      await revokeWebSession(pool, sessionId);
+    }
+    clearSessionCookies(reply);
+    return reply.send({ ok: true });
+  });
+
+  app.get("/api/v1/auth/upstream/connectors", async (req, reply) => {
+    const { resolveRequestAuth } = await import("./request-auth.js");
+    const auth = await resolveRequestAuth(req, pool, config, keyProvider);
+    if (!auth) {
+      return reply.code(401).send({ error: "unauthorized" });
+    }
     const r = await pool.query(
       `SELECT id, client_id, protocol, issuer, enabled FROM upstream_connectors ORDER BY id`,
     );

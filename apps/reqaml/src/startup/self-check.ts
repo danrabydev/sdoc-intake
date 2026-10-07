@@ -11,6 +11,15 @@ export async function runStartupSelfCheck(
   const errors: string[] = [];
 
   if (isProduction(config)) {
+    const issuer = process.env.REQAML_ISSUER_URL?.trim();
+    if (!issuer) {
+      errors.push("REQAML_ISSUER_URL must be set in production");
+    } else if (!issuer.startsWith("https://")) {
+      errors.push("REQAML_ISSUER_URL must use https in production");
+    }
+    if (!process.env.REQAML_SESSION_SECRET?.trim()) {
+      errors.push("REQAML_SESSION_SECRET must be set in production");
+    }
     if (config.REQAML_SEED_ON_START) {
       errors.push("REQAML_SEED_ON_START must be off in production");
     }

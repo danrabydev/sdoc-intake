@@ -11,15 +11,35 @@ pnpm workspace for **ReqAML** (requirements / ALM) and the **SDoc Intake** edito
 
 Design source of truth: `docs/design/seed/dogfood.yaml` and `docs/design/c4/ARCHITECTURE.md`.
 
-## Quick start — ReqAML dev (ARCH-DEVENV-CLONE)
+## DEV-SETUP (ReqAML local)
 
-**Prerequisites:** Node 22+, pnpm 10+, Docker with Compose v2.
+**Prerequisites:** Node 22+, pnpm 10+, Docker Compose v2.
 
 ```sh
-git clone <repo-url> reqaml && cd reqaml
+git clone <repo-url> sdoc-intake && cd sdoc-intake
 pnpm install
-cp .env.example .env
+pnpm devenv:init          # random secrets → .reqaml/devenv.env + .env (printed once)
+docker compose up --build # app listens on 127.0.0.1:3000 only
 ```
+
+1. Open **http://127.0.0.1:3000/login** (or `http://localhost:3000/login`).
+2. Sign in as `<identity-id>@dev.local` using the dev password from `devenv:init`.
+3. **Privileged roles (Security, AO, etc.)** must enroll MFA: use the first-login enrollment screen, or run  
+   `pnpm devenv:mfa sam-security` (uses `REQAML_MFA_DEV_SECRET` from devenv for non-interactive dev enroll).
+4. **Coding agents** (Cursor Cloud, etc.): run  
+   `pnpm devenv:agent-token --agent cursor-cloud --role Developer [--ttl 3600] [--acting-for dan]`  
+   Export `REQAML_AGENT_CLIENT_SECRET` comes from `devenv:init`. Tokens are OAuth **client_credentials** on `reqaml-agent-dev` (short TTL, revocable like any access token). Mutations audit `agent_name` / acting-for when present.
+
+**Hybrid hot reload** (app on the host): expose Postgres/OpenBao on the loopback only:
+
+```sh
+docker compose -f docker-compose.yml -f docker-compose.hostports.yml up peripherals -d
+pnpm dev:reqaml
+```
+
+**Production issuer:** set `REQAML_ISSUER_URL` to the public HTTPS origin (startup self-check requires it in production). Terminate TLS at your reverse proxy; leave `REQAML_TRUST_PROXY=false` unless the proxy sets trusted `X-Forwarded-*` headers.
+
+**Signing (R1):** JWT signing uses Transit-**wrapped** ES256 keys in the app process. FIPS-validated modules and OpenBao Transit-**sign** (private key never leaves HSM) are documented follow-ups in the seed (`CAP-KEY-ENVELOPE`).
 
 ### Full-container mode (2 containers)
 
@@ -29,24 +49,17 @@ Runs the **app** and **peripherals** (Postgres + OpenBao) images from the root `
 docker compose up --build
 ```
 
-Open **http://localhost:3000** (web placeholder). Probes: `/health`, `/ready`, `/docs` (OpenAPI UI), `/api/v1/seed/summary`.
+Open **http://127.0.0.1:3000**. Probes: `/health`, `/ready`, `/docs` (OpenAPI UI), `/api/v1/seed/summary`.
 
 **Liveness vs readiness:** `/health` only confirms the app process is up (Compose liveness). `/ready` live-checks Postgres, pending migrations, OpenBao (unsealed + Transit KEK encrypt/decrypt), and each enabled role; it returns **503** when a dependency is down (Compose readiness). Startup waits for peripherals with backoff so the app container does not crash-loop while OpenBao unseals.
 
 First start applies migrations and loads the dogfood seed (`REQAML_SEED_ON_START=true`). OpenBao initializes Transit with a **dev-marked** mount and KEK (`reqaml-kek`); unseal key and root token are stored in the `reqaml-secrets` volume (never committed).
 
-Seeded dev local accounts are `<identity-id>@dev.local`. Their password comes from `REQAML_DEV_ACCOUNT_PASSWORD` in your `.env`; if it is empty, the first seed generates one and prints it once (`docker compose logs app | grep "reqaml seed"`). No default credential is committed.
+Seeded dev local accounts are `<identity-id>@dev.local`. Passwords come from `pnpm devenv:init` (`REQAML_DEV_ACCOUNT_PASSWORD` in `.env`). No default credential is committed.
 
 ### Hybrid mode (hot reload)
 
-Peripherals only in Docker; app runs natively:
-
-```sh
-docker compose up peripherals -d
-pnpm dev:reqaml
-```
-
-Same `.env` DSN (`DATABASE_URL=postgresql://reqaml:reqaml@127.0.0.1:5432/reqaml`) and `OPENBAO_ADDR=http://127.0.0.1:8200`. `pnpm dev:reqaml` loads the root `.env` and, when `OPENBAO_TOKEN` is empty, reads the dev OpenBao root token from the running peripherals container (`reqaml-secrets` volume) and passes it to the app process only — nothing is written to disk. Stop the app container first (`docker compose stop app`) if you switch from full-container mode, since both use port 3000.
+See **DEV-SETUP** above (`docker-compose.hostports.yml`). `pnpm dev:reqaml` loads root `.env` and, when `OPENBAO_TOKEN` is empty, reads the dev OpenBao root token from the running peripherals container. Stop the app container first (`docker compose stop app`) if you switch from full-container mode.
 
 ### One-shot migrate / seed
 

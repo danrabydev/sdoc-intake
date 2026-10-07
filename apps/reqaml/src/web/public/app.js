@@ -1,53 +1,70 @@
 const params = new URLSearchParams(window.location.search);
 const path = window.location.pathname;
 
-const state = {
-  tokens: JSON.parse(sessionStorage.getItem("reqaml_tokens") || "null"),
-  pending: params.get("pending"),
-};
+function csrfToken() {
+  const match = document.cookie.match(/(?:^|; )reqaml_csrf=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
 
-function saveTokens(tokens) {
-  state.tokens = tokens;
-  sessionStorage.setItem("reqaml_tokens", JSON.stringify(tokens));
+function el(tag, props = {}, children = []) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "className") node.className = v;
+    else if (k === "text") node.textContent = v;
+    else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2).toLowerCase(), v);
+    else node.setAttribute(k, v);
+  }
+  for (const child of children) node.append(child);
+  return node;
 }
 
 async function api(path, options = {}) {
   const headers = { ...(options.headers || {}) };
-  if (state.tokens?.access_token) {
-    headers.Authorization = `Bearer ${state.tokens.access_token}`;
+  const csrf = csrfToken();
+  if (csrf && (options.method === "POST" || options.method === "DELETE")) {
+    headers["X-CSRF-Token"] = csrf;
   }
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(path, { ...options, headers, credentials: "same-origin" });
   if (res.status === 401) {
-    sessionStorage.removeItem("reqaml_tokens");
     window.location.href = "/login";
     return null;
   }
   return res;
 }
 
+async function sessionOk() {
+  const res = await fetch("/api/v1/auth/session", { credentials: "same-origin" });
+  if (!res.ok) return false;
+  const body = await res.json();
+  return body.authenticated === true;
+}
+
 function renderShell() {
-  document.body.innerHTML = `
-    <div class="shell">
-      <header class="topbar">
-        <div class="brand">ReqAML</div>
-        <nav>
-          <a href="/app">Home</a>
-          <a href="/app/requirements">Requirements</a>
-          <a href="/app/releases">Releases</a>
-        </nav>
-        <button id="signout" type="button">Sign out</button>
-      </header>
-      <aside class="sidebar">
-        <p class="muted">Client scoped view</p>
-        <strong>Acme Clinic</strong>
-        <p class="muted">Project: reqaml</p>
-      </aside>
-      <main class="content">
-        <h1>Foundation shell</h1>
-        <p>Authenticated UI frame (nav, layout, guards). Feature pages are placeholders in R1.</p>
-        <section id="me"></section>
-      </main>
-    </div>`;
+  document.body.replaceChildren();
+  const shell = el("div", { className: "shell" }, [
+    el("header", { className: "topbar" }, [
+      el("div", { className: "brand", text: "ReqAML" }),
+      el("nav", {}, [
+        el("a", { href: "/app", text: "Home" }),
+        el("a", { href: "/app/requirements", text: "Requirements" }),
+        el("a", { href: "/app/releases", text: "Releases" }),
+      ]),
+      el("button", { id: "signout", type: "button", text: "Sign out" }),
+    ]),
+    el("aside", { className: "sidebar" }, [
+      el("p", { className: "muted", text: "Client scoped view" }),
+      el("strong", { text: "Acme Clinic" }),
+      el("p", { className: "muted", text: "Project: reqaml" }),
+    ]),
+    el("main", { className: "content" }, [
+      el("h1", { text: "Foundation shell" }),
+      el("p", {
+        text: "Authenticated UI frame (nav, layout, guards). Feature pages are placeholders in R1.",
+      }),
+      el("section", { id: "me" }),
+    ]),
+  ]);
+  document.body.append(shell);
   document.getElementById("signout").addEventListener("click", signOut);
   loadMe();
 }
@@ -57,60 +74,78 @@ async function loadMe() {
   if (!res) return;
   const me = await res.json();
   const section = document.getElementById("me");
-  section.innerHTML = "<h2>Signed in</h2><pre></pre>";
-  section.querySelector("pre").textContent = JSON.stringify(me, null, 2);
+  section.replaceChildren(
+    el("h2", { text: "Signed in" }),
+    el("pre", { text: JSON.stringify(me, null, 2) }),
+  );
 }
 
 async function signOut() {
-  if (state.tokens?.refresh_token) {
-    await fetch("/oauth/revoke", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        token: state.tokens.refresh_token,
-        token_type_hint: "refresh_token",
-      }),
-    });
-  }
-  sessionStorage.removeItem("reqaml_tokens");
+  await api("/api/v1/auth/signout", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
   window.location.href = "/login";
 }
 
-function renderLogin() {
-  const pending = params.get("pending") || state.pending;
-  document.body.innerHTML = `
-    <div class="auth-card">
-      <h1>Sign in to ReqAML</h1>
-      <p class="muted">Internal OAuth authorization server (local dev account)</p>
-      <form id="login-form">
-        <label>Username <input name="username" required autocomplete="username" /></label>
-        <label>Password <input name="password" type="password" required autocomplete="current-password" /></label>
-        <label id="mfa-wrap" hidden>MFA code <input name="mfa_code" inputmode="numeric" /></label>
-        <button type="submit">Continue</button>
-      </form>
-      <p id="error" class="error" hidden></p>
-    </div>`;
-  document.getElementById("login-form").addEventListener("submit", async (e) => {
+function renderLogin(h, stateParam) {
+  document.body.replaceChildren();
+  const card = el("div", { className: "auth-card" });
+  card.append(el("h1", { text: "Sign in to ReqAML" }));
+  card.append(el("p", { className: "muted", text: "Internal OAuth authorization server (local dev account)" }));
+  const form = el("form", { id: "login-form" });
+  form.append(
+    el("label", {}, [document.createTextNode("Username "), el("input", { name: "username", required: "true", autocomplete: "username" })]),
+  );
+  form.append(
+    el("label", {}, [
+      document.createTextNode("Password "),
+      el("input", { name: "password", type: "password", required: "true", autocomplete: "current-password" }),
+    ]),
+  );
+  const mfaWrap = el("label", { id: "mfa-wrap", hidden: "true" }, [
+    document.createTextNode("MFA code "),
+    el("input", { name: "mfa_code", inputmode: "numeric" }),
+  ]);
+  form.append(mfaWrap);
+  const enrollBox = el("div", { id: "enroll-box", hidden: "true" });
+  form.append(enrollBox);
+  form.append(el("button", { type: "submit", text: "Continue" }));
+  const err = el("p", { id: "error", className: "error", hidden: "true" });
+  card.append(form, err);
+  document.body.append(card);
+
+  let enrollmentTicket = null;
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const fd = new FormData(e.target);
+    const fd = new FormData(form);
     const body = {
       username: fd.get("username"),
       password: fd.get("password"),
-      pending,
+      h,
       mfa_code: fd.get("mfa_code") || undefined,
+      enrollment_ticket: enrollmentTicket || undefined,
     };
     const res = await fetch("/api/v1/auth/local/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify(body),
     });
     const data = await res.json();
+    if (data.status === "mfa_enrollment_required") {
+      enrollmentTicket = data.enrollment_ticket;
+      enrollBox.hidden = false;
+      enrollBox.replaceChildren(
+        el("p", { className: "muted", text: "Scan this URI in your authenticator app, then enter the code:" }),
+        el("code", { text: data.otpauth_uri }),
+      );
+      mfaWrap.hidden = false;
+      return;
+    }
     if (data.status === "mfa_required") {
-      document.getElementById("mfa-wrap").hidden = false;
+      mfaWrap.hidden = false;
       return;
     }
     if (!res.ok) {
-      const err = document.getElementById("error");
       err.hidden = false;
       err.textContent = data.error || "Sign-in failed";
       return;
@@ -121,78 +156,20 @@ function renderLogin() {
   });
 }
 
-async function handleOAuthCallback() {
-  const code = params.get("code");
-  const verifier = sessionStorage.getItem("pkce_verifier");
-  const expectedState = sessionStorage.getItem("oauth_state");
-  sessionStorage.removeItem("oauth_state");
-  if (!code || !verifier || !expectedState || params.get("state") !== expectedState) {
-    window.location.href = "/login";
-    return;
-  }
-  const resource = `${window.location.origin}/api`;
-  const body = new URLSearchParams({
-    grant_type: "authorization_code",
-    code,
-    client_id: "reqaml-web",
-    redirect_uri: `${window.location.origin}/oauth/callback`,
-    code_verifier: verifier,
-    resource,
-  });
-  const res = await fetch("/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
-  const tokens = await res.json();
-  if (!res.ok) {
-    document.body.innerHTML = `<p>Token exchange failed: ${tokens.error}</p>`;
-    return;
-  }
-  saveTokens(tokens);
-  sessionStorage.removeItem("pkce_verifier");
-  window.location.href = "/app";
-}
-
-function startPkceLogin() {
-  const verifier = crypto.randomUUID() + crypto.randomUUID();
-  const oauthState = crypto.randomUUID();
-  sessionStorage.setItem("pkce_verifier", verifier);
-  sessionStorage.setItem("oauth_state", oauthState);
-  const digest = crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)).then((buf) => {
-    const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
-    const q = new URLSearchParams({
-      response_type: "code",
-      client_id: "reqaml-web",
-      redirect_uri: `${window.location.origin}/oauth/callback`,
-      scope: "openid profile",
-      state: oauthState,
-      code_challenge: b64,
-      code_challenge_method: "S256",
-      resource: `${window.location.origin}/api`,
-    });
-    window.location.href = `/oauth/authorize?${q}`;
-  });
-  void digest;
-}
-
-if (path === "/oauth/callback") {
-  handleOAuthCallback();
-} else if (path === "/login" || path.startsWith("/login")) {
-  if (!params.get("pending")) {
-    startPkceLogin();
+if (path === "/login" || path.startsWith("/login")) {
+  const h = params.get("h");
+  if (!h) {
+    window.location.href = "/oauth/web/start";
   } else {
-    renderLogin();
+    renderLogin(h, params.get("state"));
   }
 } else if (path.startsWith("/app")) {
-  if (!state.tokens?.access_token) {
-    window.location.href = "/login";
-  } else {
-    renderShell();
-  }
+  sessionOk().then((ok) => {
+    if (!ok) window.location.href = "/login";
+    else renderShell();
+  });
 } else if (path === "/") {
-  window.location.href = state.tokens?.access_token ? "/app" : "/login";
+  sessionOk().then((ok) => {
+    window.location.href = ok ? "/app" : "/login";
+  });
 }

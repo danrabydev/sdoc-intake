@@ -1,4 +1,5 @@
 import type { AppConfig } from "../config.js";
+import { isProduction } from "../config.js";
 
 export type OAuthResource = {
   id: string;
@@ -7,10 +8,15 @@ export type OAuthResource = {
 };
 
 export function issuerUrl(config: AppConfig, reqHost?: string): string {
-  const explicit = process.env.REQAML_ISSUER_URL;
+  const explicit = process.env.REQAML_ISSUER_URL?.trim();
   if (explicit) return explicit.replace(/\/$/, "");
-  const host = reqHost ?? `127.0.0.1:${config.REQAML_PORT}`;
-  return `http://${host}`;
+  if (isProduction(config)) {
+    throw new Error("REQAML_ISSUER_URL is required in production");
+  }
+  if (reqHost) {
+    return `http://${reqHost.replace(/\/$/, "")}`;
+  }
+  return `http://localhost:${config.REQAML_PORT}`;
 }
 
 export function apiResource(config: AppConfig, reqHost?: string): OAuthResource {

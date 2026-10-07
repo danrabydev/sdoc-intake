@@ -847,7 +847,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: AC-3 enforcement. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass.
+security.verification_note: AC-3 enforcement. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.
 edge: ← uses from MC03
 edge: ← uses from FIX-DENY-READER-GRANT
 edge: ← uses from FIX-DENY-MCP-ESCALATE
@@ -949,6 +949,7 @@ edge: ← refines from ARCH-AUTH-LOCAL.1
 edge: ← refines from ARCH-AUTH-PROFILE
 edge: ← refines from ARCH-AUTH-MCP-REQUIRED
 edge: ← satisfies from CAP-OAUTH-AS
+edge: ← satisfies from CAP-AUTH-HARDEN
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1280,7 +1281,7 @@ edge: ← refines from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← refines from ARCH-AUTH-CLAIM-MAP
 edge: ← refines from ARCH-AUTH-UPSTREAM-REVOKE
 edge: ← uses from FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222400 (pin imprint=asd-stig@v6r4)
@@ -1329,7 +1330,7 @@ RELATIONS:
   VALUE: V-222522
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [[SECTION]]
@@ -1355,6 +1356,7 @@ security.verification_note: IA-8 non-organizational users / federation; AC-3 ten
 edge: ← uses from ARCH-AUTH-CLAIM-MAP
 edge: ← uses from FIX-DENY-CROSS-TENANT-CONNECTOR
 edge: ← satisfies from CAP-AUTH-UPSTREAM-SEAM
+delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1410,6 +1412,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222560
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
 
 [REQUIREMENT]
 UID: ARCH-AUTH-CLAIM-MAP
@@ -1427,7 +1432,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-2
 security.verification_note: AC-2 account management; AC-6 least privilege; AU-2.
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1460,7 +1465,7 @@ RELATIONS:
   VALUE: AU-2
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [REQUIREMENT]
@@ -1480,7 +1485,7 @@ iteration: iter-r1
 security.catalog_ref: AC-12
 security.verification_note: AC-12 session termination; AC-2(3); ASD V-222549 / V-222391.
 edge: ← uses from FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1518,7 +1523,7 @@ RELATIONS:
   VALUE: V-222391
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [[/SECTION]]
@@ -1661,7 +1666,7 @@ iteration: iter-r1
 security.catalog_ref: AC-2.2
 security.verification_note: AC-2(2) emergency accounts; IA-2(1) MFA; AU-2; ASD V-222410 / V-222523.
 edge: ← uses from FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-2.2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1710,7 +1715,7 @@ RELATIONS:
   VALUE: V-222390
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [[/SECTION]]
@@ -1853,6 +1858,7 @@ iteration: iter-r1
 security.catalog_ref: AU-3
 security.verification_note: AU-3 content of audit records; AU-10 non-repudiation; ASD V-222438.
 edge: ← uses from FIX-ALLOW-AGENT-ATTRIBUTION
+edge: ← satisfies from CAP-AGENT-ACCESS
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1910,7 +1916,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
-security.verification_note: IA-2 / SC-23 OAuth beds. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass.
+security.verification_note: IA-2 / SC-23 OAuth beds. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -1977,6 +1983,102 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: IA-8
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-MFA-ENROLL
+STATUS: Active
+TITLE: TOTP MFA enrollment (UI + devenv:mfa CLI)
+STATEMENT: >>>
+Privileged roles require MFA in all modes. First login can return `mfa_enrollment_required` with otpauth URI; `pnpm devenv:mfa <identity-id>` enrolls dev users (or prints QR/URI). TOTP secrets are envelope-encrypted; replay within the TOTP window is rejected.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-MFA-ENROLL
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: IA-2 MFA enrollment. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.
+delivered_by_release: R1 — foundation shell + internal auth
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: ARCH-CRED-MFA
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-AGENT-ACCESS
+STATUS: Active
+TITLE: Dev agent OAuth client_credentials tokens
+STATEMENT: >>>
+`pnpm devenv:agent-token --agent <name> --role <role>` mints short-lived audience-bound tokens via registered `reqaml-agent-dev` client_credentials (not a backdoor password). Agent name and optional acting-for are recorded on token issue and RBAC mutation audit.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-AGENT-ACCESS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: IA-2 agent attribution. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.
+delivered_by_release: R1 — foundation shell + internal auth
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AGENT-ATTRIBUTION
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-AUTH-HARDEN
+STATUS: Active
+TITLE: Auth hardening: handoffs, BFF session, throttle, prod issuer
+STATEMENT: >>>
+Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF, per-IP throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default, auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, JWT signature verify before access-token revocation, normalized usernames.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-AUTH-HARDEN
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: SC-23
+security.verification_note: SC-23 session/OAuth hardening. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.
+delivered_by_release: R1 — foundation shell + internal auth
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CRED-LOCKOUT
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: SC-23
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
@@ -7648,7 +7750,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AU-2
-security.verification_note: AU-2 / AU-3 / AU-12. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.
+security.verification_note: AU-2 / AU-3 / AU-12. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8068,7 +8170,7 @@ UID: CAP-UI-FRAME
 STATUS: Active
 TITLE: UI frame: app shell, layout, guarded routes
 STATEMENT: >>>
-The Web UI frame served by the web role: top navigation, client-scoped sidebar chrome, and route guards that send unauthenticated users to the internal-AS sign-in flow and keep `/app/*` behind a valid API-audience access token (sessionStorage). Sign-out revokes refresh tokens via RFC 7009. Acceptance: unauthenticated `/app` redirects to login; authenticated shell renders `/api/v1/me` grants.
+The Web UI frame served by the web role: top navigation, client-scoped sidebar chrome, and route guards that send unauthenticated users to the internal-AS sign-in flow and keep `/app/*` behind a valid API-audience session via HttpOnly SameSite=Lax cookies (BFF) with CSRF on sign-out; API clients use bearer tokens. Sign-out revokes refresh tokens via RFC 7009. Acceptance: unauthenticated `/app` redirects to login; authenticated shell renders `/api/v1/me` grants.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -8077,7 +8179,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: AC-3 guard enforcement. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.
+security.verification_note: AC-3 guard enforcement. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8313,7 +8415,7 @@ security.verification_note: Architecture enforces AC-3 via adapters/guards/layer
 edge: ← uses from ARCH-API
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
@@ -8329,7 +8431,7 @@ RELATIONS:
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [[/SECTION]]
@@ -8708,6 +8810,7 @@ security.catalog_ref: AC-7
 security.verification_note: AC-7 unsuccessful logon attempts; ASD V-222432 / V-222433 / V-222462.
 edge: ← uses from FIX-DENY-LOCKOUT
 edge: ← satisfies from CAP-CRED-STORE
+edge: ← satisfies from CAP-AUTH-HARDEN
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222432 (pin imprint=asd-stig@v6r4)
@@ -8761,6 +8864,7 @@ edge: ← uses from FIX-DENY-PRIV-NO-MFA
 edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← uses from FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
 edge: ← satisfies from CAP-CRED-STORE
+edge: ← satisfies from CAP-MFA-ENROLL
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222523 (pin imprint=asd-stig@v6r4)
@@ -8857,7 +8961,7 @@ edge: ← uses from FIX-DENY-SESSION-IDLE
 edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← uses from ARCH-AUTH-UPSTREAM-REVOKE
 edge: ← satisfies from CAP-CRED-STORE
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2.5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8932,7 +9036,7 @@ RELATIONS:
   VALUE: V-222583
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [REQUIREMENT]
@@ -8954,7 +9058,7 @@ security.verification_note: IA-11 re-authentication; ASD V-222520.
 edge: ← uses from FIX-DENY-STEPUP-STALE-AUTH
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← satisfies from CAP-CRED-STORE
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to IA-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222520 (pin imprint=asd-stig@v6r4)
 <<<
@@ -8989,7 +9093,7 @@ RELATIONS:
   VALUE: V-222520
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [REQUIREMENT]
@@ -9336,7 +9440,7 @@ security.verification_note: AC-5 separation of duties; AC-6 least privilege.
 edge: ← uses from ARCH-KEY-LIFECYCLE
 edge: ← uses from ARCH-KEY-BREAKGLASS
 edge: ← uses from FIX-DENY-KEYOP-NO-CUSTODIAN
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -9359,7 +9463,7 @@ RELATIONS:
   VALUE: AC-6
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [REQUIREMENT]
@@ -9379,7 +9483,7 @@ iteration: iter-r1
 security.catalog_ref: SC-12.1
 security.verification_note: SC-12(1) key availability; AC-5 dual control.
 edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to SC-12.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -9399,7 +9503,7 @@ RELATIONS:
   VALUE: AC-5
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [REQUIREMENT]
@@ -9419,7 +9523,7 @@ security.catalog_ref: SC-13
 security.verification_note: SC-13 cryptographic protection; ASD V-222570 / V-222571 / V-222572 / V-222583.
 edge: ← uses from ARCH-CRED-HASH
 edge: ← uses from ARCH-AUTH-PROFILE
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to SC-13 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222570 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222571 (pin imprint=asd-stig@v6r4)
@@ -9448,7 +9552,7 @@ RELATIONS:
   VALUE: V-222583
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [REQUIREMENT]
@@ -9502,7 +9606,7 @@ UID: CAP-CRED-STORE
 STATUS: Active
 TITLE: Credential store: Argon2id, lockout, MFA, hashed tokens
 STATEMENT: >>>
-Local credentials use Argon2id password hashes (legacy dev SHA-256 re-hashed on login), throttling/lockout after repeated failures, TOTP MFA for privileged roles (wrapped MFA secrets via KeyProvider), server-side refresh token hashes, and lockout audit events. Acceptance: auth-flow-smoke lockout bed; privileged MFA gate on token exchange when MFA not verified.
+Local credentials use Argon2id password hashes (legacy dev SHA-256 re-hashed on login), throttling/lockout after repeated failures, TOTP MFA for privileged roles (wrapped MFA secrets via KeyProvider), server-side refresh token hashes, and lockout audit events. Acceptance: auth-flow-smoke lockout bed; privileged MFA login (sam-security) after `pnpm devenv:mfa` or first-login enrollment.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -9511,7 +9615,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-5
-security.verification_note: IA-5 / AC-7 credential controls. Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; stored hashes are argon2id m=19456 t=2 p=1; refresh tokens and codes stored as SHA-256 hashes; privileged login returns mfa_required and a wrong TOTP is 401. Gap: no MFA enrollment path yet, so privileged dev accounts (dan, sam-security, jamie-ao, kim-key-custodian) cannot complete login.
+security.verification_note: IA-5 / AC-7 credential controls. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass; TOTP secrets envelope-wrapped; replay of the same code within its window rejected.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -9557,7 +9661,7 @@ UID: CAP-KEY-ENVELOPE
 STATUS: Active
 TITLE: KeyProvider envelope encryption and JWKS signing keys
 STATEMENT: >>>
-OpenBao Transit wraps signing private keys and MFA secrets (envelope encryption). ES256 signing keys are published at `/oauth/jwks` with rotation support (retired keys remain during overlap window). Production startup fails closed when dev-marked OpenBao is configured (existing prod self-check). Acceptance: JWKS endpoint serves active keys; token issue uses KeyProvider-wrapped private key.
+OpenBao Transit wraps signing private keys and MFA secrets (envelope encryption). ES256 signing keys are published at `/oauth/jwks` with rotation support (retired keys remain during overlap window). Production startup fails closed when dev-marked OpenBao is configured (existing prod self-check). Acceptance: JWKS endpoint serves active keys; token issue uses KeyProvider-wrapped private key. Production follow-up: FIPS-validated modules and OpenBao Transit-sign (signing in HSM) — R1 uses Transit-wrapped extractable ES256 private keys in the app process.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -9566,7 +9670,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: SC-12
-security.verification_note: SC-12 / SC-28(3). Verified: local Docker run 2026-10-07 at 827fb14 (bb8e02c failed `pnpm devenv:smoke`: app crash-looped on ES256 key bootstrap; fixed 0d7700e): clean `pnpm devenv:smoke` pass incl. auth-flow-smoke (PKCE S256 login, plain PKCE 400, DCR 403, refresh rotation, reuse revokes the family, refresh and access-token revocation, tampered pending redirect refused, lockout incl. username case/whitespace variants, Reader RBAC 403, API-audience token 401 at MCP), production start refused with dev accounts/keys, compose restart with app restart count 0; `@reqaml/app` test 22/22 and typecheck pass; `/oauth/jwks` serves the Transit-wrapped ES256 key across restart. Rotation/overlap code path not exercised yet.
+security.verification_note: SC-12 / SC-28(3). Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass; `/oauth/jwks` serves Transit-wrapped ES256. FIPS/Transit-sign deferred.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -13319,7 +13423,7 @@ edge: ← refines from ARCH-DEPLOY-MINIMAL
 edge: ← refines from ARCH-DEPLOY-PERIPHERALS
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-DEVENV-COMPOSE
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → uses to ARCH-DEPLOY-MINIMAL (RELATIONS TYPE: Child; Parent would cycle)
 edge: → uses to ARCH-DEPLOY-PERIPHERALS (RELATIONS TYPE: Child; Parent would cycle)
 edge: → uses to ARCH-AUTH-AS (RELATIONS TYPE: Child; Parent would cycle)
@@ -13344,7 +13448,7 @@ RELATIONS:
   VALUE: ARCH-AUTH-AS
   ROLE: Uses
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [[SECTION]]
@@ -13686,6 +13790,7 @@ edge: ← uses from ARCH-DEVENV-CLONE
 edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN.1
 edge: ← uses from ARCH-AUTH-PROFILE
 edge: ← satisfies from CAP-PROD-SELFCHECK
+edge: ← satisfies from CAP-DEVENV-INIT
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → uses to ARCH-AUTH-LOCAL.1 (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13756,6 +13861,7 @@ security.verification_note: IA-5 authenticator protection: no secrets/authentica
 edge: ← refines from ARCH-KEY
 edge: ← uses from ARCH-KEY-PROVIDER
 edge: ← satisfies from CAP-DEVENV-COMPOSE
+edge: ← satisfies from CAP-DEVENV-INIT
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13841,7 +13947,7 @@ edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
 edge: ← uses from FIX-ALLOW-APP-ROLE-SPLIT
 edge: ← satisfies from CAP-DEVENV-DOCKERFILE-ROLES
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -13870,7 +13976,7 @@ RELATIONS:
   VALUE: CM-7
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [REQUIREMENT]
@@ -13894,7 +14000,7 @@ edge: ← uses from ARCH-DEVENV-MODES.1
 edge: ← uses from ARCH-DEVENV-PARITY.1
 edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
 edge: ← satisfies from CAP-DEVENV-PERIPHERALS
-delivered_by_release: R1 — foundation shell + internal auth
+delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to SC-28.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CP-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13918,7 +14024,7 @@ RELATIONS:
   VALUE: CP-9
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
 [REQUIREMENT]
@@ -14240,6 +14346,40 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-DEVENV-INIT
+STATUS: Active
+TITLE: Idempotent devenv:init secrets CLI
+STATEMENT: >>>
+`pnpm devenv:init` writes per-developer random secrets to gitignored `.reqaml/devenv.env` and merges root `.env` for Compose (Postgres password, dev account password, session/agent secrets). Reruns preserve values unless `--rotate`. No fixed default passwords in the repo.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-DEVENV-INIT
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-5
+security.verification_note: IA-5 dev credential hygiene. Verified: Dan local Docker 2026-10-07 through 44a727a + PR #13 follow-up: `pnpm devenv:init`, app bound 127.0.0.1, `pnpm devenv:smoke` (hostports overlay) incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, privileged sam-security MFA, agent client_credentials, upstream connectors 401 without auth, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, invalid handoff refused, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP), production refused dev accounts/keys; `@reqaml/app` test 22/22, typecheck and monorepo build pass; seed yaml_to_strictdoc --validate pass.
+delivered_by_release: R1 — foundation shell + internal auth
+edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SECRETS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-IDENTITY.1
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: IA-5
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
 [[/SECTION]]

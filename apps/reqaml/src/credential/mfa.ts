@@ -39,10 +39,35 @@ export function createTotpSecret(label: string): { secret: string; uri: string }
   return { secret: secret.base32, uri: totp.toString() };
 }
 
-export function verifyTotp(secretBase32: string, token: string): boolean {
+export function totpTimeStep(secretBase32: string, token: string): number | null {
   const totp = new TOTP({ secret: Secret.fromBase32(secretBase32) });
   const delta = totp.validate({ token, window: 1 });
-  return delta !== null;
+  if (delta === null) return null;
+  return Math.floor(Date.now() / 1000 / totp.period);
+}
+
+export function verifyTotp(secretBase32: string, token: string): boolean {
+  return totpTimeStep(secretBase32, token) !== null;
+}
+
+export async function verifyTotpNoReplay(
+  pool: pg.Pool,
+  identityId: string,
+  secretBase32: string,
+  token: string,
+): Promise<boolean> {
+  const step = totpTimeStep(secretBase32, token);
+  if (step === null) return false;
+  const ins = await pool.query(
+    `
+    INSERT INTO mfa_totp_replay (identity_id, time_step)
+    VALUES ($1, $2)
+    ON CONFLICT (identity_id, time_step) DO NOTHING
+    RETURNING identity_id
+  `,
+    [identityId, step],
+  );
+  return ins.rowCount === 1;
 }
 
 export async function storeMfaSecret(
