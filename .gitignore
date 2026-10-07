@@ -1,6 +1,8 @@
 node_modules
 dist
 release
+packages/*/dist
+packages/*/release
 .output
 .vercel
 .tanstack
@@ -21,3 +23,7 @@ package-lock.json
 # Local QA shots and research dumps (includes a StrictDoc grammar excerpt).
 screenshots
 artifacts
+
+# ReqAML local dev secrets (OpenBao init output, generated tokens)
+.reqaml/
+docker-data/

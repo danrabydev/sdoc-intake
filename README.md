@@ -1,50 +1,84 @@
-# SDoc Intake
+# ReqAML monorepo
 
-Local editor for a StrictDoc `.sdoc` tree. Change UID, title, statement, and relations in a table. Every save is validated first. Invalid SDoc is never written.
+pnpm workspace for **ReqAML** (requirements / ALM) and the **SDoc Intake** editor.
 
-There is no database and no sign-in. Documents stay as files on disk.
+| Path | Role |
+| --- | --- |
+| [`apps/reqaml`](apps/reqaml) | ReqAML platform shell — API, web placeholder, MCP stub, sync worker (roles via `REQAML_ROLES`). |
+| [`packages/intake`](packages/intake) | StrictDoc `.sdoc` editor and `sdoc-intake` CLI. |
+| [`docs/design`](docs/design) | Architecture, C4, and dogfood seed (`seed/dogfood.yaml`). |
+| [`specforge`](specforge) | Optional SpecForge Docker harness (unchanged). |
 
-## Run without cloning
+Design source of truth: `docs/design/seed/dogfood.yaml` and `docs/design/c4/ARCHITECTURE.md`.
 
-After the package is published:
+## Quick start — ReqAML dev (ARCH-DEVENV-CLONE)
 
-```sh
-npx sdoc-intake
-npx sdoc-intake ./requirements
-npx sdoc-intake ./requirements/SYS.sdoc --port 8087
-```
-
-The path is a directory of `.sdoc` files, or one `.sdoc` file. A file opens in the editor and its folder is the document root, so sibling documents stay visible. With no path, the current directory is the root. The editor listens on `http://127.0.0.1:8087`.
-
-Requires Node 22 or newer.
-
-Publish the staged, dependency-free package (this does not publish the preview app):
+**Prerequisites:** Node 22+, pnpm 10+, Docker with Compose v2.
 
 ```sh
-pnpm publish:cli
-```
-
-## Develop this repo
-
-```sh
+git clone <repo-url> reqaml && cd reqaml
 pnpm install
-pnpm dev
-pnpm build:cli
-pnpm exec sdoc-intake ./data
+cp .env.example .env
 ```
 
-`pnpm dev` reads `./data` unless `SDOC_ROOT` is set. See `.env.example`.
+### Full-container mode (2 containers)
 
-`data/` includes a fictional company, Northline. `data/catalog` is NIST SP 800-53 and the ASD STIG, with the same identifiers as the templates. `data/apps` is the enterprise that points at them: capabilities, a shared platform, the product systems, and one release train. A product requirement `Refines` a capability and `ConformsTo` a catalog id. A release `Delivers` capabilities. A shipped release stays as written. A later change is a new release.
+Runs the **app** and **peripherals** (Postgres + OpenBao) images from the root `Dockerfile`:
 
-`SDOC_STRICTDOC_BIN` is an optional second check with the StrictDoc CLI. The app does not require it. That check runs only in server mode.
+```sh
+docker compose up --build
+```
 
-## Browser folder
+Open **http://localhost:3000** (web placeholder). Probes: `/health`, `/ready`, `/docs` (OpenAPI UI), `/api/v1/seed/summary`.
 
-Host `dist/client/sdoc-intake.html` from `pnpm build:cli` as a static site, with no API and no other files. If `/api/health` does not answer, the page uses a folder on the visitor's computer (Chrome or Edge). Open it over http or https. A `file://` page cannot ask for a folder. The header flag switches **Server** and **This computer**. `?mode=browser` or `?mode=server` forces one, and the choice is remembered in that browser.
+First start applies migrations and loads the dogfood seed (`REQAML_SEED_ON_START=true`). OpenBao initializes Transit with a **dev-marked** KEK (`reqaml-kek`); root token is stored in the `reqaml-secrets` volume (never committed).
 
-Invalid SDoc is still refused before a write. The page can only see the folder the visitor picked.
+### Hybrid mode (hot reload)
 
+Peripherals only in Docker; app runs natively:
+
+```sh
+docker compose up peripherals -d
+pnpm dev:reqaml
+```
+
+Same `.env` DSN (`DATABASE_URL=postgresql://reqaml:reqaml@127.0.0.1:5432/reqaml`) and `OPENBAO_ADDR=http://127.0.0.1:8200`. After first peripherals boot, copy the OpenBao root token from the volume or set `OPENBAO_TOKEN` in `.env` (see compose logs / `reqaml-secrets` volume).
+
+### One-shot migrate / seed
+
+```sh
+pnpm reqaml:migrate
+pnpm reqaml:seed
+```
+
+Re-running seed is idempotent (`FIX-ALLOW-DEVENV-SEED-IDEMPOTENT`).
+
+### Smoke test (FIX-ALLOW-DEVENV-SMOKE)
+
+```sh
+pnpm devenv:smoke
+```
+
+## SDoc Intake editor
+
+Unchanged workflow — see [`packages/intake/README.md`](packages/intake/README.md):
+
+```sh
+pnpm dev          # editor on port 8087
+pnpm build:cli
+pnpm exec sdoc-intake ./packages/intake/data
+```
+
+## Production notes
+
+- Set `REQAML_MODE=production`. Startup **refuses** dev OpenBao markers, dev seed loaders, and seeded dev accounts (`FIX-DENY-DEV-KEK-IN-PROD`, `FIX-DENY-DEVENV-PROD-LOGIN.1`).
+- Production deploy splits Postgres and OpenBao; the **peripherals** image target is dev/test only (`ARCH-DEPLOY-PERIPHERALS`).
+
+## Process model (open question documented)
+
+**Single Node process** with role toggles (`REQAML_ROLES`) is the default — simplest path that satisfies `ARCH-DEPLOY-MINIMAL` and `FIX-ALLOW-APP-ROLE-SPLIT` without a supervisor. A lightweight supervisor can be added later if ops need isolated restart per role.
+
+**StrictDoc export** is intentionally **not** a Compose role in this slice (open question §3 in `docs/design/roles/open-questions.md`).
 
 ## License
 

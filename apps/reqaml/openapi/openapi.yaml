@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: ReqAML API
+  version: 0.1.0
+  description: Schema-first HTTP surface for ReqAML (foundation slice).
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Liveness probe (M04)
+      tags: [ops]
+      responses:
+        "200":
+          description: Process is up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /ready:
+    get:
+      operationId: getReadiness
+      summary: Readiness probe (M04, ARCH-DEVENV-HEALTH)
+      tags: [ops]
+      responses:
+        "200":
+          description: Enabled roles and dependencies are ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: Not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+  /api/v1/seed/summary:
+    get:
+      operationId: getSeedSummary
+      summary: Dogfood seed counts (dev smoke; no client data in health)
+      tags: [ops]
+      responses:
+        "200":
+          description: Aggregate fixture counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeedSummary"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, version, mode]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        version:
+          type: string
+        mode:
+          type: string
+          enum: [development, production]
+    ReadinessResponse:
+      type: object
+      required: [ready, roles, checks]
+      properties:
+        ready:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+        checks:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              detail:
+                type: string
+    SeedSummary:
+      type: object
+      required: [identities, project_grants, requirement_lines, requirement_versions]
+      properties:
+        identities:
+          type: integer
+        project_grants:
+          type: integer
+        requirement_lines:
+          type: integer
+        requirement_versions:
+          type: integer
+        sample_identity_id:
+          type: string
+          description: e.g. taylor-tester for smoke queries

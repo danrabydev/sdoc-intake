@@ -1,0 +1,73 @@
+# ReqAML developer environment (ARCH-DEVENV-COMPOSE.1).
+# Default: app + peripherals (2 containers). Hybrid: `docker compose up peripherals -d` then `pnpm dev:reqaml`.
+
+services:
+  peripherals:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: peripherals
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-reqaml}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-reqaml}
+      POSTGRES_DB: ${POSTGRES_DB:-reqaml}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+      - "${OPENBAO_PORT:-8200}:8200"
+    volumes:
+      - reqaml-pg:/var/lib/postgresql/data
+      - reqaml-openbao:/var/lib/reqaml/openbao
+      - reqaml-secrets:/var/lib/reqaml/secrets
+    healthcheck:
+      test: ["CMD", "/healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 40s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+    restart: unless-stopped
+    depends_on:
+      peripherals:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      REQAML_MODE: ${REQAML_MODE:-development}
+      REQAML_ROLES: ${REQAML_ROLES:-api,web,mcp,sync}
+      REQAML_PORT: ${REQAML_PORT:-3000}
+      REQAML_VERSION: ${REQAML_VERSION:-0.1.0-dev}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-reqaml}:${POSTGRES_PASSWORD:-reqaml}@peripherals:5432/${POSTGRES_DB:-reqaml}
+      OPENBAO_ADDR: http://peripherals:8200
+      OPENBAO_TOKEN: ${OPENBAO_TOKEN:-}
+      OPENBAO_TOKEN_FILE: /var/lib/reqaml/secrets/openbao-root.token
+      REQAML_OPENBAO_DEV_MARKED: ${REQAML_OPENBAO_DEV_MARKED:-true}
+      REQAML_SEED_ON_START: ${REQAML_SEED_ON_START:-true}
+      REQAML_SEED_PATH: /repo/docs/design/seed/dogfood.yaml
+    volumes:
+      - reqaml-secrets:/var/lib/reqaml/secrets:ro
+    ports:
+      - "${REQAML_HOST_PORT:-3000}:${REQAML_PORT:-3000}"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-sf",
+          "http://127.0.0.1:${REQAML_PORT:-3000}/ready",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+
+volumes:
+  reqaml-pg:
+  reqaml-openbao:
+  reqaml-secrets:
