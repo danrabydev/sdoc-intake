@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
  * Mint a short-lived agent token via client_credentials (dev agent client).
- * Usage: pnpm devenv:agent-token --agent <name> --role <role> [--ttl 3600] [--acting-for identity-id]
+ * Usage: pnpm devenv:agent-token --agent <name> [--role Reader|Author] [--ttl 3600] [--acting-for identity-id]
+ * The token carries exactly one project role (default Reader); the server refuses roles above Author
+ * and roles not explicitly granted to the agent's own identity (agent-<name>). TTL is capped at 1h.
  */
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
@@ -24,13 +26,13 @@ function arg(name) {
 }
 
 const agent = arg("--agent");
-const role = arg("--role");
+const role = arg("--role") ?? "Reader";
 const ttl = Number(arg("--ttl") ?? 3600);
 const actingFor = arg("--acting-for");
 const baseUrl = process.env.REQAML_SMOKE_URL ?? "http://127.0.0.1:3000";
 
-if (!agent || !role) {
-  console.error("Usage: pnpm devenv:agent-token --agent <name> --role <role> [--ttl seconds] [--acting-for identity-id]");
+if (!agent) {
+  console.error("Usage: pnpm devenv:agent-token --agent <name> [--role Reader|Author] [--ttl seconds] [--acting-for identity-id]");
   process.exit(1);
 }
 
@@ -39,7 +41,7 @@ const env = {
   ...loadEnvFile(path.join(root, ".reqaml/devenv.env")),
 };
 
-const clientSecret = env.REQAML_AGENT_CLIENT_SECRET;
+const clientSecret = process.env.REQAML_AGENT_CLIENT_SECRET || env.REQAML_AGENT_CLIENT_SECRET;
 if (!clientSecret) {
   console.error("Run pnpm devenv:init first (REQAML_AGENT_CLIENT_SECRET missing).");
   process.exit(1);
@@ -53,7 +55,8 @@ const body = new URLSearchParams({
   client_secret: clientSecret,
   agent_name: agent,
   resource,
-  ttl_seconds: String(Math.min(ttl, 86400)),
+  ttl_seconds: String(ttl),
+  role,
 });
 if (actingFor) body.set("acting_for", actingFor);
 

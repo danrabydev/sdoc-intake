@@ -89,7 +89,7 @@ function main() {
     console.log("  1. docker compose up --build");
     console.log("  2. Open http://127.0.0.1:3000/login (or http://localhost:3000/login)");
     console.log("  3. Privileged dev users: pnpm devenv:mfa <identity-id>  (e.g. sam-security)");
-    console.log("  4. Coding agents: pnpm devenv:agent-token --agent cursor-cloud --role Developer");
+    console.log("  4. Coding agents: pnpm devenv:agent-token --agent cursor-cloud --role Author   (default Reader)");
     console.log(
       "\nHybrid mode (host Postgres/OpenBao ports): docker compose -f docker-compose.yml -f docker-compose.hostports.yml up peripherals -d",
     );

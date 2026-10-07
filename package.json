@@ -33,7 +33,7 @@
     "format": "pnpm -r format",
     "diagrams:render": "pnpm --filter sdoc-intake diagrams:render",
     "devenv:init": "node scripts/devenv-init.mjs",
-    "devenv:mfa": "pnpm --filter @reqaml/app enroll-mfa",
+    "devenv:mfa": "node scripts/devenv-mfa.mjs",
     "devenv:agent-token": "node scripts/devenv-agent-token.mjs",
     "devenv:smoke": "node scripts/devenv-smoke.mjs",
     "reqaml:migrate": "pnpm --filter @reqaml/app migrate",

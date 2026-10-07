@@ -7,6 +7,7 @@ import { normalizeUsername } from "../credential/username.js";
 const identityArg = process.argv[2];
 const quiet = process.argv.includes("--quiet");
 const confirmCode = process.argv.find((a) => a.startsWith("--confirm="))?.slice("--confirm=".length);
+const ticketArg = process.argv.find((a) => a.startsWith("--ticket="))?.slice("--ticket=".length);
 
 if (!identityArg) {
   console.error("Usage: pnpm devenv:mfa <identity-id> [--quiet] [--confirm=123456]");
@@ -37,10 +38,15 @@ if (process.env.REQAML_MFA_DEV_SECRET && !confirmCode) {
   process.exit(0);
 }
 
-const enroll = await startMfaEnrollment(pool, keyProvider, identityId, username);
 if (confirmCode) {
-  const ok = await confirmMfaEnrollment(pool, keyProvider, enroll.ticketId, confirmCode);
-  if (!ok.ok) {
+  // Confirm the ticket printed by the earlier interactive run (its secret is the one in the
+  // authenticator); starting a new ticket here would generate a different secret.
+  if (!ticketArg) {
+    console.error("--confirm needs --ticket=<id> from the interactive run");
+    process.exit(1);
+  }
+  const ok = await confirmMfaEnrollment(pool, keyProvider, ticketArg, confirmCode);
+  if (!ok.ok || ok.identityId !== identityId) {
     console.error("MFA confirmation failed");
     process.exit(1);
   }
@@ -48,7 +54,8 @@ if (confirmCode) {
   process.exit(0);
 }
 
+const enroll = await startMfaEnrollment(pool, keyProvider, identityId, username);
 console.log(enroll.otpauthUri);
 console.log(`Enrollment ticket: ${enroll.ticketId}`);
-console.log("Confirm with: pnpm devenv:mfa", identityArg, `--confirm=<6-digit-code>`);
+console.log(`Confirm with: pnpm devenv:mfa ${identityArg} --ticket=${enroll.ticketId} --confirm=<6-digit-code>`);
 await pool.end();
