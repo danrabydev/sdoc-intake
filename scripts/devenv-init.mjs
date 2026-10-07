@@ -10,6 +10,7 @@ import {
   mkdirSync,
   readFileSync,
   renameSync,
+  rmdirSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
@@ -60,22 +61,6 @@ const LEGACY_SECRET_KEYS = [
   ["REQAML_MFA_DEV_SECRET", "REQALM_MFA_DEV_SECRET"],
 ];
 
-const LEGACY_ROOT_KEYS = [
-  ["REQAML_MODE", "REQALM_MODE"],
-  ["REQAML_DEV_ACCOUNT_PASSWORD", "REQALM_DEV_ACCOUNT_PASSWORD"],
-  ["REQAML_AGENT_CLIENT_SECRET", "REQALM_AGENT_CLIENT_SECRET"],
-  ["REQAML_SESSION_SECRET", "REQALM_SESSION_SECRET"],
-  ["REQAML_CSRF_SECRET", "REQALM_CSRF_SECRET"],
-  ["REQAML_AUTH_IDENTITY_MODE", "REQALM_AUTH_IDENTITY_MODE"],
-  ["REQAML_AUTH_LOCAL_ACCOUNTS", "REQALM_AUTH_LOCAL_ACCOUNTS"],
-  ["REQAML_ISSUER_URL", "REQALM_ISSUER_URL"],
-  ["REQAML_HOST_BIND", "REQALM_HOST_BIND"],
-  ["REQAML_SEED_ON_START", "REQALM_SEED_ON_START"],
-  ["REQAML_SEED_PATH", "REQALM_SEED_PATH"],
-  ["REQAML_OPENBAO_DEV_MARKED", "REQALM_OPENBAO_DEV_MARKED"],
-  ["REQAML_TRUST_PROXY", "REQALM_TRUST_PROXY"],
-  ["REQAML_TRUSTED_PROXIES", "REQALM_TRUSTED_PROXIES"],
-];
 
 function migrateLegacySecretKeys(map) {
   for (const [oldKey, newKey] of LEGACY_SECRET_KEYS) {
@@ -88,20 +73,16 @@ function migrateLegacySecretKeys(map) {
 }
 
 function migrateLegacyRootEnv(map) {
-  for (const [oldKey, newKey] of LEGACY_ROOT_KEYS) {
-    if (map[newKey] === undefined && map[oldKey] !== undefined) {
+  // Every REQAML_* key moves to REQALM_* with its value unchanged. POSTGRES_USER / POSTGRES_DB are
+  // left alone: an existing Postgres volume keeps the role and database it was created with.
+  for (const oldKey of Object.keys(map)) {
+    if (!oldKey.startsWith("REQAML_")) continue;
+    const newKey = `REQALM_${oldKey.slice("REQAML_".length)}`;
+    if (map[newKey] === undefined) {
       map[newKey] = map[oldKey];
-      delete map[oldKey];
       legacyEnvKeyMigrations.push(`${oldKey} → ${newKey} (.env)`);
     }
-  }
-  if (map.POSTGRES_USER === "reqaml") {
-    map.POSTGRES_USER = "reqalm";
-    legacyEnvKeyMigrations.push("POSTGRES_USER reqaml → reqalm (.env)");
-  }
-  if (map.POSTGRES_DB === "reqaml") {
-    map.POSTGRES_DB = "reqalm";
-    legacyEnvKeyMigrations.push("POSTGRES_DB reqaml → reqalm (.env)");
+    delete map[oldKey];
   }
 }
 
@@ -111,11 +92,9 @@ function migrateLegacySecretsLayout() {
     renameSync(legacySecretsFile, secretsFile);
     legacyEnvKeyMigrations.push(".reqaml/devenv.env → .reqalm/devenv.env (renamed)");
     try {
-      if (existsSync(legacySecretsDir) && !existsSync(path.join(legacySecretsDir, "devenv.env"))) {
-        renameSync(legacySecretsDir, secretsDir);
-      }
+      rmdirSync(legacySecretsDir); // only succeeds when the legacy dir is now empty
     } catch {
-      // Non-empty legacy dir: keep both; new secrets live under .reqalm.
+      // Non-empty legacy dir: keep it; secrets now live under .reqalm.
     }
   }
 }
@@ -140,7 +119,7 @@ function loadOrCreateSecrets() {
     REQALM_MFA_DEV_SECRET: cur.REQALM_MFA_DEV_SECRET ?? base32Secret(32),
   };
   const text = serializeEnv(needed);
-  created = !existsSync(secretsFile) || readFileSync(secretsFile, "utf8") !== text;
+  created = Object.entries(needed).some(([k, v]) => cur[k] !== v);
   writeFileSync(secretsFile, text, { mode: 0o600 });
   chmodSync(secretsFile, 0o600);
   return needed;
