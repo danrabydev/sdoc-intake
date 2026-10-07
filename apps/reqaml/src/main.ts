@@ -29,12 +29,14 @@ async function bootstrap() {
   await pingDatabase(config.DATABASE_URL);
   await runMigrations(pool);
 
+  // Self-check first so production mode refuses dev seed/accounts/keys with one explicit error
+  // before any dev fixture code runs (FIX-DENY-DEVENV-PROD-LOGIN.1, FIX-DENY-DEV-KEK-IN-PROD).
+  await runStartupSelfCheck(config, pool);
+
   if (config.REQAML_SEED_ON_START) {
     const seed = await readDogfoodFile(resolveSeedPath(config));
     await loadDogfoodSeed(pool, config, seed);
   }
-
-  await runStartupSelfCheck(config, pool);
 
   const openbao = await checkOpenBao(config);
   let sync: SyncHandle | null = null;

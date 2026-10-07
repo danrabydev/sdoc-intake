@@ -31,9 +31,15 @@ CREATE TABLE IF NOT EXISTS project_grants (
   role TEXT NOT NULL,
   status TEXT DEFAULT 'active',
   revoked_at TIMESTAMPTZ,
-  notes TEXT,
-  UNIQUE (project_id, identity_id, role)
+  notes TEXT
 );
+
+-- At most one *live* grant per (project, identity, role). Revoked grants are kept as tombstones
+-- (dogfood seed has grant-alex-author-revoked beside grant-alex-author for FIX-DENY-REVOKED),
+-- so a plain UNIQUE constraint would reject the seed.
+CREATE UNIQUE INDEX IF NOT EXISTS project_grants_live_uniq
+  ON project_grants (project_id, identity_id, role)
+  WHERE revoked_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS requirement_lines (
   base_uid TEXT NOT NULL,

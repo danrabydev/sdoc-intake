@@ -87,15 +87,21 @@ export async function loadDogfoodSeed(
       await upsertVersion(client, ver, lineProject, inserted);
     }
 
-    const devPassword =
-      config.REQAML_DEV_ACCOUNT_PASSWORD ??
-      process.env.REQAML_DEV_ACCOUNT_PASSWORD ??
-      "reqaml-dev-local-only";
+    // ARCH-DEVENV-IDENTITY.1: no committed/default dev credential. Use the local .env value, or
+    // generate one at first seed and show it locally (only printed when accounts are created).
+    const configuredPassword = config.REQAML_DEV_ACCOUNT_PASSWORD;
+    const devPassword = configuredPassword ?? randomBytes(18).toString("base64url");
     inserted.dev_local_accounts = await upsertDevLocalAccounts(
       client,
       seed.identities,
       devPassword,
     );
+    if (inserted.dev_local_accounts > 0 && !configuredPassword) {
+      console.log(
+        `[reqaml seed] Created ${inserted.dev_local_accounts} dev local accounts (<identity-id>@dev.local). ` +
+          `Generated dev-only password (shown once; set REQAML_DEV_ACCOUNT_PASSWORD in .env to choose your own): ${devPassword}`,
+      );
+    }
 
     await client.query(
       `

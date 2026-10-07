@@ -3,6 +3,13 @@ import { z } from "zod";
 
 const RoleSchema = z.enum(["api", "web", "mcp", "sync"]);
 
+const emptyToUndefined = (v: unknown) => (v === "" ? undefined : v);
+
+/** Boolean env flag: true/1 → true; false/0/empty/unset → false. */
+const envFlag = z
+  .preprocess(emptyToUndefined, z.enum(["true", "false", "1", "0"]).optional())
+  .transform((v) => v === "true" || v === "1");
+
 const EnvSchema = z
   .object({
     REQAML_MODE: z.enum(["development", "production"]).default("development"),
@@ -23,16 +30,11 @@ const EnvSchema = z
     OPENBAO_ADDR: z.string().url().optional(),
     OPENBAO_TOKEN: z.string().optional(),
     OPENBAO_TOKEN_FILE: z.string().optional(),
-    REQAML_OPENBAO_DEV_MARKED: z
-      .enum(["true", "false", "1", "0"])
-      .optional()
-      .transform((v) => v === "true" || v === "1"),
-    REQAML_SEED_ON_START: z
-      .enum(["true", "false", "1", "0"])
-      .optional()
-      .transform((v) => v === "true" || v === "1"),
+    REQAML_OPENBAO_DEV_MARKED: envFlag,
+    REQAML_SEED_ON_START: envFlag,
     REQAML_SEED_PATH: z.string().default("docs/design/seed/dogfood.yaml"),
-    REQAML_DEV_ACCOUNT_PASSWORD: z.string().optional(),
+    // Empty (e.g. `REQAML_DEV_ACCOUNT_PASSWORD=` from .env.example) means "not set".
+    REQAML_DEV_ACCOUNT_PASSWORD: z.preprocess(emptyToUndefined, z.string().optional()),
   })
   .transform((raw) => {
     let token = raw.OPENBAO_TOKEN;
