@@ -78,7 +78,18 @@ Re-running seed is idempotent (`FIX-ALLOW-DEVENV-SEED-IDEMPOTENT`).
 pnpm devenv:smoke
 ```
 
-This is the primary check: it builds and starts the 2-container stack (`docker compose up --build -d --wait`), checks `/health`, `/ready` and `/api/v1/seed/summary`, re-runs migrate + seed twice (no new rows), asserts exactly 2 healthy containers, and asserts production mode refuses the dev seed loader, dev accounts and dev OpenBao. Any failing command's stdout/stderr is printed, followed by `docker compose ps -a` and recent logs. The stack is left running; set `REQAML_SMOKE_DOWN=1` to run `docker compose down -v` at the end. The GitHub workflow (`.github/workflows/devenv-smoke.yml`) is manual-dispatch only to save Actions minutes.
+This is the primary integration check (Docker required): it builds and starts the 2-container stack (`docker compose up --build -d --wait`), checks `/health`, `/ready` and `/api/v1/seed/summary`, re-runs migrate + seed twice (no new rows), asserts exactly 2 healthy containers, and asserts production mode refuses the dev seed loader, dev accounts and dev OpenBao. Any failing command's stdout/stderr is printed, followed by `docker compose ps -a` and recent logs. The stack is left running; set `REQAML_SMOKE_DOWN=1` to run `docker compose down -v` at the end. The GitHub workflow (`.github/workflows/devenv-smoke.yml`) is manual-dispatch only to save Actions minutes.
+
+### Tests (no Docker)
+
+Before pushing, run the fast in-process gate (cloud agents and contributors without Docker):
+
+```sh
+pnpm test
+pnpm typecheck
+```
+
+`pnpm test` runs `@reqaml/app` unit tests plus in-process auth integration tests (PGlite + in-memory KeyProvider fake). Full-stack auth behaviour is still verified with `pnpm devenv:smoke` locally.
 
 ## SDoc Intake editor
 

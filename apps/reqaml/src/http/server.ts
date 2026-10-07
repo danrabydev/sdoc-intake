@@ -11,7 +11,7 @@ import type { AppConfig, AppRole } from "../config.js";
 import { bootstrapAuth } from "../auth/bootstrap.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { authProfileFromEnv, loadAuthProfile } from "../auth/profile.js";
-import { createOpenBaoKeyProvider } from "../key/provider.js";
+import { createOpenBaoKeyProvider, type KeyProvider } from "../key/provider.js";
 import { getSeedSummary } from "../seed/load-dogfood.js";
 import { resolveWebIndexPath } from "../readiness/paths.js";
 import type { ReadinessContext } from "../readiness/report.js";
@@ -29,6 +29,8 @@ export type RuntimeState = {
   roles: Set<AppRole>;
   sync: SyncHandle | null;
   readiness: ReadinessContext;
+  /** Test seam: inject an in-memory KeyProvider instead of OpenBao. */
+  keyProvider?: KeyProvider;
 };
 
 export async function buildApiServer(state: RuntimeState) {
@@ -52,7 +54,7 @@ export async function buildApiServer(state: RuntimeState) {
           : true
         : false,
   });
-  const keyProvider = createOpenBaoKeyProvider(config);
+  const keyProvider = state.keyProvider ?? createOpenBaoKeyProvider(config);
 
   await app.register(fastifyCookie);
   await app.register(fastifyFormbody);

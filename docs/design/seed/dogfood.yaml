@@ -2540,6 +2540,26 @@ requirement_lines:
   parent: SEC-IA
   kind: capability
   title: 'Auth hardening: handoffs, BFF session, throttle, prod issuer'
+- base_uid: CAP-TEST-MEMORY-KEYPROVIDER
+  project_id: reqaml
+  parent: SEC-SEC
+  kind: capability
+  title: In-memory KeyProvider fake for tests
+- base_uid: CAP-TEST-PGLITE-DB
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: In-process Postgres (PGlite) with real migrations
+- base_uid: CAP-TEST-AUTH-ROUTES
+  project_id: reqaml
+  parent: SEC-IA
+  kind: capability
+  title: In-process auth route integration tests
+- base_uid: CAP-TEST-PNPM-GATE
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: Docker-free `pnpm test` gate
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -6731,6 +6751,58 @@ requirement_versions:
   statement_hash: sha256:f5ebe525628150baa5e42b194b775edc62e7f2f69bcf6efb53da28bff7accbb6
   grooming_state: detailed
   verification_outcome: pass
+- uid: CAP-TEST-MEMORY-KEYPROVIDER
+  base_uid: CAP-TEST-MEMORY-KEYPROVIDER
+  version_n: 0
+  status: active
+  statement: Tests inject `createMemoryKeyProvider()` implementing the production KeyProvider interface (wrapSecret/unwrapSecret/ensureReady) without OpenBao. Production wiring still uses OpenBao Transit.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-12
+    verification_note: Dev/test only; no production path change.
+  statement_hash: sha256:d69e689a691105b0952230ee4976b094fd631d828dbf346cdcd5a159641d2c69
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-TEST-PGLITE-DB
+  base_uid: CAP-TEST-PGLITE-DB
+  version_n: 0
+  status: active
+  statement: Integration tests use `@electric-sql/pglite` with the same migration SQL files as production (`apps/reqaml/src/db/migrations/*.sql`) via `runMigrationsOnPglite`.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Isolated WASM DB; no committed secrets.
+  statement_hash: sha256:ddf1c51e958d4a221748d1585ca750a0126291009d27691c037e563be569eecb
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-TEST-AUTH-ROUTES
+  base_uid: CAP-TEST-AUTH-ROUTES
+  version_n: 0
+  status: active
+  statement: Fastify `inject` exercises OAuth authorize/token, local login, web session CSRF, and agent client_credentials without network or Docker.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-2
+    verification_note: 'Regression beds for R1 auth. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.'
+  statement_hash: sha256:ffec33c5a9bc4c7c140d7f9f502a79c5826d764681180c0cb4bc207d19f97a0a
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-TEST-PNPM-GATE
+  base_uid: CAP-TEST-PNPM-GATE
+  version_n: 0
+  status: active
+  statement: Root `pnpm test` runs package unit tests plus the in-process auth harness; contributors and cloud agents run it before push. Full stack checks remain `pnpm devenv:smoke` (Docker, maintainer-local).
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: 'Fast feedback without containers. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.'
+  statement_hash: sha256:773295178e8f99c461e1408130ba0278c1f3aea79683633f2b81909268d5f896
+  grooming_state: detailed
+  verification_outcome: pass
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -7026,6 +7098,18 @@ capability_artifacts:
 - requirement_version_uid: CAP-AUTH-HARDEN
   kind: other
   uri: ../../../apps/reqaml/src/db/migrations/004_devenv_hardening.sql
+- requirement_version_uid: CAP-TEST-MEMORY-KEYPROVIDER
+  kind: other
+  uri: apps/reqaml/src/key/memory-provider.ts
+- requirement_version_uid: CAP-TEST-PGLITE-DB
+  kind: other
+  uri: apps/reqaml/src/test/pglite-pool.ts
+- requirement_version_uid: CAP-TEST-AUTH-ROUTES
+  kind: other
+  uri: apps/reqaml/src/auth/auth.integration.test.ts
+- requirement_version_uid: CAP-TEST-PNPM-GATE
+  kind: other
+  uri: apps/reqaml/src/test/harness.ts
 edges:
 - from: CAP-SSO
   to: A01
@@ -12471,6 +12555,30 @@ edges:
   to: SC-23
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-TEST-MEMORY-KEYPROVIDER
+  to: ARCH-KEY-PROVIDER
+  kind: satisfies
+- from: CAP-TEST-PGLITE-DB
+  to: ARCH-BUILD-FOUNDATION
+  kind: satisfies
+- from: CAP-TEST-AUTH-ROUTES
+  to: ARCH-AUTH-PKCE
+  kind: satisfies
+- from: CAP-TEST-AUTH-ROUTES
+  to: ARCH-AUTH-REFRESH
+  kind: satisfies
+- from: CAP-TEST-AUTH-ROUTES
+  to: ARCH-CRED-LOCKOUT
+  kind: satisfies
+- from: CAP-TEST-AUTH-ROUTES
+  to: ARCH-CRED-MFA
+  kind: satisfies
+- from: CAP-TEST-AUTH-ROUTES
+  to: ARCH-AUTH-AGENT-ATTRIBUTION
+  kind: satisfies
+- from: CAP-TEST-PNPM-GATE
+  to: FIX-ALLOW-DEVENV-SMOKE
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -12704,8 +12812,8 @@ releases:
   project_id: reqaml
   name: 'R1 — foundation shell + internal auth'
   planned_on: '2026-10-07'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-07'
+  status: shipped
   delivers:
   - ARCH-API-RBAC
   - ARCH-AUTH-AGENT-ATTRIBUTION
@@ -12747,8 +12855,8 @@ releases:
   - CAP-OAUTH-AS
   - CAP-RBAC
   - CAP-UI-FRAME
-  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/13 (planned until merge). Built: UI frame (BFF session cookies), internal OAuth 2.1 AS with server-side handoffs, Argon2id + MFA enrollment, agent client_credentials, KeyProvider JWKS (Transit-wrapped ES256; FIPS/Transit-sign follow-up), RBAC, auth audit, upstream connector seam, `pnpm devenv:init` / MFA / agent-token CLIs. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation
-    without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass. Deferred items moved to rel-r1-platform-followups (federation, break-glass, full step-up session UX, FIPS, etc.).'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/13 merged to main as 45d4c3f2aabcd94b910752d256b38b2c97abeee0 on 2026-10-07. Shipped: UI frame + internal OAuth AS (see delivers). Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max /
+    Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass. Deferred items moved to rel-r1-platform-followups (federation, break-glass, full step-up session UX, FIPS, etc.).'
 - id: rel-r1-core-alm
   project_id: reqaml
   name: R1-core-ALM
@@ -12876,6 +12984,19 @@ releases:
   - ARCH-KEY-FIPS
   cyber_gate: false
   notes: Architecture requirements intentionally not claimed by rel-r1-foundation-shell-auth. Includes federation SSO, break-glass, claim mapping, upstream revoke propagation, full HttpOnly session/step-up product UX beyond R1 BFF, key custodian UI, FIPS/Transit-sign, production deploy split, full API layering, hsm-test Compose profile.
+- id: rel-r1-test-harness
+  project_id: reqaml
+  name: R1 — in-process test harness (no Docker)
+  planned_on: '2026-10-07'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-TEST-MEMORY-KEYPROVIDER
+  - CAP-TEST-PGLITE-DB
+  - CAP-TEST-AUTH-ROUTES
+  - CAP-TEST-PNPM-GATE
+  cyber_gate: false
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/TBD (planned until merge). Verified (in-process only): 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass. Docker `pnpm devenv:smoke` remains maintainer integration check.'
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqaml
