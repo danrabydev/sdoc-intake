@@ -1,0 +1,67 @@
+@startuml WF01-actionhook-eval
+!include ../includes/C4_Sequence_Macros.puml
+
+title WF01 — ActionHook evaluator (shared pattern)\nARCH-HOOK-EVAL / ARCH-WORKFLOW
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+note over seqUser, seqOTEL
+  Canonical pipeline for domain mutations.
+  Compose **HookEval** / **GateCheck** / **HookEffectsAfter**
+  — do not copy-paste this into action diagrams.
+end note
+
+== Attempt action ==
+
+seqUser -> seqWebUI : invoke domain action
+ClientScopedQuery("POST|PATCH", "/clients/{clientId}/…")
+seqAPI -> seqBusiness : onAction(action_id, subject, actor, payload)
+ControlNote(seqBusiness, "AC-3, CM-3", "TBD (ASD V6R4)", "Business owns ActionHook evaluation under WorkflowProfile")
+
+== RBAC (can attempt) ==
+
+RbacCheck("{action_id}")
+ControlNote(seqRBAC, "AC-3, AC-6", "TBD (ASD V6R4)", "Permission-tree RBAC is authoritative for verbs; gates add contextual denies")
+
+== Load hooks ==
+
+HookEval("{action_id}")
+ControlNote(seqData, "CM-3, AC-3", "TBD (ASD V6R4)", "Profile ActionHooks supply ordered gates_before + effects_after")
+
+== gates_before (ordered) ==
+
+GateCheck("{gate_id_1}")
+GateCheck("{gate_id_N}")
+ControlNote(seqBusiness, "AC-3, AC-6", "TBD (ASD V6R4)", "Optional gates skipped when disabled on profile; RoleBinding fills approver slots")
+
+== Mutate (action-specific) ==
+
+seqBusiness -> seqData : apply mutation (under change_set)
+seqData -> seqPostgres : INSERT/UPDATE … WHERE client scope
+ControlNote(seqPostgres, "AC-3, CM-3", "TBD (ASD V6R4)", "SoT write; client boundary + change_set nesting")
+seqPostgres --> seqData : ok
+seqData --> seqBusiness : result
+
+== effects_after ==
+
+HookEffectsAfter("e.g. write_approval_record | clear_line_approval_if_content_or_pin | …")
+ControlNote(seqBusiness, "CM-3, AU-2", "TBD (ASD V6R4)", "Effects are declarative per ActionHook; mint kinds drive clear/suspect/block")
+
+== Audit ==
+
+AuditLog("action.allow|deny", "subject")
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable allow/deny with actor, action_id, gate outcomes")
+
+seqBusiness --> seqAPI : DTO / deny
+seqAPI --> seqWebUI : 2xx / 403/409
+seqWebUI --> seqUser : result
+
+@enduml
