@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { createServer, type Server } from "node:http";
 import { after, before, beforeEach, describe, it } from "node:test";
 import { SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
@@ -345,5 +346,38 @@ describe("OpenTelemetry tracing", () => {
       [],
       "health probe must not create http or Fastify spans",
     );
+  });
+});
+
+describe("production register hook", () => {
+  // Spawns `node --import register.ts` the way the Dockerfile CMD does; pg is patched only when on.
+  function pgPatchedUnderRegister(extraEnv: Record<string, string>): boolean {
+    const env = { ...process.env, ...extraEnv };
+    delete env.REQALM_OTEL_TEST_MEMORY;
+    if (!("OTEL_EXPORTER_OTLP_ENDPOINT" in extraEnv)) delete env.OTEL_EXPORTER_OTLP_ENDPOINT;
+    delete env.REQALM_OTEL_ENABLED;
+    const out = execFileSync(
+      process.execPath,
+      [
+        "--import",
+        "tsx",
+        "--import",
+        "./src/telemetry/register.ts",
+        "--input-type=module",
+        "-e",
+        'import pg from "pg"; console.log(JSON.stringify("__wrapped" in pg.Client.prototype.query));',
+      ],
+      { env, encoding: "utf8" },
+    );
+    return JSON.parse(out.trim().split("\n").pop()!) as boolean;
+  }
+
+  it("off by default: no SDK, pg untouched", () => {
+    assert.equal(pgPatchedUnderRegister({}), false);
+  });
+
+  it("with an OTLP endpoint: pg auto-instrumentation is installed (shared list)", () => {
+    // Nothing is exported (no spans are created), so the unroutable endpoint is never contacted.
+    assert.equal(pgPatchedUnderRegister({ OTEL_EXPORTER_OTLP_ENDPOINT: "http://127.0.0.1:9" }), true);
   });
 });
