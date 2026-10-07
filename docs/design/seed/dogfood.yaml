@@ -6963,13 +6963,13 @@ requirement_versions:
   base_uid: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
   version_n: 0
   status: draft
-  statement: '`pnpm devenv:smoke` sets `COMPOSE_PROJECT_NAME` (default `sdoc-intake-dev`, overridable) on every Compose invocation and logs when the hostports overlay is enabled.'
+  statement: '`pnpm devenv:smoke` sets `COMPOSE_PROJECT_NAME` (default `sdoc-intake-dev`, overridable) on every Compose invocation, logs the hostports overlay, and clears the loopback IP-throttle row before its throttle check so reruns against a running dev stack are repeatable.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: Code change only; not re-run on this VM (no Docker).
-  statement_hash: sha256:a4e7ce8a91af2393bf856d556b73375c602db16581e2b9db7695b19093862664
+    verification_note: 'Verified: 2026-10-07 local Docker (maintainer box): `pnpm devenv:smoke` with COMPOSE_PROJECT_NAME unset used project sdoc-intake-dev (no second stack), logged the overlay, and passed on a reused volume incl. IP throttle 200 -> 401.'
+  statement_hash: sha256:8923d3718478c704df864dff8dcf521540f536842d29bd88360dd0e7a3ad577c
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -13206,7 +13206,7 @@ releases:
   - CAP-TEST-AUTH-HYGIENE
   - CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
   cyber_gate: false
-  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/15 (planned until merge). Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass; production build dist has no `dist/test/**` or `dist/key/memory-provider.js`. `pnpm devenv:smoke` compose-project pin change not re-run here (no Docker).'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/15 (planned until merge). Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass; production build dist has no `dist/test/**` or `dist/key/memory-provider.js`. Local Docker 2026-10-07: `pnpm devenv:smoke` (COMPOSE_PROJECT_NAME unset) pass on project sdoc-intake-dev with reused volume; image dist has no test/ or memory-provider modules.'
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqaml

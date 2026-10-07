@@ -14556,7 +14556,7 @@ UID: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
 STATUS: Draft
 TITLE: devenv:smoke pins Compose project name
 STATEMENT: >>>
-`pnpm devenv:smoke` sets `COMPOSE_PROJECT_NAME` (default `sdoc-intake-dev`, overridable) on every Compose invocation and logs when the hostports overlay is enabled.
+`pnpm devenv:smoke` sets `COMPOSE_PROJECT_NAME` (default `sdoc-intake-dev`, overridable) on every Compose invocation, logs the hostports overlay, and clears the loopback IP-throttle row before its throttle check so reruns against a running dev stack are repeatable.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -14565,7 +14565,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Code change only; not re-run on this VM (no Docker).
+security.verification_note: Verified: 2026-10-07 local Docker (maintainer box): `pnpm devenv:smoke` with COMPOSE_PROJECT_NAME unset used project sdoc-intake-dev (no second stack), logged the overlay, and passed on a reused volume incl. IP throttle 200 -> 401.
 delivered_by_release: R1 — test/build hygiene (Docker-free test follow-ups)
 <<<
 RELATIONS:
