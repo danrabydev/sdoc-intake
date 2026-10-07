@@ -72,7 +72,7 @@ export async function waitForPeripherals(
 
   await waitForCheck(
     "database",
-    () => checkDatabase(pool),
+    () => checkDatabase(pool, options.probeTimeoutMs),
     options,
     production,
   );
@@ -87,6 +87,11 @@ export async function waitForPeripherals(
       const status = await probeOpenBao(config, {
         timeoutMs: options.probeTimeoutMs,
       });
+      // A dev-marked OpenBao in production is a policy refusal, not a transient outage: stop
+      // waiting so runStartupSelfCheck fails fast with the explicit FIX-DENY-DEV-KEK-IN-PROD error.
+      if (production && status.devMarked) {
+        return { ok: true };
+      }
       return { ok: status.ok, detail: status.detail };
     },
     options,

@@ -1,7 +1,7 @@
 import type pg from "pg";
 import type { AppConfig } from "../config.js";
 import { isProduction } from "../config.js";
-import { isDevMarkedOpenBaoAddr } from "../key/openbao.js";
+import { isDevMarkedOpenBaoAddr, probeOpenBao } from "../key/openbao.js";
 
 /** Policy checks that do not substitute for live /ready probes (ARCH-DEVENV-IDENTITY.1). */
 export async function runStartupSelfCheck(
@@ -36,6 +36,14 @@ export async function runStartupSelfCheck(
       errors.push(
         "Dev-marked OpenBao configuration refused in production (FIX-DENY-DEV-KEK-IN-PROD)",
       );
+    } else if (config.OPENBAO_ADDR) {
+      // Non-dev address: still refuse a dev-marked Transit mount (marker set by the peripherals init).
+      const bao = await probeOpenBao(config, {
+        timeoutMs: config.REQAML_READY_PROBE_TIMEOUT_MS,
+      });
+      if (bao.devMarked) {
+        errors.push(bao.detail ?? "Dev-marked OpenBao refused in production");
+      }
     }
   }
 

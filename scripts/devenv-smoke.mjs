@@ -185,7 +185,7 @@ async function main() {
     prodApp.code === 0 ||
     !/Startup self-check failed/.test(prodOut) ||
     !/Seeded dev local accounts exist/.test(prodOut) ||
-    !/Dev-marked OpenBao refused in production/.test(prodOut)
+    !/Dev-marked (OpenBao|Transit)[^\n]*refused in production/.test(prodOut)
   ) {
     fail("App started (or failed for the wrong reason) in production mode with dev accounts/keys", prodApp);
   }
