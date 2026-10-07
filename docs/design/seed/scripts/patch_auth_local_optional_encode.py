@@ -38,7 +38,7 @@ LINES = [
     line("FIX-DENY-LOCAL-LOGIN-PROFILE-OFF", "SEC-FIX", "requirement", "Local login denied/absent when profile disables local accounts"),
     line("FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN", "SEC-FIX", "requirement", "Break-glass local admin allowed only when enabled, with MFA, recovery-scoped"),
     line("FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY", "SEC-FIX", "requirement", "MCP OAuth works with local accounts disabled (federated-only)"),
-    line("FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED", "SEC-FIX", "requirement", "Upstream back-channel logout revokes ReqAML sessions and MCP tokens"),
+    line("FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED", "SEC-FIX", "requirement", "Upstream back-channel logout revokes ReqALM sessions and MCP tokens"),
     line("FIX-DENY-CROSS-TENANT-CONNECTOR", "SEC-FIX", "requirement", "Client A's IdP connector cannot establish client B access"),
     line("FIX-ALLOW-AGENT-ATTRIBUTION", "SEC-FIX", "requirement", "MCP mutation audit names human subject + OAuth client"),
 ]
@@ -47,7 +47,7 @@ LOCAL1 = ver("ARCH-AUTH-LOCAL.1",
     "Local password accounts are an optional capability of the auth profile (ARCH-AUTH-PROFILE), not a baseline. The setting local_accounts takes one of three values: "
     "disabled (default for every production profile), breakglass_only (only ARCH-AUTH-LOCAL-BREAKGLASS accounts), or enabled (a profile that explicitly opts in). "
     "The development profile uses enabled with seeded dev accounts (ARCH-DEVENV-IDENTITY.1). "
-    "With disabled: no local credential records exist, the local login route and form are absent, and sign-in is federated only. This keeps A01 / CAP-SSO / REQAML-SEC-SSO ('no local password store; MFA at the IdP') as the default production posture, so A01 is not minted. "
+    "With disabled: no local credential records exist, the local login route and form are absent, and sign-in is federated only. This keeps A01 / CAP-SSO / REQALM-SEC-SSO ('no local password store; MFA at the IdP') as the default production posture, so A01 is not minted. "
     "Where local accounts are enabled, they bind to the same identity rows and grants as federated identities, every local credential is subject to ARCH-CRED-*, account lifecycle is automated and audited, and unnecessary or built-in accounts are disabled. "
     "The internal AS and OAuth for MCP are required whatever this setting is (ARCH-AUTH-MCP-REQUIRED).",
     base="ARCH-AUTH-LOCAL", n=1, priority=10, rbac_op="auth:local:signin, identity:account:manage",
@@ -80,21 +80,21 @@ V = [
     ver("ARCH-AUTH-UPSTREAM-CONNECTOR",
         "Upstream identity providers attach through a pluggable connector interface (built in: OIDC RP and SAML 2.0 SP; other protocols through additional connectors). Each connector is registered to exactly one client tenant (client_id). "
         "Its client secrets and signing or decryption keys are stored under the key store (ARCH-KEY-SCOPE). "
-        "A connector's assertions can only establish sessions for identities linked within that tenant (A06): a subject from client A's connector never obtains grants in client B, and cross-tenant access goes through ReqAML grants, not the connector. "
+        "A connector's assertions can only establish sessions for identities linked within that tenant (A06): a subject from client A's connector never obtains grants in client B, and cross-tenant access goes through ReqALM grants, not the connector. "
         "Connector configuration is managed by Client admin, needs step-up (ARCH-CRED-REAUTH), and is audited. "
         "How many connectors a tenant may have, how one is selected (home-realm discovery), and which non-OIDC/SAML protocols are supported are open questions (docs/design/auth/mcp-upstream-identity.md).",
         priority=10, rbac_op="auth:connector:configure",
         security=sec("IA-8", "IA-8 non-organizational users / federation; AC-3 tenant isolation; ASD V-222559 / V-222560."), grooming_state="detailed"),
     ver("ARCH-AUTH-CLAIM-MAP",
-        "Mapping from upstream claims or attributes (sub/NameID, email, groups, amr/acr) to ReqAML identity, and optionally to grants, is explicit per-connector configuration. It is versioned, step-up gated, and audited, and is never implicit trust in upstream attributes. "
+        "Mapping from upstream claims or attributes (sub/NameID, email, groups, amr/acr) to ReqALM identity, and optionally to grants, is explicit per-connector configuration. It is versioned, step-up gated, and audited, and is never implicit trust in upstream attributes. "
         "The identity key is the upstream issuer plus subject, never email alone. "
         "A mapping can never grant beyond its connector's tenant and never grants deployment-scoped roles (for example, Key custodian). "
-        "Whether upstream groups may provision or deprovision ReqAML grants automatically is an open question. Until it is decided, grants come only from ReqAML grant records (A07 / A08), and upstream claims establish identity and MFA evidence only.",
+        "Whether upstream groups may provision or deprovision ReqALM grants automatically is an open question. Until it is decided, grants come only from ReqALM grant records (A07 / A08), and upstream claims establish identity and MFA evidence only.",
         priority=10, rbac_op="auth:connector:configure",
         security=sec("AC-2", "AC-2 account management; AC-6 least privilege; AU-2."), grooming_state="detailed"),
     ver("ARCH-AUTH-UPSTREAM-REVOKE",
-        "Upstream session end and revocation are honored. On an upstream back-channel logout (OIDC Back-Channel Logout or SAML SLO) where the connector supports it, the AS ends the linked ReqAML sessions and revokes their token families, including MCP refresh tokens. "
-        "Each connector sets a maximum upstream authentication age; ReqAML refresh and session lifetimes never extend access past it without upstream re-authentication. An identity disabled or unlinked in ReqAML (A06 / A08) loses all sessions and tokens immediately. "
+        "Upstream session end and revocation are honored. On an upstream back-channel logout (OIDC Back-Channel Logout or SAML SLO) where the connector supports it, the AS ends the linked ReqALM sessions and revokes their token families, including MCP refresh tokens. "
+        "Each connector sets a maximum upstream authentication age; ReqALM refresh and session lifetimes never extend access past it without upstream re-authentication. An identity disabled or unlinked in ReqALM (A06 / A08) loses all sessions and tokens immediately. "
         "Revocation-propagation events are audited. Handling for IdPs without back-channel logout (polling, SCIM deprovisioning) is an open question, bounded meanwhile by the maximum authentication age.",
         priority=10, rbac_op="auth:oauth:revoke",
         security=sec("AC-12", "AC-12 session termination; AC-2(3); ASD V-222549 / V-222391."), grooming_state="detailed"),
@@ -185,7 +185,7 @@ CONF = {
 }
 
 
-def ae(id_, at, who, action, outcome, status, notes, client="raby-family", project="reqaml", **extra):
+def ae(id_, at, who, action, outcome, status, notes, client="raby-family", project="reqalm", **extra):
     return cm(id=id_, at=at, identity_id=who, client_id=client, project_id=project, action=action,
               outcome=outcome, http_status=status, notes=notes, **extra)
 

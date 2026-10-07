@@ -1,10 +1,10 @@
 @startuml MC01-mcp-auth-desk-bind
 !include ../includes/C4_Sequence_Macros.puml
 
-title MC01 — ReqAML MCP: authenticate session & desk bind\n(pattern: OC workflow MCP + ADR desk-session-sealing)
+title MC01 — ReqALM MCP: authenticate session & desk bind\n(pattern: OC workflow MCP + ADR desk-session-sealing)
 
 C4Seq_McpHost()
-C4Seq_ReqAmlMcp()
+C4Seq_ReqAlmMcp()
 C4Seq_User()
 C4Seq_WebUI()
 C4Seq_RouteGuard()
@@ -21,7 +21,7 @@ C4Seq_OTEL()
 == MCP transport & identity (same grants as UI SSO) ==
 
 seqMcpHost -> seqMcpServer : Connect (stdio or Streamable HTTP)
-ControlNote(seqMcpServer, "SC-8, IA-2", "TBD (ASD V6R4)", "Agent channel to ReqAML MCP over TLS (remote) or local stdio")
+ControlNote(seqMcpServer, "SC-8, IA-2", "TBD (ASD V6R4)", "Agent channel to ReqALM MCP over TLS (remote) or local stdio")
 
 alt Remote OAuth (browser agent host)
   seqMcpHost -> seqMcpServer : Authorization: Bearer opaque token
@@ -48,7 +48,7 @@ seqAudit -> seqOTEL : export audit event (OTLP)
 
 == Browser requirements desk (parallel human tab) ==
 
-seqUser -> seqWebUI : Open ReqAML desk surface (Layout + client scope)
+seqUser -> seqWebUI : Open ReqALM desk surface (Layout + client scope)
 note over seqUser : Actor alias for human operator\n(same identity family as MCP subject when delegated)
 
 seqWebUI -> seqRouteGuard : Protected project/requirement route

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Auth integration checks for R1 (run against a live ReqAML stack).
+ * Auth integration checks for R1 (run against a live ReqALM stack).
  * Used by pnpm devenv:smoke after the base health/seed checks.
  */
 import { createHash, randomBytes } from "node:crypto";
@@ -8,10 +8,10 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const require = createRequire(path.join(path.dirname(fileURLToPath(import.meta.url)), "../apps/reqaml/package.json"));
+const require = createRequire(path.join(path.dirname(fileURLToPath(import.meta.url)), "../apps/reqalm/package.json"));
 const { Secret, TOTP } = require("otpauth");
 
-const baseUrl = process.env.REQAML_SMOKE_URL ?? "http://127.0.0.1:3000";
+const baseUrl = process.env.REQALM_SMOKE_URL ?? "http://127.0.0.1:3000";
 
 function fail(msg, detail) {
   const err = new Error(msg);
@@ -59,7 +59,7 @@ async function authorizeHandoff(resource) {
   const authz = await fetch(
     `${baseUrl}/oauth/authorize?${new URLSearchParams({
       response_type: "code",
-      client_id: "reqaml-web",
+      client_id: "reqalm-web",
       redirect_uri: redirectUri,
       scope: "openid profile",
       state,
@@ -113,7 +113,7 @@ async function loginAndExchange(username, password, resource, mfaCode) {
   const token = await postForm("/oauth/token", {
     grant_type: "authorization_code",
     code,
-    client_id: "reqaml-web",
+    client_id: "reqalm-web",
     redirect_uri: redirectUri,
     code_verifier: verifier,
     resource,
@@ -139,8 +139,8 @@ async function webSessionLogin(username, password) {
   const body = await res.json();
   if (!res.ok || !body.csrf_token) fail("web session login failed", body);
   const setCookies = res.headers.getSetCookie();
-  const sessionCookie = setCookies.find((c) => c.startsWith("reqaml_session="));
-  if (!sessionCookie) fail("no reqaml_session cookie", setCookies);
+  const sessionCookie = setCookies.find((c) => c.startsWith("reqalm_session="));
+  if (!sessionCookie) fail("no reqalm_session cookie", setCookies);
   const cookieHeader = setCookies.map((c) => c.split(";")[0]).join("; ");
   return { sessionCookie, cookieHeader, csrf: body.csrf_token };
 }
@@ -187,7 +187,7 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
   const plain = await fetch(
     `${baseUrl}/oauth/authorize?${new URLSearchParams({
       response_type: "code",
-      client_id: "reqaml-web",
+      client_id: "reqalm-web",
       redirect_uri: `${baseUrl}/oauth/callback`,
       state: "x",
       code_challenge: "plaintext",
@@ -214,7 +214,7 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
   });
   if (me.status !== 200) fail("/api/v1/me unauthorized", await me.text());
 
-  const rbacDeny = await fetch(`${baseUrl}/api/v1/projects/reqaml/grants`, {
+  const rbacDeny = await fetch(`${baseUrl}/api/v1/projects/reqalm/grants`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${tokens.access_token}`,
@@ -237,7 +237,7 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
   const refresh1 = await postForm("/oauth/token", {
     grant_type: "refresh_token",
     refresh_token: tokens.refresh_token,
-    client_id: "reqaml-web",
+    client_id: "reqalm-web",
     resource: apiResource,
   });
   if (refresh1.status !== 200) fail("refresh failed", refresh1);
@@ -245,14 +245,14 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
   const reuse = await postForm("/oauth/token", {
     grant_type: "refresh_token",
     refresh_token: oldRefresh,
-    client_id: "reqaml-web",
+    client_id: "reqalm-web",
     resource: apiResource,
   });
   if (reuse.status === 200) fail("refresh reuse should be denied", reuse);
   const afterReuse = await postForm("/oauth/token", {
     grant_type: "refresh_token",
     refresh_token: refresh1.body.refresh_token,
-    client_id: "reqaml-web",
+    client_id: "reqalm-web",
     resource: apiResource,
   });
   if (afterReuse.status === 200) fail("reuse should revoke the rotated token's family", afterReuse);
@@ -265,7 +265,7 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
   const afterRevoke = await postForm("/oauth/token", {
     grant_type: "refresh_token",
     refresh_token: fresh.refresh_token,
-    client_id: "reqaml-web",
+    client_id: "reqalm-web",
     resource: apiResource,
   });
   if (afterRevoke.status === 200) fail("revoked refresh should fail", afterRevoke);
@@ -306,13 +306,13 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
   if (flags.includes("secure")) fail("dev (http) session cookie should not be Secure-only", web.sessionCookie);
   const webMe = await fetch(`${baseUrl}/api/v1/me`, { headers: { Cookie: web.cookieHeader } });
   if (webMe.status !== 200) fail("cookie session /api/v1/me failed", webMe.status);
-  const noCsrf = await fetch(`${baseUrl}/api/v1/projects/reqaml/grants`, {
+  const noCsrf = await fetch(`${baseUrl}/api/v1/projects/reqalm/grants`, {
     method: "POST",
     headers: { Cookie: web.cookieHeader, "Content-Type": "application/x-www-form-urlencoded" },
     body: "role=Reader",
   });
   if (noCsrf.status !== 401) fail("cookie form POST without CSRF token must be rejected", noCsrf.status);
-  const withCsrf = await fetch(`${baseUrl}/api/v1/projects/reqaml/grants`, {
+  const withCsrf = await fetch(`${baseUrl}/api/v1/projects/reqalm/grants`, {
     method: "POST",
     headers: { Cookie: web.cookieHeader, "X-CSRF-Token": web.csrf, "Content-Type": "application/json" },
     body: "{}",
@@ -338,7 +338,7 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
     const mint = (extra) =>
       postForm("/oauth/token", {
         grant_type: "client_credentials",
-        client_id: "reqaml-agent-dev",
+        client_id: "reqalm-agent-dev",
         client_secret: agentClientSecret,
         agent_name: "cursor-cloud",
         resource: apiResource,
@@ -347,11 +347,11 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
     // Default role is Reader; TTL is capped at 1h.
     const cc = await mint({ ttl_seconds: "86400" });
     if (cc.status !== 200 || !cc.body.access_token) fail("agent client_credentials failed", cc);
-    if (cc.body.reqaml_role !== "Reader" || cc.body.expires_in > 3600) {
+    if (cc.body.reqalm_role !== "Reader" || cc.body.expires_in > 3600) {
       fail("agent token should default to Reader with TTL <= 3600", cc.body);
     }
     const claims = JSON.parse(Buffer.from(cc.body.access_token.split(".")[1], "base64url").toString());
-    if (claims.sub !== "agent-cursor-cloud" || claims.aud !== apiResource || claims.reqaml_role !== "Reader") {
+    if (claims.sub !== "agent-cursor-cloud" || claims.aud !== apiResource || claims.reqalm_role !== "Reader") {
       fail("agent token must be its own principal, audience-bound, Reader", claims);
     }
     agentJti = claims.jti;
@@ -363,7 +363,7 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
       fail("agent token effective roles should be [Reader]", agentMeBody);
     }
     const author = await mint({ role: "Author" });
-    if (author.status !== 200 || author.body.reqaml_role !== "Author") fail("Author agent token should mint", author);
+    if (author.status !== 200 || author.body.reqalm_role !== "Author") fail("Author agent token should mint", author);
     for (const role of ["Project admin", "Developer", "Security"]) {
       const denied = await mint({ role });
       if (denied.status !== 400 || denied.body.error !== "invalid_scope") {
@@ -377,7 +377,7 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
     });
     if (wrongAudAgent.status !== 401) fail("API-audience agent token must 401 at MCP", wrongAudAgent.status);
     // Mutation attempt (audited with agent attribution), then revocation.
-    const agentMut = await fetch(`${baseUrl}/api/v1/projects/reqaml/grants`, {
+    const agentMut = await fetch(`${baseUrl}/api/v1/projects/reqalm/grants`, {
       method: "POST",
       headers: { Authorization: `Bearer ${author.body.access_token}`, "Content-Type": "application/json" },
       body: "{}",
@@ -421,14 +421,14 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const password = process.env.REQAML_DEV_ACCOUNT_PASSWORD;
+  const password = process.env.REQALM_DEV_ACCOUNT_PASSWORD;
   if (!password) {
-    console.error("REQAML_DEV_ACCOUNT_PASSWORD required for auth-flow-smoke");
+    console.error("REQALM_DEV_ACCOUNT_PASSWORD required for auth-flow-smoke");
     process.exit(1);
   }
   runAuthFlowSmoke(password, {
-    mfaDevSecret: process.env.REQAML_MFA_DEV_SECRET,
-    agentClientSecret: process.env.REQAML_AGENT_CLIENT_SECRET,
+    mfaDevSecret: process.env.REQALM_MFA_DEV_SECRET,
+    agentClientSecret: process.env.REQALM_AGENT_CLIENT_SECRET,
   })
     .then((r) => {
       console.log(JSON.stringify(r, null, 2));

@@ -114,7 +114,7 @@ seqBusiness -> seqBusiness : effects_after:\n**$effects**
 $client -> $rs : request (no token)
 $rs --> $client : 401 WWW-Authenticate: Bearer\nresource_metadata=".../.well-known/oauth-protected-resource"
 $client -> $rs : GET /.well-known/oauth-protected-resource (RFC 9728)
-$rs --> $client : resource URI, authorization_servers[ReqAML AS]
+$rs --> $client : resource URI, authorization_servers[ReqALM AS]
 $client -> seqAuthServer : GET /.well-known/oauth-authorization-server (RFC 8414)
 seqAuthServer --> $client : issuer, endpoints, code_challenge_methods_supported=[S256]\n(no registration_endpoint unless DCR policy on)
 $client -> $client : verify issuer == advertised AS; S256 present
@@ -141,7 +141,7 @@ seqAuthServer --> $client : access_token (aud=**$aud**, short TTL)\n+ rotating r
 !endprocedure
 
 !unquoted procedure TokenValidate($rs, $aud)
-$rs -> $rs : validate iss=ReqAML AS, aud=**$aud**, exp, kid ∈ JWKS (cached),\nnot revoked
+$rs -> $rs : validate iss=ReqALM AS, aud=**$aud**, exp, kid ∈ JWKS (cached),\nnot revoked
 alt wrong aud / unknown iss / revoked / expired
   $rs --> $rs : 401 invalid_token + WWW-Authenticate resource_metadata
 else ok

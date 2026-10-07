@@ -1,4 +1,4 @@
-# MC02 — ReqAML MCP: mutating tool with desk attached
+# MC02 — ReqALM MCP: mutating tool with desk attached
 
 Companion to **MC01**. Mutations follow **HTTP → ActionHook pipeline → data → Postgres** (same as UI). Live preview uses **session-sealed desk WebSocket** (Operation Charity ADR 0018 pattern), not MCP tool transport.
 

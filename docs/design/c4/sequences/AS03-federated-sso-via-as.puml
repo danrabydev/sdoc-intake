@@ -27,9 +27,9 @@ seqAuthServer -> seqIdP : redirect / OIDC authorize (or SAML AuthnRequest)
 seqIdP --> seqUser : IdP login UI
 seqUser -> seqIdP : credentials / MFA at enterprise IdP
 seqIdP --> seqAuthServer : id_token / assertion (code + tokens to AS only)
-ControlNote(seqAuthServer, "IA-5, SC-23", "V-222403, V-222404", "AS validates assertion (iss, aud=AS client, signature, nonce); IdP tokens never reach ReqAML API")
+ControlNote(seqAuthServer, "IA-5, SC-23", "V-222403, V-222404", "AS validates assertion (iss, aud=AS client, signature, nonce); IdP tokens never reach ReqALM API")
 
-seqAuthServer -> seqCredStore : claim map: (issuer, sub) → identity within connector tenant\n(e.g. oidc:dan-raby → dan); grants from ReqAML records only
+seqAuthServer -> seqCredStore : claim map: (issuer, sub) → identity within connector tenant\n(e.g. oidc:dan-raby → dan); grants from ReqALM records only
 ControlNote(seqCredStore, "AC-2, AC-6", "TBD (ASD V6R4)", "Explicit mapping; never cross-tenant; claims → identity + MFA evidence (ARCH-AUTH-CLAIM-MAP)")
 
 opt privileged role / step-up needed (amr/acr missing or stale)
@@ -40,13 +40,13 @@ end
 
 AuthAuditLog("auth:federated:signin allow")
 seqAuthServer -> seqKeyProvider : sign(access token, kid) — Transit
-seqAuthServer --> seqWebUI : code → tokens (iss=ReqAML AS, aud=API/UI)\n+ rotating refresh (≤ connector max auth age)
+seqAuthServer --> seqWebUI : code → tokens (iss=ReqALM AS, aud=API/UI)\n+ rotating refresh (≤ connector max auth age)
 ControlNote(seqAuthServer, "SC-12(3), IA-5(6)", "V-222570", "Tokens minted by AS; signing keys in OpenBao (KS02)")
 
 == API accepts only internal-AS tokens ==
 
 seqWebUI -> seqAPI : AuthenticatedCall (Bearer AS token)
-TokenValidate(seqAPI, "https://reqaml/api")
+TokenValidate(seqAPI, "https://reqalm/api")
 ControlNote(seqAPI, "IA-2, AC-3", "TBD (ASD V6R4)", "Upstream IdP token presented at API → 401 (FIX-DENY-UPSTREAM-TOKEN-AT-API)")
 seqAPI --> seqWebUI : 200 + Scoped View context
 

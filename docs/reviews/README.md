@@ -1,6 +1,6 @@
 # Early design inputs (folded from PRs #1–#5, #7)
 
-Historical inputs from the 2026-10-03 design round, copied here so PR #11 carries all planning. The ReqAML dogfood seed and `docs/design/` supersede them where they conflict.
+Historical inputs from the 2026-10-03 design round, copied here so PR #11 carries all planning. The ReqALM dogfood seed and `docs/design/` supersede them where they conflict.
 
 | File | Source PR |
 |------|-----------|

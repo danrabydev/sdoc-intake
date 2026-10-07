@@ -1,4 +1,4 @@
-name: ReqAML devenv smoke
+name: ReqALM devenv smoke
 
 # Manual dispatch only (GitHub Actions minutes are limited).
 # The primary check is running `pnpm devenv:smoke` locally (needs Docker + Compose v2);
@@ -20,7 +20,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @reqaml/app typecheck
+      - run: pnpm --filter @reqalm/app typecheck
       - run: cp .env.example .env
       - run: pnpm devenv:smoke
       - name: Tear down

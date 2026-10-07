@@ -48,7 +48,7 @@ def sec(ref, note):
 
 
 def line(bu, parent, kind, title):
-    return cm(base_uid=bu, project_id="reqaml", parent=parent, kind=kind, title=title)
+    return cm(base_uid=bu, project_id="reqalm", parent=parent, kind=kind, title=title)
 
 
 def ver(uid, statement, *, base=None, n=0, status="active", priority=10, iteration="iter-r1",
@@ -127,7 +127,7 @@ LINES = [
 V = []
 V += [
     ver("ARCH-AUTH-AS",
-        "ReqAML includes its own OAuth 2.1 authorization server (AS) and it is the single token issuer for the Web UI, API, and MCP clients. It runs in the app container's API role. "
+        "ReqALM includes its own OAuth 2.1 authorization server (AS) and it is the single token issuer for the Web UI, API, and MCP clients. It runs in the app container's API role. "
         "Only the authorization code grant with PKCE is supported for user-delegated access (no implicit, no resource-owner password grant). "
         "The AS conforms to the MCP authorization specification (OAuth 2.1, RFC 8414, RFC 9728, RFC 8707, RFC 9207 iss). "
         "Users authenticate at the AS either with a local account (ARCH-AUTH-LOCAL) or through a federated enterprise IdP (ARCH-AUTH-FEDERATION); "
@@ -145,7 +145,7 @@ V += [
         "The MCP server and the API each publish OAuth Protected Resource Metadata (RFC 9728) at /.well-known/oauth-protected-resource, listing the internal AS in authorization_servers and stating their canonical resource URI. "
         "A request without a valid token gets 401 with WWW-Authenticate: Bearer resource_metadata=\"…\" so MCP clients can discover the AS.",
         priority=5,
-        security=sec("REQAML-SEC-OAUTH", "MCP authorization spec discovery (RFC 8414 / RFC 9728). Interop requirement; no direct NIST pin."), grooming_state="detailed"),
+        security=sec("REQALM-SEC-OAUTH", "MCP authorization spec discovery (RFC 8414 / RFC 9728). Interop requirement; no direct NIST pin."), grooming_state="detailed"),
     ver("ARCH-AUTH-AUDIENCE",
         "Clients send the RFC 8707 resource parameter on both authorization and token requests. Access tokens are audience-bound to exactly one canonical resource (the API or the MCP server). "
         "Each resource server rejects tokens whose audience is not its own (401 invalid_token). "
@@ -166,16 +166,16 @@ V += [
         priority=10, rbac_op="auth:oauth:revoke, auth:signout",
         security=sec("AC-12", "AC-12 session termination; ASD V-222549 / V-222578 / V-222391."), grooming_state="detailed"),
     ver("ARCH-AUTH-CLIENTREG",
-        "First-party clients (Web UI, admin-configured ReqAML MCP clients) are pre-registered with exact redirect URIs. "
+        "First-party clients (Web UI, admin-configured ReqALM MCP clients) are pre-registered with exact redirect URIs. "
         "Client ID Metadata Documents and Dynamic Client Registration (RFC 7591; deprecated in the MCP 2026-07-28 revision) ship disabled by default. "
         "An admin can enable either one per deployment or per client policy, and every registration is audited. "
         "When DCR is disabled, registration_endpoint is omitted from AS metadata and registration requests are refused. Confidential-client secrets are stored hashed (ARCH-CRED-TOKENS).",
         priority=15, rbac_op="auth:client:register",
         security=sec("CM-7", "CM-7 least functionality: open registration off unless policy enables it."), grooming_state="detailed"),
     ver("ARCH-AUTH-FEDERATION",
-        "The enterprise IdP (OIDC or SAML), formerly the direct sign-in path in A01 / CAP-SSO / REQAML-SEC-SSO, is an upstream identity provider federated through the internal AS, not a separate token path. "
+        "The enterprise IdP (OIDC or SAML), formerly the direct sign-in path in A01 / CAP-SSO / REQALM-SEC-SSO, is an upstream identity provider federated through the internal AS, not a separate token path. "
         "The AS acts as the OIDC RP / SAML SP. It validates the upstream response (signature, issuer, audience, nonce, NotBefore/NotOnOrAfter, single-use assertion ID), maps external_sub to a linked identity (A06), "
-        "and then issues ReqAML tokens through the normal code + PKCE flow. When the role needs MFA (ARCH-CRED-MFA), the AS requires upstream MFA evidence (amr/acr). "
+        "and then issues ReqALM tokens through the normal code + PKCE flow. When the role needs MFA (ARCH-CRED-MFA), the AS requires upstream MFA evidence (amr/acr). "
         "The API and MCP server never accept upstream IdP tokens directly.",
         priority=5, rbac_op="auth:signin",
         security=sec("IA-2", "IA-2 / IA-8 federated identification; ASD V-222400 / V-222401 / V-222403 / V-222404 SAML assertion checks."), grooming_state="detailed"),
@@ -188,7 +188,7 @@ V += [
 ]
 V += [
     ver("ARCH-CRED",
-        "Credential store controls cover every credential ReqAML holds or verifies: local passwords, MFA authenticators, OAuth refresh tokens, authorization codes, client secrets, and session identifiers. "
+        "Credential store controls cover every credential ReqALM holds or verifies: local passwords, MFA authenticators, OAuth refresh tokens, authorization codes, client secrets, and session identifiers. "
         "Credentials are never stored or logged in plaintext. Each one is either one-way hashed (verify-only) or wrapped by the key store (must be usable), per ARCH-KEY.",
         priority=5, security=sec("IA-5", "IA-5 authenticator management umbrella."), grooming_state="detailed"),
     ver("ARCH-CRED-HASH",
@@ -216,7 +216,7 @@ V += [
         security=sec("IA-2.1", "IA-2(1) MFA privileged; ASD V-222523 / V-222527."), grooming_state="detailed"),
     ver("ARCH-CRED-TOKENS",
         "Server-side bearer credentials (refresh tokens, authorization codes, confidential-client secrets, MFA recovery codes) are stored only as hashes (keyed hash or one-way hash), compared in constant time, and never retrievable. "
-        "Secrets ReqAML must present to others (upstream IdP client secret, Azure DevOps connector tokens, SMTP credentials, OTEL sink credentials) are stored encrypted under key-store DEKs (ARCH-KEY-SCOPE) and never returned by APIs.",
+        "Secrets ReqALM must present to others (upstream IdP client secret, Azure DevOps connector tokens, SMTP credentials, OTEL sink credentials) are stored encrypted under key-store DEKs (ARCH-KEY-SCOPE) and never returned by APIs.",
         priority=5,
         security=sec("IA-5.6", "IA-5(6) protection of authenticators; SC-28(1); ASD V-222542 / V-222588."), grooming_state="detailed"),
     ver("ARCH-CRED-SESSION",
@@ -240,7 +240,7 @@ V += [
 ]
 V += [
     ver("ARCH-KEY",
-        "ReqAML's encryption root of trust is an external key / secret store using envelope encryption. A key-encryption key (KEK) is held outside the application database by the KeyProvider and wraps data-encryption keys (DEKs). "
+        "ReqALM's encryption root of trust is an external key / secret store using envelope encryption. A key-encryption key (KEK) is held outside the application database by the KeyProvider and wraps data-encryption keys (DEKs). "
         "DEKs are persisted only in wrapped form. Plaintext key material exists only in process memory, is never written to the database, logs, or source, and is zeroized when no longer needed.",
         priority=5, security=sec("SC-12", "SC-12 key establishment/management; SC-28(3) cryptographic keys at rest."), grooming_state="detailed"),
     ver("ARCH-KEY-PROVIDER",
@@ -284,7 +284,7 @@ V += [
         "Password hashing then uses PBKDF2 (ARCH-CRED-HASH), and a KeyProvider build that is not FIPS-validated is refused in that mode. Whether FIPS mode is the default for commercial deployments is an open question.",
         priority=10, security=sec("SC-13", "SC-13 cryptographic protection; ASD V-222570 / V-222571 / V-222572 / V-222583."), grooming_state="detailed"),
     ver("ARCH-KEY-FAILCLOSED",
-        "In production, ReqAML fails closed when the KEK or KeyProvider is unreachable or sealed. The app does not start or reports not ready (ARCH-DEVENV-HEALTH / M04), and it refuses operations that need key material. "
+        "In production, ReqALM fails closed when the KEK or KeyProvider is unreachable or sealed. The app does not start or reports not ready (ARCH-DEVENV-HEALTH / M04), and it refuses operations that need key material. "
         "It never falls back to plaintext, cached plaintext KEKs on disk, or a dev provider. Unavailability is audited and alerted.",
         priority=5, security=sec("SC-24", "SC-24 fail in known state; SC-12(1)."), grooming_state="detailed"),
     ver("ARCH-DEVENV-KEYS",
@@ -294,9 +294,9 @@ V += [
         "SoftHSM2 is optional and exists only to exercise the PKCS#11 provider path (app hsm-test build target).",
         priority=10, security=sec("CM-7", "CM-7 least functionality; dev key path non-essential in prod. ASD V-222642."), grooming_state="detailed"),
     ver("ARCH-DEPLOY-MINIMAL",
-        "One Dockerfile with multi-stage targets (app, peripherals, optional hsm-test) builds every ReqAML image. "
+        "One Dockerfile with multi-stage targets (app, peripherals, optional hsm-test) builds every ReqALM image. "
         "A single app container runs the API (including the internal OAuth AS), Web UI (static assets served by the API role), MCP server (Streamable HTTP), and sync worker together, as one Node process or under a lightweight supervisor. "
-        "Roles are toggled by env/config (for example REQAML_ROLES=api,web,mcp,sync), so any role can later run as its own container from the same image without a rebuild, and health/readiness is reported per enabled role. "
+        "Roles are toggled by env/config (for example REQALM_ROLES=api,web,mcp,sync), so any role can later run as its own container from the same image without a rebuild, and health/readiness is reported per enabled role. "
         "Rationale (Dan, 2026-10-07): run as few containers as possible for fast clone-to-running and small deployments. C4 L2 containers are logical runtime containers, not mandated deploy units.",
         priority=5, iteration="iter-r0", security=sec("CM-2", "CM-2 baseline: one Dockerfile + role config is the deployable baseline; CM-7 roles off when not needed."), grooming_state="detailed"),
     ver("ARCH-DEPLOY-PERIPHERALS",
@@ -308,7 +308,7 @@ V += [
         "SoftHSM2 is a PKCS#11 library loaded in-process, so it is not a peripheral container: it is an optional app hsm-test target and is never deployed. "
         "Reference topology: dev 2 containers (app + peripherals); prod 3 units (app, Postgres, OpenBao).",
         priority=5, iteration="iter-r0", security=sec("SC-28.3", "SC-28(3) key storage separated from protected data in prod; CP-9 independent backups."), grooming_state="detailed"),
-    ver("SEC-BUILD", "Build sequencing for ReqAML implementation. This is ordering only: it does not cut v1 scope or mark any requirement out of scope.",
+    ver("SEC-BUILD", "Build sequencing for ReqALM implementation. This is ordering only: it does not cut v1 scope or mark any requirement out of scope.",
         priority=None, iteration=None),
     ver("ARCH-BUILD-FOUNDATION",
         "The first implementation slice is the foundation: platform shell (App shell, routes and guards, layout: ARCH-UI / ARCH-UI-GUARD), API layering and OpenAPI (ARCH-API / ARCH-API-LAYERS), "
@@ -334,8 +334,8 @@ V += [
         priority=15, rbac_op="auth:oauth:revoke", security=sec("AC-12", "Pairs ARCH-AUTH-REVOKE; ASD V-222578.")),
     ver("FIX-DENY-DCR-DISABLED", FIX + "With DCR policy off (default), AS metadata omits registration_endpoint and POST /register → 403 (or 404). No client row is created, and the attempt is audited.",
         priority=20, rbac_op="auth:client:register", security=sec("CM-7", "Pairs ARCH-AUTH-CLIENTREG.")),
-    ver("FIX-ALLOW-FEDERATED-SSO-VIA-AS", FIX + "dan signs in through the upstream IdP (external_sub oidc:dan-raby). The AS validates the assertion, maps it to identity dan, and issues internal-AS tokens (iss = ReqAML AS). "
-        "The API accepts them and loads dan's reqaml grants; the upstream token never reaches the API.",
+    ver("FIX-ALLOW-FEDERATED-SSO-VIA-AS", FIX + "dan signs in through the upstream IdP (external_sub oidc:dan-raby). The AS validates the assertion, maps it to identity dan, and issues internal-AS tokens (iss = ReqALM AS). "
+        "The API accepts them and loads dan's reqalm grants; the upstream token never reaches the API.",
         rbac_op="auth:signin", security=sec("IA-8", "Pairs ARCH-AUTH-FEDERATION / A01.")),
     ver("FIX-DENY-LOCKOUT", FIX + "Local dev account for taylor-tester: N consecutive wrong passwords inside the window (DoD preset 3 in 15 minutes) → account locked. The next login with the correct password is refused with the same generic error. "
         "Audit records each failure and the lockout. Unlock only via auth:account:unlock or the timer.",
@@ -362,7 +362,7 @@ V += [
     ver("FIX-ALLOW-DEVENV-MIN-CONTAINERS", FIX + "From a fresh clone, the default compose up starts at most 2 containers (app + peripherals) and both report healthy. "
         "Hybrid mode starts only the peripherals container. The optional SoftHSM2 profile changes the app build target and does not add a peripheral container.",
         priority=15, iteration="iter-r0", security=sec("CM-2", "Pairs ARCH-DEPLOY-MINIMAL / ARCH-DEPLOY-PERIPHERALS.")),
-    ver("FIX-ALLOW-APP-ROLE-SPLIT", FIX + "The same app image started with REQAML_ROLES=sync runs only the sync worker (API/MCP/web endpoints absent, readiness reports sync only). "
+    ver("FIX-ALLOW-APP-ROLE-SPLIT", FIX + "The same app image started with REQALM_ROLES=sync runs only the sync worker (API/MCP/web endpoints absent, readiness reports sync only). "
         "With all roles enabled it serves API+AS, Web UI, and MCP and runs sync. No rebuild between runs.",
         priority=20, security=sec("CM-7", "Pairs ARCH-DEPLOY-MINIMAL; roles not enabled are not exposed.")),
 ]
@@ -370,20 +370,20 @@ V += [
 CM2 = sec("CM-2", "CM-2 baseline: one Dockerfile + Compose define the supported local/deploy baseline.")
 SUCC = {
     "SEC-DEVENV": ver("SEC-DEVENV.1",
-        "Developer environment and deployment topology for ReqAML. Docker Compose is the single supported local stand-up path and runs the fewest containers practical: one multi-role app container (API + internal OAuth AS, Web UI, MCP server, sync worker) "
+        "Developer environment and deployment topology for ReqALM. Docker Compose is the single supported local stand-up path and runs the fewest containers practical: one multi-role app container (API + internal OAuth AS, Web UI, MCP server, sync worker) "
         "and one peripherals container (Postgres + OpenBao), both built from one Dockerfile. "
         "Hybrid mode (peripherals only, app native with hot reload) and full-container mode are both supported. The clone-to-running path is short and documented, and migrations and the dogfood seed (with seeded dev accounts) load automatically or with one command. "
         "Sign-in goes through the internal AS, keys come from a dev OpenBao, and secrets stay out of source. Production builds ship no dev accounts, default credentials, or dev keys.",
         base="SEC-DEVENV", n=1, priority=None, iteration=None, mint_kind="content"),
     "ARCH-DEVENV-COMPOSE": ver("ARCH-DEVENV-COMPOSE.1",
-        "Docker Compose is the single supported developer entry point for ReqAML; the repository includes the Compose file(s) and an env template. "
+        "Docker Compose is the single supported developer entry point for ReqALM; the repository includes the Compose file(s) and an env template. "
         "The default stack is 2 containers, both from the repo's single Dockerfile: app (API with internal OAuth 2.1 AS, Web UI, MCP server, sync worker roles; ARCH-DEPLOY-MINIMAL) and peripherals (Postgres + OpenBao; ARCH-DEPLOY-PERIPHERALS). "
         "There is no third-party identity-stub container: local sign-in uses the internal AS with seeded dev accounts (ARCH-DEVENV-IDENTITY.1). "
         "An optional hsm-test profile builds the app with SoftHSM2 to exercise the PKCS#11 KeyProvider path without adding a peripheral container. "
         "Operators do not invent ad-hoc local wiring outside Compose for first-time stand-up.",
         base="ARCH-DEVENV-COMPOSE", n=1, priority=15, iteration="iter-r0", security=CM2, grooming_state="detailed", mint_kind="content"),
     "ARCH-DEVENV-MODES": ver("ARCH-DEVENV-MODES.1",
-        "ReqAML supports two Compose-backed run modes. (1) Hybrid: Compose runs only the peripherals container (Postgres + OpenBao), and the app runs natively as one Node process with all roles enabled and hot reload. "
+        "ReqALM supports two Compose-backed run modes. (1) Hybrid: Compose runs only the peripherals container (Postgres + OpenBao), and the app runs natively as one Node process with all roles enabled and hot reload. "
         "(2) Full-container: Compose runs the app container (same image as deployment) plus the peripherals container. "
         "Both modes share the same Compose project, env contract, and OpenBao dev KeyProvider, so developers can switch without re-wiring.",
         base="ARCH-DEVENV-MODES", n=1, priority=15, iteration="iter-r0", security=CM2, grooming_state="detailed", mint_kind="content"),
@@ -392,7 +392,7 @@ SUCC = {
         "The peripherals target is for dev/test only; production runs Postgres and OpenBao as separate units (ARCH-DEPLOY-PERIPHERALS). The hsm-test target (SoftHSM2) is never deployed.",
         base="ARCH-DEVENV-PARITY", n=1, priority=20, iteration="iter-r0", security=CM2, grooming_state="detailed", mint_kind="content"),
     "ARCH-DEVENV-IDENTITY": ver("ARCH-DEVENV-IDENTITY.1",
-        "Local development signs in through ReqAML's internal OAuth AS (ARCH-AUTH-AS) with seeded dev local accounts mapped to the dogfood seed identities, so A01/A02 sessions, grants, Scoped View, and MCP authorization can be exercised offline. "
+        "Local development signs in through ReqALM's internal OAuth AS (ARCH-AUTH-AS) with seeded dev local accounts mapped to the dogfood seed identities, so A01/A02 sessions, grants, Scoped View, and MCP authorization can be exercised offline. "
         "Dev account credentials are never committed: they come from the local env file or are generated at first seed and shown locally. "
         "Seeded dev accounts and the dev seed loader are dev-only. Production builds and configs ship no seeded dev accounts and no default credentials, and the seed loader refuses to create accounts in production mode. "
         "In production, enterprise SSO federates through the same AS (ARCH-AUTH-FEDERATION). This replaces the earlier third-party local OIDC stub idea.",
@@ -556,7 +556,7 @@ ARTIFACTS = [
 ]
 
 
-def ae(id_, at, who, action, outcome, status, notes, client="raby-family", project="reqaml"):
+def ae(id_, at, who, action, outcome, status, notes, client="raby-family", project="reqalm"):
     return cm(id=id_, at=at, identity_id=who, client_id=client, project_id=project, action=action,
               outcome=outcome, http_status=status, notes=notes)
 
@@ -577,9 +577,9 @@ AUDIT = [
 ]
 
 CAT_ENTRIES = [
-    ("REQAML-SEC-OAUTH", "Internal OAuth 2.1 AS is the single token issuer for UI, API, and MCP (PKCE S256, audience-bound tokens)"),
-    ("REQAML-SEC-CRED", "Credential store controls: salted one-way hashes, lockout, MFA for privileged roles, hashed server-side tokens"),
-    ("REQAML-SEC-KEYS", "Envelope encryption under an external KeyProvider (OpenBao Transit default); custodian-gated key ops"),
+    ("REQALM-SEC-OAUTH", "Internal OAuth 2.1 AS is the single token issuer for UI, API, and MCP (PKCE S256, audience-bound tokens)"),
+    ("REQALM-SEC-CRED", "Credential store controls: salted one-way hashes, lockout, MFA for privileged roles, hashed server-side tokens"),
+    ("REQALM-SEC-KEYS", "Envelope encryption under an external KeyProvider (OpenBao Transit default); custodian-gated key ops"),
 ]
 
 KIM = cm(id="kim-key-custodian", external_sub="oidc:kim-key-custodian", email="kim.keycustodian@therabyfamily.com",
@@ -692,7 +692,7 @@ def main() -> int:
     for a in AUDIT:
         upsert(data["audit_events"], "id", a)
 
-    cat = find(data["catalogs"], "id", "cat-reqaml-security")
+    cat = find(data["catalogs"], "id", "cat-reqalm-security")
     for eid, title in CAT_ENTRIES:
         upsert(cat["entries"], "id", cm(id=eid, title=title))
 
@@ -704,7 +704,7 @@ def main() -> int:
 
     for u in FOUNDATION_DELIVERS:
         assert u in uids, u
-    rel = cm(id="rel-r1-foundation-shell-auth", project_id="reqaml", name="R1-foundation-shell-auth",
+    rel = cm(id="rel-r1-foundation-shell-auth", project_id="reqalm", name="R1-foundation-shell-auth",
              planned_on=None, shipped_on=None, status="planned", delivers=list(FOUNDATION_DELIVERS),
              notes="Build sequencing only (ARCH-BUILD-FOUNDATION): first implementation slice = platform shell + internal OAuth AS + local accounts/credential store + key store + RBAC + audit + health + minimal-container Compose. No v1 scope cut. planned_on / cyber_gate pending Dan (open-questions).")
     rels = data["releases"]

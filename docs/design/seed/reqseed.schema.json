@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://reqaml.local/schemas/reqseed.schema.json",
-  "title": "ReqAML seed bundle",
-  "description": "Practical draft-07 schema for ReqAML dogfood YAML (after YAML\u2192JSON). Not over-strict. Optional Cyber+QA extensions: clients[], catalog_steward_grants[], audit_events[]; project_grant.status/revoked_at for tombstones. Catalog versioning: catalog_imprints[]; conforms_to edges pin via catalog_imprint_id + item UID; optional catalog_drift on versions. Workflow: subject_kinds[], workflow_profiles[], gates[], action_hooks[], role_bindings[], approval_records[]; project.workflow_profile_id; version.statement_hash; version.stakeholder_approval mirror of line ApprovalRecord; change_sets[]; work_item_links[]; release.cyber_gate as gate-cyber-ship trigger. Cyber+QA locked 2026-10-07: mint_kind, superseded, planning_blocked, trace_suspect, gate_signoff, conformance_pin_request, imported_approved.",
+  "$id": "https://reqalm.local/schemas/reqseed.schema.json",
+  "title": "ReqALM seed bundle",
+  "description": "Practical draft-07 schema for ReqALM dogfood YAML (after YAML\u2192JSON). Not over-strict. Optional Cyber+QA extensions: clients[], catalog_steward_grants[], audit_events[]; project_grant.status/revoked_at for tombstones. Catalog versioning: catalog_imprints[]; conforms_to edges pin via catalog_imprint_id + item UID; optional catalog_drift on versions. Workflow: subject_kinds[], workflow_profiles[], gates[], action_hooks[], role_bindings[], approval_records[]; project.workflow_profile_id; version.statement_hash; version.stakeholder_approval mirror of line ApprovalRecord; change_sets[]; work_item_links[]; release.cyber_gate as gate-cyber-ship trigger. Cyber+QA locked 2026-10-07: mint_kind, superseded, planning_blocked, trace_suspect, gate_signoff, conformance_pin_request, imported_approved.",
   "type": "object",
   "required": [
     "schema_version",

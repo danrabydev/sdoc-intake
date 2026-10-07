@@ -35,8 +35,8 @@ EVIDENCE = (
     "HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via "
     "`devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, "
     "agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 "
-    "failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless "
-    "Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; "
+    "failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless "
+    "Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; "
     "seed yaml_to_strictdoc --validate pass"
 )
 
@@ -109,8 +109,8 @@ DELIVERED = [
         security=("AC-3", f"AC-3 guard enforcement. Verified: {EVIDENCE}; headless Chrome: `/` and `/app` "
                   "redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000."),
         artifacts=[
-            ("other", "apps/reqaml/src/web/public/app.js"),
-            ("other", "apps/reqaml/src/web/public/styles.css"),
+            ("other", "apps/reqalm/src/web/public/app.js"),
+            ("other", "apps/reqalm/src/web/public/styles.css"),
         ],
     ),
     dict(
@@ -118,7 +118,7 @@ DELIVERED = [
         parent="SEC-IA",
         title="Internal OAuth 2.1 authorization server",
         statement=(
-            "ReqAML's internal OAuth 2.1 AS in the API role is the single token issuer for Web UI, API, and MCP: "
+            "ReqALM's internal OAuth 2.1 AS in the API role is the single token issuer for Web UI, API, and MCP: "
             "authorization code + PKCE S256 only, RFC 8414 AS metadata, RFC 9728 protected-resource metadata for API and MCP, "
             "RFC 8707 resource indicators with audience-bound access tokens, refresh-token rotation with reuse detection "
             "(family revocation), RFC 7009 revocation, pre-registered clients, dynamic client registration disabled by default. "
@@ -131,8 +131,8 @@ DELIVERED = [
         ],
         security=("IA-2", f"IA-2 / SC-23 OAuth beds. Verified: {EVIDENCE}."),
         artifacts=[
-            ("other", "apps/reqaml/src/auth/routes.ts"),
-            ("other", "apps/reqaml/src/auth/oauth-service.ts"),
+            ("other", "apps/reqalm/src/auth/routes.ts"),
+            ("other", "apps/reqalm/src/auth/oauth-service.ts"),
             ("other", "scripts/auth-flow-smoke.mjs"),
         ],
     ),
@@ -153,9 +153,9 @@ DELIVERED = [
         security=("IA-5", f"IA-5 / AC-7 credential controls. Verified: {EVIDENCE}; TOTP secrets envelope-wrapped; "
                   "replay of the same code within its window rejected."),
         artifacts=[
-            ("other", "apps/reqaml/src/credential/password.ts"),
-            ("other", "apps/reqaml/src/credential/lockout.ts"),
-            ("other", "apps/reqaml/src/credential/mfa.ts"),
+            ("other", "apps/reqalm/src/credential/password.ts"),
+            ("other", "apps/reqalm/src/credential/lockout.ts"),
+            ("other", "apps/reqalm/src/credential/mfa.ts"),
         ],
     ),
     dict(
@@ -177,8 +177,8 @@ DELIVERED = [
         security=("SC-12", f"SC-12 / SC-28(3). Verified: {EVIDENCE}; `/oauth/jwks` serves Transit-wrapped ES256. "
                   "FIPS/Transit-sign deferred."),
         artifacts=[
-            ("other", "apps/reqaml/src/key/provider.ts"),
-            ("other", "apps/reqaml/src/key/signing.ts"),
+            ("other", "apps/reqalm/src/key/provider.ts"),
+            ("other", "apps/reqalm/src/key/signing.ts"),
         ],
     ),
     dict(
@@ -193,7 +193,7 @@ DELIVERED = [
         satisfies=["ARCH-CRED-AUDIT"],
         security=("AU-2", f"AU-2 / AU-3 / AU-12. Verified: {EVIDENCE}; auth_audit_events rows observed for "
                   "login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny."),
-        artifacts=[("other", "apps/reqaml/src/audit/auth-audit.ts")],
+        artifacts=[("other", "apps/reqalm/src/audit/auth-audit.ts")],
     ),
     dict(
         uid="CAP-RBAC",
@@ -208,8 +208,8 @@ DELIVERED = [
         satisfies=["ARCH-API-RBAC"],
         security=("AC-3", f"AC-3 enforcement. Verified: {EVIDENCE}."),
         artifacts=[
-            ("other", "apps/reqaml/src/rbac/enforce.ts"),
-            ("other", "apps/reqaml/src/http/server.ts"),
+            ("other", "apps/reqalm/src/rbac/enforce.ts"),
+            ("other", "apps/reqalm/src/http/server.ts"),
         ],
     ),
     dict(
@@ -223,14 +223,14 @@ DELIVERED = [
         ),
         satisfies=["ARCH-AUTH-UPSTREAM-CONNECTOR"],
         security=("IA-8", "Seam only — no live federation in R1. Verified by code review + typecheck."),
-        artifacts=[("other", "apps/reqaml/src/auth/upstream-connector.ts")],
+        artifacts=[("other", "apps/reqalm/src/auth/upstream-connector.ts")],
     ),
     dict(
         uid="CAP-DEVENV-INIT",
         parent="SEC-DEVENV",
         title="Idempotent devenv:init secrets CLI",
         statement=(
-            "`pnpm devenv:init` writes per-developer random secrets to gitignored `.reqaml/devenv.env` and merges "
+            "`pnpm devenv:init` writes per-developer random secrets to gitignored `.reqalm/devenv.env` and merges "
             "root `.env` for Compose (Postgres password, dev account password, session/agent secrets). Reruns preserve "
             "values unless `--rotate`. No fixed default passwords in the repo."
         ),
@@ -252,8 +252,8 @@ DELIVERED = [
         satisfies=["ARCH-CRED-MFA"],
         security=("IA-2", f"IA-2 MFA enrollment. Verified: {EVIDENCE}."),
         artifacts=[
-            ("other", "apps/reqaml/src/auth/mfa-enroll.ts"),
-            ("other", "apps/reqaml/src/cli/enroll-mfa.ts"),
+            ("other", "apps/reqalm/src/auth/mfa-enroll.ts"),
+            ("other", "apps/reqalm/src/cli/enroll-mfa.ts"),
         ],
     ),
     dict(
@@ -262,7 +262,7 @@ DELIVERED = [
         title="Dev agent OAuth client_credentials tokens",
         statement=(
             "`pnpm devenv:agent-token --agent <name> [--role Reader|Author]` mints short-lived (<= 1 h) audience-bound "
-            "tokens via registered `reqaml-agent-dev` client_credentials (not a backdoor password). The agent is its own "
+            "tokens via registered `reqalm-agent-dev` client_credentials (not a backdoor password). The agent is its own "
             "principal (`agent-<name>`) with explicit project grants; each token carries one role (default Reader), "
             "roles above Author or not granted are refused, and authorization uses only the token's role. Agent name, "
             "token role and optional acting-for are recorded on token issue and mutation audit."
@@ -271,7 +271,7 @@ DELIVERED = [
         security=("IA-2", f"IA-2 agent attribution. Verified: {EVIDENCE}."),
         artifacts=[
             ("other", "scripts/devenv-agent-token.mjs"),
-            ("other", "apps/reqaml/src/auth/agent-auth.ts"),
+            ("other", "apps/reqalm/src/auth/agent-auth.ts"),
         ],
     ),
     dict(
@@ -281,18 +281,18 @@ DELIVERED = [
         statement=(
             "Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF "
             "required on every cookie-authenticated mutation, per-IP failed-login throttle alongside account lockout, "
-            "prod REQAML_ISSUER_URL self-check, trustProxy off by default (production requires an explicit "
-            "REQAML_TRUSTED_PROXIES list), "
+            "prod REQALM_ISSUER_URL self-check, trustProxy off by default (production requires an explicit "
+            "REQALM_TRUSTED_PROXIES list), "
             "auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, "
             "JWT signature verify before access-token revocation, normalized usernames."
         ),
         satisfies=["ARCH-AUTH-AS", "ARCH-CRED-LOCKOUT"],
         security=("SC-23", f"SC-23 session/OAuth hardening. Verified: {EVIDENCE}."),
         artifacts=[
-            ("other", "apps/reqaml/src/auth/handoff.ts"),
-            ("other", "apps/reqaml/src/auth/web-session.ts"),
-            ("other", "apps/reqaml/src/credential/ip-throttle.ts"),
-            ("other", "apps/reqaml/src/db/migrations/004_devenv_hardening.sql"),
+            ("other", "apps/reqalm/src/auth/handoff.ts"),
+            ("other", "apps/reqalm/src/auth/web-session.ts"),
+            ("other", "apps/reqalm/src/credential/ip-throttle.ts"),
+            ("other", "apps/reqalm/src/db/migrations/004_devenv_hardening.sql"),
         ],
     ),
 ]
@@ -354,7 +354,7 @@ def main() -> int:
             "base_uid",
             cm(
                 base_uid=spec["uid"],
-                project_id="reqaml",
+                project_id="reqalm",
                 parent=spec["parent"],
                 kind="capability",
                 title=spec["title"],
@@ -380,7 +380,7 @@ def main() -> int:
             ):
                 edges.append(cm(**{"from": spec["uid"], "to": t, "kind": "satisfies"}))
         ref = spec["security"][0]
-        if "-" in ref and not ref.startswith("REQAML-"):
+        if "-" in ref and not ref.startswith("REQALM-"):
             if not any(
                 e.get("from") == spec["uid"] and e.get("to") == ref for e in edges
             ):
@@ -432,7 +432,7 @@ def main() -> int:
         data["releases"].append(
             cm(
                 id=R1_DEFERRED_RELEASE,
-                project_id="reqaml",
+                project_id="reqalm",
                 name="R1 platform follow-ups (deferred from foundation PR)",
                 planned_on="2026-11-30",
                 shipped_on=None,

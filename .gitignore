@@ -24,6 +24,6 @@ package-lock.json
 screenshots
 artifacts
 
-# ReqAML local dev secrets (OpenBao init output, generated tokens)
-.reqaml/
+# ReqALM local dev secrets (OpenBao init output, generated tokens)
+.reqalm/
 docker-data/

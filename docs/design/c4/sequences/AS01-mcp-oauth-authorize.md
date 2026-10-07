@@ -1,6 +1,6 @@
 # AS01 — MCP client authorization via internal OAuth 2.1 AS
 
-Covers how an MCP host gets authorized against ReqAML's internal OAuth 2.1 authorization server: discovery, client identification, PKCE, an audience-bound token, an audience-checked MCP tool call that then runs the ActionHook pipeline, and refresh rotation and revocation. The same AS issues tokens for the UI, API, and MCP (ARCH-AUTH-AS). This aligns with the MCP authorization spec (OAuth 2.1, RFC 8414, RFC 9728, RFC 8707, RFC 9207).
+Covers how an MCP host gets authorized against ReqALM's internal OAuth 2.1 authorization server: discovery, client identification, PKCE, an audience-bound token, an audience-checked MCP tool call that then runs the ActionHook pipeline, and refresh rotation and revocation. The same AS issues tokens for the UI, API, and MCP (ARCH-AUTH-AS). This aligns with the MCP authorization spec (OAuth 2.1, RFC 8414, RFC 9728, RFC 8707, RFC 9207).
 
 | Field | Value |
 |-------|--------|

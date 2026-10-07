@@ -15,7 +15,7 @@ importers:
         specifier: workspace:*
         version: link:packages/intake
 
-  apps/reqaml:
+  apps/reqalm:
     dependencies:
       '@fastify/cookie':
         specifier: ^11.1.2

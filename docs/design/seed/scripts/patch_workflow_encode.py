@@ -29,7 +29,7 @@ def cm(**kwargs):
     return m
 
 
-def line(base_uid, parent, kind, title, project_id="reqaml"):
+def line(base_uid, parent, kind, title, project_id="reqalm"):
     return cm(
         base_uid=base_uid,
         project_id=project_id,
@@ -259,7 +259,7 @@ def main():
         cm(id="wf-commercial-default",
            scope="project",
            client_id="raby-family",
-           project_id="reqaml",
+           project_id="reqalm",
            title="Commercial default workflow",
            gate_ids=[
                "gate-line-approved",
@@ -307,7 +307,7 @@ def main():
                "requirement:version:iteration",
                "release:membership",
            ],
-           notes="Example broader planning gates + verification ship. Not attached to reqaml project by default.",
+           notes="Example broader planning gates + verification ship. Not attached to reqalm project by default.",
            action_hook_ids=[
                "hook-line-approve",
                "hook-line-approve-tree",
@@ -505,13 +505,13 @@ def main():
     find_ver(versions, "D10")["statement"] = (
         "A Tester adds or updates a verification_note on a version's security metadata (or adjacent test note field). "
         "The Tester also sets first-class verification_outcome (pass|fail|pending) on the version (ARCH-VERIFICATION). "
-        "ReqAML records the tester identity and timestamp; Authors cannot silently overwrite tester notes without "
+        "ReqALM records the tester identity and timestamp; Authors cannot silently overwrite tester notes without "
         "audit. Whether verification_outcome blocks G05 ship is determined by WorkflowProfile Gate "
         "gate-verification-ship (ARCH-VERIFICATION-GATE) — configurable, not permanently soft."
     )
 
     find_ver(versions, "G05")["statement"] = (
-        "A Release manager ships a release. ReqAML sets status shipped, records shipped_on, and freezes delivers as an "
+        "A Release manager ships a release. ReqALM sets status shipped, records shipped_on, and freezes delivers as an "
         "immutable snapshot. Ship is a high-value auditable event (AU-2/3/12). Further delivers mutations deny "
         "(FIX-DENY-SHIPPED-DELIVERS). ActionHook release:ship evaluates profile Gates: gate-cyber-ship when "
         "release.cyber_gate=true and enabled (ARCH-CYBER-GATE); gate-verification-ship when enabled "
@@ -521,7 +521,7 @@ def main():
 
     find_ver(versions, "G07")["statement"] = (
         "A Reader opens a Gantt / schedule view derived from releases, priorities, and iterations (ARCH-GANTT). "
-        "ReqAML provides a first-class schedule read model for planning — alongside backlog planning views "
+        "ReqALM provides a first-class schedule read model for planning — alongside backlog planning views "
         "(ARCH-BACKLOG / G04 / K01). Schedule overlays show release windows, iteration bands, and prioritized "
         "work; they are product requirements, not exploratory-only."
     )
@@ -596,7 +596,7 @@ def main():
     find_ver(versions, "E04")["statement"] = (
         "An Author links a capability version to a requirement version via satisfies. At capability creation, "
         "Satisfies MUST be supplied (no orphan caps — ARCH-CAP-LINK). Additional Satisfies edges may be added "
-        "later. ReqAML treats Satisfies as the primary coverage edge; the Satisfies edge itself is NOT a separate "
+        "later. ReqALM treats Satisfies as the primary coverage edge; the Satisfies edge itself is NOT a separate "
         "approve subject by default — CapabilityLine ApprovalRecord is enough for accepted solution "
         "(ARCH-CAP-APPROVE). Profiles may later add an EdgeSatisfies approve gate if configured."
     )
@@ -612,12 +612,12 @@ def main():
     # --- new versions ---
     new_versions = [
         ver("SEC-WF", "SEC-WF",
-            "Dynamic workflow control plane for ReqAML: WorkflowProfile, SubjectKind registry, Gate, ActionHook, "
+            "Dynamic workflow control plane for ReqALM: WorkflowProfile, SubjectKind registry, Gate, ActionHook, "
             "RoleBinding, thin Transition, and ApprovalRecord — composition over a mega-status enum (ARCH-WORKFLOW). "
             "See roles/workflow-system.md.",
             priority=10, iteration="iter-r0", security=deepcopy(SEC_AU)),
         ver("ARCH-WORKFLOW", "ARCH-WORKFLOW",
-            "ReqAML workflow is composed of WorkflowProfile (per project, optional client default), SubjectKind "
+            "ReqALM workflow is composed of WorkflowProfile (per project, optional client default), SubjectKind "
             "registry, Gate, ActionHook, RoleBinding, thin Transition, and ApprovalRecord. Do NOT encode product "
             "control as one lifecycle megamachine. Lifecycle status (draft|active|obsolete|withdrawn) and "
             "grooming_state remain thin; gates/hooks evaluate at action time. Workflow is app logic + seed fixtures; "
@@ -701,7 +701,7 @@ def main():
         ver("ARCH-CHANGESET-CONFLICT", "ARCH-CHANGESET-CONFLICT",
             "INTENT LOCKED / ENGINE DESIGN OPEN: post-close revert must be conflict-aware. When reverting a closed "
             "change set would conflict with later mutations (overlapping fields, superseded versions, shipped "
-            "delivers, closed contract links, etc.), ReqAML shall detect conflicts and either apply a defined "
+            "delivers, closed contract links, etc.), ReqALM shall detect conflicts and either apply a defined "
             "resolution policy or deny with a clear FIX-DENY-* outcome. Detailed conflict rules, precedence, and "
             "UI are a separate design — do not invent engine specifics in other reqs; keep this ARCH as the open "
             "design anchor.",
@@ -789,7 +789,7 @@ def main():
         at="2026-10-07T11:10:00-04:00",
         identity_id="alex-author",
         client_id="raby-family",
-        project_id="reqaml",
+        project_id="reqalm",
         action="requirement:version:mint",
         outcome="deny",
         http_status=409,
@@ -800,7 +800,7 @@ def main():
         at="2026-10-07T10:30:00-04:00",
         identity_id="pat-client-admin",
         client_id="raby-family",
-        project_id="reqaml",
+        project_id="reqalm",
         action="requirement:line:approve",
         outcome="allow",
         http_status=200,
@@ -811,7 +811,7 @@ def main():
         at="2026-10-07T10:35:00-04:00",
         identity_id="pat-client-admin",
         client_id="raby-family",
-        project_id="reqaml",
+        project_id="reqalm",
         action="capability:line:approve",
         outcome="allow",
         http_status=200,

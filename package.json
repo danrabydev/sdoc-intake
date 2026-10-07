@@ -1,9 +1,9 @@
 {
-  "name": "reqaml-repo",
+  "name": "reqalm-repo",
   "private": true,
   "version": "0.1.0",
   "license": "MIT",
-  "description": "Monorepo for ReqAML and the SDoc Intake editor.",
+  "description": "Monorepo for ReqALM and the SDoc Intake editor.",
   "packageManager": "pnpm@10.33.3",
   "engines": {
     "node": ">=22"
@@ -18,7 +18,7 @@
   },
   "scripts": {
     "dev": "pnpm --filter sdoc-intake dev",
-    "dev:reqaml": "node scripts/dev-reqaml.mjs",
+    "dev:reqalm": "node scripts/dev-reqalm.mjs",
     "build": "pnpm -r build",
     "build:cli": "pnpm --filter sdoc-intake build:cli",
     "publish:cli": "pnpm --filter sdoc-intake publish:cli",
@@ -36,7 +36,7 @@
     "devenv:mfa": "node scripts/devenv-mfa.mjs",
     "devenv:agent-token": "node scripts/devenv-agent-token.mjs",
     "devenv:smoke": "node scripts/devenv-smoke.mjs",
-    "reqaml:migrate": "pnpm --filter @reqaml/app migrate",
-    "reqaml:seed": "pnpm --filter @reqaml/app seed"
+    "reqalm:migrate": "pnpm --filter @reqalm/app migrate",
+    "reqalm:seed": "pnpm --filter @reqalm/app seed"
   }
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Encode ReqAML Docker Compose developer-environment expectations (ARCH-DEVENV-*).
+"""Encode ReqALM Docker Compose developer-environment expectations (ARCH-DEVENV-*).
 
 Locked ask 2026-10-07: Compose entry point; hybrid + full-container modes;
 clone-to-running; migrations + dogfood seed; local identity stub (prod-disabled);
@@ -38,7 +38,7 @@ def cm(**kwargs):
     return m
 
 
-def line(base_uid, parent, kind, title, project_id="reqaml"):
+def line(base_uid, parent, kind, title, project_id="reqalm"):
     return cm(
         base_uid=base_uid,
         project_id=project_id,
@@ -213,7 +213,7 @@ SEC_FIX = {
 }
 
 STMT_SEC = (
-    "Developer environment for ReqAML: Docker Compose is the single supported "
+    "Developer environment for ReqALM: Docker Compose is the single supported "
     "local stand-up path. Compose services cover the C4 L2 containers (Postgres, "
     "API, Web UI, Sync worker) plus a non-prod local identity stub. Hybrid "
     "(deps in Compose, app native with hot reload) and full-container modes are "
@@ -227,7 +227,7 @@ NEW_VERSIONS = [
     ver(
         "ARCH-DEVENV-COMPOSE",
         "ARCH-DEVENV-COMPOSE",
-        "Docker Compose is the single supported developer entry point for ReqAML. "
+        "Docker Compose is the single supported developer entry point for ReqALM. "
         "The repository includes the Compose file(s) and an env template. Compose "
         "services derive from the C4 L2 containers: Postgres (database), API "
         "(Node/TypeScript OpenAPI), Web UI (React), and Sync worker (DevOps "
@@ -241,7 +241,7 @@ NEW_VERSIONS = [
     ver(
         "ARCH-DEVENV-MODES",
         "ARCH-DEVENV-MODES",
-        "ReqAML supports two Compose-backed run modes: (1) hybrid — Compose "
+        "ReqALM supports two Compose-backed run modes: (1) hybrid — Compose "
         "provides dependencies (at least Postgres and the local identity stub); "
         "the API and/or Web UI run as native Node processes with hot reload "
         "against those deps; (2) full-container — API, Web UI, Sync worker, and "
@@ -285,7 +285,7 @@ NEW_VERSIONS = [
         "establishment, grants, and Scoped View can be exercised offline. The "
         "local identity path is clearly disabled or omitted in production "
         "builds and configurations (CM-7 / V-222518). Production continues to "
-        "require enterprise SSO only (A01 / REQAML-SEC-SSO); no local password "
+        "require enterprise SSO only (A01 / REQALM-SEC-SSO); no local password "
         "store is introduced for production. Which stub implementation is used "
         "is an open product choice until Dan locks it.",
         priority=10,
@@ -352,7 +352,7 @@ NEW_VERSIONS = [
         "(OIDC stub or dev-login) is denied or the route/config is absent → "
         "expect unauthorized/forbidden (or missing endpoint). Enterprise SSO "
         "(A01) remains the only sign-in path. Pairs ARCH-DEVENV-IDENTITY and "
-        "REQAML-SEC-SSO.",
+        "REQALM-SEC-SSO.",
         priority=15,
         iteration="iter-r1",
         rbac_op="auth:signin",

@@ -1,4 +1,4 @@
-# Opt-in host bindings for Postgres + OpenBao (hybrid `pnpm dev:reqaml`, migrate/seed on host).
+# Opt-in host bindings for Postgres + OpenBao (hybrid `pnpm dev:reqalm`, migrate/seed on host).
 # Default `docker compose up` keeps peripherals internal-only; the app is on 127.0.0.1:3000.
 services:
   peripherals:

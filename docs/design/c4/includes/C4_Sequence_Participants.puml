@@ -63,8 +63,8 @@ participant "Audit log" as seqAudit #85BBF0
 participant "MCP host\n(Cursor / remote agent)" as seqMcpHost #999999
 !endprocedure
 
-!unquoted procedure C4Seq_ReqAmlMcp()
-participant "ReqAML MCP\nserver" as seqMcpServer #438DD5
+!unquoted procedure C4Seq_ReqAlmMcp()
+participant "ReqALM MCP\nserver" as seqMcpServer #438DD5
 !endprocedure
 
 !unquoted procedure C4Seq_DeskSocket()
@@ -93,7 +93,7 @@ participant "Key custodian" as seqKeyCustodian #08427B
 
 !unquoted procedure C4Seq_Bundle_McpDesk()
 C4Seq_McpHost()
-C4Seq_ReqAmlMcp()
+C4Seq_ReqAlmMcp()
 C4Seq_WebUI()
 C4Seq_RouteGuard()
 C4Seq_API()
@@ -145,7 +145,7 @@ C4Seq_OTEL()
 !unquoted procedure C4Seq_Bundle_McpOAuth()
 C4Seq_McpHost()
 C4Seq_User()
-C4Seq_ReqAmlMcp()
+C4Seq_ReqAlmMcp()
 C4Seq_AuthServer()
 C4Seq_CredStore()
 C4Seq_KeyProvider()

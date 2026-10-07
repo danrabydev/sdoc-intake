@@ -1,6 +1,6 @@
-# ReqAML seed YAML shape
+# ReqALM seed YAML shape
 
-Mirrors the relational ERD at `../c4/data-erd.puml` (workflow encode 2026-10-07; base locked 2026-10-06). Root document is one client’s dogfood bundle for project **ReqAML**.
+Mirrors the relational ERD at `../c4/data-erd.puml` (workflow encode 2026-10-07; base locked 2026-10-06). Root document is one client’s dogfood bundle for project **ReqALM**.
 
 ## Top-level keys
 
@@ -49,7 +49,7 @@ Mirrors the relational ERD at `../c4/data-erd.puml` (workflow encode 2026-10-07;
 |-------|------|----------|--------|
 | `id` | string | yes | |
 | `client_id` | string | yes | → client.id |
-| `name` | string | yes | Display name (**ReqAML**) |
+| `name` | string | yes | Display name (**ReqALM**) |
 | `status` | string | no | e.g. `active` |
 | `notes` | string | no | e.g. intake repo alias |
 | `workflow_profile_id` | string | no | → `workflow_profiles[].id` (ARCH-WORKFLOW) |
@@ -85,7 +85,7 @@ Mirrors the relational ERD at `../c4/data-erd.puml` (workflow encode 2026-10-07;
 | `project_id` | string | if project | |
 | `title` | string | yes | |
 | `is_standard` | bool | no | default false; standards always require imprint publish |
-| `entries` | array | no | lightweight `{id, title}` for **project** catalogs (`REQAML-SEC-*`); standards use `.sdoc` via imprint |
+| `entries` | array | no | lightweight `{id, title}` for **project** catalogs (`REQALM-SEC-*`); standards use `.sdoc` via imprint |
 | `sdoc_path` | string | no | pointer to authoritative catalog `.sdoc` (NIST/STIG) |
 | `current_imprint_id` | string | no | → `catalog_imprints[].id` for the active published imprint |
 | `notes` | string | no | |

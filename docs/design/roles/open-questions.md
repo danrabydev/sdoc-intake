@@ -30,11 +30,11 @@ Also locked from **Dan, 2026-10-07 (auth foundation)**, encoded in `seed/patch_a
 
 | Topic | Locked answer |
 |-------|----------------|
-| Dev identity (former §2) | **Internal OAuth.** ReqAML runs its own OAuth 2.1 AS (ARCH-AUTH-AS), which is also needed for MCP. Dev uses **seeded dev local accounts** on that AS (ARCH-DEVENV-IDENTITY.1). There is no third-party OIDC stub container. Production ships no dev accounts or default credentials. |
+| Dev identity (former §2) | **Internal OAuth.** ReqALM runs its own OAuth 2.1 AS (ARCH-AUTH-AS), which is also needed for MCP. Dev uses **seeded dev local accounts** on that AS (ARCH-DEVENV-IDENTITY.1). There is no third-party OIDC stub container. Production ships no dev accounts or default credentials. |
 | Token issuer | One internal AS serves UI, API, and MCP. External SSO federates upstream through it (ARCH-AUTH-FEDERATION). PKCE is S256 only. RFC 8414 + 9728 + 8707 apply, and there is no token passthrough. DCR is off by default. |
 | Build order | Platform shell + auth comes first (ARCH-BUILD-FOUNDATION / `rel-r1-foundation-shell-auth`). This is sequencing only, with no v1 scope cut. |
 | Key store | **OpenBao (Transit)** is the default KeyProvider for dev and is suitable for prod. **SoftHSM2** is optional, for testing the PKCS#11 path only. HashiCorp Vault (BUSL) and LocalStack KMS are **not** defaults (ARCH-KEY-PROVIDER). |
-| Containers | Run as few containers as possible: **one Dockerfile**; **one app container** (API+AS, Web UI, MCP, sync; roles via `REQAML_ROLES`); **one peripherals container** in dev (Postgres + OpenBao). Hybrid mode = peripherals container + native app. Production splits Postgres and OpenBao to isolate keys from data (ARCH-DEPLOY-MINIMAL / ARCH-DEPLOY-PERIPHERALS). |
+| Containers | Run as few containers as possible: **one Dockerfile**; **one app container** (API+AS, Web UI, MCP, sync; roles via `REQALM_ROLES`); **one peripherals container** in dev (Postgres + OpenBao). Hybrid mode = peripherals container + native app. Production splits Postgres and OpenBao to isolate keys from data (ARCH-DEPLOY-MINIMAL / ARCH-DEPLOY-PERIPHERALS). |
 | Local accounts | **Optional** (Dan, 2026-10-07 follow-up). Auth-profile capability; production default `local_accounts=disabled` so A01's "no local password store" holds. Allowed: seeded **dev** accounts, **break-glass** recovery admin (ARCH-AUTH-LOCAL-BREAKGLASS), or an explicit profile opt-in. A01 is **not** minted. Encoded as ARCH-AUTH-LOCAL.1 / ARCH-AUTH-PROFILE. |
 | MCP OAuth | **Mandatory** in every identity mode. The internal AS remains the only MCP token issuer even when the user authenticates at an upstream IdP (ARCH-AUTH-MCP-REQUIRED). |
 
@@ -98,7 +98,7 @@ Each remaining item: question, options if clear, why it blocks encoding.
 1. Adopt MCP Enterprise-Managed Authorization (ID-JAG) as an optional per-connector capability when an enterprise client asks for zero-touch MCP?
 2. For outbound provider APIs (ADO sync, Graph, …): prefer (c) stored grants, (b) token exchange where the provider supports it, or decide per provider?
 3. How many upstream connectors per client tenant, and how is home-realm discovery done?
-4. Should upstream groups auto-provision or deprovision ReqAML grants (JIT / SCIM), or keep grants as ReqAML records only (current encoding)?
+4. Should upstream groups auto-provision or deprovision ReqALM grants (JIT / SCIM), or keep grants as ReqALM records only (current encoding)?
 5. For IdPs without back-channel logout: SCIM deprovision, periodic userinfo check, or rely on the connector maximum authentication age?
 6. Headless / agent MCP clients: device authorization grant, OAuth client credentials (MCP extension), or wait for EMA? Attribution model for non-human principals?
 7. May a client tenant override the deployment auth profile (local_accounts / identity_mode)?
@@ -149,9 +149,9 @@ Each remaining item: question, options if clear, why it blocks encoding.
 
 ---
 
-## 10. MCP → API downstream credential (inbound ReqAML path)
+## 10. MCP → API downstream credential (inbound ReqALM path)
 
-**Status:** Open. Distinct from §5 outbound provider-API access. No token passthrough is locked. The MCP server calls ReqAML business logic as the principal.
+**Status:** Open. Distinct from §5 outbound provider-API access. No token passthrough is locked. The MCP server calls ReqALM business logic as the principal.
 
 **Question:** When the MCP and API roles later run in separate containers, should the MCP role call the API with an RFC 8693 token exchange (aud=API, on behalf of the user), or continue with an internal service credential? Same-container in-process calls remain fine for the foundation slice.
 

@@ -1,4 +1,4 @@
-# ReqAML permission matrix (flat)
+# ReqALM permission matrix (flat)
 
 Ignores client/project/global scope.
 

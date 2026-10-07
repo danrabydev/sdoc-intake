@@ -13,7 +13,7 @@ skinparam PartitionFontStyle bold
 skinparam noteBorderColor #94A3B8
 skinparam noteBackgroundColor #F1F5F9
 
-title ReqAML dynamic workflow — canonical early path\n(composition: WorkflowProfile · Gate · ActionHook · RoleBinding · SubjectKind)
+title ReqALM dynamic workflow — canonical early path\n(composition: WorkflowProfile · Gate · ActionHook · RoleBinding · SubjectKind)
 
 |Client sys-req|
 start

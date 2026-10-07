@@ -13,7 +13,7 @@ skinparam PartitionFontStyle bold
 skinparam noteBorderColor #94A3B8
 skinparam noteBackgroundColor #F1F5F9
 
-title DoD / Program Office ↔ Contractor — SDLC roles\n(mapped toward ReqAML)
+title DoD / Program Office ↔ Contractor — SDLC roles\n(mapped toward ReqALM)
 
 |Stakeholder / Mission|
 start
@@ -48,7 +48,7 @@ endif
 stop
 
 legend left
-  |= Lane |= Typical org |= Closest ReqAML roles |
+  |= Lane |= Typical org |= Closest ReqALM roles |
   | Stakeholder | Mission / KO | Reader (often) |
   | DoD requirements | PM / COR / reqs | Author, Client admin, Project admin |
   | DoD cyber | ISSM / ISSE / SCA / AO | Security, Catalog steward |

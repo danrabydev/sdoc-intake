@@ -1,14 +1,14 @@
 [DOCUMENT]
-TITLE: ReqAML — Requirements
-UID: reqaml-requirements
+TITLE: ReqALM — Requirements
+UID: reqalm-requirements
 VERSION: 2026-10-07
 OPTIONS:
   MARKUP: Text
 METADATA:
   client: Raby-Family (raby-family)
-  project: ReqAML (reqaml)
+  project: ReqALM (reqalm)
   schema_version: 2026-10-07
-  note: ReqAML dogfood export — StrictDoc interchange only
+  note: ReqALM dogfood export — StrictDoc interchange only
 
 [GRAMMAR]
 ELEMENTS:
@@ -847,7 +847,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: AC-3 enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+security.verification_note: AC-3 enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
 edge: ← uses from MC03
 edge: ← uses from FIX-DENY-READER-GRANT
 edge: ← uses from FIX-DENY-MCP-ESCALATE
@@ -1058,7 +1058,7 @@ BASE_UID: ARCH-AUTH-METADATA
 VERSION_N: 0
 priority: 5
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-OAUTH
+security.catalog_ref: REQALM-SEC-OAUTH
 security.verification_note: MCP authorization spec discovery (RFC 8414 / RFC 9728). Interop requirement; no direct NIST pin.
 edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
 edge: ← uses from FIX-DENY-MCP-WRONG-AUDIENCE
@@ -1922,7 +1922,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
-security.verification_note: IA-2 / SC-23 OAuth beds. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+security.verification_note: IA-2 / SC-23 OAuth beds. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2008,7 +2008,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
-security.verification_note: IA-2 MFA enrollment. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+security.verification_note: IA-2 MFA enrollment. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2039,7 +2039,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
-security.verification_note: IA-2 agent attribution. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+security.verification_note: IA-2 agent attribution. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2070,7 +2070,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: SC-23
-security.verification_note: SC-23 session/OAuth hardening. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+security.verification_note: SC-23 session/OAuth hardening. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2104,7 +2104,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
-security.verification_note: Regression beds for R1 auth. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.
+security.verification_note: Regression beds for R1 auth. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqalm/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.
 delivered_by_release: R1 — in-process test harness (no Docker)
 <<<
 RELATIONS:
@@ -2131,7 +2131,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-TEST-AUTH-HYGIENE
-STATUS: Draft
+STATUS: Active
 TITLE: Stronger in-process auth regression beds
 STATEMENT: >>>
 In-process auth.integration tests cover lockout window boundaries (SQL clock, no real sleep), username-normalization lockout HTTP 423, MCP audience accept/reject pairs, and agent access-token revocation returning 401 on `/api/v1/me`.
@@ -2143,7 +2143,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
-security.verification_note: Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass.
+security.verification_note: Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqalm/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass.
 delivered_by_release: R1 — test/build hygiene (Docker-free test follow-ups)
 <<<
 RELATIONS:
@@ -2583,8 +2583,8 @@ VERSION_N: 0
 rbac_op: client:scope:select
 priority: 5
 iteration: iter-r0
-security.catalog_ref: REQAML-SEC-SCOPE
-security.verification_note: Maps to ReqAML project catalog SCOPE item.
+security.catalog_ref: REQALM-SEC-SCOPE
+security.verification_note: Maps to ReqALM project catalog SCOPE item.
 edge: ← refines from A03
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
@@ -5234,7 +5234,7 @@ VERSION_N: 0
 rbac_op: catalog:create
 priority: 40
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 edge: ← refines from ARCH-CAT-SCOPE
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5265,7 +5265,7 @@ VERSION_N: 0
 rbac_op: catalog:update
 priority: 50
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5294,7 +5294,7 @@ VERSION_N: 0
 rbac_op: catalog:publish
 priority: 55
 iteration: iter-r2
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← refines from ARCH-CAT-IMPRINT
 edge: ← uses from ARCH-CAT-IMPORT
@@ -5332,7 +5332,7 @@ VERSION_N: 0
 rbac_op: catalog:imprint:model
 priority: 20
 iteration: iter-r0
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← uses from ARCH-CAT-PIN
 edge: ← uses from ARCH-CAT-IMPORT
@@ -5370,7 +5370,7 @@ VERSION_N: 0
 rbac_op: catalog:imprint:pin
 priority: 20
 iteration: iter-r0
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← uses from ARCH-CAT-REACT
 edge: ← uses from ARCH-CAT-FREEZE
@@ -5412,7 +5412,7 @@ VERSION_N: 0
 rbac_op: catalog:imprint:freeze
 priority: 25
 iteration: iter-r0
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← uses from ARCH-CAT-MIGRATE
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5449,7 +5449,7 @@ VERSION_N: 0
 rbac_op: catalog:imprint:import
 priority: 55
 iteration: iter-r2
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← uses from ARCH-CAT-DRIFT
 edge: ← uses from ARCH-CAT-MIGRATE
@@ -5490,7 +5490,7 @@ VERSION_N: 0
 rbac_op: catalog:imprint:drift
 priority: 55
 iteration: iter-r2
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← uses from ARCH-CAT-REACT
 edge: ← uses from ARCH-CAT-MIGRATE
@@ -5528,7 +5528,7 @@ VERSION_N: 0
 rbac_op: catalog:imprint:review
 priority: 55
 iteration: iter-r2
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← uses from ARCH-CAT-MIGRATE
 edge: ← uses from H10
@@ -5574,7 +5574,7 @@ VERSION_N: 0
 rbac_op: catalog:imprint:scope
 priority: 40
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5612,7 +5612,7 @@ VERSION_N: 0
 rbac_op: catalog:entry:add
 priority: 40
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5643,7 +5643,7 @@ VERSION_N: 0
 rbac_op: catalog:entry:update
 priority: 45
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 edge: ← uses from FIX-ALLOW-STEWARD-UPDATE
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5673,7 +5673,7 @@ VERSION_N: 0
 rbac_op: catalog:entry:reference
 priority: 25
 iteration: iter-r0
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← refines from ARCH-CAT-PIN
 in_scope_of_contract: Design-2026-10
@@ -5719,7 +5719,7 @@ VERSION_N: 0
 rbac_op: catalog:entry:copy
 priority: 45
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5750,7 +5750,7 @@ VERSION_N: 0
 rbac_op: catalog:entry:deprecate
 priority: 55
 iteration: iter-r2
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5780,7 +5780,7 @@ VERSION_N: 0
 rbac_op: catalog:browse
 priority: 30
 iteration: iter-r0
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
@@ -5817,7 +5817,7 @@ VERSION_N: 0
 rbac_op: catalog:imprint:migrate
 priority: 55
 iteration: iter-r2
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid). Migrate requires preview accept + Steward/Security gate; audited.
 edge: ← refines from ARCH-CAT-MIGRATE
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5861,7 +5861,7 @@ VERSION_N: 0
 rbac_op: catalog:imprint:migrate:apply
 priority: 55
 iteration: iter-r2
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid). Migrate requires preview accept + Steward/Security gate; audited.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7831,7 +7831,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AU-2
-security.verification_note: AU-2 / AU-3 / AU-12. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.
+security.verification_note: AU-2 / AU-3 / AU-12. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8260,7 +8260,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: AC-3 guard enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.
+security.verification_note: AC-3 guard enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8435,8 +8435,8 @@ VERSION_N: 0
 rbac_op: rbac:authorize
 priority: 10
 iteration: iter-r0
-security.catalog_ref: REQAML-SEC-RBAC
-security.verification_note: Maps to ReqAML RBAC catalog item.
+security.catalog_ref: REQALM-SEC-RBAC
+security.verification_note: Maps to ReqALM RBAC catalog item.
 edge: ← uses from ARCH-API
 edge: ← satisfies from CAP-RBAC
 edge: ← uses from ARCH-AUTH-AUDIENCE
@@ -8646,7 +8646,7 @@ BASE_UID: CAP-SCOPED-VIEW
 VERSION_N: 0
 priority: 10
 iteration: iter-r0
-security.catalog_ref: REQAML-SEC-SCOPE
+security.catalog_ref: REQALM-SEC-SCOPE
 security.verification_note: Server-bound Client Scoped View. ASD STIG V6R4 V-222429 / V-222550.
 edge: ← uses from ARCH-CP-SCOPE
 edge: ← uses from FIX-DENY-CROSS-CLIENT
@@ -9701,7 +9701,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-5
-security.verification_note: IA-5 / AC-7 credential controls. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; TOTP secrets envelope-wrapped; replay of the same code within its window rejected.
+security.verification_note: IA-5 / AC-7 credential controls. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; TOTP secrets envelope-wrapped; replay of the same code within its window rejected.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -9756,7 +9756,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: SC-12
-security.verification_note: SC-12 / SC-28(3). Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; `/oauth/jwks` serves Transit-wrapped ES256. FIPS/Transit-sign deferred.
+security.verification_note: SC-12 / SC-28(3). Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; `/oauth/jwks` serves Transit-wrapped ES256. FIPS/Transit-sign deferred.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -9830,9 +9830,9 @@ MCP agents authenticate like UI users, bind to a requirements desk (browser tab 
 [REQUIREMENT]
 UID: CAP-MCP-DESK
 STATUS: Draft
-TITLE: ReqAML MCP requirements desk channel
+TITLE: ReqALM MCP requirements desk channel
 STATEMENT: >>>
-Capability pack for ReqAML MCP server, desk list/attach, and session-sealed desk WebSocket.
+Capability pack for ReqALM MCP server, desk list/attach, and session-sealed desk WebSocket.
 Mutations stay on HTTPS; the desk socket is push-only. MCP authorization reuses the same RBAC pack as the
 UI (MC03); race-safe session sealing maps to V-222567.
 <<<
@@ -9885,7 +9885,7 @@ UID: MC01
 STATUS: Draft
 TITLE: MCP authenticate session & desk bind
 STATEMENT: >>>
-An MCP host connects to ReqAML MCP (stdio or Streamable HTTP), establishes a platform session
+An MCP host connects to ReqALM MCP (stdio or Streamable HTTP), establishes a platform session
 (OAuth opaque token or login aligned with A01), lists desks, and attach/detach routing to a browser
 requirements desk; live pushes use session-sealed WSS.
 <<<
@@ -10045,7 +10045,7 @@ VERSION_N: 0
 rbac_op: mcp:authorize
 priority: 55
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-RBAC
+security.catalog_ref: REQALM-SEC-RBAC
 security.verification_note: MCP uses same RBAC pack as UI.
 edge: ← satisfies from CAP-MCP-DESK
 edge: ← refines from FIX-DENY-MCP-ESCALATE
@@ -10224,7 +10224,7 @@ VERSION_N: 0
 rbac_op: project:grant:create
 priority: 20
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-RBAC
+security.catalog_ref: REQALM-SEC-RBAC
 security.verification_note: Reader cannot create grants; 403 + audit. Pairs grant-casey-reader.
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -10257,7 +10257,7 @@ RELATIONS:
 [REQUIREMENT]
 UID: FIX-DENY-CROSS-CLIENT
 STATUS: Active
-TITLE: Dan scoped other-family cannot read reqaml tree
+TITLE: Dan scoped other-family cannot read reqalm tree
 STATEMENT: >>>
 FIXTURE / TEST BED (not a product feature). Dan with Client Scoped View set to
 other-family must not read the reqaml project tree or versions under raby-family.
@@ -10270,8 +10270,8 @@ VERSION_N: 0
 rbac_op: client:scope:select
 priority: 20
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-SCOPE
-security.verification_note: Server-side client scope blocks cross-client leakage into reqaml.
+security.catalog_ref: REQALM-SEC-SCOPE
+security.verification_note: Server-side client scope blocks cross-client leakage into reqalm.
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -10304,7 +10304,7 @@ VERSION_N: 0
 rbac_op: catalog:entry:update
 priority: 20
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Standard catalog edits steward-gated; NIST global is read-only for non-stewards.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -10334,7 +10334,7 @@ VERSION_N: 0
 rbac_op: release:ship
 priority: 20
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-RBAC
+security.catalog_ref: REQALM-SEC-RBAC
 security.verification_note: MCP cannot escalate; Casey Reader lacks release:ship. Pairs MC03.
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -10374,7 +10374,7 @@ VERSION_N: 0
 rbac_op: project:read
 priority: 20
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-RBAC
+security.catalog_ref: REQALM-SEC-RBAC
 security.verification_note: No grant → deny all project reads. Identity present, grants empty.
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -10412,7 +10412,7 @@ VERSION_N: 0
 rbac_op: requirement:version:create
 priority: 20
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-RBAC
+security.catalog_ref: REQALM-SEC-RBAC
 security.verification_note: Revoked grant tombstone cannot authorize writes. See grant-alex-author-revoked.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -10536,7 +10536,7 @@ VERSION_N: 0
 rbac_op: contract:document:view
 priority: 25
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-SCOPE
+security.catalog_ref: REQALM-SEC-SCOPE
 security.verification_note: UID set equality: view == in_scope_of when context parents off.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -10567,7 +10567,7 @@ VERSION_N: 0
 rbac_op: contract:document:view
 priority: 25
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-SCOPE
+security.catalog_ref: REQALM-SEC-SCOPE
 security.verification_note: UID set = in_scope_of ∪ context parents when toggle on.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -10598,7 +10598,7 @@ VERSION_N: 0
 rbac_op: release:ship
 priority: 25
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-AUDIT
+security.catalog_ref: REQALM-SEC-AUDIT
 security.verification_note: R0 freeze immutable; planned backlog may reference obsolete UIDs.
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to CM-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -10682,7 +10682,7 @@ VERSION_N: 0
 rbac_op: catalog:entry:update
 priority: 30
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Happy path steward update on mutable project catalog. Sample ae-allow-morgan-steward-update.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11562,7 +11562,7 @@ VERSION_N: 0
 rbac_op: catalog:pin:apply
 priority: 20
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog/ConformsTo authority; imprint pins. AC-3/CM-5.
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11606,7 +11606,7 @@ VERSION_N: 0
 rbac_op: catalog:pin:request
 priority: 20
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog/ConformsTo authority; imprint pins. AC-3/CM-5.
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11650,7 +11650,7 @@ VERSION_N: 0
 rbac_op: catalog:pin:apply
 priority: 20
 iteration: iter-r1
-security.catalog_ref: REQAML-SEC-CATALOG
+security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog/ConformsTo authority; imprint pins. AC-3/CM-5.
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -12704,7 +12704,7 @@ RELATIONS:
 [REQUIREMENT]
 UID: FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
 STATUS: Active
-TITLE: Upstream back-channel logout revokes ReqAML sessions and MCP tokens
+TITLE: Upstream back-channel logout revokes ReqALM sessions and MCP tokens
 STATEMENT: >>>
 FIXTURE / TEST BED (not a product feature). dan has a UI session and an MCP refresh token, both from the upstream connector. The upstream IdP sends a back-channel logout for oidc:dan-raby, and the AS ends the sessions and revokes both token families. The next MCP refresh → invalid_grant and the UI call → 401. An audit row records the propagation.
 <<<
@@ -14145,7 +14145,7 @@ RELATIONS:
 [REQUIREMENT]
 UID: CAP-DEVENV-MONOREPO
 STATUS: Active
-TITLE: pnpm workspace monorepo (apps/reqaml + packages/intake)
+TITLE: pnpm workspace monorepo (apps/reqalm + packages/intake)
 STATEMENT: >>>
 The repository is a pnpm workspace (pnpm-workspace.yaml: packages/*, apps/*) with one lockfile. The ReqAML platform app lives in apps/reqaml (@reqaml/app) and the SDoc Intake editor and CLI in packages/intake (sdoc-intake), so both build from one clone with `pnpm install`. Root scripts proxy per-package tasks (dev, dev:reqaml, build:cli, reqaml:migrate, reqaml:seed, devenv:smoke). Acceptance: `pnpm install --frozen-lockfile` succeeds on a clean clone; the editor still runs (`pnpm dev`) and builds (`pnpm build:cli`); the app typechecks and tests pass.
 <<<
@@ -14156,7 +14156,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r0
 security.catalog_ref: CM-2
-security.verification_note: CM-2 baseline: one lockfile pins the supported toolchain. Verified 2026-10-07: pnpm install --frozen-lockfile; pnpm build:cli OK; editor dev server on :8087; sdoc-intake typecheck + 39/39 tests; @reqaml/app typecheck + tests.
+security.verification_note: CM-2 baseline: one lockfile pins the supported toolchain. Verified 2026-10-07: pnpm install --frozen-lockfile; pnpm build:cli OK; editor dev server on :8087; sdoc-intake typecheck + 39/39 tests; @reqalm/app typecheck + tests.
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14176,7 +14176,7 @@ RELATIONS:
 [REQUIREMENT]
 UID: CAP-DEVENV-DOCKERFILE-ROLES
 STATUS: Active
-TITLE: Single Dockerfile; one app container with REQAML_ROLES toggles
+TITLE: Single Dockerfile; one app container with REQALM_ROLES toggles
 STATEMENT: >>>
 One multi-stage Dockerfile builds every image: app (Node 22, the deploy target), peripherals (dev/test only) and app-hsm-test. The app container runs one Node process whose roles are toggled by REQAML_ROLES (api, web, mcp, sync); /ready reports per enabled role, and routes for disabled roles are not mounted. Acceptance: the same image started with REQAML_ROLES=sync serves only probes (readiness lists sync only; /api and /mcp return 404) without a rebuild; with all roles it serves API, web, MCP stub and runs sync.
 <<<
@@ -14187,7 +14187,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r0
 security.catalog_ref: CM-7
-security.verification_note: CM-7 least functionality: disabled roles expose no endpoints. Verified 2026-10-07: docker compose build; REQAML_ROLES=sync run → /ready roles=[sync], /api/v1/seed/summary 404, POST /mcp 404, /health 200. Internal OAuth AS role not built yet (R1), so FIX-ALLOW-APP-ROLE-SPLIT is only partly exercised.
+security.verification_note: CM-7 least functionality: disabled roles expose no endpoints. Verified 2026-10-07: docker compose build; REQALM_ROLES=sync run → /ready roles=[sync], /api/v1/seed/summary 404, POST /mcp 404, /health 200. Internal OAuth AS role not built yet (R1), so FIX-ALLOW-APP-ROLE-SPLIT is only partly exercised.
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14332,7 +14332,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r0
 security.catalog_ref: CM-6
-security.verification_note: CM-6 / IA-5: no default credentials in production. Verified 2026-10-07: docker compose run with REQAML_MODE=production → 'Startup self-check failed' (seeded dev accounts; dev-marked OpenBao / Transit mount), exit 1 in ~1 s; `REQAML_MODE=production pnpm reqaml:seed` refused. Dev-account login denial (FIX-DENY-DEVENV-PROD-LOGIN.1 (a)) needs the R1 internal AS.
+security.verification_note: CM-6 / IA-5: no default credentials in production. Verified 2026-10-07: docker compose run with REQALM_MODE=production → 'Startup self-check failed' (seeded dev accounts; dev-marked OpenBao / Transit mount), exit 1 in ~1 s; `REQALM_MODE=production pnpm reqalm:seed` refused. Dev-account login denial (FIX-DENY-DEVENV-PROD-LOGIN.1 (a)) needs the R1 internal AS.
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14372,7 +14372,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r0
 security.catalog_ref: SC-12
-security.verification_note: SC-12 / SC-28: dev KEK is dev-marked and refused in production. Verified 2026-10-07: init log 'dev-marked Transit mount, KEK reqaml-kek'; /ready openbao ok via round-trip; seal/unseal and restart tests. The pluggable KeyProvider API for app data (wrap/unwrap DEKs) is R1.
+security.verification_note: SC-12 / SC-28: dev KEK is dev-marked and refused in production. Verified 2026-10-07: init log 'dev-marked Transit mount, KEK reqalm-kek'; /ready openbao ok via round-trip; seal/unseal and restart tests. The pluggable KeyProvider API for app data (wrap/unwrap DEKs) is R1.
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14477,7 +14477,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-5
-security.verification_note: IA-5 dev credential hygiene. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+security.verification_note: IA-5 dev credential hygiene. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14538,7 +14538,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Fast feedback without containers. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.
+security.verification_note: Fast feedback without containers. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqalm/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.
 delivered_by_release: R1 — in-process test harness (no Docker)
 <<<
 RELATIONS:
@@ -14553,7 +14553,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
-STATUS: Draft
+STATUS: Active
 TITLE: devenv:smoke pins Compose project name
 STATEMENT: >>>
 `pnpm devenv:smoke` sets `COMPOSE_PROJECT_NAME` (default `sdoc-intake-dev`, overridable) on every Compose invocation, logs the hostports overlay, and clears the loopback IP-throttle row before its throttle check so reruns against a running dev stack are repeatable.
@@ -14607,6 +14607,7 @@ security.catalog_ref: SA-8
 security.verification_note: SA-8 security engineering: security foundations built first.
 edge: ← satisfies from CAP-TEST-PGLITE-DB
 edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE
+edge: ← satisfies from CAP-RENAME-REQALM
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14661,7 +14662,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-TEST-PROD-BUILD-EXCLUDE
-STATUS: Draft
+STATUS: Active
 TITLE: Production build excludes test harness modules
 STATEMENT: >>>
 TypeScript production build (`tsconfig.build.json`) excludes `src/test/**` and `src/key/memory-provider.ts`; tests import the in-memory KeyProvider from its own module. Docker `dist/` contains no test harness or fake key files.
@@ -14673,7 +14674,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39); `pnpm typecheck` pass; `pnpm --filter @reqaml/app build` dist has no `dist/test/**` or `dist/key/memory-provider.js`.
+security.verification_note: Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqalm/app 39/39); `pnpm typecheck` pass; `pnpm --filter @reqalm/app build` dist has no `dist/test/**` or `dist/key/memory-provider.js`.
 delivered_by_release: R1 — test/build hygiene (Docker-free test follow-ups)
 <<<
 RELATIONS:
@@ -14687,6 +14688,33 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-test-hygiene
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-RENAME-REQALM
+STATUS: Draft
+TITLE: Product name correction: ReqALM (ALM, not AML)
+STATEMENT: >>>
+Repository, runtime identifiers, OAuth client IDs, env vars, and dogfood seed use the product name ReqALM (requirements + application lifecycle management). Legacy misspelling ReqAML is removed from active code and configuration; hash-pinned requirement statements may retain historical ReqAML prose until a content successor.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-RENAME-REQALM
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Mechanical rename ReqAML→ReqALM across repo; `pnpm test`, `pnpm typecheck`, `pnpm build` pass; seed yaml_to_strictdoc --validate pass; devenv:init migrates legacy .reqaml/ env keys.
+delivered_by_release: R1 — product rename ReqALM
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-BUILD
+- TYPE: Parent
+  VALUE: ARCH-BUILD-FOUNDATION
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-rename-reqalm
   ROLE: Delivers
 
 [[/SECTION]]

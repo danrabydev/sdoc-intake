@@ -1,14 +1,14 @@
 [DOCUMENT]
-TITLE: ReqAML — Contracts & Releases
-UID: reqaml-contracts-releases
+TITLE: ReqALM — Contracts & Releases
+UID: reqalm-contracts-releases
 VERSION: 2026-10-07
 OPTIONS:
   MARKUP: Text
 METADATA:
   client: Raby-Family (raby-family)
-  project: ReqAML (reqaml)
+  project: ReqALM (reqalm)
   schema_version: 2026-10-07
-  note: ReqAML dogfood export — StrictDoc interchange only
+  note: ReqALM dogfood export — StrictDoc interchange only
   export_kind: contracts-releases
   tree_note: junction entities; not tree parents
 
@@ -79,13 +79,13 @@ UID: CONTRACT-contract-design-2026-10
 STATUS: Active
 TITLE: Contract Design-2026-10
 STATEMENT: >>>
-ReqAML contract overlay `Design-2026-10` (status=active, starts_on=2026-10-06). Links requirement versions via in_scope_of; not a tree parent.
+ReqALM contract overlay `Design-2026-10` (status=active, starts_on=2026-10-06). Links requirement versions via in_scope_of; not a tree parent.
 <<<
 COMMENT: >>>
 KIND: contract
 contract_id: contract-design-2026-10
 client_id: raby-family
-project_id: reqaml
+project_id: reqalm
 in_scope_of: A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, A12.1, B01, B04, B07, B08, C01, C03, C06, C08, D01, D02, D03, D04, D06, E01, E02, E04, F01, F04, F07, F10, G01, G03, G05, G08, H06, H09, I01, I03, ARCH-CP-HIER, ARCH-CP-SCOPE, ARCH-V...
 in_scope_of_count: 63
 <<<
@@ -287,13 +287,13 @@ UID: CONTRACT-contract-security-package
 STATUS: Active
 TITLE: Contract Security package
 STATEMENT: >>>
-ReqAML contract overlay `Security package` (status=active, starts_on=2026-10-06). Links requirement versions via in_scope_of; not a tree parent.
+ReqALM contract overlay `Security package` (status=active, starts_on=2026-10-06). Links requirement versions via in_scope_of; not a tree parent.
 <<<
 COMMENT: >>>
 KIND: contract
 contract_id: contract-security-package
 client_id: raby-family
-project_id: reqaml
+project_id: reqalm
 in_scope_of: A01, A02, A03, A04, A06, A07, A08, A09, A10, A11, A12.1, ARCH-CP-SCOPE, ARCH-API-RBAC, ARCH-OTEL, ARCH-UI-GUARD, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, CAP-MCP-DESK, CAP-AUDIT, MC01.1, MC02, MC03, M01, M02, M03, D11, H06
 in_scope_of_count: 28
 <<<
@@ -390,13 +390,13 @@ UID: CONTRACT-contract-platform-baseline
 STATUS: Active
 TITLE: Contract Platform baseline
 STATEMENT: >>>
-ReqAML contract overlay `Platform baseline` (status=active, starts_on=2026-10-01). Links requirement versions via in_scope_of; not a tree parent.
+ReqALM contract overlay `Platform baseline` (status=active, starts_on=2026-10-01). Links requirement versions via in_scope_of; not a tree parent.
 <<<
 COMMENT: >>>
 KIND: contract
 contract_id: contract-platform-baseline
 client_id: raby-family
-project_id: reqaml
+project_id: reqalm
 in_scope_of: A01, A03, B04, B07, B08, C01, C06, D01, D02, D03, D04, ARCH-CP-HIER, ARCH-VER, ARCH-API, ARCH-API-LAYERS, ARCH-UI, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, CAP-TREE, L02, M04, N01
 in_scope_of_count: 23
 <<<
@@ -478,13 +478,13 @@ UID: CONTRACT-contract-legacy-intake-closed
 STATUS: Draft
 TITLE: Contract Legacy intake (closed)
 STATEMENT: >>>
-ReqAML contract overlay `Legacy intake (closed)` (status=closed, starts_on=2026-09-01). Links requirement versions via in_scope_of; not a tree parent.
+ReqALM contract overlay `Legacy intake (closed)` (status=closed, starts_on=2026-09-01). Links requirement versions via in_scope_of; not a tree parent.
 <<<
 COMMENT: >>>
 KIND: contract
 contract_id: contract-legacy-intake-closed
 client_id: raby-family
-project_id: reqaml
+project_id: reqalm
 in_scope_of: A01, ARCH-CONTRACT, FIX-SUCC-2HOP.1
 in_scope_of_count: 3
 <<<
@@ -506,13 +506,13 @@ UID: CONTRACT-contract-fixture-doc-walk
 STATUS: Active
 TITLE: Contract Fixture doc-walk
 STATEMENT: >>>
-ReqAML contract overlay `Fixture doc-walk` (status=active, starts_on=2026-10-06). Links requirement versions via in_scope_of; not a tree parent.
+ReqALM contract overlay `Fixture doc-walk` (status=active, starts_on=2026-10-06). Links requirement versions via in_scope_of; not a tree parent.
 <<<
 COMMENT: >>>
 KIND: contract
 contract_id: contract-fixture-doc-walk
 client_id: raby-family
-project_id: reqaml
+project_id: reqalm
 in_scope_of: A01, A02
 in_scope_of_count: 2
 <<<
@@ -537,12 +537,12 @@ UID: RELEASE-rel-r0-sequences
 STATUS: Active
 TITLE: Release R0-sequences
 STATEMENT: >>>
-ReqAML release `R0-sequences` (status=shipped, planned_on=2026-10-15). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R0-sequences` (status=shipped, planned_on=2026-10-15). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r0-sequences
-project_id: reqaml
+project_id: reqalm
 shipped_on: 2026-10-06
 raw_status: shipped
 delivers: A01, A02, A03, A04, A05, A06, A07, A08, ARCH-CP-HIER, ARCH-VER, ARCH-UI, ARCH-API, ARCH-OTEL, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, MC01.1, MC02
@@ -611,12 +611,12 @@ UID: RELEASE-rel-pr11-planning-baseline
 STATUS: Active
 TITLE: Release PR #11 — planning baseline
 STATEMENT: >>>
-ReqAML release `PR #11 — planning baseline` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+ReqALM release `PR #11 — planning baseline` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-pr11-planning-baseline
-project_id: reqaml
+project_id: reqalm
 shipped_on: 2026-10-07
 raw_status: shipped
 delivers: (none)
@@ -631,12 +631,12 @@ UID: RELEASE-rel-pr12-devenv-foundation
 STATUS: Active
 TITLE: Release PR #12 — devenv foundation
 STATEMENT: >>>
-ReqAML release `PR #12 — devenv foundation` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+ReqALM release `PR #12 — devenv foundation` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-pr12-devenv-foundation
-project_id: reqaml
+project_id: reqalm
 shipped_on: 2026-10-07
 raw_status: shipped
 delivers: ARCH-DEVENV-MODES.1, ARCH-DEVENV-PARITY.1, ARCH-DEVENV-KEYS, ARCH-DEVENV-CLONE, ARCH-DEVENV-SEED, ARCH-DEVENV-SECRETS, ARCH-DEVENV-HEALTH, M04, FIX-ALLOW-DEVENV-SMOKE, FIX-ALLOW-DEVENV-SEED-IDEMPOTENT, CAP-DEVENV-MONOREPO, CAP-DEVENV-DOC...
@@ -717,12 +717,12 @@ UID: RELEASE-rel-r1-foundation-shell-auth
 STATUS: Active
 TITLE: Release R1 — foundation shell + internal auth
 STATEMENT: >>>
-ReqAML release `R1 — foundation shell + internal auth` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — foundation shell + internal auth` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-foundation-shell-auth
-project_id: reqaml
+project_id: reqalm
 shipped_on: 2026-10-07
 raw_status: shipped
 delivers: ARCH-API-RBAC, ARCH-AUTH-AGENT-ATTRIBUTION, ARCH-AUTH-AS, ARCH-AUTH-AUDIENCE, ARCH-AUTH-CLIENTREG, ARCH-AUTH-LOCAL.1, ARCH-AUTH-MCP-REQUIRED, ARCH-AUTH-METADATA, ARCH-AUTH-PKCE, ARCH-AUTH-PROFILE, ARCH-AUTH-REFRESH, ARCH-AUTH-REVOKE, ARC...
@@ -857,12 +857,12 @@ UID: RELEASE-rel-r1-core-alm
 STATUS: Draft
 TITLE: Release R1-core-ALM
 STATEMENT: >>>
-ReqAML release `R1-core-ALM` (status=planned, planned_on=2026-11-30). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1-core-ALM` (status=planned, planned_on=2026-11-30). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-core-alm
-project_id: reqaml
+project_id: reqalm
 shipped_on: None
 raw_status: planned
 delivers: A09, A10, A11, A12.1, B01, B04, B05, B07, B08, C01, C02, C03, C06, C08, D01, D02, D03, D04, D05, D06, D08, D09, E01, E02, E04, E06, F01, F04, F07, F10, G01, G03, G05, G08, H06, H09, I01, I03, J01, J02, J07, K01, K03, K05, L01, L02, L04, ...
@@ -1165,12 +1165,12 @@ UID: RELEASE-rel-r1-platform-followups
 STATUS: Draft
 TITLE: Release R1 platform follow-ups (deferred from foundation PR)
 STATEMENT: >>>
-ReqAML release `R1 platform follow-ups (deferred from foundation PR)` (status=planned, planned_on=2026-11-30). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 platform follow-ups (deferred from foundation PR)` (status=planned, planned_on=2026-11-30). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-platform-followups
-project_id: reqaml
+project_id: reqalm
 shipped_on: None
 raw_status: planned
 delivers: ARCH-API-LAYERS, ARCH-AUTH-CLAIM-MAP, ARCH-AUTH-FEDERATION, ARCH-AUTH-LOCAL-BREAKGLASS, ARCH-AUTH-UPSTREAM-REVOKE, ARCH-CRED-REAUTH, ARCH-CRED-SESSION, ARCH-DEPLOY-MINIMAL, ARCH-DEPLOY-PERIPHERALS, ARCH-DEVENV-COMPOSE.1, ARCH-KEY-BREAKGL...
@@ -1224,12 +1224,12 @@ UID: RELEASE-rel-r1-test-harness
 STATUS: Active
 TITLE: Release R1 — in-process test harness (no Docker)
 STATEMENT: >>>
-ReqAML release `R1 — in-process test harness (no Docker)` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — in-process test harness (no Docker)` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-test-harness
-project_id: reqaml
+project_id: reqalm
 shipped_on: 2026-10-07
 raw_status: shipped
 delivers: CAP-TEST-MEMORY-KEYPROVIDER, CAP-TEST-PGLITE-DB, CAP-TEST-AUTH-ROUTES, CAP-TEST-PNPM-GATE
@@ -1253,17 +1253,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-test-hygiene
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — test/build hygiene (Docker-free test follow-ups)
 STATEMENT: >>>
-ReqAML release `R1 — test/build hygiene (Docker-free test follow-ups)` (status=planned, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — test/build hygiene (Docker-free test follow-ups)` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-test-hygiene
-project_id: reqaml
-shipped_on: None
-raw_status: planned
+project_id: reqalm
+shipped_on: 2026-10-07
+raw_status: shipped
 delivers: CAP-TEST-PROD-BUILD-EXCLUDE, CAP-TEST-AUTH-HYGIENE, CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
 delivers_count: 3
 <<<
@@ -1278,6 +1278,29 @@ RELATIONS:
   ROLE: Delivers
 - TYPE: Parent
   VALUE: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-rename-reqalm
+STATUS: Draft
+TITLE: Release R1 — product rename ReqALM
+STATEMENT: >>>
+ReqALM release `R1 — product rename ReqALM` (status=planned, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-rename-reqalm
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-RENAME-REQALM
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-RENAME-REQALM
   ROLE: Delivers
 
 [[/SECTION]]

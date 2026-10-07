@@ -29,7 +29,7 @@ const agent = arg("--agent");
 const role = arg("--role") ?? "Reader";
 const ttl = Number(arg("--ttl") ?? 3600);
 const actingFor = arg("--acting-for");
-const baseUrl = process.env.REQAML_SMOKE_URL ?? "http://127.0.0.1:3000";
+const baseUrl = process.env.REQALM_SMOKE_URL ?? "http://127.0.0.1:3000";
 
 if (!agent) {
   console.error("Usage: pnpm devenv:agent-token --agent <name> [--role Reader|Author] [--ttl seconds] [--acting-for identity-id]");
@@ -38,20 +38,20 @@ if (!agent) {
 
 const env = {
   ...loadEnvFile(path.join(root, ".env")),
-  ...loadEnvFile(path.join(root, ".reqaml/devenv.env")),
+  ...loadEnvFile(path.join(root, ".reqalm/devenv.env")),
 };
 
-const clientSecret = process.env.REQAML_AGENT_CLIENT_SECRET || env.REQAML_AGENT_CLIENT_SECRET;
+const clientSecret = process.env.REQALM_AGENT_CLIENT_SECRET || env.REQALM_AGENT_CLIENT_SECRET;
 if (!clientSecret) {
-  console.error("Run pnpm devenv:init first (REQAML_AGENT_CLIENT_SECRET missing).");
+  console.error("Run pnpm devenv:init first (REQALM_AGENT_CLIENT_SECRET missing).");
   process.exit(1);
 }
 
-const resource = `${env.REQAML_ISSUER_URL ?? "http://localhost:3000"}/api`.replace("127.0.0.1", "localhost");
+const resource = `${env.REQALM_ISSUER_URL ?? "http://localhost:3000"}/api`.replace("127.0.0.1", "localhost");
 
 const body = new URLSearchParams({
   grant_type: "client_credentials",
-  client_id: "reqaml-agent-dev",
+  client_id: "reqalm-agent-dev",
   client_secret: clientSecret,
   agent_name: agent,
   resource,

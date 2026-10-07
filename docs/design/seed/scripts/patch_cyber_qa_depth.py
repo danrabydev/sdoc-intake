@@ -69,7 +69,7 @@ def ver(
 def line(base_uid: str, title: str, parent: str, kind: str = "requirement") -> dict:
     return {
         "base_uid": base_uid,
-        "project_id": "reqaml",
+        "project_id": "reqalm",
         "parent": parent,
         "kind": kind,
         "title": title,
@@ -207,7 +207,7 @@ def main() -> None:
         (
             "CTL-AC-2",
             "Account management via grants",
-            """ReqAML manages application accounts through identity linkage and project/client/catalog grants
+            """ReqALM manages application accounts through identity linkage and project/client/catalog grants
 rather than local passwords. Grant create, revoke, and list are audited (actor, subject, role, scope).
 Inactive or revoked grants cannot authorize API calls. Conforms to NIST AC-2 Account Management.""",
             "NIST-AC-2",
@@ -251,7 +251,7 @@ the IdP/app session layer. Conforms to NIST AC-12 Session Termination.""",
         (
             "CTL-AU-12",
             "Audit record generation",
-            """ReqAML generates audit records for grant, scope, release ship, catalog steward, and other
+            """ReqALM generates audit records for grant, scope, release ship, catalog steward, and other
 security-relevant mutations and denials, exported via OTEL. Conforms to NIST AU-12.""",
             "NIST-AU-12",
             "NIST AU-12. STIG ASD V6R4 STIG-V-222464 / STIG-V-222467.",
@@ -305,10 +305,10 @@ Client admin on raby-family performs client:create → HTTP 201 and an allow aud
             "FIX-ALLOW-STEWARD-UPDATE",
             "Morgan steward catalog:entry:update allow on project catalog",
             """FIXTURE / TEST BED (not a product feature). Identity morgan-steward with
-catalog_steward_grants on cat-reqaml-security performs catalog:entry:update → 200 and allow audit.
+catalog_steward_grants on cat-reqalm-security performs catalog:entry:update → 200 and allow audit.
 Pairs H05; contrasts FIX-DENY-STEWARD-STANDARD on cat-nist-global.""",
             "catalog:entry:update",
-            "REQAML-SEC-CATALOG",
+            "REQALM-SEC-CATALOG",
             "Happy path steward update on mutable project catalog. Sample ae-allow-morgan-steward-update.",
         ),
         (
@@ -536,7 +536,7 @@ seed/fixtures/L02-contract-fixture-doc-walk.uids.txt. Pairs L02 and FIX-CONTRACT
             "NIST AU-2/3/6/12. STIG ASD V6R4 STIG-V-222578 (session ID destroy complements audit lifecycle).",
         ),
         "CAP-SCOPED-VIEW": (
-            "REQAML-SEC-SCOPE",
+            "REQALM-SEC-SCOPE",
             "Server-bound Client Scoped View. STIG ASD V6R4 STIG-V-222429 / STIG-V-222550.",
         ),
     }
@@ -547,7 +547,7 @@ seed/fixtures/L02-contract-fixture-doc-walk.uids.txt. Pairs L02 and FIX-CONTRACT
         v["security"] = {"catalog_ref": cref, "verification_note": note}
 
     # ---------- 8. Stamp bare rbac_op / ARCH / FIX rows ----------
-    # Default mutators/reads → NIST-AC-3; catalog H* → REQAML-SEC-CATALOG; IO L* → NIST-AC-3+AU note
+    # Default mutators/reads → NIST-AC-3; catalog H* → REQALM-SEC-CATALOG; IO L* → NIST-AC-3+AU note
     for v in data["requirement_versions"]:
         uid = v["uid"]
         op = v.get("rbac_op") or ""
@@ -575,7 +575,7 @@ seed/fixtures/L02-contract-fixture-doc-walk.uids.txt. Pairs L02 and FIX-CONTRACT
         if base.startswith("H") or op.startswith("catalog:"):
             stamp_security(
                 v,
-                "REQAML-SEC-CATALOG",
+                "REQALM-SEC-CATALOG",
                 "Catalog steward gates; standard catalogs read-only. NIST AC-3/CM-5 aligned.",
             )
         elif base.startswith("L") or op.startswith("io:"):
@@ -587,9 +587,9 @@ seed/fixtures/L02-contract-fixture-doc-walk.uids.txt. Pairs L02 and FIX-CONTRACT
         elif uid.startswith("MC") or "mcp:" in op or "desk:" in op:
             # keep existing if any; else SC-8/RBAC
             if "mcp:authorize" in op or uid == "MC03":
-                stamp_security(v, "REQAML-SEC-RBAC", "MCP uses same RBAC pack as UI.")
+                stamp_security(v, "REQALM-SEC-RBAC", "MCP uses same RBAC pack as UI.")
             else:
-                stamp_security(v, "NIST-SC-8", "NIST SC-8 / REQAML-SEC-MCP. STIG ASD V6R4 STIG-V-222567.")
+                stamp_security(v, "NIST-SC-8", "NIST SC-8 / REQALM-SEC-MCP. STIG ASD V6R4 STIG-V-222567.")
         elif op or uid.startswith(("ARCH-", "CAP-", "FIX-")):
             stamp_security(
                 v,
@@ -599,10 +599,10 @@ seed/fixtures/L02-contract-fixture-doc-walk.uids.txt. Pairs L02 and FIX-CONTRACT
 
     # ---------- 9. Enrich thin statements (2–4 sentences where decided) ----------
     enrich = {
-        "G08": """A Reader lists releases for the scoped project. ReqAML returns planned and shipped releases with
+        "G08": """A Reader lists releases for the scoped project. ReqALM returns planned and shipped releases with
 dates and status, permission-filtered by project grants. Cross-client leakage is blocked by server-bound
 Client Scoped View. List reads are low-sensitivity but still scoped.""",
-        "I05": """An Author removes an artifact attachment. ReqAML deletes the artifact row; the capability version
+        "I05": """An Author removes an artifact attachment. ReqALM deletes the artifact row; the capability version
 remains. The removal is audited (actor, capability UID, prior URI). Downstream packs that referenced the
 URI must re-attach if still needed.""",
         "CAP-TREE": """Capability pack covering line create/move/reorder, tree views, and search for the requirements shell
@@ -622,17 +622,17 @@ Covers sign-in and sign-out paths used by UI and MCP hosts. No local passwords; 
 policy live at the IdP (NIST IA-2/IA-5, STIG-V-222536/542).""",
         "CAP-RBAC": """Capability pack for project_grant create/revoke/list and permission checks used by business services
 on every mutating API. Effective permissions recompute from active grants only; revoked tombstones never
-authorize. Aligns to CTL-AC-2 / CTL-AC-6 / REQAML-SEC-RBAC.""",
-        "CAP-MCP-DESK": """Capability pack for ReqAML MCP server, desk list/attach, and session-sealed desk WebSocket.
+authorize. Aligns to CTL-AC-2 / CTL-AC-6 / REQALM-SEC-RBAC.""",
+        "CAP-MCP-DESK": """Capability pack for ReqALM MCP server, desk list/attach, and session-sealed desk WebSocket.
 Mutations stay on HTTPS; the desk socket is push-only. MCP authorization reuses the same RBAC pack as the
 UI (MC03); race-safe session sealing maps to STIG-V-222567.""",
         "CAP-SCOPED-VIEW": """Capability pack for selecting, clearing, and binding Client Scoped View on the server session.
 UI App providers consume the bound clientId for navigation guards. Scope change and clear are audited;
 server rejects cross-client resource access even if the client id appears in a forged request.""",
         "J07": """A Reader views sync status and last sync timestamps for a requirement–work-item link.
-ReqAML returns link state, last push/pull times, and any unresolved conflict flag without exposing
+ReqALM returns link state, last push/pull times, and any unresolved conflict flag without exposing
 external system credentials. Missing links return an empty status, not an error.""",
-        "J08": """An Author disconnects a work-item link. ReqAML removes the mapping and audits the disconnect;
+        "J08": """An Author disconnects a work-item link. ReqALM removes the mapping and audits the disconnect;
 the external work item is left unchanged. Subsequent push/pull against the version fails until remapped.""",
         "K05": """A Reader views the work track for an iteration — versions assigned to that window with grooming state
 and priorities. Data is scoped to the bound client/project. This is a read model over existing version
@@ -640,35 +640,35 @@ fields; it does not invent a separate planning store.""",
         "K06": """A Reader compares release delivers membership against the iteration work track to spot gaps
 (planned vs committed). Gantt/schedule overlays remain exploratory (see G07) and are not core product
 requirements. Gap view is informational only.""",
-        "F04": """An Author links a requirement version UID into a contract's in_scope_of set. ReqAML validates the
+        "F04": """An Author links a requirement version UID into a contract's in_scope_of set. ReqALM validates the
 version exists in the scoped project and rejects links when the contract is closed (FIX-DENY-CLOSED-LINK).
 The junction change is audited.""",
-        "F05": """An Author unlinks a version UID from a contract. ReqAML removes the junction membership and audits
+        "F05": """An Author unlinks a version UID from a contract. ReqALM removes the junction membership and audits
 the change. Closed contracts reject unlink as well as link; versions themselves are untouched.""",
-        "F10": """A Reader lists contracts for the scoped client/project. ReqAML returns name, status, and date fields
+        "F10": """A Reader lists contracts for the scoped client/project. ReqALM returns name, status, and date fields
 permission-filtered to the caller's access. Closed contracts appear in lists but membership is frozen.""",
-        "G01": """A Release manager creates a planned release with name and planned_on date. ReqAML inserts a release
+        "G01": """A Release manager creates a planned release with name and planned_on date. ReqALM inserts a release
 row with empty delivers and status planned. Creation is audited; shipped snapshots cannot be created
 directly — ship is a separate action (G05).""",
         "G02": """A Release manager updates a planned release's name or planned_on. Shipped releases reject metadata
 edits. Updates are audited; this does not alter the delivers UID set (see G03).""",
-        "G05": """A Release manager ships a release. ReqAML sets status shipped, records shipped_on, and freezes
+        "G05": """A Release manager ships a release. ReqALM sets status shipped, records shipped_on, and freezes
 delivers as an immutable snapshot. Ship is a high-value auditable event (AU-2/3/12). Further delivers
 mutations deny (FIX-DENY-SHIPPED-DELIVERS).""",
-        "G06": """A Reader diffs a release snapshot against a prior release. ReqAML computes added/removed/unchanged
+        "G06": """A Reader diffs a release snapshot against a prior release. ReqALM computes added/removed/unchanged
 version UIDs from frozen delivers sets. Diff is read-only and scoped to the project.""",
-        "H04": """A steward adds a catalog entry (id + title template) to a mutable catalog. ReqAML rejects duplicate
+        "H04": """A steward adds a catalog entry (id + title template) to a mutable catalog. ReqALM rejects duplicate
 ids and rejects adds on is_standard catalogs. The add is audited (actor, catalog_id, entry id).""",
         "H05": """A steward updates an entry in a non-standard catalog. Standard catalog entries are read-only;
-ReqAML returns a conflict if the catalog is_standard (FIX-DENY-STEWARD-STANDARD). Morgan's project
-steward grant on cat-reqaml-security enables the happy path (FIX-ALLOW-STEWARD-UPDATE).""",
-        "H08": """A steward deprecates a catalog item. ReqAML marks the entry deprecated for browse UI; existing
+ReqALM returns a conflict if the catalog is_standard (FIX-DENY-STEWARD-STANDARD). Morgan's project
+steward grant on cat-reqalm-security enables the happy path (FIX-ALLOW-STEWARD-UPDATE).""",
+        "H08": """A steward deprecates a catalog item. ReqALM marks the entry deprecated for browse UI; existing
 requirement catalog_ref links remain valid. Deprecation is audited and forbidden on locked standard
 entry rewrite paths.""",
         "I01": """An Author creates a capability-kind line (or promotes a requirement to capability packaging).
-ReqAML inserts a requirement_line with kind=capability and an initial version. Artifacts attach in
+ReqALM inserts a requirement_line with kind=capability and an initial version. Artifacts attach in
 later steps (I03); create is audited.""",
-        "I04": """An Author updates or replaces an artifact URI on a version. ReqAML audits before/after URI; kind may
+        "I04": """An Author updates or replaces an artifact URI on a version. ReqALM audits before/after URI; kind may
 stay the same. Invalid URIs fail validation (SI-10) before persistence.""",
         "ARCH-API": """API is schema-first (Zod + OpenAPI): HTTP adapters validate DTOs, RBAC authorizes, business services
 orchestrate, data providers implement repositories against Postgres. Invalid input never reaches domain
@@ -682,48 +682,48 @@ Route guards enforce AC-3 in the shell (ARCH-UI-GUARD) but server RBAC remains a
         "ARCH-OTEL": """Security-relevant actions emit structured audit events exported via OTEL (OTLP) for centralized
 review, aligned to NIST AU-2/3/6/9/12. Session teardown destroys session identifiers (STIG-V-222578).
 Auditors read via M01/M02; actors cannot alter prior audit rows (CTL-AU-9).""",
-        "ARCH-RELEASE-FREEZE": """On ship, ReqAML freezes the delivers list as an immutable snapshot. Further edits require a new planned
+        "ARCH-RELEASE-FREEZE": """On ship, ReqALM freezes the delivers list as an immutable snapshot. Further edits require a new planned
 release or an explicit reopen policy (out of scope for R0). Diff against prior shipped releases uses UID sets.
 Attempts to mutate shipped delivers deny under CTL-CM-3 (FIX-DENY-SHIPPED-DELIVERS).""",
         "ARCH-VER-TOMB": """Soft-delete of a line is expressed by an obsolete or withdrawn successor version, not by deleting
 requirement_line rows. Historical contracts and releases that delivered prior UIDs remain coherent.
 Succession and tombstone events are auditable (AU-12).""",
         "ARCH-CONTRACT": """Contracts mark requirements in scope of an agreement. (Initial wording — superseded.)""",  # keep obsolete thin
-        "D07": """A Reader compares two versions of the same or related UIDs. ReqAML returns a field-level diff of
+        "D07": """A Reader compares two versions of the same or related UIDs. ReqALM returns a field-level diff of
 statement and metadata. Multi-hop lineages (FIX-SUCC-2HOP) are supported so .0 vs .2 compares remain
 meaningful for QA (FIX-COMPARE-2HOP).""",
-        "E05": """An Author removes an edge. ReqAML deletes or tombstones the edge row and audits actor, kind, and
+        "E05": """An Author removes an edge. ReqALM deletes or tombstones the edge row and audits actor, kind, and
 endpoints. Removal does not cascade-delete requirement versions.""",
-        "F03": """A Project admin closes a contract. ReqAML sets status closed and freezes membership edits
+        "F03": """A Project admin closes a contract. ReqALM sets status closed and freezes membership edits
 (link/unlink/bulk_link deny — FIX-DENY-CLOSED-LINK); requirement versions remain in the store.
 Document view stays readable. Reopening requires an explicit admin action (later policy).""",
         "G03": """A Release manager adds or removes requirement version UIDs on a planned release's delivers set.
-ReqAML validates UIDs and rejects mutations on shipped releases (FIX-DENY-SHIPPED-DELIVERS). Membership
+ReqALM validates UIDs and rejects mutations on shipped releases (FIX-DENY-SHIPPED-DELIVERS). Membership
 changes on planned releases are audited; freeze pairs ARCH-RELEASE-FREEZE / CTL-CM-3.""",
-        "D03": """An Author edits fields on a draft version (statement, metadata). ReqAML allows mutation only while
+        "D03": """An Author edits fields on a draft version (statement, metadata). ReqALM allows mutation only while
 status is draft; active/obsolete/withdrawn rows are immutable and require a successor for changes
 (FIX-DENY-EDIT-ACTIVE, CTL-CM-3). Draft updates are audited.""",
-        "L02": """An Author exports a project tree or contract document view to StrictDoc interchange. ReqAML emits
+        "L02": """An Author exports a project tree or contract document view to StrictDoc interchange. ReqALM emits
 .sdoc suitable for external tools; Postgres remains authoritative. For contract-fixture-doc-walk with
 context parents off, the exported UID set must equal {A01, A02, CTL-AC-3} (FIX-EXPORT-L02-GOLDEN).""",
         "M04": """Any authenticated caller (or public probe per deploy policy) reads health and API version.
-ReqAML returns readiness without leaking client data. Health is not a substitute for scoped resource
+ReqALM returns readiness without leaking client data. Health is not a substitute for scoped resource
 authorization.""",
         "N03": """A Reader uses global search across titles and statements in the scoped client. Results deep-link to
 lines/versions and never include hits from other clients. Search respects the same AC-3 scope bind as
 tree reads.""",
-        "CTL-SC-8": """All UI, API, and MCP HTTP traffic uses TLS. Desk WebSockets are session-sealed WSS. ReqAML rejects
+        "CTL-SC-8": """All UI, API, and MCP HTTP traffic uses TLS. Desk WebSockets are session-sealed WSS. ReqALM rejects
 cleartext mutators. Aligns to NIST SC-8 and STIG-V-222567 / STIG-V-222396 / STIG-V-222596.""",
-        "B02": """A client admin updates client display name or metadata. ReqAML persists the change without altering
+        "B02": """A client admin updates client display name or metadata. ReqALM persists the change without altering
 project membership or grants. The update is audited (actor, client_id, fields). Pat Client-Admin on
 raby-family is the dogfood actor for client-level mutations.""",
-        "B04": """A Project admin creates a project under the scoped client. ReqAML inserts a project row; grants are
+        "B04": """A Project admin creates a project under the scoped client. ReqALM inserts a project row; grants are
 not auto-created beyond the creating admin policy already decided. Create is audited and AC-3 gated.""",
-        "B05": """A Project admin updates project display name or notes. ReqAML persists metadata without moving the
+        "B05": """A Project admin updates project display name or notes. ReqALM persists metadata without moving the
 project across clients. Updates are audited.""",
-        "B06": """A Project admin archives a project. ReqAML marks the project inactive and blocks new mutating work
+        "B06": """A Project admin archives a project. ReqALM marks the project inactive and blocks new mutating work
 while preserving historical versions, contracts, and releases. Archive is audited.""",
-        "B08": """A Reader lists projects in the scoped client. ReqAML returns only projects the caller can access
+        "B08": """A Reader lists projects in the scoped client. ReqALM returns only projects the caller can access
 under active grants within the bound client — never a cross-client dump.""",
     }
     for uid, stmt in enrich.items():
@@ -750,7 +750,7 @@ under active grants within the bound client — never a cross-client dump.""",
             "at": "2026-10-06T11:05:00-04:00",
             "identity_id": "dan",
             "client_id": "raby-family",
-            "project_id": "reqaml",
+            "project_id": "reqalm",
             "action": "project:grant:create",
             "outcome": "allow",
             "http_status": 201,
@@ -761,7 +761,7 @@ under active grants within the bound client — never a cross-client dump.""",
             "at": "2026-10-06T11:10:00-04:00",
             "identity_id": "dan",
             "client_id": "raby-family",
-            "project_id": "reqaml",
+            "project_id": "reqalm",
             "action": "client:scope:select",
             "outcome": "allow",
             "http_status": 200,
@@ -772,7 +772,7 @@ under active grants within the bound client — never a cross-client dump.""",
             "at": "2026-10-06T11:15:00-04:00",
             "identity_id": "casey-reader",
             "client_id": "raby-family",
-            "project_id": "reqaml",
+            "project_id": "reqalm",
             "action": "release:ship",
             "outcome": "deny",
             "http_status": 403,
@@ -783,7 +783,7 @@ under active grants within the bound client — never a cross-client dump.""",
             "at": "2026-10-06T11:20:00-04:00",
             "identity_id": "morgan-steward",
             "client_id": "raby-family",
-            "project_id": "reqaml",
+            "project_id": "reqalm",
             "action": "catalog:entry:update",
             "outcome": "deny",
             "http_status": 403,
@@ -794,18 +794,18 @@ under active grants within the bound client — never a cross-client dump.""",
             "at": "2026-10-06T11:25:00-04:00",
             "identity_id": "morgan-steward",
             "client_id": "raby-family",
-            "project_id": "reqaml",
+            "project_id": "reqalm",
             "action": "catalog:entry:update",
             "outcome": "allow",
             "http_status": 200,
-            "notes": "FIX-ALLOW-STEWARD-UPDATE on cat-reqaml-security.",
+            "notes": "FIX-ALLOW-STEWARD-UPDATE on cat-reqalm-security.",
         },
         {
             "id": "ae-deny-closed-link",
             "at": "2026-10-06T11:30:00-04:00",
             "identity_id": "alex-author",
             "client_id": "raby-family",
-            "project_id": "reqaml",
+            "project_id": "reqalm",
             "action": "contract:link",
             "outcome": "deny",
             "http_status": 409,
@@ -816,7 +816,7 @@ under active grants within the bound client — never a cross-client dump.""",
             "at": "2026-10-06T11:35:00-04:00",
             "identity_id": "riley-release",
             "client_id": "raby-family",
-            "project_id": "reqaml",
+            "project_id": "reqalm",
             "action": "release:membership",
             "outcome": "deny",
             "http_status": 409,
@@ -827,7 +827,7 @@ under active grants within the bound client — never a cross-client dump.""",
             "at": "2026-10-06T11:40:00-04:00",
             "identity_id": "alex-author",
             "client_id": "raby-family",
-            "project_id": "reqaml",
+            "project_id": "reqalm",
             "action": "requirement:version:update_draft",
             "outcome": "deny",
             "http_status": 409,
@@ -838,7 +838,7 @@ under active grants within the bound client — never a cross-client dump.""",
             "at": "2026-10-06T11:45:00-04:00",
             "identity_id": "alex-author",
             "client_id": "raby-family",
-            "project_id": "reqaml",
+            "project_id": "reqalm",
             "action": "requirement:version:succeed",
             "outcome": "allow",
             "http_status": 201,
@@ -870,7 +870,7 @@ under active grants within the bound client — never a cross-client dump.""",
     g07 = find_ver(data, "G07")
     if g07:
         g07["statement"] = (
-            "A Reader opens a schedule view derived from releases, priorities, and iterations. ReqAML provides "
+            "A Reader opens a schedule view derived from releases, priorities, and iterations. ReqALM provides "
             "data for Gantt-style overlays; planning mockups 05* are exploratory and not locked UI. "
             "This remains a thin read model — not a core planning/Gantt product requirement."
         )

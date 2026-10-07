@@ -25,19 +25,19 @@ ControlNote(seqAuthServer, "CM-7, AU-2", "TBD (ASD V6R4)", "Open registration di
 
 == Authorization code + PKCE (S256 only) ==
 
-PkceAuthorize(seqMcpHost, "https://reqaml/mcp")
+PkceAuthorize(seqMcpHost, "https://reqalm/mcp")
 ControlNote(seqAuthServer, "IA-2(8)", "V-222530, V-222531", "PKCE S256 replay-resistant; plain/missing challenge rejected (FIX-DENY-PKCE-PLAIN)")
 seqAuthServer -> seqUser : sign in (AS02 local or AS03 federated) + consent
 seqUser --> seqAuthServer : authenticated (auth_time, amr)
 
-TokenIssue(seqMcpHost, "https://reqaml/mcp")
+TokenIssue(seqMcpHost, "https://reqalm/mcp")
 ControlNote(seqAuthServer, "SC-23, IA-5(6), SC-12(3)", "V-222542", "aud bound to MCP resource; refresh stored hashed; signed in OpenBao Transit (KS02)")
 AuthAuditLog("auth:oauth:token issued")
 
 == MCP call → audience check → ActionHook pipeline ==
 
 seqMcpHost -> seqMcpServer : tools/call update_draft\nAuthorization: Bearer access_token(aud=MCP)
-TokenValidate(seqMcpServer, "https://reqaml/mcp")
+TokenValidate(seqMcpServer, "https://reqalm/mcp")
 ControlNote(seqMcpServer, "AC-3, SC-23", "TBD (ASD V6R4)", "Wrong audience (e.g. aud=API) → 401 (FIX-DENY-MCP-WRONG-AUDIENCE)")
 
 seqMcpServer -> seqAPI : PATCH /requirement-versions/{uid}\n(internal call as principal; MCP token NOT forwarded)

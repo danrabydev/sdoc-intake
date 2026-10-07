@@ -30,7 +30,7 @@ Sequence diagrams document **who does what**, **RBAC operations**, and **why eac
 
 [A01 Sign in via SSO](./sequences/A01-sign-in-sso.puml) + [companion table](./sequences/A01-sign-in-sso.md) — IA / AU / AC families, federated auth, audit export to OTEL.
 
-**ReqAML MCP:** [MC01](./sequences/MC01-mcp-auth-desk-bind.puml) / [MC02](./sequences/MC02-mcp-mutate-requirement-version.puml) — agent desk auth/bind and HTTPS **draft** mutations (not mint); **`MC**`** IDs in [INDEX](./sequences/INDEX.md).
+**ReqALM MCP:** [MC01](./sequences/MC01-mcp-auth-desk-bind.puml) / [MC02](./sequences/MC02-mcp-mutate-requirement-version.puml) — agent desk auth/bind and HTTPS **draft** mutations (not mint); **`MC**`** IDs in [INDEX](./sequences/INDEX.md).
 
 **Auth foundation (first build slice):** [AS01](./sequences/AS01-mcp-oauth-authorize.puml) MCP OAuth 2.1 + PKCE via internal AS, [AS02](./sequences/AS02-local-login-lockout-mfa.puml) local login/lockout/MFA, [AS03](./sequences/AS03-federated-sso-via-as.puml) federated SSO via AS, [KS01](./sequences/KS01-kek-rotate-dek-rewrap.puml) KEK rotate + DEK re-wrap, [KS02](./sequences/KS02-token-signing-keyprovider.puml) token signing via KeyProvider; [AS04](./sequences/AS04-mcp-upstream-api-access.puml) **proposal** for provider-API access (see [`../auth/mcp-upstream-identity.md`](../auth/mcp-upstream-identity.md)). Use the auth macros (`TokenValidate`, `KeyOp`, …) before the ActionHook pipeline.
 

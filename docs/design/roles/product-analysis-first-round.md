@@ -1,4 +1,4 @@
-# ReqAML — first-round product analysis
+# ReqALM — first-round product analysis
 
 **Date:** 2026-10-07 · **Audience:** Dan · **Status:** analysis only (no seed edits, no commit)
 **Basis:** `seed/dogfood.yaml` (schema_version 2026-10-07: 216 lines / 221 versions / 824 edges), `seed/schema.md`, `seed/README.md`, `seed/out/MANIFEST.md`, `seed/fixtures/*`, `roles/workflow-system.md`, `roles/open-questions.md`, `roles/permission-tree.html`, `roles/permission-matrix-flat.md`, `user-actions.md`, `diagrams.md`, `c4/*.puml`, mockup 01.
@@ -151,9 +151,9 @@ The only handling is a fixture (FIX-SUCC-2HOP: "detect edges that still point at
 
 ## 5. Competitive / category fit
 
-Market positioning below is general category knowledge, offered as context. The ReqAML claims are grounded in the materials.
+Market positioning below is general category knowledge, offered as context. The ReqALM claims are grounded in the materials.
 
-| Dimension | ReqAML (per reqs) | DOORS (Next) | Jama Connect | Polarion | StrictDoc + ALM glue |
+| Dimension | ReqALM (per reqs) | DOORS (Next) | Jama Connect | Polarion | StrictDoc + ALM glue |
 |---|---|---|---|---|---|
 | Item vs revision identity | **Strong.** Explicit line / `.N`, junctions on versions | Baselines and module history | Item versions plus baselines | Revisions plus baselines | Git history, UIDs |
 | Contract-scoped views | **Distinct.** Overlapping contracts as overlays with document walk | Modules/views | Filters/sets | Documents/queries | Manual |
@@ -167,9 +167,9 @@ Market positioning below is general category knowledge, offered as context. The 
 | Agent access | **MCP desk with same RBAC** | — | — | — | — |
 | Tenancy | Client → Project with server-bound scope | — | — | — | — |
 
-**Read:** ReqAML wins on the *data model for DoD compliance traceability*: imprints, contract overlays, hash-pinned approval, and agents with matching RBAC. It loses on *ergonomics the incumbents built a decade ago*: suspect links, review threads, document output, test management, and ReqIF. For a first round aimed at a narrow wedge (DoD contractors already on StrictDoc or spreadsheets who need NIST/STIG traceability plus contract scoping), the strengths are enough and the losses can wait. **Except suspect links:** without them the version-pinned model *creates* stale traces faster than the incumbents do. That's a self-inflicted gap, not a parity gap.
+**Read:** ReqALM wins on the *data model for DoD compliance traceability*: imprints, contract overlays, hash-pinned approval, and agents with matching RBAC. It loses on *ergonomics the incumbents built a decade ago*: suspect links, review threads, document output, test management, and ReqIF. For a first round aimed at a narrow wedge (DoD contractors already on StrictDoc or spreadsheets who need NIST/STIG traceability plus contract scoping), the strengths are enough and the losses can wait. **Except suspect links:** without them the version-pinned model *creates* stale traces faster than the incumbents do. That's a self-inflicted gap, not a parity gap.
 
-Against **StrictDoc + ALM glue**, the materials' implicit incumbent (StrictDoc is what ReqAML replaces): ReqAML is clearly better on RBAC, tenancy, approval, imprints, contracts and audit. It's worse on document rendering (L03 deferred) and on "it's just text in git". The StrictDoc export keeps an exit path, which helps adoption.
+Against **StrictDoc + ALM glue**, the materials' implicit incumbent (StrictDoc is what ReqALM replaces): ReqALM is clearly better on RBAC, tenancy, approval, imprints, contracts and audit. It's worse on document rendering (L03 deferred) and on "it's just text in git". The StrictDoc export keeps an exit path, which helps adoption.
 
 ---
 

@@ -24,7 +24,7 @@ SEED_DIR = Path(__file__).resolve().parent.parent
 NIST_IMPRINT_ID = "nist-800-53@rev5-dogfood-20261006"
 
 SEC_META = {
-    "catalog_ref": "REQAML-SEC-CATALOG",
+    "catalog_ref": "REQALM-SEC-CATALOG",
     "verification_note": (
         "Catalog steward gates; standard catalogs imprint-published read-only. "
         "AC-3/CM-5 aligned. Pins are (imprint_id, item_uid). Migrate requires "
@@ -35,7 +35,7 @@ SEC_META = {
 H10_STMT = (
     "An Author or Security steward migrates ConformsTo pins to a new catalog imprint "
     "(whole imprint) or a single catalog item at a chosen hierarchy scope: requirement "
-    "version, section (line subtree), document, project, or client. ReqAML always runs a "
+    "version, section (line subtree), document, project, or client. ReqALM always runs a "
     "mandatory dry-run preview of the UID/item diff classified as editorial | normative | "
     "withdrawn | renumbered before any apply — there is no silent auto-retarget. Apply "
     "requires Steward/Security gate and is audited (actor, scope, imprint_from/to, accept)."
@@ -56,7 +56,7 @@ MIGRATE_STMT = (
 
 SEC_CAT_STMT = (
     "Catalogs provide standard and project templates. Standard catalogs (NIST/STIG) are "
-    "versioned as imprints; project REQAML-SEC-* entries are steward-mutable until imprint "
+    "versioned as imprints; project REQALM-SEC-* entries are steward-mutable until imprint "
     "publish. Stewardship, browse, reference, copy, imprint publish, import-diff, drift "
     "review, migrate-to-imprint (preview + apply), and pin semantics live here."
 )
@@ -113,7 +113,7 @@ def apply(data: dict) -> tuple[int, int, int]:
     # H10 after H09
     h10_line = {
         "base_uid": "H10",
-        "project_id": "reqaml",
+        "project_id": "reqalm",
         "parent": "SEC-CAT",
         "kind": "requirement",
         "title": "Migrate to new catalog imprint",
@@ -138,7 +138,7 @@ def apply(data: dict) -> tuple[int, int, int]:
     # ARCH-CAT-MIGRATE after ARCH-CAT-SCOPE (or H10 if SCOPE missing)
     migrate_line = {
         "base_uid": "ARCH-CAT-MIGRATE",
-        "project_id": "reqaml",
+        "project_id": "reqalm",
         "parent": "H10",
         "kind": "requirement",
         "title": "Migrate pins: preview, .N for locked, in-place drafts",

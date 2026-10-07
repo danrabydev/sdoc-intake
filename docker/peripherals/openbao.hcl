@@ -1,5 +1,5 @@
 storage "file" {
-  path = "/var/lib/reqaml/openbao"
+  path = "/var/lib/reqalm/openbao"
 }
 
 listener "tcp" {
