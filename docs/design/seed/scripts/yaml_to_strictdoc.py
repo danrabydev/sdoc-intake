@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ReqAML seed: convert dogfood YAML → StrictDoc 0.30 .sdoc (interchange only)."""
+"""ReqALM seed: convert dogfood YAML → StrictDoc 0.30 .sdoc (interchange only)."""
 
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ ROLE_MAP = {
 }
 
 # Catalog UIDs live in separate .sdoc files under seed/catalog/ (and
-# reqaml-strictdoc/input/catalog/). Product edges ConformsTo those UIDs;
+# reqalm-strictdoc/input/catalog/). Product edges ConformsTo those UIDs;
 # converter must not emit catalog controls into requirements.sdoc.
 _CATALOG_UID_RE = re.compile(
     r"^(?:"
@@ -195,7 +195,7 @@ def parent_relation_uid(
     lines_by_base: dict[str, dict],
     versions_by_base: dict[str, list[dict]],
 ) -> str | None:
-    """Map ReqAML line parent base_uid → StrictDoc Parent VALUE (section or req UID)."""
+    """Map ReqALM line parent base_uid → StrictDoc Parent VALUE (section or req UID)."""
     if not parent_base:
         return None
     parent_ln = lines_by_base.get(parent_base) or {}
@@ -635,7 +635,7 @@ def write_document_header(
     parts.append(f"  client: {client.get('name')} ({client.get('id')})")
     parts.append(f"  project: {project.get('name')} ({project.get('id')})")
     parts.append(f"  schema_version: {schema_version}")
-    parts.append("  note: ReqAML dogfood export — StrictDoc interchange only")
+    parts.append("  note: ReqALM dogfood export — StrictDoc interchange only")
     for key, val in extra_meta or []:
         parts.append(f"  {key}: {val}")
     parts.append("")
@@ -772,8 +772,8 @@ def write_requirements_sdoc(data: dict[str, Any], path: Path, *, emit_child_memb
     parts: list[str] = []
     write_document_header(
         parts,
-        title=f"{project.get('name', 'ReqAML')} — Requirements",
-        uid=f"{project.get('id', 'reqaml')}-requirements",
+        title=f"{project.get('name', 'ReqALM')} — Requirements",
+        uid=f"{project.get('id', 'reqalm')}-requirements",
         client=client,
         project=project,
         schema_version=data.get("schema_version"),
@@ -820,8 +820,8 @@ def write_contracts_releases_sdoc(data: dict[str, Any], path: Path) -> tuple[int
     parts: list[str] = []
     write_document_header(
         parts,
-        title=f"{project.get('name', 'ReqAML')} — Contracts & Releases",
-        uid=f"{project.get('id', 'reqaml')}-contracts-releases",
+        title=f"{project.get('name', 'ReqALM')} — Contracts & Releases",
+        uid=f"{project.get('id', 'reqalm')}-contracts-releases",
         client=client,
         project=project,
         schema_version=data.get("schema_version"),
@@ -843,7 +843,7 @@ def write_contracts_releases_sdoc(data: dict[str, Any], path: Path) -> tuple[int
         parts.append(f"TITLE: Contract {c.get('name')}")
         parts.append("STATEMENT: >>>")
         parts.append(
-            f"ReqAML contract overlay `{c.get('name')}` "
+            f"ReqALM contract overlay `{c.get('name')}` "
             f"(status={c.get('status')}, starts_on={c.get('starts_on')}). "
             "Links requirement versions via in_scope_of; not a tree parent."
         )
@@ -896,7 +896,7 @@ def write_contracts_releases_sdoc(data: dict[str, Any], path: Path) -> tuple[int
         parts.append(f"TITLE: Release {r.get('name')}")
         parts.append("STATEMENT: >>>")
         parts.append(
-            f"ReqAML release `{r.get('name')}` "
+            f"ReqALM release `{r.get('name')}` "
             f"(status={status_raw}, planned_on={r.get('planned_on')}). "
             "delivers is a snapshot of requirement version UIDs."
         )
@@ -950,7 +950,7 @@ def write_manifest(
     project = (data.get("projects") or [{}])[0]
     client = data.get("client") or {}
 
-    body = f"""# ReqAML StrictDoc export manifest
+    body = f"""# ReqALM StrictDoc export manifest
 
 Generated from dogfood YAML. StrictDoc is **interchange only**.
 Target grammar: **StrictDoc 0.30**.
@@ -1000,7 +1000,7 @@ Target grammar: **StrictDoc 0.30**.
 | satisfies | {sum(1 for e in edges if e.get('kind') == 'satisfies')} |
 | refines | {sum(1 for e in edges if e.get('kind') == 'refines')} |
 
-`conforms_to` pins are `(catalog_imprint_id, item_uid)` — `to` is the stable item UID in `catalog/*.sdoc` (`AC-3`, `V-222536`, …) and `catalog_imprint_id` names the published imprint (`nist-800-53@rev5-…`, `asd-stig@v6r4`). YAML `catalog_imprints[]` points at those `.sdoc` files. Project `REQAML-SEC-*` entries remain steward-mutable without imprint until publish; standards always require imprint publish. New imprint import does **not** auto-retarget live pins (see ARCH-CAT-IMPORT / ARCH-CAT-DRIFT).
+`conforms_to` pins are `(catalog_imprint_id, item_uid)` — `to` is the stable item UID in `catalog/*.sdoc` (`AC-3`, `V-222536`, …) and `catalog_imprint_id` names the published imprint (`nist-800-53@rev5-…`, `asd-stig@v6r4`). YAML `catalog_imprints[]` points at those `.sdoc` files. Project `REQALM-SEC-*` entries remain steward-mutable without imprint until publish; standards always require imprint publish. New imprint import does **not** auto-retarget live pins (see ARCH-CAT-IMPORT / ARCH-CAT-DRIFT).
 
 ## Catalog reverse Child ConformsTo
 
@@ -1011,7 +1011,7 @@ After export, run `scripts/patch_catalog_reverse_conforms.py` to mirror product 
 - DOCUMENT uses `TITLE`/`UID`/`VERSION` + `METADATA:` key/value (no free DOCUMENT `COMMENT:`).
 - SECTION emitted as composite `[[SECTION]]`/`[[/SECTION]]` (StrictDoc 0.30 rejects legacy `[SECTION]`); fields only `UID`/`TITLE` (+ nested children + `[/SECTION]`); section intro text → `[TEXT]` node.
 - STATUS mapped: active→Active, draft→Draft, obsolete/withdrawn→Deleted (only these three allowed).
-- StrictDoc is a **dense interchange view** of ReqAML — prefer structured `RELATIONS` even when that diverges slightly from the product model.
+- StrictDoc is a **dense interchange view** of ReqALM — prefer structured `RELATIONS` even when that diverges slightly from the product model.
 - Outgoing `edges` → `RELATIONS` `TYPE: Parent` + `ROLE: <PascalCase>` when acyclic; if a Parent ROLE edge would cycle, emit `TYPE: Child` + same ROLE (not COMMENT-only). Roles: Satisfies|ConformsTo|Uses|Refines|InScopeOf|Delivers (+ bare Parent/Child + File).
 - Contract `in_scope_of` / release `delivers` → first-class `RELATIONS` (`Parent` + `InScopeOf` / `Delivers`) on `contracts-releases.sdoc`. Requirements mirror as `Child` + same ROLEs (default dense interchange). Unpatched StrictDoc 0.30 asserts on same-ROLE dual-declare — use `--no-child-membership`, or keep the local idempotent `create_link` patch. COMMENT keeps a truncated summary.
 - Tree: nested `[[SECTION]]…[[/SECTION]]`; `RELATIONS` Parent VALUE = parent section or requirement UID.
@@ -1023,7 +1023,7 @@ After export, run `scripts/patch_catalog_reverse_conforms.py` to mirror product 
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="ReqAML YAML → StrictDoc .sdoc converter")
+    parser = argparse.ArgumentParser(description="ReqALM YAML → StrictDoc .sdoc converter")
     parser.add_argument("--in", dest="infile", default=str(DEFAULT_IN), help="Input YAML path")
     parser.add_argument("--out", dest="outdir", default=str(DEFAULT_OUT), help="Output directory")
     parser.add_argument("--validate", action="store_true", help="Validate UID/parent rules before emit")

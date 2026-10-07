@@ -15,7 +15,7 @@ UID: A01
 STATUS: Active
 TITLE: Sign in via SSO
 STATEMENT: >>>
-A user signs in via enterprise SSO (OIDC or SAML). ReqAML validates the IdP token,
+A user signs in via enterprise SSO (OIDC or SAML). ReqALM validates the IdP token,
 establishes a least-privilege session, loads project grants, and emits an auditable sign-in event.
 No local password store exists; MFA is enforced at the IdP. Downstream APIs reject callers without a valid session.
 <<<
@@ -30,7 +30,7 @@ UID: A02
 STATUS: Active
 TITLE: Sign out
 STATEMENT: >>>
-An authenticated user signs out. ReqAML terminates the server session, clears the client session handle,
+An authenticated user signs out. ReqALM terminates the server session, clears the client session handle,
 revokes any desk attachments for that session, and records an auditable logout event.
 Subsequent API calls with the old handle receive an unauthorized outcome.
 <<<

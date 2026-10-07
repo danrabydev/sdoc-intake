@@ -20,7 +20,7 @@ ControlNote(seqBusiness, "IA-2(1), IA-11", "V-222520", "Key ops are privileged: 
 
 == Rotate KEK version (no plaintext export) ==
 
-KeyOp("rotate", "transit/keys/reqaml-kek → v2")
+KeyOp("rotate", "transit/keys/reqalm-kek → v2")
 ControlNote(seqKeyProvider, "SC-12, SC-12(2)", "V-222555", "New KEK version created inside OpenBao; v1 still decrypts until re-wrap verified")
 
 == Online re-wrap of every DEK ==
@@ -35,11 +35,11 @@ end
 ControlNote(seqPostgres, "SC-28(1), SC-28(3)", "V-222588", "Only wrapped DEKs in DB; reads/writes continue during re-wrap (FIX-ALLOW-KEK-REWRAP-ONLINE)")
 
 seqBusiness -> seqBusiness : verify all DEKs at v2
-KeyOp("set min_decryption_version", "reqaml-kek = 2")
+KeyOp("set min_decryption_version", "reqalm-kek = 2")
 ControlNote(seqKeyProvider, "SC-12", "TBD (ASD V6R4)", "Retire v1 only after verification; destroy is a separate custodian op")
 
 HookEffectsAfter("audit")
-AuditLog("key:kek:rotate", "KEK reqaml-kek v1→v2 (no key material)")
+AuditLog("key:kek:rotate", "KEK reqalm-kek v1→v2 (no key material)")
 ControlNote(seqAudit, "AU-2, AU-3, AU-12", "V-222462", "Every key operation audited with actor, key id/version, outcome")
 
 seqBusiness --> seqAPI : 200 rotation complete

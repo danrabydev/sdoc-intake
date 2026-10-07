@@ -109,7 +109,7 @@ Inventory of **104** user actions from [`user-actions-inventory.md`](../user-act
 | 103 | N02 | Pin favorite contract / project | stub | TBD |  | — |
 | 104 | N03 | Use global search | stub | TBD |  | — |
 
-## ReqAML MCP agent actions (extension)
+## ReqALM MCP agent actions (extension)
 
 IDs **`MC**`** avoid collision with inventory section **M** (audit ops M01–M04). Pattern adapted from Operation Charity workflow MCP + desk-session sealing (see MC01 companion).
 

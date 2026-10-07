@@ -2,7 +2,7 @@
 """Promote security.verification_note / catalog_ref control IDs → conforms_to edges.
 
 Only links to UIDs that exist in seed/catalog/*.sdoc (Northline: no invented controls).
-Expands AU-2/3/12-style shorthand. REQAML-SEC-* stubs map to real NIST/STIG aliases
+Expands AU-2/3/12-style shorthand. REQALM-SEC-* stubs map to real NIST/STIG aliases
 when the note has no bare AC-*/V-* IDs. Slims YAML catalogs stubs for NIST/STIG.
 """
 from __future__ import annotations
@@ -25,16 +25,16 @@ CATALOG_DIR = SEED_DIR / "catalog"
 SLASH_FAMILY = re.compile(r"\b((?:AC|AU|IA|SC|CM|SI)-)(\d+)((?:/\d+)+)\b")
 CTRL_RE = re.compile(r"\b((?:AC|AU|IA|SC|CM|SI)-\d+(?:\.\d+)?)\b")
 STIG_RE = re.compile(r"\b(V-\d+)\b")
-REQAML_RE = re.compile(r"\b(REQAML-SEC-[A-Z0-9-]+)\b")
+REQALM_RE = re.compile(r"\b(REQALM-SEC-[A-Z0-9-]+)\b")
 
 # Project catalog stubs → real imported catalog UIDs (prefer AC-*/V-* over stubs).
 SEC_ALIAS: dict[str, list[str]] = {
-    "REQAML-SEC-SSO": ["IA-2", "AC-3", "V-222536"],
-    "REQAML-SEC-SCOPE": ["AC-3"],
-    "REQAML-SEC-RBAC": ["AC-2", "AC-6", "V-222429"],
-    "REQAML-SEC-MCP": ["SC-8", "V-222567"],
-    "REQAML-SEC-AUDIT": ["AU-2", "AU-3", "AU-12", "AU-6"],
-    "REQAML-SEC-CATALOG": ["AC-3", "CM-5"],
+    "REQALM-SEC-SSO": ["IA-2", "AC-3", "V-222536"],
+    "REQALM-SEC-SCOPE": ["AC-3"],
+    "REQALM-SEC-RBAC": ["AC-2", "AC-6", "V-222429"],
+    "REQALM-SEC-MCP": ["SC-8", "V-222567"],
+    "REQALM-SEC-AUDIT": ["AU-2", "AU-3", "AU-12", "AU-6"],
+    "REQALM-SEC-CATALOG": ["AC-3", "CM-5"],
 }
 
 
@@ -78,14 +78,14 @@ def extract_ids(text: str | None) -> set[str]:
         found.add(m.group(1))
     for m in STIG_RE.finditer(expanded):
         found.add(m.group(1))
-    for m in REQAML_RE.finditer(expanded):
+    for m in REQALM_RE.finditer(expanded):
         found.add(m.group(1))
     return found
 
 
 def resolve_to_catalog(cid: str, catalog: set[str]) -> tuple[str | None, str | None]:
     """Return (target_uid, skip_reason). skip_reason set when not linkable."""
-    if cid.startswith("REQAML-SEC-"):
+    if cid.startswith("REQALM-SEC-"):
         return None, "project-stub"
     norm = re.sub(r"\((\d+)\)", r".\1", cid)
     if norm in catalog:
@@ -97,11 +97,11 @@ def resolve_to_catalog(cid: str, catalog: set[str]) -> tuple[str | None, str | N
 
 
 def slim_catalogs(data: dict) -> dict:
-    """Keep project REQAML-SEC catalog; replace NIST/STIG YAML stubs with pointers."""
+    """Keep project REQALM-SEC catalog; replace NIST/STIG YAML stubs with pointers."""
     new_cats = []
     for cat in data.get("catalogs") or []:
         cid = cat.get("id")
-        if cid == "cat-reqaml-security":
+        if cid == "cat-reqalm-security":
             new_cats.append(cat)
             continue
         if cid == "cat-nist-global":
@@ -115,7 +115,7 @@ def slim_catalogs(data: dict) -> dict:
                     "is_standard": True,
                     "notes": (
                         "Authoritative control text and UIDs live in "
-                        "catalog/nist-800-53.sdoc (and reqaml-strictdoc/input/catalog/). "
+                        "catalog/nist-800-53.sdoc (and reqalm-strictdoc/input/catalog/). "
                         "YAML does not hold NIST library text. Product edges ConformsTo "
                         "bare UIDs such as AC-3, IA-2, AU-2."
                     ),
@@ -189,9 +189,9 @@ def promote(data: dict, catalog: set[str]) -> dict:
             elif reason:
                 skipped.append((uid, cid, reason))
 
-        # If only REQAML stubs (or aliases needed), ensure aliases applied
-        reqaml_only = all(x.startswith("REQAML-SEC-") for x in found)
-        if reqaml_only:
+        # If only REQALM stubs (or aliases needed), ensure aliases applied
+        reqalm_only = all(x.startswith("REQALM-SEC-") for x in found)
+        if reqalm_only:
             for rid in found:
                 for alias in SEC_ALIAS.get(rid, []):
                     if alias in catalog:
@@ -275,7 +275,7 @@ def main() -> int:
     print(f"added_by_src: {stats['added_by_src']}")
     print(
         "catalogs slimmed: NIST/STIG entries=[] with sdoc_path pointers; "
-        "cat-reqaml-security kept"
+        "cat-reqalm-security kept"
     )
 
     # Backfill catalog_imprint_id on any conforms_to still missing it.

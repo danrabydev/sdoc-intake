@@ -7,11 +7,11 @@ clients:
 - id: other-family
   name: Other Family
   created_at: '2026-10-06T00:00:00-04:00'
-  notes: Cross-client denial fixture (FIX-DENY-CROSS-CLIENT). No projects or grants that can leak into reqaml / raby-family.
+  notes: Cross-client denial fixture (FIX-DENY-CROSS-CLIENT). No projects or grants that can leak into reqalm / raby-family.
 projects:
-- id: reqaml
+- id: reqalm
   client_id: raby-family
-  name: ReqAML
+  name: ReqALM
   status: active
   notes: Requirements/ALM product replacing StrictDoc-as-store. Current intake / diagram repo often called sdoc-intake. Optional per-release cyber_gate (see rel-r1-core-alm); project default off unless release sets it. Uses WorkflowProfile wf-commercial-default (ARCH-WORKFLOW).
   workflow_profile_id: wf-commercial-default
@@ -73,61 +73,61 @@ identities:
   email: kim.keycustodian@therabyfamily.com
   display_name: Kim Key-Custodian
 project_grants:
-- id: grant-dan-reqaml-author
-  project_id: reqaml
+- id: grant-dan-reqalm-author
+  project_id: reqalm
   identity_id: dan
   role: Author
-- id: grant-dan-reqaml-admin
-  project_id: reqaml
+- id: grant-dan-reqalm-admin
+  project_id: reqalm
   identity_id: dan
   role: Project admin
 - id: grant-alex-author
-  project_id: reqaml
+  project_id: reqalm
   identity_id: alex-author
   role: Author
 - id: grant-sam-security
-  project_id: reqaml
+  project_id: reqalm
   identity_id: sam-security
   role: Security
 - id: grant-taylor-tester
-  project_id: reqaml
+  project_id: reqalm
   identity_id: taylor-tester
   role: Tester
 - id: grant-riley-release
-  project_id: reqaml
+  project_id: reqalm
   identity_id: riley-release
   role: Release manager
 - id: grant-casey-reader
-  project_id: reqaml
+  project_id: reqalm
   identity_id: casey-reader
   role: Reader
-- id: grant-jordan-reqaml-auditor
-  project_id: reqaml
+- id: grant-jordan-reqalm-auditor
+  project_id: reqalm
   identity_id: jordan-auditor
   role: Auditor
 - id: grant-alex-author-revoked
-  project_id: reqaml
+  project_id: reqalm
   identity_id: alex-author
   role: Author
   status: revoked
   revoked_at: '2026-09-15T14:00:00-04:00'
   notes: Tombstone fixture for FIX-DENY-REVOKED; write after revoke → 403 + audit.
 - id: grant-jamie-ao
-  project_id: reqaml
+  project_id: reqalm
   identity_id: jamie-ao
   role: AO
   notes: Approve-only AO grant (permission-tree). Used for cyber gate ship approve + locked migrate approve. Not commercial stakeholder approver.
 - id: grant-drew-developer
-  project_id: reqaml
+  project_id: reqalm
   identity_id: drew-developer
   role: Developer
   notes: Leaf change-set + work-item mapping; no SDLC parent open/close (prefer permission-tree over flat matrix).
 catalog_steward_grants:
-- id: steward-morgan-reqaml-project
-  catalog_id: cat-reqaml-security
+- id: steward-morgan-reqalm-project
+  catalog_id: cat-reqalm-security
   identity_id: morgan-steward
   role: Catalog steward
-  notes: Morgan may steward project catalog cat-reqaml-security; not cat-nist-global.
+  notes: Morgan may steward project catalog cat-reqalm-security; not cat-nist-global.
 catalogs:
 - id: cat-nist-global
   scope: global
@@ -139,32 +139,32 @@ catalogs:
   entries: []
   sdoc_path: catalog/nist-800-53.sdoc
   current_imprint_id: nist-800-53@rev5-dogfood-20261006
-- id: cat-reqaml-security
+- id: cat-reqalm-security
   scope: project
   client_id: raby-family
-  project_id: reqaml
-  title: ReqAML project security catalog
+  project_id: reqalm
+  title: ReqALM project security catalog
   is_standard: false
   entries:
-  - id: REQAML-SEC-SSO
+  - id: REQALM-SEC-SSO
     title: Enterprise SSO only (no local passwords)
-  - id: REQAML-SEC-SCOPE
+  - id: REQALM-SEC-SCOPE
     title: Server-side client scoped view
-  - id: REQAML-SEC-RBAC
+  - id: REQALM-SEC-RBAC
     title: Permission checks on every mutating API
-  - id: REQAML-SEC-MCP
+  - id: REQALM-SEC-MCP
     title: MCP desk OC-style session sealing; mutations on HTTPS only
-  - id: REQAML-SEC-AUDIT
+  - id: REQALM-SEC-AUDIT
     title: OTEL-exported audit for security-relevant actions
-  - id: REQAML-SEC-CATALOG
+  - id: REQALM-SEC-CATALOG
     title: Standard catalog reference without copy; steward-gated edits
-  - id: REQAML-SEC-OAUTH
+  - id: REQALM-SEC-OAUTH
     title: Internal OAuth 2.1 AS is the single token issuer for UI, API, and MCP (PKCE S256, audience-bound tokens)
-  - id: REQAML-SEC-CRED
+  - id: REQALM-SEC-CRED
     title: 'Credential store controls: salted one-way hashes, lockout, MFA for privileged roles, hashed server-side tokens'
-  - id: REQAML-SEC-KEYS
+  - id: REQALM-SEC-KEYS
     title: Envelope encryption under an external KeyProvider (OpenBao Transit default); custodian-gated key ops
-  notes: 'Project catalog (REQAML-SEC-*): steward-mutable without an imprint until publish. Standards always require imprint publish (H03 / ARCH-CAT-SCOPE).'
+  notes: 'Project catalog (REQALM-SEC-*): steward-mutable without an imprint until publish. Standards always require imprint publish (H03 / ARCH-CAT-SCOPE).'
 - id: cat-stig-asd-v6r4
   scope: global
   client_id:
@@ -194,17 +194,17 @@ catalog_imprints:
   notes: DISA ASD STIG V6R4 imprint. Item UIDs (V-222536, …) are stable within this imprint. No in-place rewrite of published rule rows.
 iterations:
 - id: iter-r0
-  project_id: reqaml
+  project_id: reqalm
   name: R0 design sequences
   starts_on: '2026-10-01'
   ends_on: '2026-10-31'
 - id: iter-r1
-  project_id: reqaml
+  project_id: reqalm
   name: R1 core ALM
   starts_on: '2026-11-01'
   ends_on: '2026-11-30'
 - id: iter-r2
-  project_id: reqaml
+  project_id: reqalm
   name: R2 sync & polish
   starts_on: '2026-12-01'
   ends_on: '2026-12-31'
@@ -244,7 +244,7 @@ workflow_profiles:
 - id: wf-commercial-default
   scope: project
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   title: Commercial default workflow
   gate_ids:
   - gate-line-approved
@@ -309,7 +309,7 @@ workflow_profiles:
   - requirement:version:grooming
   - requirement:version:iteration
   - release:membership
-  notes: Example broader planning gates + verification ship. Not attached to reqaml project by default.
+  notes: Example broader planning gates + verification ship. Not attached to reqalm project by default.
   action_hook_ids:
   - hook-line-approve
   - hook-line-approve-tree
@@ -935,7 +935,7 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned for test-hygiene PR; approve as solution once built and verified.
+  notes: 'Delivered in PR #15; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
   approved_version_uid:
   approved_statement_hash:
 - id: ar-cap-test-auth-hygiene
@@ -944,7 +944,7 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned for test-hygiene PR; approve as solution once built and verified.
+  notes: 'Delivered in PR #15; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
   approved_version_uid:
   approved_statement_hash:
 - id: ar-cap-devenv-smoke-compose-isolation
@@ -953,7 +953,16 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned for test-hygiene PR; approve as solution once built and verified.
+  notes: 'Delivered in PR #15; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-rename-reqalm
+  subject_kind: CapabilityLine
+  base_uid: CAP-RENAME-REQALM
+  status: unapproved
+  by:
+  at:
+  notes: Planned for rename PR; approve as solution once merged and verified.
   approved_version_uid:
   approved_statement_hash:
 gate_signoffs:
@@ -968,7 +977,7 @@ gate_signoffs:
   note: SAMPLE partial signoff — ao_approve still missing for FIX-DENY-SHIP-UNSIGNED bed.
 conformance_pin_requests:
 - id: cpr-sample-a01-ac3
-  project_id: reqaml
+  project_id: reqalm
   requirement_version_uid: A01
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
   item_uid: AC-3
@@ -978,1720 +987,1725 @@ conformance_pin_requests:
   notes: FIX-ALLOW-PIN-REQUEST sample; Security apply → FIX-ALLOW-SECURITY-PIN-APPLY.
 requirement_lines:
 - base_uid: SEC-IA
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Identity & Access
 - base_uid: SEC-CP
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Client & Project
 - base_uid: SEC-RL
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Requirement Lines & Versions
 - base_uid: SEC-EDGE
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Traces & Edges
 - base_uid: SEC-CT
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Contracts
 - base_uid: SEC-REL
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Releases
 - base_uid: SEC-CAT
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Catalogs
 - base_uid: SEC-CAP
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Capabilities & Artifacts
 - base_uid: SEC-WI
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Work Items & Sync
 - base_uid: SEC-GROOM
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Grooming & Agile Flow
 - base_uid: SEC-IO
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Import / Export
 - base_uid: SEC-AUDIT
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Audit & Ops
 - base_uid: SEC-UI
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: UI Architecture
 - base_uid: SEC-API
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: API Architecture
 - base_uid: SEC-SEC
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Security / RBAC
 - base_uid: SEC-MCP
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: MCP agent desks
 - base_uid: A01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: Sign in via SSO
 - base_uid: A02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: Sign out
 - base_uid: A03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: Select Client Scoped View
 - base_uid: A04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: Clear / change Scoped View
 - base_uid: A05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: View own profile / grants
 - base_uid: A06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: Invite / link identity
 - base_uid: A07
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: Grant project role
 - base_uid: A08
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: Revoke project role
 - base_uid: A09
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: Grant catalog-steward role
 - base_uid: A10
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: Revoke catalog-steward role
 - base_uid: A11
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: List project access
 - base_uid: A12
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: Impersonate / break-glass (deferred)
 - base_uid: B01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CP
   kind: requirement
   title: Create client
 - base_uid: B02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CP
   kind: requirement
   title: Update client metadata
 - base_uid: B03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CP
   kind: requirement
   title: Archive / deactivate client
 - base_uid: B04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CP
   kind: requirement
   title: Create project under client
 - base_uid: B05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CP
   kind: requirement
   title: Update project
 - base_uid: B06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CP
   kind: requirement
   title: Archive project
 - base_uid: B07
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CP
   kind: requirement
   title: List clients (permission-filtered)
 - base_uid: B08
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CP
   kind: requirement
   title: List projects in scoped client
 - base_uid: ARCH-CP-HIER
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CP
   kind: requirement
   title: Client → Project hierarchy
 - base_uid: ARCH-CP-SCOPE
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CP-HIER
   kind: requirement
   title: Server-bound clientId + mandatory client_id / RLS
 - base_uid: C01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Create requirement line
 - base_uid: C02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Rename / retitle line
 - base_uid: C03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Move line (change parent)
 - base_uid: C04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Reorder siblings
 - base_uid: C05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Soft-delete / tombstone line
 - base_uid: C06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: View tree (mind map / outline)
 - base_uid: C07
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Expand / collapse / filter tree
 - base_uid: C08
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Search requirements in client/project
 - base_uid: D01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Create first version of a line
 - base_uid: D02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Create successor version (.N+1)
 - base_uid: D03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Edit draft version fields
 - base_uid: D04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Activate draft→active; prior active→superseded in-place (≠ approve)
 - base_uid: D05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Terminal obsolete/withdraw in-place or status-only .N
 - base_uid: D06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: View lineage / succession
 - base_uid: D07
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Compare two versions
 - base_uid: D08
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Priority mutate requires approved + not planning_blocked
 - base_uid: D09
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Attach / change iteration on a version
 - base_uid: D10
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Add verification note (tester)
 - base_uid: D11
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Tag security metadata
 - base_uid: ARCH-VER
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Line versions; ≤1 active; prior→superseded in-place on activate
 - base_uid: ARCH-VER-SUCC
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-VER
   kind: requirement
   title: Succession UID rules; ≤1 active invariant; supersede same txn
 - base_uid: ARCH-VER-TOMB
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-VER
   kind: requirement
   title: Tombstone via obsolete version
 - base_uid: E01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-EDGE
   kind: requirement
   title: Add edge refines
 - base_uid: E02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-EDGE
   kind: requirement
   title: 'ConformsTo: Author request; Security/Steward apply (tree wins)'
 - base_uid: E03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-EDGE
   kind: requirement
   title: Add edge uses
 - base_uid: E04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-EDGE
   kind: requirement
   title: Add edge satisfies
 - base_uid: E05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-EDGE
   kind: requirement
   title: Remove edge
 - base_uid: E06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-EDGE
   kind: requirement
   title: View traceability graph / matrix
 - base_uid: E07
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-EDGE
   kind: requirement
   title: Navigate to linked control / capability
 - base_uid: ARCH-CONTRACT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CT
   kind: requirement
   title: Contracts as overlays
 - base_uid: ARCH-CONTRACT-DOC
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CONTRACT
   kind: requirement
   title: Document view walk from contract
 - base_uid: F01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CT
   kind: requirement
   title: Create contract
 - base_uid: F02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CT
   kind: requirement
   title: Update contract metadata
 - base_uid: F03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CT
   kind: requirement
   title: Close contract
 - base_uid: F04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CT
   kind: requirement
   title: Link requirement version to contract
 - base_uid: F05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CT
   kind: requirement
   title: Unlink requirement version from contract
 - base_uid: F06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CT
   kind: requirement
   title: Bulk-link versions to contract
 - base_uid: F07
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CT
   kind: requirement
   title: Open document view from contract
 - base_uid: F08
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CT
   kind: requirement
   title: Toggle include context parents
 - base_uid: F09
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CT
   kind: requirement
   title: View contract overlap timeline
 - base_uid: F10
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CT
   kind: requirement
   title: List contracts for client/project
 - base_uid: ARCH-RELEASE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-REL
   kind: requirement
   title: Releases deliver version snapshots
 - base_uid: ARCH-RELEASE-FREEZE
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-RELEASE
   kind: requirement
   title: Ship freezes delivered set
 - base_uid: G01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-REL
   kind: requirement
   title: Create planned release
 - base_uid: G02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-REL
   kind: requirement
   title: Update planned release
 - base_uid: G03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-REL
   kind: requirement
   title: Add/remove versions on planned release
 - base_uid: G04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-REL
   kind: requirement
   title: Prioritize release backlog from priorities
 - base_uid: G05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-REL
   kind: requirement
   title: Ship release (freeze snapshot)
 - base_uid: G06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-REL
   kind: requirement
   title: View snapshot vs prior release
 - base_uid: G07
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-REL
   kind: requirement
   title: Gantt / schedule view from releases + priorities + iterations
 - base_uid: G08
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-REL
   kind: requirement
   title: List releases for project
 - base_uid: H01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAT
   kind: requirement
   title: Create catalog
 - base_uid: H02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAT
   kind: requirement
   title: Update catalog metadata
 - base_uid: H03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAT
   kind: requirement
   title: Publish catalog imprint
 - base_uid: H04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAT
   kind: requirement
   title: Add catalog item
 - base_uid: H05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAT
   kind: requirement
   title: Update catalog item (non-standard)
 - base_uid: H06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAT
   kind: requirement
   title: Reference catalog via applicator-applied imprint pin (Author requests)
 - base_uid: H07
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAT
   kind: requirement
   title: Copy non-standard template into project line
 - base_uid: H08
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAT
   kind: requirement
   title: Deprecate catalog item
 - base_uid: H09
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAT
   kind: requirement
   title: Browse catalogs at current scope
 - base_uid: H10
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAT
   kind: requirement
   title: 'Migrate pins: applicator apply; locked=mint_kind=pin + gate_signoff'
 - base_uid: ARCH-CAT-IMPRINT
-  project_id: reqaml
+  project_id: reqalm
   parent: H03
   kind: requirement
   title: Catalog imprint model
 - base_uid: ARCH-CAT-PIN
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CAT-IMPRINT
   kind: requirement
   title: ConformsTo pin is (imprint_id, item_uid)
 - base_uid: ARCH-CAT-IMPORT
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CAT-IMPRINT
   kind: requirement
   title: Import imprint diffs; no auto-retarget
 - base_uid: ARCH-CAT-DRIFT
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CAT-IMPORT
   kind: requirement
   title: Catalog-drift flag on affected versions
 - base_uid: ARCH-CAT-REACT
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CAT-DRIFT
   kind: requirement
   title: 'Drift review: successor, grandfather, or withdraw'
 - base_uid: ARCH-CAT-FREEZE
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CAT-PIN
   kind: requirement
   title: Contracts/releases keep historical ConformsTo pins
 - base_uid: ARCH-CAT-SCOPE
-  project_id: reqaml
+  project_id: reqalm
   parent: H03
   kind: requirement
   title: Project vs standard catalog imprint rules
 - base_uid: ARCH-CAT-MIGRATE
-  project_id: reqaml
+  project_id: reqalm
   parent: H10
   kind: requirement
   title: 'Migrate pins: preview, .N for locked, in-place drafts'
 - base_uid: I01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAP
   kind: requirement
   title: Create capability line
 - base_uid: I02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAP
   kind: requirement
   title: Link capability satisfies requirement
 - base_uid: I03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAP
   kind: requirement
   title: Attach artifact URI
 - base_uid: I04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAP
   kind: requirement
   title: Update / replace artifact URI
 - base_uid: I05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAP
   kind: requirement
   title: Remove artifact
 - base_uid: I06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAP
   kind: requirement
   title: View capability pack grouping
 - base_uid: CAP-SSO
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-SEC
   kind: capability
   title: Federated SSO session
 - base_uid: CAP-SCOPED-VIEW
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-SEC
   kind: capability
   title: Client Scoped View binding
 - base_uid: CAP-RBAC
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: capability
   title: RBAC enforcement on API mutations
 - base_uid: CAP-MCP-DESK
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-MCP
   kind: capability
-  title: ReqAML MCP requirements desk channel
+  title: ReqALM MCP requirements desk channel
 - base_uid: CAP-TREE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAP
   kind: capability
   title: Requirement tree editing pack
 - base_uid: CAP-CONTRACT-UI
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAP
   kind: capability
   title: Contracts & document view pack
 - base_uid: CAP-VERSION-UI
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAP
   kind: capability
   title: Version lineage pack
 - base_uid: CAP-AUDIT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: capability
   title: Audit & OTEL pack
 - base_uid: J01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WI
   kind: requirement
   title: Mark requirement ready for work item
 - base_uid: J02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WI
   kind: requirement
   title: Create work item from requirement version
 - base_uid: J03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WI
   kind: requirement
   title: Update work item link mapping
 - base_uid: J04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WI
   kind: requirement
   title: Push field changes req → work item
 - base_uid: J05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WI
   kind: requirement
   title: Pull field changes work item → req
 - base_uid: J06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WI
   kind: requirement
   title: Resolve sync conflict
 - base_uid: J07
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WI
   kind: requirement
   title: View sync status / last sync
 - base_uid: J08
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WI
   kind: requirement
   title: Disconnect work item link
 - base_uid: K01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-GROOM
   kind: requirement
   title: Open priority queue
 - base_uid: K02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-GROOM
   kind: requirement
   title: Walk parent detail-debt
 - base_uid: K03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-GROOM
   kind: requirement
   title: Advance grooming state
 - base_uid: K04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-GROOM
   kind: requirement
   title: Assign iteration / sprint
 - base_uid: K05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-GROOM
   kind: requirement
   title: View work track by iteration
 - base_uid: K06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-GROOM
   kind: requirement
   title: View release path vs work track
 - base_uid: L01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IO
   kind: requirement
   title: Import StrictDoc / notation file
 - base_uid: L02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IO
   kind: requirement
   title: StrictDoc export; fixture golden {A01,A02} only
 - base_uid: L03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IO
   kind: requirement
   title: Export document view (PDF/Markdown) — later
 - base_uid: L04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IO
   kind: requirement
   title: Export snapshot bill of requirements
 - base_uid: M01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: View audit log for an entity
 - base_uid: M02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: View audit log for a client
 - base_uid: M03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: Configure OTEL / log sinks
 - base_uid: M04
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: Health check / read API version
 - base_uid: ARCH-OTEL
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-API
   kind: requirement
   title: OTEL audit trail
 - base_uid: N01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-UI
   kind: requirement
   title: Toggle mind-map vs tree vs document view
 - base_uid: N02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-UI
   kind: requirement
   title: Pin favorite contract / project
 - base_uid: N03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-UI
   kind: requirement
   title: Use global search
 - base_uid: ARCH-UI
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-UI
   kind: requirement
   title: App → Routes → Layout → Page → View
 - base_uid: ARCH-UI-GUARD
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-UI
   kind: requirement
   title: Route guards enforce session + scope
 - base_uid: ARCH-API
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-API
   kind: requirement
   title: HTTP → business → data, OpenAPI schema-first
 - base_uid: ARCH-API-RBAC
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-API
   kind: requirement
   title: RBAC on every mutating API
 - base_uid: ARCH-API-LAYERS
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-API
   kind: requirement
   title: 'Layering: adapter → service → repository'
 - base_uid: MC01
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-MCP
   kind: requirement
   title: MCP authenticate session & desk bind
 - base_uid: MC02
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-MCP
   kind: requirement
   title: MCP mutating tool with desk attached
 - base_uid: MC03
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-MCP
   kind: requirement
   title: MCP tool RBAC mirrors UI permissions
 - base_uid: D12
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Stakeholder Approve (line + direct children)
 - base_uid: ARCH-APPROVAL
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: ApprovalRecord on line (SoT); version mirror dual-write
 - base_uid: ARCH-APPROVAL-VIEW
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-UI
   kind: requirement
   title: Approval queue tree (unapproved primary; approved dimmed/collapsed)
 - base_uid: ARCH-CHANGESET
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: Project-scoped change sets with nested per-object audit
 - base_uid: ARCH-CHANGESET-RBAC
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: 'Change-set RBAC (permission-tree: SDLC parent vs leaf)'
 - base_uid: ARCH-LOCKED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-CAT
   kind: requirement
   title: Derived locked rule for migrate (in_scope/delivers/non-draft)
 - base_uid: ARCH-CYBER-GATE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-REL
   kind: requirement
   title: gate-cyber-ship Gate instance (release.cyber_gate example)
 - base_uid: ARCH-VERIFICATION
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: verification_outcome first-class; configurable ship gate
 - base_uid: M05
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: Open / close leaf change set
 - base_uid: M06
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: Open / close SDLC parent change-set session
 - base_uid: M07
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: Revert / re-apply latest change set on stack (or abandon suffix)
 - base_uid: FIX-DENY-PRIORITY-UNAPPROVED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Author denied priority set without stakeholder approval
 - base_uid: FIX-SAMPLE-APPROVED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Sample approved version (priority allowed)
 - base_uid: FIX-SAMPLE-UNAPPROVED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Sample unapproved version (priority denied)
 - base_uid: SEC-FIX
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Security / QA fixtures (test beds)
 - base_uid: FIX-DENY-READER-GRANT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Casey Reader denied project:grant:create
 - base_uid: FIX-DENY-CROSS-CLIENT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
-  title: Dan scoped other-family cannot read reqaml tree
+  title: Dan scoped other-family cannot read reqalm tree
 - base_uid: FIX-DENY-STEWARD-STANDARD
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Non-steward denied catalog:entry:update on standard catalog
 - base_uid: FIX-DENY-MCP-ESCALATE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: MCP as Casey denied release:ship
 - base_uid: FIX-DENY-NO-GRANT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: no-grant-user denied any project read
 - base_uid: FIX-DENY-REVOKED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Revoked grant write denied
 - base_uid: FIX-SUCC-2HOP
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Two-hop succession with stale edge
 - base_uid: FIX-CONTRACT-DOC-NOCTX
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Doc view no-context = {A01,A02}
 - base_uid: FIX-CONTRACT-DOC-CTX
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Doc view + parents = {A01,A02} ∪ section walk
 - base_uid: FIX-REL-SNAP
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Shipped release freeze + stale backlog UID
 - base_uid: FIX-ALLOW-CLIENT-CREATE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Pat Client-Admin client:create allow
 - base_uid: FIX-ALLOW-STEWARD-UPDATE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Morgan steward catalog:entry:update allow on project catalog
 - base_uid: FIX-DENY-CLOSED-LINK
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Link to closed contract denied
 - base_uid: FIX-DENY-SHIPPED-DELIVERS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Mutate shipped release delivers denied
 - base_uid: FIX-DENY-EDIT-ACTIVE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Edit active version fields denied
 - base_uid: FIX-ALLOW-SUCCEED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Succeed .N; prior tip→superseded same txn
 - base_uid: FIX-COMPARE-2HOP
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Compare across two-hop succession
 - base_uid: FIX-ALLOW-AUDIT-CLIENT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Jordan Auditor audit:client:read allow
 - base_uid: FIX-DENY-AUDIT-CROSS-CLIENT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Auditor denied cross-client audit read
 - base_uid: FIX-EXPORT-L02-GOLDEN
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Export golden UID set {A01,A02} (no AC-3)
 - base_uid: SEC-WF
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Dynamic workflow system
 - base_uid: ARCH-WORKFLOW
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: 'Composition: WorkflowProfile + Gate + ActionHook + RoleBinding (not mega-status)'
 - base_uid: ARCH-SUBJECT-KIND
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: SubjectKind registry (RequirementLine, CapabilityLine, edges, ChangeSet, Release)
 - base_uid: ARCH-REQ-VS-CAP
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: Client sys-req vs CapabilityLine first-class; canonical need→solution path
 - base_uid: ARCH-APPROVAL-LINE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: Approval grain = requirement line; pin approved_version_uid + statement_hash
 - base_uid: ARCH-SUCCESSION-HASH
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: statement_hash=body only; content .N clears; noop=content only
 - base_uid: ARCH-HOOK-EVAL
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: 'ActionHook evaluator: RBAC → gates_before → mutate → effects_after → audit'
 - base_uid: ARCH-PLANNING-GATES
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: Which planning actions need approval = profile-configurable
 - base_uid: ARCH-APPROVER-SLOTS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: Approver slots profile-configurable (many / one / contract-specific)
 - base_uid: ARCH-CAP-LINK
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: Capabilities linked at creation via Satisfies (no orphan caps)
 - base_uid: ARCH-CAP-APPROVE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: CapabilityLine approval enough for solution; Satisfies not separate approve subject
 - base_uid: ARCH-GATE-MODEL
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: Cyber / verification / ship modeled as Gates under WorkflowProfile
 - base_uid: ARCH-VERIFICATION-GATE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: verification_outcome first-class; configurable gate to ship
 - base_uid: ARCH-CHANGESET-RETAIN
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: Change sets retained forever; revert latest on stack only
 - base_uid: ARCH-CHANGESET-CONFLICT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: 'Stack revert policy: latest-only; abandon suffix for older whole sets'
 - base_uid: WANT-CHANGESET-FIELD-UNDO
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: requirement
   title: 'Future: undo individual item fields from history (not whole older change sets)'
 - base_uid: ARCH-WF-ADMIN
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-UI
   kind: requirement
   title: Workflow profile admin UI (Client/Project admin configures gates, slots, hooks)
 - base_uid: ARCH-BACKLOG
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-GROOM
   kind: requirement
   title: Backlog planning views (priority queues, release backlog) as product requirements
 - base_uid: ARCH-GANTT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-REL
   kind: requirement
   title: Gantt / schedule views as product requirements (with backlog)
 - base_uid: UI-APPROVE-LINE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-UI
   kind: requirement
   title: 'Approve action: selected line + direct children'
 - base_uid: UI-APPROVE-TREE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-UI
   kind: requirement
   title: 'Approve Tree action: selected line + full descendants'
 - base_uid: D13
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-RL
   kind: requirement
   title: Stakeholder Approve Tree (full descendants) on requirement lines
 - base_uid: FIX-DENY-NOOP-SUCCESSOR
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: ALIGNED→FIX-DENY-NOOP-CONTENT (content mint noop deny)
 - base_uid: FIX-DENY-REVERT-NON-LATEST
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Non-latest change-set revert denied (unless abandon suffix)
 - base_uid: FIX-SAMPLE-WF-REQ
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Sample client sys-req line with ApprovalRecord + Satisfies target
 - base_uid: FIX-SAMPLE-WF-CAP
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: capability
   title: Sample capability created with Satisfies + ApprovalRecord
 - base_uid: ARCH-MINT-KIND
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: 'Mint kinds: content|status|pin|security_meta; noop gate = content only'
 - base_uid: FIX-ALLOW-PIN-MIGRATE-MINT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Allow pin-only .N mint (exempt from content noop)
 - base_uid: FIX-DENY-NOOP-CONTENT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny content mint when statement_hash equals head
 - base_uid: FIX-ALLOW-STATUS-SUPERSEDE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Allow in-place superseded / status-only terminal
 - base_uid: FIX-DENY-SECOND-ACTIVE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny second active tip on same line
 - base_uid: FIX-PLANNING-BLOCKED-AFTER-CONTENT-N
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: planning_blocked after content .N until re-approve
 - base_uid: FIX-GRANDFATHER-SEED-APPROVED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Bootstrap imported_approved / seed ApprovalRecords
 - base_uid: ARCH-SUSPECT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: trace_suspect on edges/junctions after content .N
 - base_uid: ARCH-SUSPECT-QUEUE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: 'Suspect review queue: carry / keep-pinned / drop'
 - base_uid: FIX-SUSPECT-ON-CONTENT-N
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Content .N marks inbound traces suspect
 - base_uid: FIX-ALLOW-SUSPECT-CARRY
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Allow suspect carry-forward to new tip
 - base_uid: FIX-ALLOW-SUSPECT-KEEP-PINNED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Allow keep-pinned on suspect edge
 - base_uid: FIX-ALLOW-SUSPECT-DROP
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Allow drop of suspect edge/junction
 - base_uid: FIX-DENY-SHIP-WITH-OPEN-SUSPECT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: 'Optional profile gate: deny ship with open suspects'
 - base_uid: FIX-DENY-AUTHOR-PIN-APPLY
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny Author applying ConformsTo pin
 - base_uid: FIX-ALLOW-PIN-REQUEST
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Allow Author conformance_pin_request
 - base_uid: FIX-ALLOW-SECURITY-PIN-APPLY
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Allow Security/Steward pin apply
 - base_uid: FIX-DENY-APPROVE-WITHOUT-SLOT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny approve when actor misses RoleBinding slot
 - base_uid: FIX-ALLOW-APPROVE-LINE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Allow approve when actor matches slot
 - base_uid: ARCH-GATE-SIGNOFF
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-WF
   kind: requirement
   title: gate_signoff record for cyber ship + locked migrate
 - base_uid: FIX-DENY-SHIP-UNSIGNED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny cyber ship until required slots signed
 - base_uid: SEC-DEVENV
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Developer environment & deployment topology
 - base_uid: ARCH-DEVENV-COMPOSE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: requirement
   title: Compose is the single supported dev entry point (app + peripherals)
 - base_uid: ARCH-DEVENV-MODES
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-DEVENV-COMPOSE
   kind: requirement
   title: Hybrid (peripherals only + native app) and full-container run modes
 - base_uid: ARCH-DEVENV-CLONE
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-DEVENV-COMPOSE
   kind: requirement
   title: Clone-to-running documented short path
 - base_uid: ARCH-DEVENV-SEED
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-DEVENV-COMPOSE
   kind: requirement
   title: Migrations and dogfood seed on first start (idempotent)
 - base_uid: ARCH-DEVENV-IDENTITY
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: requirement
   title: Seeded dev accounts on the internal AS; none in production
 - base_uid: ARCH-DEVENV-SECRETS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: requirement
   title: No secrets committed; .env.example; prod config separate
 - base_uid: ARCH-DEVENV-PARITY
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-DEVENV-COMPOSE
   kind: requirement
   title: Single Dockerfile; app target matches deployment image
 - base_uid: ARCH-DEVENV-HEALTH
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-DEVENV-COMPOSE
   kind: requirement
   title: Compose service health checks and readiness
 - base_uid: FIX-ALLOW-DEVENV-SMOKE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Fresh clone reaches healthy instance and seed loads
 - base_uid: FIX-DENY-DEVENV-PROD-LOGIN
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: No seeded dev accounts or default credentials in production
 - base_uid: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Re-run migrations and dogfood seed is idempotent
 - base_uid: ARCH-AUTH-AS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: requirement
   title: Internal OAuth 2.1 authorization server (single token issuer)
 - base_uid: ARCH-AUTH-PKCE
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-AS
   kind: requirement
   title: Authorization code + PKCE S256 only
 - base_uid: ARCH-AUTH-METADATA
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-AS
   kind: requirement
   title: AS metadata (RFC 8414) + protected resource metadata (RFC 9728)
 - base_uid: ARCH-AUTH-AUDIENCE
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-AS
   kind: requirement
   title: Audience-bound tokens via resource indicators (RFC 8707); no passthrough
 - base_uid: ARCH-AUTH-REFRESH
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-AS
   kind: requirement
   title: Refresh token rotation with reuse detection
 - base_uid: ARCH-AUTH-REVOKE
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-AS
   kind: requirement
   title: Token revocation and session-linked teardown
 - base_uid: ARCH-AUTH-CLIENTREG
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-AS
   kind: requirement
   title: 'Client registration: pre-registered baseline; CIMD/DCR policy-gated'
 - base_uid: ARCH-AUTH-FEDERATION
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-AS
   kind: requirement
   title: Enterprise SSO federated upstream through the internal AS
 - base_uid: ARCH-AUTH-LOCAL
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-AS
   kind: requirement
   title: 'Local accounts: optional per auth profile (off by default in production)'
 - base_uid: ARCH-CRED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-SEC
   kind: requirement
   title: Credential store controls
 - base_uid: ARCH-CRED-HASH
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CRED
   kind: requirement
   title: Passwords stored only as salted approved one-way hashes (configurable params)
 - base_uid: ARCH-CRED-POLICY
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CRED
   kind: requirement
   title: Password / authenticator policy presets
 - base_uid: ARCH-CRED-LOCKOUT
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CRED
   kind: requirement
   title: Throttling and lockout after failed attempts
 - base_uid: ARCH-CRED-MFA
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CRED
   kind: requirement
   title: MFA for privileged roles
 - base_uid: ARCH-CRED-TOKENS
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CRED
   kind: requirement
   title: Server-side tokens and client secrets stored hashed
 - base_uid: ARCH-CRED-SESSION
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CRED
   kind: requirement
   title: 'Session management: idle/absolute timeout, fixation, cookies'
 - base_uid: ARCH-CRED-REAUTH
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CRED
   kind: requirement
   title: Re-authentication (step-up) for sensitive actions
 - base_uid: ARCH-CRED-AUDIT
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-CRED
   kind: requirement
   title: Audit every authentication event
 - base_uid: ARCH-KEY
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-SEC
   kind: requirement
   title: Key / secret store — envelope encryption root of trust
 - base_uid: ARCH-KEY-PROVIDER
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-KEY
   kind: requirement
   title: Pluggable KeyProvider; OpenBao Transit default
 - base_uid: ARCH-KEY-SCOPE
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-KEY
   kind: requirement
   title: What the key store protects (signing keys, secrets, sensitive fields)
 - base_uid: ARCH-KEY-JWKS
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-KEY
   kind: requirement
   title: 'Token signing keys: kid, JWKS, rotation with overlap window'
 - base_uid: ARCH-KEY-LIFECYCLE
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-KEY
   kind: requirement
   title: 'Key lifecycle: generate, rotate, revoke, destroy, online re-wrap'
 - base_uid: ARCH-KEY-CUSTODIAN
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-KEY
   kind: requirement
   title: Key custodian role (separation of duties)
 - base_uid: ARCH-KEY-BREAKGLASS
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-KEY
   kind: requirement
   title: Key recovery / break-glass procedure
 - base_uid: ARCH-KEY-FIPS
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-KEY
   kind: requirement
   title: FIPS-validated cryptographic modules where applicable
 - base_uid: ARCH-KEY-FAILCLOSED
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-KEY
   kind: requirement
   title: Fail closed when the KEK / KeyProvider is unavailable
 - base_uid: ARCH-DEVENV-KEYS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: requirement
   title: 'Dev KeyProvider: OpenBao dev instance; dev keys never valid in prod'
 - base_uid: ARCH-DEPLOY-MINIMAL
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: requirement
   title: One Dockerfile; one multi-role app container (API+AS, Web UI, MCP, sync)
 - base_uid: ARCH-DEPLOY-PERIPHERALS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: requirement
   title: Peripherals in as few containers as sensible (key store isolated in prod)
 - base_uid: SEC-BUILD
-  project_id: reqaml
+  project_id: reqalm
   parent:
   kind: section
   title: Build sequencing
 - base_uid: ARCH-BUILD-FOUNDATION
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-BUILD
   kind: requirement
   title: 'Foundation slice first: platform shell + authentication + key store'
 - base_uid: FIX-ALLOW-MCP-OAUTH-PKCE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: MCP client authorizes via discovery + PKCE; audience-bound tool call
 - base_uid: FIX-DENY-PKCE-PLAIN
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny authorize with plain or missing PKCE
 - base_uid: FIX-DENY-MCP-WRONG-AUDIENCE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny token with wrong audience at MCP server / API
 - base_uid: FIX-DENY-UPSTREAM-TOKEN-AT-API
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny upstream IdP token presented directly to API/MCP
 - base_uid: FIX-DENY-REFRESH-REUSE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny reuse of a rotated refresh token; revoke family
 - base_uid: FIX-DENY-REVOKED-TOKEN
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny revoked refresh/access token after sign-out
 - base_uid: FIX-DENY-DCR-DISABLED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny dynamic client registration when policy is off
 - base_uid: FIX-ALLOW-FEDERATED-SSO-VIA-AS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Federated SSO yields internal-AS tokens for linked identity
 - base_uid: FIX-DENY-LOCKOUT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Lockout after N consecutive failed logins
 - base_uid: FIX-DENY-PRIV-NO-MFA
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny privileged action on a session without MFA
 - base_uid: FIX-DENY-STEPUP-STALE-AUTH
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny approval/pin apply with stale authentication
 - base_uid: FIX-DENY-SESSION-IDLE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny after idle session timeout
 - base_uid: FIX-ALLOW-CRED-HASH-ONLY
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Credential store holds only hashes / wrapped secrets
 - base_uid: FIX-DENY-KEK-UNREACHABLE-PROD
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Prod start fails closed when KEK unreachable
 - base_uid: FIX-DENY-DEV-KEK-IN-PROD
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny dev OpenBao / dev keys in a prod build
 - base_uid: FIX-JWKS-ROTATION-OVERLAP
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Rotated signing key verifies within overlap, rejected after
 - base_uid: FIX-DENY-KEYOP-NO-CUSTODIAN
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Deny key operation without Key custodian
 - base_uid: FIX-ALLOW-KEK-REWRAP-ONLINE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: KEK rotation re-wraps DEKs without downtime
 - base_uid: FIX-ALLOW-DEVENV-MIN-CONTAINERS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Default dev stack is at most 2 containers
 - base_uid: FIX-ALLOW-APP-ROLE-SPLIT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: App roles toggle by env; split without rebuild
 - base_uid: ARCH-AUTH-PROFILE
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-AS
   kind: requirement
   title: 'Auth profile: identity mode and local-account setting per deployment'
 - base_uid: ARCH-AUTH-MCP-REQUIRED
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-AS
   kind: requirement
   title: Internal AS is mandatory for MCP in every identity mode
 - base_uid: ARCH-AUTH-LOCAL-BREAKGLASS
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-LOCAL
   kind: requirement
   title: Break-glass local recovery admin (profile-enabled, MFA, dual control)
 - base_uid: ARCH-AUTH-UPSTREAM-CONNECTOR
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-FEDERATION
   kind: requirement
   title: Pluggable upstream IdP connector per client tenant
 - base_uid: ARCH-AUTH-CLAIM-MAP
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-FEDERATION
   kind: requirement
   title: Upstream claim-to-identity/grant mapping is explicit, tenant-bounded config
 - base_uid: ARCH-AUTH-UPSTREAM-REVOKE
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-FEDERATION
   kind: requirement
   title: Upstream session end and revocation are honored
 - base_uid: ARCH-AUTH-AGENT-ATTRIBUTION
-  project_id: reqaml
+  project_id: reqalm
   parent: ARCH-AUTH-AS
   kind: requirement
   title: Agent (MCP) actions attributed to the human subject and OAuth client
 - base_uid: FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Local login denied/absent when profile disables local accounts
 - base_uid: FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Break-glass local admin allowed only when enabled, with MFA, recovery-scoped
 - base_uid: FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: MCP OAuth works with local accounts disabled (federated-only)
 - base_uid: FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
-  title: Upstream back-channel logout revokes ReqAML sessions and MCP tokens
+  title: Upstream back-channel logout revokes ReqALM sessions and MCP tokens
 - base_uid: FIX-DENY-CROSS-TENANT-CONNECTOR
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: Client A's IdP connector cannot establish client B access
 - base_uid: FIX-ALLOW-AGENT-ATTRIBUTION
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-FIX
   kind: requirement
   title: MCP mutation audit names human subject + OAuth client
 - base_uid: CAP-DEVENV-MONOREPO
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
-  title: pnpm workspace monorepo (apps/reqaml + packages/intake)
+  title: pnpm workspace monorepo (apps/reqalm + packages/intake)
 - base_uid: CAP-DEVENV-DOCKERFILE-ROLES
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
-  title: Single Dockerfile; one app container with REQAML_ROLES toggles
+  title: Single Dockerfile; one app container with REQALM_ROLES toggles
 - base_uid: CAP-DEVENV-PERIPHERALS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
   title: 'Dev peripherals container: Postgres + OpenBao'
 - base_uid: CAP-DEVENV-COMPOSE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
   title: 'Clone-to-running Compose: full-container and hybrid modes'
 - base_uid: CAP-HEALTH-LIVENESS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: capability
   title: /health liveness probe with version
 - base_uid: CAP-READY-PROBES
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: capability
   title: /ready live peripheral and per-role checks (cached, time-boxed)
 - base_uid: CAP-DEVENV-STARTUP-BACKOFF
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
   title: Startup backoff waiting for Postgres and OpenBao
 - base_uid: CAP-PROD-SELFCHECK
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
   title: Production startup self-check refuses dev keys and dev accounts
 - base_uid: CAP-DEVENV-OPENBAO-BOOTSTRAP
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
   title: Dev OpenBao Transit KEK bootstrap and round-trip
 - base_uid: CAP-DEVENV-MIGRATE-SEED
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
   title: Idempotent DB migrations and dogfood seed load
 - base_uid: CAP-API-DOCS-SEED-SUMMARY
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-API
   kind: capability
   title: OpenAPI docs (/docs) and seed summary endpoint
 - base_uid: CAP-DEVENV-SMOKE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
   title: Local devenv smoke harness; CI smoke is manual-only
 - base_uid: CAP-UI-FRAME
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-UI
   kind: capability
   title: 'UI frame: app shell, layout, guarded routes'
 - base_uid: CAP-OAUTH-AS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: capability
   title: Internal OAuth 2.1 authorization server
 - base_uid: CAP-CRED-STORE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-SEC
   kind: capability
   title: 'Credential store: Argon2id, lockout, MFA, hashed tokens'
 - base_uid: CAP-KEY-ENVELOPE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-SEC
   kind: capability
   title: KeyProvider envelope encryption and JWKS signing keys
 - base_uid: CAP-AUTH-AUDIT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-AUDIT
   kind: capability
   title: Authentication audit events (append-only)
 - base_uid: CAP-AUTH-UPSTREAM-SEAM
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: capability
   title: Pluggable upstream IdP connector seam (stub)
 - base_uid: CAP-DEVENV-INIT
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
   title: Idempotent devenv:init secrets CLI
 - base_uid: CAP-MFA-ENROLL
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: capability
   title: TOTP MFA enrollment (UI + devenv:mfa CLI)
 - base_uid: CAP-AGENT-ACCESS
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: capability
   title: Dev agent OAuth client_credentials tokens
 - base_uid: CAP-AUTH-HARDEN
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: capability
   title: 'Auth hardening: handoffs, BFF session, throttle, prod issuer'
 - base_uid: CAP-TEST-MEMORY-KEYPROVIDER
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-SEC
   kind: capability
   title: In-memory KeyProvider fake for tests
 - base_uid: CAP-TEST-PGLITE-DB
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
   title: In-process Postgres (PGlite) with real migrations
 - base_uid: CAP-TEST-AUTH-ROUTES
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: capability
   title: In-process auth route integration tests
 - base_uid: CAP-TEST-PNPM-GATE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
   title: Docker-free `pnpm test` gate
 - base_uid: CAP-TEST-PROD-BUILD-EXCLUDE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-BUILD
   kind: capability
   title: Production build excludes test harness modules
 - base_uid: CAP-TEST-AUTH-HYGIENE
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-IA
   kind: capability
   title: Stronger in-process auth regression beds
 - base_uid: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
-  project_id: reqaml
+  project_id: reqalm
   parent: SEC-DEVENV
   kind: capability
   title: devenv:smoke pins Compose project name
+- base_uid: CAP-RENAME-REQALM
+  project_id: reqalm
+  parent: SEC-BUILD
+  kind: capability
+  title: 'Product name correction: ReqALM (ALM, not AML)'
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -3105,8 +3119,8 @@ requirement_versions:
   iteration: iter-r0
   rbac_op: client:scope:select
   security:
-    catalog_ref: REQAML-SEC-SCOPE
-    verification_note: Maps to ReqAML project catalog SCOPE item.
+    catalog_ref: REQALM-SEC-SCOPE
+    verification_note: Maps to ReqALM project catalog SCOPE item.
 - uid: C01
   base_uid: C01
   version_n: 0
@@ -3790,7 +3804,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: catalog:create
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 - uid: H02
   base_uid: H02
@@ -3803,7 +3817,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: catalog:update
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 - uid: H03
   base_uid: H03
@@ -3814,7 +3828,7 @@ requirement_versions:
   iteration: iter-r2
   rbac_op: catalog:publish
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 - uid: H04
   base_uid: H04
@@ -3827,7 +3841,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: catalog:entry:add
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 - uid: H05
   base_uid: H05
@@ -3842,7 +3856,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: catalog:entry:update
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 - uid: H06
   base_uid: H06
@@ -3853,7 +3867,7 @@ requirement_versions:
   iteration: iter-r0
   rbac_op: catalog:entry:reference
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 - uid: H07
   base_uid: H07
@@ -3866,7 +3880,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: catalog:entry:copy
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 - uid: H08
   base_uid: H08
@@ -3881,7 +3895,7 @@ requirement_versions:
   iteration: iter-r2
   rbac_op: catalog:entry:deprecate
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 - uid: H09
   base_uid: H09
@@ -3894,7 +3908,7 @@ requirement_versions:
   iteration: iter-r0
   rbac_op: catalog:browse
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 - uid: H10
   base_uid: H10
@@ -3905,7 +3919,7 @@ requirement_versions:
   iteration: iter-r2
   rbac_op: catalog:imprint:migrate
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid). Migrate requires preview accept + Steward/Security gate; audited.
 - uid: ARCH-CAT-SCOPE
   base_uid: ARCH-CAT-SCOPE
@@ -3916,7 +3930,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: catalog:imprint:scope
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 - uid: ARCH-CAT-MIGRATE
   base_uid: ARCH-CAT-MIGRATE
@@ -3927,7 +3941,7 @@ requirement_versions:
   iteration: iter-r2
   rbac_op: catalog:imprint:migrate:apply
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid). Migrate requires preview accept + Steward/Security gate; audited.
 - uid: ARCH-CAT-FREEZE
   base_uid: ARCH-CAT-FREEZE
@@ -3938,7 +3952,7 @@ requirement_versions:
   iteration: iter-r0
   rbac_op: catalog:imprint:freeze
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 - uid: ARCH-CAT-REACT
   base_uid: ARCH-CAT-REACT
@@ -3949,7 +3963,7 @@ requirement_versions:
   iteration: iter-r2
   rbac_op: catalog:imprint:review
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 - uid: ARCH-CAT-DRIFT
   base_uid: ARCH-CAT-DRIFT
@@ -3960,7 +3974,7 @@ requirement_versions:
   iteration: iter-r2
   rbac_op: catalog:imprint:drift
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 - uid: ARCH-CAT-IMPORT
   base_uid: ARCH-CAT-IMPORT
@@ -3971,7 +3985,7 @@ requirement_versions:
   iteration: iter-r2
   rbac_op: catalog:imprint:import
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 - uid: ARCH-CAT-PIN
   base_uid: ARCH-CAT-PIN
@@ -3982,7 +3996,7 @@ requirement_versions:
   iteration: iter-r0
   rbac_op: catalog:imprint:pin
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 - uid: ARCH-CAT-IMPRINT
   base_uid: ARCH-CAT-IMPRINT
@@ -3993,7 +4007,7 @@ requirement_versions:
   iteration: iter-r0
   rbac_op: catalog:imprint:model
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 - uid: I01
   base_uid: I01
@@ -4106,7 +4120,7 @@ requirement_versions:
   priority: 10
   iteration: iter-r0
   security:
-    catalog_ref: REQAML-SEC-SCOPE
+    catalog_ref: REQALM-SEC-SCOPE
     verification_note: Server-bound Client Scoped View. ASD STIG V6R4 V-222429 / V-222550.
 - uid: CAP-RBAC
   base_uid: CAP-RBAC
@@ -4118,7 +4132,7 @@ requirement_versions:
   security:
     catalog_ref: AC-3
     verification_note: 'AC-3 enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:07904dc523cccd3c24e8ab49deca0a2aa3cbaaf2882a8d8028c24eaf737ea60b
   grooming_state: detailed
   verification_outcome: pass
@@ -4126,7 +4140,7 @@ requirement_versions:
   base_uid: CAP-MCP-DESK
   version_n: 0
   status: draft
-  statement: 'Capability pack for ReqAML MCP server, desk list/attach, and session-sealed desk WebSocket.
+  statement: 'Capability pack for ReqALM MCP server, desk list/attach, and session-sealed desk WebSocket.
 
     Mutations stay on HTTPS; the desk socket is push-only. MCP authorization reuses the same RBAC pack as the
 
@@ -4582,8 +4596,8 @@ requirement_versions:
   iteration: iter-r0
   rbac_op: rbac:authorize
   security:
-    catalog_ref: REQAML-SEC-RBAC
-    verification_note: Maps to ReqAML RBAC catalog item.
+    catalog_ref: REQALM-SEC-RBAC
+    verification_note: Maps to ReqALM RBAC catalog item.
 - uid: ARCH-API-LAYERS
   base_uid: ARCH-API-LAYERS
   version_n: 0
@@ -4602,7 +4616,7 @@ requirement_versions:
   base_uid: MC01
   version_n: 0
   status: draft
-  statement: 'An MCP host connects to ReqAML MCP (stdio or Streamable HTTP), establishes a platform session
+  statement: 'An MCP host connects to ReqALM MCP (stdio or Streamable HTTP), establishes a platform session
 
     (OAuth opaque token or login aligned with A01), lists desks, and attach/detach routing to a browser
 
@@ -4654,7 +4668,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: mcp:authorize
   security:
-    catalog_ref: REQAML-SEC-RBAC
+    catalog_ref: REQALM-SEC-RBAC
     verification_note: MCP uses same RBAC pack as UI.
 - uid: D12
   base_uid: D12
@@ -4844,7 +4858,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: project:grant:create
   security:
-    catalog_ref: REQAML-SEC-RBAC
+    catalog_ref: REQALM-SEC-RBAC
     verification_note: Reader cannot create grants; 403 + audit. Pairs grant-casey-reader.
 - uid: FIX-DENY-CROSS-CLIENT
   base_uid: FIX-DENY-CROSS-CLIENT
@@ -4859,8 +4873,8 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: client:scope:select
   security:
-    catalog_ref: REQAML-SEC-SCOPE
-    verification_note: Server-side client scope blocks cross-client leakage into reqaml.
+    catalog_ref: REQALM-SEC-SCOPE
+    verification_note: Server-side client scope blocks cross-client leakage into reqalm.
 - uid: FIX-DENY-STEWARD-STANDARD
   base_uid: FIX-DENY-STEWARD-STANDARD
   version_n: 0
@@ -4874,7 +4888,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: catalog:entry:update
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Standard catalog edits steward-gated; NIST global is read-only for non-stewards.
 - uid: FIX-DENY-MCP-ESCALATE
   base_uid: FIX-DENY-MCP-ESCALATE
@@ -4887,7 +4901,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: release:ship
   security:
-    catalog_ref: REQAML-SEC-RBAC
+    catalog_ref: REQALM-SEC-RBAC
     verification_note: MCP cannot escalate; Casey Reader lacks release:ship. Pairs MC03.
 - uid: FIX-DENY-NO-GRANT
   base_uid: FIX-DENY-NO-GRANT
@@ -4900,7 +4914,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: project:read
   security:
-    catalog_ref: REQAML-SEC-RBAC
+    catalog_ref: REQALM-SEC-RBAC
     verification_note: No grant → deny all project reads. Identity present, grants empty.
 - uid: FIX-DENY-REVOKED
   base_uid: FIX-DENY-REVOKED
@@ -4915,7 +4929,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: requirement:version:create
   security:
-    catalog_ref: REQAML-SEC-RBAC
+    catalog_ref: REQALM-SEC-RBAC
     verification_note: Revoked grant tombstone cannot authorize writes. See grant-alex-author-revoked.
 - uid: FIX-SUCC-2HOP
   base_uid: FIX-SUCC-2HOP
@@ -4956,7 +4970,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: contract:document:view
   security:
-    catalog_ref: REQAML-SEC-SCOPE
+    catalog_ref: REQALM-SEC-SCOPE
     verification_note: 'UID set equality: view == in_scope_of when context parents off.'
 - uid: FIX-CONTRACT-DOC-CTX
   base_uid: FIX-CONTRACT-DOC-CTX
@@ -4967,7 +4981,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: contract:document:view
   security:
-    catalog_ref: REQAML-SEC-SCOPE
+    catalog_ref: REQALM-SEC-SCOPE
     verification_note: UID set = in_scope_of ∪ context parents when toggle on.
 - uid: FIX-REL-SNAP
   base_uid: FIX-REL-SNAP
@@ -4984,7 +4998,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: release:ship
   security:
-    catalog_ref: REQAML-SEC-AUDIT
+    catalog_ref: REQALM-SEC-AUDIT
     verification_note: R0 freeze immutable; planned backlog may reference obsolete UIDs.
 - uid: FIX-ALLOW-CLIENT-CREATE
   base_uid: FIX-ALLOW-CLIENT-CREATE
@@ -5014,7 +5028,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: catalog:entry:update
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Happy path steward update on mutable project catalog. Sample ae-allow-morgan-steward-update.
 - uid: FIX-DENY-CLOSED-LINK
   base_uid: FIX-DENY-CLOSED-LINK
@@ -5585,7 +5599,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: catalog:pin:apply
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog/ConformsTo authority; imprint pins. AC-3/CM-5.
 - uid: FIX-ALLOW-PIN-REQUEST
   base_uid: FIX-ALLOW-PIN-REQUEST
@@ -5596,7 +5610,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: catalog:pin:request
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog/ConformsTo authority; imprint pins. AC-3/CM-5.
 - uid: FIX-ALLOW-SECURITY-PIN-APPLY
   base_uid: FIX-ALLOW-SECURITY-PIN-APPLY
@@ -5607,7 +5621,7 @@ requirement_versions:
   iteration: iter-r1
   rbac_op: catalog:pin:apply
   security:
-    catalog_ref: REQAML-SEC-CATALOG
+    catalog_ref: REQALM-SEC-CATALOG
     verification_note: Catalog/ConformsTo authority; imprint pins. AC-3/CM-5.
 - uid: FIX-DENY-APPROVE-WITHOUT-SLOT
   base_uid: FIX-DENY-APPROVE-WITHOUT-SLOT
@@ -5811,7 +5825,7 @@ requirement_versions:
   priority: 5
   iteration: iter-r1
   security:
-    catalog_ref: REQAML-SEC-OAUTH
+    catalog_ref: REQALM-SEC-OAUTH
     verification_note: MCP authorization spec discovery (RFC 8414 / RFC 9728). Interop requirement; no direct NIST pin.
   grooming_state: detailed
 - uid: ARCH-AUTH-AUDIENCE
@@ -6597,7 +6611,7 @@ requirement_versions:
   iteration: iter-r0
   security:
     catalog_ref: CM-2
-    verification_note: 'CM-2 baseline: one lockfile pins the supported toolchain. Verified 2026-10-07: pnpm install --frozen-lockfile; pnpm build:cli OK; editor dev server on :8087; sdoc-intake typecheck + 39/39 tests; @reqaml/app typecheck + tests.'
+    verification_note: 'CM-2 baseline: one lockfile pins the supported toolchain. Verified 2026-10-07: pnpm install --frozen-lockfile; pnpm build:cli OK; editor dev server on :8087; sdoc-intake typecheck + 39/39 tests; @reqalm/app typecheck + tests.'
   statement_hash: sha256:2043d359fac6caced4f17a4c282f1372ffca5beef613e0b2f18394f7f884946c
   grooming_state: detailed
   verification_outcome: pass
@@ -6610,7 +6624,7 @@ requirement_versions:
   iteration: iter-r0
   security:
     catalog_ref: CM-7
-    verification_note: 'CM-7 least functionality: disabled roles expose no endpoints. Verified 2026-10-07: docker compose build; REQAML_ROLES=sync run → /ready roles=[sync], /api/v1/seed/summary 404, POST /mcp 404, /health 200. Internal OAuth AS role not built yet (R1), so FIX-ALLOW-APP-ROLE-SPLIT is only partly exercised.'
+    verification_note: 'CM-7 least functionality: disabled roles expose no endpoints. Verified 2026-10-07: docker compose build; REQALM_ROLES=sync run → /ready roles=[sync], /api/v1/seed/summary 404, POST /mcp 404, /health 200. Internal OAuth AS role not built yet (R1), so FIX-ALLOW-APP-ROLE-SPLIT is only partly exercised.'
   statement_hash: sha256:852e8a3e9b67e790dc34fb6a2d6b770307329cb4f266b36f1293c64144d0b75b
   grooming_state: detailed
   verification_outcome: pass
@@ -6688,7 +6702,7 @@ requirement_versions:
   iteration: iter-r0
   security:
     catalog_ref: CM-6
-    verification_note: "CM-6 / IA-5: no default credentials in production. Verified 2026-10-07: docker compose run with REQAML_MODE=production → 'Startup self-check failed' (seeded dev accounts; dev-marked OpenBao / Transit mount), exit 1 in ~1 s; `REQAML_MODE=production pnpm reqaml:seed` refused. Dev-account login denial (FIX-DENY-DEVENV-PROD-LOGIN.1 (a)) needs the R1 internal AS."
+    verification_note: "CM-6 / IA-5: no default credentials in production. Verified 2026-10-07: docker compose run with REQALM_MODE=production → 'Startup self-check failed' (seeded dev accounts; dev-marked OpenBao / Transit mount), exit 1 in ~1 s; `REQALM_MODE=production pnpm reqalm:seed` refused. Dev-account login denial (FIX-DENY-DEVENV-PROD-LOGIN.1 (a)) needs the R1 internal AS."
   statement_hash: sha256:9acf3d7832d68bd34c662813fe8ce86fd9ad67bf12f35db5e9ff73b3aaf07bfb
   grooming_state: detailed
   verification_outcome: pass
@@ -6754,7 +6768,7 @@ requirement_versions:
   security:
     catalog_ref: AC-3
     verification_note: 'AC-3 guard enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.'
+      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.'
   statement_hash: sha256:0828332feb654b6ef8c411828750b14e293b41e4400377cb3abf3d6c18aefde6
   grooming_state: detailed
   verification_outcome: pass
@@ -6768,7 +6782,7 @@ requirement_versions:
   security:
     catalog_ref: IA-2
     verification_note: 'IA-2 / SC-23 OAuth beds. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
-      refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+      refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:2bd4307c791183ba58e460d4c7556b19e61f1d6e469cf4e8a269f00de4f8b49c
   grooming_state: detailed
   verification_outcome: pass
@@ -6782,7 +6796,7 @@ requirement_versions:
   security:
     catalog_ref: IA-5
     verification_note: 'IA-5 / AC-7 credential controls. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
-      refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; TOTP secrets envelope-wrapped; replay of the same code within its window rejected.'
+      refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; TOTP secrets envelope-wrapped; replay of the same code within its window rejected.'
   statement_hash: sha256:cfd369100cb9be628e6bca2ca3f22c1b00e37e12795e816d999a72f97f1784ec
   grooming_state: detailed
   verification_outcome: pass
@@ -6796,7 +6810,7 @@ requirement_versions:
   security:
     catalog_ref: SC-12
     verification_note: 'SC-12 / SC-28(3). Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; `/oauth/jwks` serves Transit-wrapped ES256. FIPS/Transit-sign deferred.'
+      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; `/oauth/jwks` serves Transit-wrapped ES256. FIPS/Transit-sign deferred.'
   statement_hash: sha256:a705e5c39bd7ea6a4f37e3d9bd224f85f22916512c2d9b4fbb1adc0277491299
   grooming_state: detailed
   verification_outcome: pass
@@ -6810,7 +6824,7 @@ requirement_versions:
   security:
     catalog_ref: AU-2
     verification_note: 'AU-2 / AU-3 / AU-12. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.'
+      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.'
   statement_hash: sha256:9e67395126b2352f3b3448a0f9a9f362d1633b66041b1da79e12d568b185af13
   grooming_state: detailed
   verification_outcome: pass
@@ -6837,7 +6851,7 @@ requirement_versions:
   security:
     catalog_ref: IA-5
     verification_note: 'IA-5 dev credential hygiene. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
-      refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+      refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:f2224091a2e630376b036c38cffe22254712e3c5afb5aeef358a3ddd2f043d67
   grooming_state: detailed
   verification_outcome: pass
@@ -6851,7 +6865,7 @@ requirement_versions:
   security:
     catalog_ref: IA-2
     verification_note: 'IA-2 MFA enrollment. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:ea65e8ae0ed82a9287326222ff49d3f74f6abb901ad5c1cb46050231af545045
   grooming_state: detailed
   verification_outcome: pass
@@ -6865,7 +6879,7 @@ requirement_versions:
   security:
     catalog_ref: IA-2
     verification_note: 'IA-2 agent attribution. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:f71263df62f9ede6dbe321ef345a56c83e523cbcabac2557a448e14662c77154
   grooming_state: detailed
   verification_outcome: pass
@@ -6879,7 +6893,7 @@ requirement_versions:
   security:
     catalog_ref: SC-23
     verification_note: 'SC-23 session/OAuth hardening. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
-      refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+      refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:f5ebe525628150baa5e42b194b775edc62e7f2f69bcf6efb53da28bff7accbb6
   grooming_state: detailed
   verification_outcome: pass
@@ -6918,7 +6932,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: IA-2
-    verification_note: 'Regression beds for R1 auth. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.'
+    verification_note: 'Regression beds for R1 auth. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqalm/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.'
   statement_hash: sha256:ffec33c5a9bc4c7c140d7f9f502a79c5826d764681180c0cb4bc207d19f97a0a
   grooming_state: detailed
   verification_outcome: pass
@@ -6931,38 +6945,40 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: 'Fast feedback without containers. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.'
+    verification_note: 'Fast feedback without containers. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqalm/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.'
   statement_hash: sha256:773295178e8f99c461e1408130ba0278c1f3aea79683633f2b81909268d5f896
   grooming_state: detailed
   verification_outcome: pass
 - uid: CAP-TEST-PROD-BUILD-EXCLUDE
   base_uid: CAP-TEST-PROD-BUILD-EXCLUDE
   version_n: 0
-  status: draft
+  status: active
   statement: TypeScript production build (`tsconfig.build.json`) excludes `src/test/**` and `src/key/memory-provider.ts`; tests import the in-memory KeyProvider from its own module. Docker `dist/` contains no test harness or fake key files.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: 'Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39); `pnpm typecheck` pass; `pnpm --filter @reqaml/app build` dist has no `dist/test/**` or `dist/key/memory-provider.js`.'
+    verification_note: 'Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqalm/app 39/39); `pnpm typecheck` pass; `pnpm --filter @reqalm/app build` dist has no `dist/test/**` or `dist/key/memory-provider.js`.'
   statement_hash: sha256:ebc7c1b6e62e2f860deefde1c49589918ccd76793042e4b00f3aeb19ddf27c0a
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-TEST-AUTH-HYGIENE
   base_uid: CAP-TEST-AUTH-HYGIENE
   version_n: 0
-  status: draft
+  status: active
   statement: In-process auth.integration tests cover lockout window boundaries (SQL clock, no real sleep), username-normalization lockout HTTP 423, MCP audience accept/reject pairs, and agent access-token revocation returning 401 on `/api/v1/me`.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: IA-2
-    verification_note: 'Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass.'
+    verification_note: 'Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqalm/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass.'
   statement_hash: sha256:714a8f67b883cf7a2b63612c818842e84ec049094fafc398274ef617202950ba
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
   base_uid: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
   version_n: 0
-  status: draft
+  status: active
   statement: '`pnpm devenv:smoke` sets `COMPOSE_PROJECT_NAME` (default `sdoc-intake-dev`, overridable) on every Compose invocation, logs the hostports overlay, and clears the loopback IP-throttle row before its throttle check so reruns against a running dev stack are repeatable.'
   priority: 10
   iteration: iter-r1
@@ -6970,6 +6986,19 @@ requirement_versions:
     catalog_ref: CM-2
     verification_note: 'Verified: 2026-10-07 local Docker (maintainer box): `pnpm devenv:smoke` with COMPOSE_PROJECT_NAME unset used project sdoc-intake-dev (no second stack), logged the overlay, and passed on a reused volume incl. IP throttle 200 -> 401.'
   statement_hash: sha256:8923d3718478c704df864dff8dcf521540f536842d29bd88360dd0e7a3ad577c
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-RENAME-REQALM
+  base_uid: CAP-RENAME-REQALM
+  version_n: 0
+  status: draft
+  statement: 'Repository, runtime identifiers, OAuth client IDs, env vars, and dogfood seed use the product name ReqALM (requirements + application lifecycle management). Persisted identifiers keep the legacy ReqAML spelling where renaming would orphan existing data: Compose volume names (reqaml-pg, reqaml-openbao, reqaml-secrets), OpenBao Transit key names (reqaml-kek, reqaml-dek-*) and an existing Postgres role/database. Existing dev stacks upgrade in place: migration 005 renames OAuth client ids, the project id and seeded grant ids, and `pnpm devenv:init` migrates .reqaml/ and REQAML_* names keeping secret values. Active requirement statements keep historical ReqAML prose until a content successor.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: 'Verified 2026-10-07: offline `pnpm test` 39/39 + 209/209, `pnpm typecheck`, `pnpm build` pass; seed yaml_to_strictdoc --validate pass. Local Docker in-place upgrade of a PR #15 dev stack (same volumes): `pnpm devenv:init` moved .reqaml/ + REQAML_* to .reqalm/ + REQALM_* with byte-identical secret values; migration 005 renamed OAuth client ids, the project id and seeded grant ids; /ready green, 0 restarts; the existing dev password and sam-security MFA secret still sign in; UI says ReqALM; `pnpm devenv:smoke` pass.'
+  statement_hash: sha256:9514cf5f18f514c6ebee4dc479e23b5b0d0a392e4dca415ef24445adc12618a5
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -6998,7 +7027,7 @@ capability_artifacts:
   uri: ../c4/sequences/A06-invite-link-identity.puml
 - requirement_version_uid: ARCH-API
   kind: openapi
-  uri: future://reqaml/openapi.yaml
+  uri: future://reqalm/openapi.yaml
 - requirement_version_uid: ARCH-API
   kind: other
   uri: ../c4/L3-api-components.puml
@@ -7082,7 +7111,7 @@ capability_artifacts:
   uri: ../../../package.json
 - requirement_version_uid: CAP-DEVENV-MONOREPO
   kind: other
-  uri: ../../../apps/reqaml/package.json
+  uri: ../../../apps/reqalm/package.json
 - requirement_version_uid: CAP-DEVENV-MONOREPO
   kind: other
   uri: ../../../packages/intake/package.json
@@ -7094,10 +7123,10 @@ capability_artifacts:
   uri: ../../../.dockerignore
 - requirement_version_uid: CAP-DEVENV-DOCKERFILE-ROLES
   kind: other
-  uri: ../../../apps/reqaml/src/main.ts
+  uri: ../../../apps/reqalm/src/main.ts
 - requirement_version_uid: CAP-DEVENV-DOCKERFILE-ROLES
   kind: other
-  uri: ../../../apps/reqaml/src/config.ts
+  uri: ../../../apps/reqalm/src/config.ts
 - requirement_version_uid: CAP-DEVENV-PERIPHERALS
   kind: other
   uri: ../../../docker/peripherals/entrypoint.sh
@@ -7115,37 +7144,37 @@ capability_artifacts:
   uri: ../../../.env.example
 - requirement_version_uid: CAP-DEVENV-COMPOSE
   kind: other
-  uri: ../../../scripts/dev-reqaml.mjs
+  uri: ../../../scripts/dev-reqalm.mjs
 - requirement_version_uid: CAP-DEVENV-COMPOSE
   kind: other
   uri: ../../../README.md
 - requirement_version_uid: CAP-HEALTH-LIVENESS
   kind: other
-  uri: ../../../apps/reqaml/src/http/server.ts
+  uri: ../../../apps/reqalm/src/http/server.ts
 - requirement_version_uid: CAP-HEALTH-LIVENESS
   kind: openapi
-  uri: ../../../apps/reqaml/openapi/openapi.yaml
+  uri: ../../../apps/reqalm/openapi/openapi.yaml
 - requirement_version_uid: CAP-READY-PROBES
   kind: other
-  uri: ../../../apps/reqaml/src/readiness/report.ts
+  uri: ../../../apps/reqalm/src/readiness/report.ts
 - requirement_version_uid: CAP-READY-PROBES
   kind: other
-  uri: ../../../apps/reqaml/src/readiness/cache.ts
+  uri: ../../../apps/reqalm/src/readiness/cache.ts
 - requirement_version_uid: CAP-READY-PROBES
   kind: other
-  uri: ../../../apps/reqaml/src/readiness/checks/openbao.ts
+  uri: ../../../apps/reqalm/src/readiness/checks/openbao.ts
 - requirement_version_uid: CAP-DEVENV-STARTUP-BACKOFF
   kind: other
-  uri: ../../../apps/reqaml/src/startup/wait-for-peripherals.ts
+  uri: ../../../apps/reqalm/src/startup/wait-for-peripherals.ts
 - requirement_version_uid: CAP-DEVENV-STARTUP-BACKOFF
   kind: other
-  uri: ../../../apps/reqaml/src/db/pool.ts
+  uri: ../../../apps/reqalm/src/db/pool.ts
 - requirement_version_uid: CAP-PROD-SELFCHECK
   kind: other
-  uri: ../../../apps/reqaml/src/startup/self-check.ts
+  uri: ../../../apps/reqalm/src/startup/self-check.ts
 - requirement_version_uid: CAP-PROD-SELFCHECK
   kind: other
-  uri: ../../../apps/reqaml/src/seed/load-dogfood.ts
+  uri: ../../../apps/reqalm/src/seed/load-dogfood.ts
 - requirement_version_uid: CAP-DEVENV-OPENBAO-BOOTSTRAP
   kind: other
   uri: ../../../docker/peripherals/openbao-init.sh
@@ -7154,22 +7183,22 @@ capability_artifacts:
   uri: ../../../docker/peripherals/wait-and-init-openbao.sh
 - requirement_version_uid: CAP-DEVENV-OPENBAO-BOOTSTRAP
   kind: other
-  uri: ../../../apps/reqaml/src/key/openbao.ts
+  uri: ../../../apps/reqalm/src/key/openbao.ts
 - requirement_version_uid: CAP-DEVENV-MIGRATE-SEED
   kind: other
-  uri: ../../../apps/reqaml/src/db/migrations/001_foundation.sql
+  uri: ../../../apps/reqalm/src/db/migrations/001_foundation.sql
 - requirement_version_uid: CAP-DEVENV-MIGRATE-SEED
   kind: other
-  uri: ../../../apps/reqaml/src/db/migrate.ts
+  uri: ../../../apps/reqalm/src/db/migrate.ts
 - requirement_version_uid: CAP-DEVENV-MIGRATE-SEED
   kind: other
-  uri: ../../../apps/reqaml/src/seed/load-dogfood.ts
+  uri: ../../../apps/reqalm/src/seed/load-dogfood.ts
 - requirement_version_uid: CAP-API-DOCS-SEED-SUMMARY
   kind: openapi
-  uri: ../../../apps/reqaml/openapi/openapi.yaml
+  uri: ../../../apps/reqalm/openapi/openapi.yaml
 - requirement_version_uid: CAP-API-DOCS-SEED-SUMMARY
   kind: other
-  uri: ../../../apps/reqaml/src/http/server.ts
+  uri: ../../../apps/reqalm/src/http/server.ts
 - requirement_version_uid: CAP-DEVENV-SMOKE
   kind: other
   uri: ../../../scripts/devenv-smoke.mjs
@@ -7196,46 +7225,46 @@ capability_artifacts:
   uri: ../c4/sequences/KS01-kek-rotate-dek-rewrap.puml
 - requirement_version_uid: CAP-UI-FRAME
   kind: other
-  uri: ../../../apps/reqaml/src/web/public/app.js
+  uri: ../../../apps/reqalm/src/web/public/app.js
 - requirement_version_uid: CAP-UI-FRAME
   kind: other
-  uri: ../../../apps/reqaml/src/web/public/styles.css
+  uri: ../../../apps/reqalm/src/web/public/styles.css
 - requirement_version_uid: CAP-OAUTH-AS
   kind: other
-  uri: ../../../apps/reqaml/src/auth/routes.ts
+  uri: ../../../apps/reqalm/src/auth/routes.ts
 - requirement_version_uid: CAP-OAUTH-AS
   kind: other
-  uri: ../../../apps/reqaml/src/auth/oauth-service.ts
+  uri: ../../../apps/reqalm/src/auth/oauth-service.ts
 - requirement_version_uid: CAP-OAUTH-AS
   kind: other
   uri: ../../../scripts/auth-flow-smoke.mjs
 - requirement_version_uid: CAP-CRED-STORE
   kind: other
-  uri: ../../../apps/reqaml/src/credential/password.ts
+  uri: ../../../apps/reqalm/src/credential/password.ts
 - requirement_version_uid: CAP-CRED-STORE
   kind: other
-  uri: ../../../apps/reqaml/src/credential/lockout.ts
+  uri: ../../../apps/reqalm/src/credential/lockout.ts
 - requirement_version_uid: CAP-CRED-STORE
   kind: other
-  uri: ../../../apps/reqaml/src/credential/mfa.ts
+  uri: ../../../apps/reqalm/src/credential/mfa.ts
 - requirement_version_uid: CAP-KEY-ENVELOPE
   kind: other
-  uri: ../../../apps/reqaml/src/key/provider.ts
+  uri: ../../../apps/reqalm/src/key/provider.ts
 - requirement_version_uid: CAP-KEY-ENVELOPE
   kind: other
-  uri: ../../../apps/reqaml/src/key/signing.ts
+  uri: ../../../apps/reqalm/src/key/signing.ts
 - requirement_version_uid: CAP-AUTH-AUDIT
   kind: other
-  uri: ../../../apps/reqaml/src/audit/auth-audit.ts
+  uri: ../../../apps/reqalm/src/audit/auth-audit.ts
 - requirement_version_uid: CAP-RBAC
   kind: other
-  uri: ../../../apps/reqaml/src/rbac/enforce.ts
+  uri: ../../../apps/reqalm/src/rbac/enforce.ts
 - requirement_version_uid: CAP-RBAC
   kind: other
-  uri: ../../../apps/reqaml/src/http/server.ts
+  uri: ../../../apps/reqalm/src/http/server.ts
 - requirement_version_uid: CAP-AUTH-UPSTREAM-SEAM
   kind: other
-  uri: ../../../apps/reqaml/src/auth/upstream-connector.ts
+  uri: ../../../apps/reqalm/src/auth/upstream-connector.ts
 - requirement_version_uid: CAP-DEVENV-INIT
   kind: other
   uri: ../../../scripts/devenv-init.mjs
@@ -7244,49 +7273,52 @@ capability_artifacts:
   uri: ../../../.env.example
 - requirement_version_uid: CAP-MFA-ENROLL
   kind: other
-  uri: ../../../apps/reqaml/src/auth/mfa-enroll.ts
+  uri: ../../../apps/reqalm/src/auth/mfa-enroll.ts
 - requirement_version_uid: CAP-MFA-ENROLL
   kind: other
-  uri: ../../../apps/reqaml/src/cli/enroll-mfa.ts
+  uri: ../../../apps/reqalm/src/cli/enroll-mfa.ts
 - requirement_version_uid: CAP-AGENT-ACCESS
   kind: other
   uri: ../../../scripts/devenv-agent-token.mjs
 - requirement_version_uid: CAP-AGENT-ACCESS
   kind: other
-  uri: ../../../apps/reqaml/src/auth/agent-auth.ts
+  uri: ../../../apps/reqalm/src/auth/agent-auth.ts
 - requirement_version_uid: CAP-AUTH-HARDEN
   kind: other
-  uri: ../../../apps/reqaml/src/auth/handoff.ts
+  uri: ../../../apps/reqalm/src/auth/handoff.ts
 - requirement_version_uid: CAP-AUTH-HARDEN
   kind: other
-  uri: ../../../apps/reqaml/src/auth/web-session.ts
+  uri: ../../../apps/reqalm/src/auth/web-session.ts
 - requirement_version_uid: CAP-AUTH-HARDEN
   kind: other
-  uri: ../../../apps/reqaml/src/credential/ip-throttle.ts
+  uri: ../../../apps/reqalm/src/credential/ip-throttle.ts
 - requirement_version_uid: CAP-AUTH-HARDEN
   kind: other
-  uri: ../../../apps/reqaml/src/db/migrations/004_devenv_hardening.sql
+  uri: ../../../apps/reqalm/src/db/migrations/004_devenv_hardening.sql
 - requirement_version_uid: CAP-TEST-MEMORY-KEYPROVIDER
   kind: other
-  uri: ../../../apps/reqaml/src/key/memory-provider.ts
+  uri: ../../../apps/reqalm/src/key/memory-provider.ts
 - requirement_version_uid: CAP-TEST-PGLITE-DB
   kind: other
-  uri: ../../../apps/reqaml/src/test/pglite-pool.ts
+  uri: ../../../apps/reqalm/src/test/pglite-pool.ts
 - requirement_version_uid: CAP-TEST-AUTH-ROUTES
   kind: other
-  uri: ../../../apps/reqaml/src/auth/auth.integration.test.ts
+  uri: ../../../apps/reqalm/src/auth/auth.integration.test.ts
 - requirement_version_uid: CAP-TEST-PNPM-GATE
   kind: other
-  uri: ../../../apps/reqaml/src/test/harness.ts
+  uri: ../../../apps/reqalm/src/test/harness.ts
 - requirement_version_uid: CAP-TEST-PROD-BUILD-EXCLUDE
   kind: other
-  uri: ../../../apps/reqaml/tsconfig.build.json
+  uri: ../../../apps/reqalm/tsconfig.build.json
 - requirement_version_uid: CAP-TEST-AUTH-HYGIENE
   kind: other
-  uri: ../../../apps/reqaml/src/auth/auth.integration.test.ts
+  uri: ../../../apps/reqalm/src/auth/auth.integration.test.ts
 - requirement_version_uid: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
   kind: other
   uri: ../../../scripts/devenv-smoke.mjs
+- requirement_version_uid: CAP-RENAME-REQALM
+  kind: other
+  uri: ../../../README.md
 edges:
 - from: CAP-SSO
   to: A01
@@ -12777,10 +12809,13 @@ edges:
 - from: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
   to: FIX-ALLOW-DEVENV-SMOKE
   kind: satisfies
+- from: CAP-RENAME-REQALM
+  to: ARCH-BUILD-FOUNDATION
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   name: Design-2026-10
   starts_on: '2026-10-06'
   ends_on:
@@ -12851,7 +12886,7 @@ contracts:
   - MC03
 - id: contract-security-package
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   name: Security package
   starts_on: '2026-10-06'
   ends_on:
@@ -12887,7 +12922,7 @@ contracts:
   - H06
 - id: contract-platform-baseline
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   name: Platform baseline
   starts_on: '2026-10-01'
   ends_on: '2026-12-31'
@@ -12918,7 +12953,7 @@ contracts:
   - N01
 - id: contract-legacy-intake-closed
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   name: Legacy intake (closed)
   starts_on: '2026-09-01'
   ends_on: '2026-09-30'
@@ -12930,7 +12965,7 @@ contracts:
   notes: Closed-status fixture; in_scope_of includes obsolete UIDs for doc-walk / stale UX.
 - id: contract-fixture-doc-walk
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   name: Fixture doc-walk
   starts_on: '2026-10-06'
   ends_on:
@@ -12941,7 +12976,7 @@ contracts:
   notes: Expected UID sets for FIX-CONTRACT-DOC-NOCTX / FIX-CONTRACT-DOC-CTX.
 releases:
 - id: rel-r0-sequences
-  project_id: reqaml
+  project_id: reqalm
   name: R0-sequences
   planned_on: '2026-10-15'
   shipped_on: '2026-10-06'
@@ -12967,7 +13002,7 @@ releases:
   - MC02
   cyber_gate: false
 - id: rel-pr11-planning-baseline
-  project_id: reqaml
+  project_id: reqalm
   name: 'PR #11 — planning baseline'
   planned_on: '2026-10-07'
   shipped_on: '2026-10-07'
@@ -12976,7 +13011,7 @@ releases:
   cyber_gate: false
   notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/11 merged to main as 50877ca1e717a46ce7f2bfbefc563dbd90c929e5 on 2026-10-07. Planning/design baseline: design docs (C4, sequences, roles, user actions), the dogfood seed, and folded reviews from PRs #1-#5 and #7. Documentation only: no runtime code, so it delivers no requirement or capability versions (no capabilities invented).'
 - id: rel-pr12-devenv-foundation
-  project_id: reqaml
+  project_id: reqalm
   name: 'PR #12 — devenv foundation'
   planned_on: '2026-10-07'
   shipped_on: '2026-10-07'
@@ -13007,7 +13042,7 @@ releases:
   cyber_gate: false
   notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/12 merged to main as 67131da on 2026-10-07. pnpm monorepo, one Dockerfile, 2-container Compose (app + peripherals: Postgres + OpenBao), app shell, /health liveness, /ready live peripheral checks, startup backoff, production self-check refusing dev keys/accounts, `pnpm devenv:smoke` (CI manual-only).'
 - id: rel-r1-foundation-shell-auth
-  project_id: reqaml
+  project_id: reqalm
   name: 'R1 — foundation shell + internal auth'
   planned_on: '2026-10-07'
   shipped_on: '2026-10-07'
@@ -13054,9 +13089,9 @@ releases:
   - CAP-RBAC
   - CAP-UI-FRAME
   notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/13 merged to main as 45d4c3f2aabcd94b910752d256b38b2c97abeee0 on 2026-10-07. Shipped: UI frame + internal OAuth AS (see delivers). Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max /
-    Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass. Deferred items moved to rel-r1-platform-followups (federation, break-glass, full step-up session UX, FIPS, etc.).'
+    Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass. Deferred items moved to rel-r1-platform-followups (federation, break-glass, full step-up session UX, FIPS, etc.).'
 - id: rel-r1-core-alm
-  project_id: reqaml
+  project_id: reqalm
   name: R1-core-ALM
   planned_on: '2026-11-30'
   shipped_on:
@@ -13161,7 +13196,7 @@ releases:
   notes: 'Includes obsolete ARCH-CONTRACT intentionally for FIX-REL-SNAP stale-backlog UX. cyber_gate=true: G05 ship needs Security sign-off + AO approve (ARCH-CYBER-GATE).'
   cyber_gate: true
 - id: rel-r1-platform-followups
-  project_id: reqaml
+  project_id: reqalm
   name: R1 platform follow-ups (deferred from foundation PR)
   planned_on: '2026-11-30'
   shipped_on:
@@ -13183,7 +13218,7 @@ releases:
   cyber_gate: false
   notes: Architecture requirements intentionally not claimed by rel-r1-foundation-shell-auth. Includes federation SSO, break-glass, claim mapping, upstream revoke propagation, full HttpOnly session/step-up product UX beyond R1 BFF, key custodian UI, FIPS/Transit-sign, production deploy split, full API layering, hsm-test Compose profile.
 - id: rel-r1-test-harness
-  project_id: reqaml
+  project_id: reqalm
   name: R1 — in-process test harness (no Docker)
   planned_on: '2026-10-07'
   shipped_on: '2026-10-07'
@@ -13194,22 +13229,32 @@ releases:
   - CAP-TEST-AUTH-ROUTES
   - CAP-TEST-PNPM-GATE
   cyber_gate: false
-  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/14 merged to main as da7086355e9592910e60701851ee50822aab36a4 on 2026-10-07. Shipped: Docker-free in-process test harness (see delivers). Verified (in-process): 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts; PGlite migrations; createMemoryKeyProvider; typecheck pass. Docker `pnpm devenv:smoke` remains maintainer integration check.'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/14 merged to main as da7086355e9592910e60701851ee50822aab36a4 on 2026-10-07. Shipped: Docker-free in-process test harness (see delivers). Verified (in-process): 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqalm/app 38/38 incl. auth.integration.test.ts; PGlite migrations; createMemoryKeyProvider; typecheck pass. Docker `pnpm devenv:smoke` remains maintainer integration check.'
 - id: rel-r1-test-hygiene
-  project_id: reqaml
+  project_id: reqalm
   name: R1 — test/build hygiene (Docker-free test follow-ups)
   planned_on: '2026-10-07'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-07'
+  status: shipped
   delivers:
   - CAP-TEST-PROD-BUILD-EXCLUDE
   - CAP-TEST-AUTH-HYGIENE
   - CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
   cyber_gate: false
-  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/15 (planned until merge). Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass; production build dist has no `dist/test/**` or `dist/key/memory-provider.js`. Local Docker 2026-10-07: `pnpm devenv:smoke` (COMPOSE_PROJECT_NAME unset) pass on project sdoc-intake-dev with reused volume; image dist has no test/ or memory-provider modules.'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/15 merged to main as 6c74731f522a01dfcd667e19d087cb59a1022a17 on 2026-10-07. Verified: 2026-10-07 cloud agent VM (no Docker): offline `pnpm test` 39/39 + 209/209; `pnpm typecheck` pass; prod build/image has no test code; `pnpm devenv:smoke` passed under project sdoc-intake-dev (maintainer Docker).'
+- id: rel-r1-rename-reqalm
+  project_id: reqalm
+  name: R1 — product rename ReqALM
+  planned_on: '2026-10-07'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-RENAME-REQALM
+  cyber_gate: false
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/16 (planned until merge). Verified 2026-10-07: offline `pnpm test` 39/39 + 209/209, `pnpm typecheck`, `pnpm build` pass; seed yaml_to_strictdoc --validate pass. Local Docker in-place upgrade of a PR #15 dev stack (same volumes): `pnpm devenv:init` moved .reqaml/ + REQAML_* to .reqalm/ + REQALM_* with byte-identical secret values; migration 005 renamed OAuth client ids, the project id and seeded grant ids; /ready green, 0 restarts; the existing dev password and sam-security MFA secret still sign in; UI says ReqALM; `pnpm devenv:smoke` pass.'
 change_sets:
 - id: cs-leaf-alex-draft-edit
-  project_id: reqaml
+  project_id: reqalm
   kind: leaf
   parent_id:
   scope: project
@@ -13220,7 +13265,7 @@ change_sets:
   summary: 'Leaf save: draft field edit on D03 path'
   notes: SAMPLE leaf-only change set (no SDLC parent).
 - id: cs-sdlc-r1-security-review
-  project_id: reqaml
+  project_id: reqalm
   kind: sdlc_parent
   parent_id:
   scope: project
@@ -13231,7 +13276,7 @@ change_sets:
   summary: 'SDLC parent session: R1 security conformance review'
   notes: SAMPLE SDLC parent opened by Security. Nested leaf below.
 - id: cs-leaf-under-sdlc-conforms
-  project_id: reqaml
+  project_id: reqalm
   kind: leaf
   parent_id: cs-sdlc-r1-security-review
   scope: project
@@ -13242,7 +13287,7 @@ change_sets:
   summary: 'Leaf under SDLC parent: ConformsTo pin review'
   notes: SAMPLE nested leaf under SDLC parent.
 - id: cs-stack-older
-  project_id: reqaml
+  project_id: reqalm
   kind: leaf
   parent_id:
   scope: project
@@ -13253,7 +13298,7 @@ change_sets:
   summary: Stack fixture older leaf (not tip)
   notes: 'FIX-DENY-REVERT-NON-LATEST: older than cs-stack-newer; revert of this while newer exists denies.'
 - id: cs-stack-newer
-  project_id: reqaml
+  project_id: reqalm
   kind: leaf
   parent_id:
   scope: project
@@ -13290,7 +13335,7 @@ audit_events:
   at: '2026-10-06T10:00:00-04:00'
   identity_id: casey-reader
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: project:grant:create
   outcome: deny
   http_status: 403
@@ -13299,7 +13344,7 @@ audit_events:
   at: '2026-10-06T10:05:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:create
   outcome: deny
   http_status: 403
@@ -13309,16 +13354,16 @@ audit_events:
   at: '2026-10-06T10:10:00-04:00'
   identity_id: dan
   client_id: other-family
-  project_id: reqaml
+  project_id: reqalm
   action: project:read
   outcome: deny
   http_status: 403
-  notes: 'FIX-DENY-CROSS-CLIENT: Dan scoped to other-family cannot read reqaml.'
+  notes: 'FIX-DENY-CROSS-CLIENT: Dan scoped to other-family cannot read reqalm.'
 - id: ae-jordan-audit-client-read
   at: '2026-10-06T10:15:00-04:00'
   identity_id: jordan-auditor
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: audit:client:read
   outcome: allow
   http_status: 200
@@ -13336,7 +13381,7 @@ audit_events:
   at: '2026-10-06T11:05:00-04:00'
   identity_id: dan
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: project:grant:create
   outcome: allow
   http_status: 201
@@ -13345,7 +13390,7 @@ audit_events:
   at: '2026-10-06T11:10:00-04:00'
   identity_id: dan
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: client:scope:select
   outcome: allow
   http_status: 200
@@ -13354,7 +13399,7 @@ audit_events:
   at: '2026-10-06T11:15:00-04:00'
   identity_id: casey-reader
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: release:ship
   outcome: deny
   http_status: 403
@@ -13363,7 +13408,7 @@ audit_events:
   at: '2026-10-06T11:20:00-04:00'
   identity_id: morgan-steward
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: catalog:entry:update
   outcome: deny
   http_status: 403
@@ -13372,16 +13417,16 @@ audit_events:
   at: '2026-10-06T11:25:00-04:00'
   identity_id: morgan-steward
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: catalog:entry:update
   outcome: allow
   http_status: 200
-  notes: FIX-ALLOW-STEWARD-UPDATE on cat-reqaml-security.
+  notes: FIX-ALLOW-STEWARD-UPDATE on cat-reqalm-security.
 - id: ae-deny-closed-link
   at: '2026-10-06T11:30:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: contract:link
   outcome: deny
   http_status: 409
@@ -13390,7 +13435,7 @@ audit_events:
   at: '2026-10-06T11:35:00-04:00'
   identity_id: riley-release
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: release:membership
   outcome: deny
   http_status: 409
@@ -13399,7 +13444,7 @@ audit_events:
   at: '2026-10-06T11:40:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:update_draft
   outcome: deny
   http_status: 409
@@ -13409,7 +13454,7 @@ audit_events:
   at: '2026-10-06T11:45:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:succeed
   outcome: allow
   http_status: 201
@@ -13428,7 +13473,7 @@ audit_events:
   at: '2026-10-07T10:00:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:priority
   outcome: deny
   http_status: 403
@@ -13438,7 +13483,7 @@ audit_events:
   at: '2026-10-06T09:00:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:stakeholder_approve
   outcome: allow
   http_status: 200
@@ -13447,7 +13492,7 @@ audit_events:
   at: '2026-10-07T09:05:00-04:00'
   identity_id: drew-developer
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: changeset:sdlc:open
   outcome: deny
   http_status: 403
@@ -13456,7 +13501,7 @@ audit_events:
   at: '2026-10-07T09:00:00-04:00'
   identity_id: sam-security
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: changeset:sdlc:open
   outcome: allow
   http_status: 201
@@ -13466,7 +13511,7 @@ audit_events:
   at: '2026-10-07T11:00:00-04:00'
   identity_id: riley-release
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: release:ship
   outcome: deny
   http_status: 403
@@ -13475,7 +13520,7 @@ audit_events:
   at: '2026-10-07T11:10:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:mint
   outcome: deny
   http_status: 409
@@ -13484,7 +13529,7 @@ audit_events:
   at: '2026-10-07T10:30:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:line:approve
   outcome: allow
   http_status: 200
@@ -13493,7 +13538,7 @@ audit_events:
   at: '2026-10-07T10:35:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: capability:line:approve
   outcome: allow
   http_status: 200
@@ -13502,7 +13547,7 @@ audit_events:
   at: '2026-10-07T11:20:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: changeset:revert
   outcome: deny
   http_status: 409
@@ -13512,7 +13557,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:mint
   outcome: allow
   http_status: 201
@@ -13525,7 +13570,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:mint
   outcome: deny
   http_status: 409
@@ -13538,7 +13583,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:activate
   outcome: allow
   http_status: 200
@@ -13551,7 +13596,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:activate
   outcome: deny
   http_status: 409
@@ -13564,7 +13609,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:priority
   outcome: deny
   http_status: 403
@@ -13577,7 +13622,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:line:approve
   outcome: allow
   http_status: 200
@@ -13590,7 +13635,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:mint
   outcome: allow
   http_status: 201
@@ -13603,7 +13648,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: trace:suspect:carry
   outcome: allow
   http_status: 200
@@ -13616,7 +13661,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: trace:suspect:keep_pinned
   outcome: allow
   http_status: 200
@@ -13629,7 +13674,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: trace:suspect:drop
   outcome: allow
   http_status: 200
@@ -13642,7 +13687,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: release:ship
   outcome: deny
   http_status: 403
@@ -13655,7 +13700,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: catalog:pin:apply
   outcome: deny
   http_status: 403
@@ -13668,7 +13713,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: catalog:pin:request
   outcome: allow
   http_status: 201
@@ -13681,7 +13726,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: sam-security
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: catalog:pin:apply
   outcome: allow
   http_status: 200
@@ -13694,7 +13739,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:line:approve
   outcome: deny
   http_status: 403
@@ -13707,7 +13752,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: pat-client-admin
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:line:approve
   outcome: allow
   http_status: 200
@@ -13720,7 +13765,7 @@ audit_events:
   at: '2026-10-07T12:00:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: release:ship
   outcome: deny
   http_status: 403
@@ -13733,7 +13778,7 @@ audit_events:
   at: '2026-10-07T09:00:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: auth:oauth:authorize
   outcome: deny
   http_status: 400
@@ -13742,7 +13787,7 @@ audit_events:
   at: '2026-10-07T09:05:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: auth:token:validate
   outcome: deny
   http_status: 401
@@ -13751,7 +13796,7 @@ audit_events:
   at: '2026-10-07T09:10:00-04:00'
   identity_id: taylor-tester
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: auth:local:lockout
   outcome: deny
   http_status: 401
@@ -13760,7 +13805,7 @@ audit_events:
   at: '2026-10-07T09:15:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: auth:oauth:token
   outcome: deny
   http_status: 400
@@ -13787,7 +13832,7 @@ audit_events:
   at: '2026-10-07T15:30:00-04:00'
   identity_id: alex-author
   client_id: raby-family
-  project_id: reqaml
+  project_id: reqalm
   action: requirement:version:update_draft
   outcome: allow
   http_status: 200

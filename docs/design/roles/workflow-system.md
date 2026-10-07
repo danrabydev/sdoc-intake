@@ -1,4 +1,4 @@
-# ReqAML dynamic workflow system (design)
+# ReqALM dynamic workflow system (design)
 
 **Status:** encoding (2026-10-07) — workflow + Cyber+QA locked decisions folded into seed  
 **Audience:** Dan + implementers  
@@ -27,7 +27,7 @@ Locked decisions (encoded — do **not** contradict):
 
 ## 1. Problem
 
-A single lifecycle enum (`draft | active | obsolete | withdrawn`) cannot express ReqAML’s real control plane.
+A single lifecycle enum (`draft | active | obsolete | withdrawn`) cannot express ReqALM’s real control plane.
 
 | Pressure | Why fixed status fails |
 |----------|-------------------------|
@@ -37,7 +37,7 @@ A single lifecycle enum (`draft | active | obsolete | withdrawn`) cannot express
 | **DoD vs SDLC vs commercial DoD** | Lifecycle (`active`) is engineering publishability; stakeholder approval is commercial/mission sign-off; cyber ship is risk accept. Collapsing them loses audit meaning. |
 | **Succession** | `.N` is content change under a stable line. Approval hangs on the **line’s current accepted content** — and no-op mint must not launder a clear. |
 
-**Composition over a mega-state-machine:** keep thin lifecycle + grooming enums; attach **gates, hooks, and role bindings** that evaluate at action time. Workflow is **ReqAML app logic** with seed fixtures — do not blow up StrictDoc interchange.
+**Composition over a mega-state-machine:** keep thin lifecycle + grooming enums; attach **gates, hooks, and role bindings** that evaluate at action time. Workflow is **ReqALM app logic** with seed fixtures — do not blow up StrictDoc interchange.
 
 ---
 
@@ -59,7 +59,7 @@ Named configuration bundle. Attached to a **Project** (optional Client default i
 | `action_hook_ids[]` | hooks in profile |
 | `notes` | |
 
-Dogfood: `wf-commercial-default` on project `reqaml`; `wf-dod-cyber` as broader example.
+Dogfood: `wf-commercial-default` on project `reqalm`; `wf-dod-cyber` as broader example.
 
 ### SubjectKind
 

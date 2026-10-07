@@ -19,7 +19,7 @@ SEC = {"catalog_ref": "AC-3", "verification_note": "AC-3 access enforcement; AU-
 SEC_AU = {"catalog_ref": "AU-2", "verification_note": "AU-2/3/12 workflow / approval / suspect audit."}
 SEC_CM = {"catalog_ref": "CM-3", "verification_note": "CM-3 change control; mint kinds / succession."}
 SEC_CAT = {
-    "catalog_ref": "REQAML-SEC-CATALOG",
+    "catalog_ref": "REQALM-SEC-CATALOG",
     "verification_note": "Catalog/ConformsTo authority; imprint pins. AC-3/CM-5.",
 }
 
@@ -36,7 +36,7 @@ def cm(**kwargs):
     return m
 
 
-def line(base_uid, parent, kind, title, project_id="reqaml"):
+def line(base_uid, parent, kind, title, project_id="reqalm"):
     return cm(base_uid=base_uid, project_id=project_id, parent=parent, kind=kind, title=title)
 
 
@@ -307,7 +307,7 @@ REWRITE = {
         "of a new tip, prior active → superseded in-place same txn (FIX-ALLOW-SUCCEED)."
     ),
     "D04": (
-        "An Author or Project admin marks a draft version active (lifecycle status only). ReqAML transitions status to "
+        "An Author or Project admin marks a draft version active (lifecycle status only). ReqALM transitions status to "
         "active and, in the SAME transaction, sets any prior active version of the same line to superseded IN PLACE "
         "(not a new version) so the ≤1-active invariant holds (ARCH-VER / FIX-DENY-SECOND-ACTIVE). Activation is audited. "
         "IMPORTANT: activate (D04) is NOT stakeholder approval — approval is ApprovalRecord on the line (ARCH-APPROVAL-LINE / "
@@ -354,13 +354,13 @@ REWRITE = {
     "H10": (
         "Security steward (or bound conforms_to_applicator) migrates ConformsTo pins to a new catalog imprint (whole "
         "imprint) or a single catalog item at a chosen hierarchy scope: requirement version, section (line subtree), "
-        "document, project, or client. Authors may request migrate; they do not apply. ReqAML always runs a mandatory "
+        "document, project, or client. Authors may request migrate; they do not apply. ReqALM always runs a mandatory "
         "dry-run preview (editorial|normative|withdrawn|renumbered) before apply — no silent auto-retarget. Locked pins "
         "migrate only via mint_kind=pin successor .N; draft may retarget in-place after accept. Locked migrate requires "
         "Steward/Security gate plus AO gate_signoff then re-approve; audited (actor, scope, imprint_from/to, accept)."
     ),
     "L02": (
-        "An Author exports a project tree or contract document view to StrictDoc interchange. ReqAML emits .sdoc "
+        "An Author exports a project tree or contract document view to StrictDoc interchange. ReqALM emits .sdoc "
         "suitable for external tools; Postgres remains authoritative. For contract-fixture-doc-walk with context "
         "parents off, the exported UID set must equal {A01, A02} — exactly the version UIDs in in_scope_of "
         "(FIX-EXPORT-L02-GOLDEN). Catalog item UIDs (e.g. AC-3) are NEVER members of in_scope_of; they appear only as "
@@ -696,7 +696,7 @@ def main():
     if not any(r.get("id") == "cpr-sample-a01-ac3" for r in cpr):
         cpr.append(cm(
             id="cpr-sample-a01-ac3",
-            project_id="reqaml",
+            project_id="reqalm",
             requirement_version_uid="A01",
             catalog_imprint_id=NIST,
             item_uid="AC-3",
@@ -875,7 +875,7 @@ def main():
                 "sam-security" if "security" in eid or "pin-apply" in eid else "pat-client-admin"
             ),
             client_id="raby-family",
-            project_id="reqaml",
+            project_id="reqalm",
             action=action,
             outcome=outcome,
             http_status=http,

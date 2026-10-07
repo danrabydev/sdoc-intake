@@ -1,10 +1,10 @@
 @startuml MC02-mcp-mutate-requirement-version
 !include ../includes/C4_Sequence_Macros.puml
 
-title MC02 — ReqAML MCP: mutating tool with desk attached\n**draft** update_draft (NOT mint successor — see D39d)
+title MC02 — ReqALM MCP: mutating tool with desk attached\n**draft** update_draft (NOT mint successor — see D39d)
 
 C4Seq_McpHost()
-C4Seq_ReqAmlMcp()
+C4Seq_ReqAlmMcp()
 C4Seq_WebUI()
 C4Seq_RouteGuard()
 C4Seq_API()

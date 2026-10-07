@@ -2,7 +2,7 @@
 /**
  * FIX-ALLOW-DEVENV-SMOKE — clone-to-running smoke (Compose full-container mode).
  *
- * Primary check for the ReqAML dev environment; run locally with `pnpm devenv:smoke`
+ * Primary check for the ReqALM dev environment; run locally with `pnpm devenv:smoke`
  * (the GitHub workflow is manual-dispatch only to save Actions minutes).
  */
 import { spawn } from "node:child_process";
@@ -11,7 +11,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const baseUrl = process.env.REQAML_SMOKE_URL ?? "http://127.0.0.1:3000";
+const baseUrl = process.env.REQALM_SMOKE_URL ?? "http://127.0.0.1:3000";
 
 const composeProjectName = process.env.COMPOSE_PROJECT_NAME ?? "sdoc-intake-dev";
 const composeBase = ["-f", "docker-compose.yml", "-f", "docker-compose.hostports.yml"];
@@ -27,7 +27,7 @@ function parseEnv(text) {
 }
 
 function loadMergedEnv() {
-  const files = [path.join(root, ".env"), path.join(root, ".reqaml/devenv.env")];
+  const files = [path.join(root, ".env"), path.join(root, ".reqalm/devenv.env")];
   const merged = {};
   for (const f of files) {
     if (existsSync(f)) Object.assign(merged, parseEnv(readFileSync(f, "utf8")));
@@ -122,15 +122,15 @@ async function main() {
   process.env.DEVENV_INIT_QUIET = "1";
   await run("node", ["scripts/devenv-init.mjs"], { quiet: true });
   const secrets = loadMergedEnv();
-  const smokePassword = secrets.REQAML_DEV_ACCOUNT_PASSWORD;
-  if (!smokePassword) fail("REQAML_DEV_ACCOUNT_PASSWORD missing after devenv:init");
-  process.env.REQAML_DEV_ACCOUNT_PASSWORD = smokePassword;
-  process.env.REQAML_MFA_DEV_SECRET = secrets.REQAML_MFA_DEV_SECRET;
-  process.env.REQAML_AGENT_CLIENT_SECRET = secrets.REQAML_AGENT_CLIENT_SECRET;
+  const smokePassword = secrets.REQALM_DEV_ACCOUNT_PASSWORD;
+  if (!smokePassword) fail("REQALM_DEV_ACCOUNT_PASSWORD missing after devenv:init");
+  process.env.REQALM_DEV_ACCOUNT_PASSWORD = smokePassword;
+  process.env.REQALM_MFA_DEV_SECRET = secrets.REQALM_MFA_DEV_SECRET;
+  process.env.REQALM_AGENT_CLIENT_SECRET = secrets.REQALM_AGENT_CLIENT_SECRET;
 
   const hostDsn =
     secrets.DATABASE_URL ??
-    `postgresql://${secrets.POSTGRES_USER ?? "reqaml"}:${secrets.POSTGRES_PASSWORD}@127.0.0.1:5432/${secrets.POSTGRES_DB ?? "reqaml"}`;
+    `postgresql://${secrets.POSTGRES_USER ?? "reqalm"}:${secrets.POSTGRES_PASSWORD}@127.0.0.1:5432/${secrets.POSTGRES_DB ?? "reqalm"}`;
 
   console.log(
     `Compose project name: ${composeProjectName} (set COMPOSE_PROJECT_NAME to override; avoids clashing with a dev stack on port 3000)`,
@@ -173,9 +173,9 @@ async function main() {
   console.log("\nRe-running migrate + seed (idempotency)…");
   const env = { DATABASE_URL: hostDsn };
   for (let i = 0; i < 2; i++) {
-    const m = await run("pnpm", ["--silent", "reqaml:migrate"], { env });
+    const m = await run("pnpm", ["--silent", "reqalm:migrate"], { env });
     if (!/Migrations up to date/.test(m.stdout)) fail("Migration re-run applied changes", m.stdout);
-    const s = await run("pnpm", ["--silent", "reqaml:seed"], { env });
+    const s = await run("pnpm", ["--silent", "reqalm:seed"], { env });
     const seedResult = lastJsonObject(s.stdout);
     const nonZero = Object.entries(seedResult.inserted).filter(([, n]) => n !== 0);
     if (nonZero.length || !seedResult.unchanged) fail("Seed re-run inserted rows", seedResult);
@@ -214,8 +214,8 @@ async function main() {
   }
 
   console.log("\nProduction mode must refuse dev seed loader, dev accounts and dev OpenBao…");
-  const prodSeed = await run("pnpm", ["--silent", "reqaml:seed"], {
-    env: { ...env, REQAML_MODE: "production" },
+  const prodSeed = await run("pnpm", ["--silent", "reqalm:seed"], {
+    env: { ...env, REQALM_MODE: "production" },
     quiet: true,
     allowFail: true,
   });
@@ -232,15 +232,15 @@ async function main() {
       "--no-deps",
       "-T",
       "-e",
-      "REQAML_MODE=production",
+      "REQALM_MODE=production",
       "-e",
-      "REQAML_SEED_ON_START=false",
+      "REQALM_SEED_ON_START=false",
       "-e",
-      "REQAML_DEV_ACCOUNT_PASSWORD=",
+      "REQALM_DEV_ACCOUNT_PASSWORD=",
       "-e",
-      "REQAML_ISSUER_URL=",
+      "REQALM_ISSUER_URL=",
       "-e",
-      "REQAML_TRUST_PROXY=true",
+      "REQALM_TRUST_PROXY=true",
       "app",
     ],
     { quiet: true, allowFail: true },
@@ -251,19 +251,19 @@ async function main() {
     !/Startup self-check failed/.test(prodOut) ||
     !/Seeded dev local accounts exist/.test(prodOut) ||
     !/Dev-marked (OpenBao|Transit)[^\n]*refused in production/.test(prodOut) ||
-    !/REQAML_ISSUER_URL must be set in production/.test(prodOut) ||
-    !/REQAML_TRUST_PROXY=true trusts X-Forwarded-\* from any peer/.test(prodOut)
+    !/REQALM_ISSUER_URL must be set in production/.test(prodOut) ||
+    !/REQALM_TRUST_PROXY=true trusts X-Forwarded-\* from any peer/.test(prodOut)
   ) {
     fail("App started (or failed for the wrong reason) in production mode with dev accounts/keys", prodApp);
   }
 
   console.log("\nAuth flow smoke (PKCE login, refresh/reuse, revoke, lockout, RBAC deny, MFA, agent token)…");
-  // Tokens and redirect URIs are bound to the configured issuer origin (REQAML_ISSUER_URL).
-  process.env.REQAML_SMOKE_URL ??= secrets.REQAML_ISSUER_URL || baseUrl;
+  // Tokens and redirect URIs are bound to the configured issuer origin (REQALM_ISSUER_URL).
+  process.env.REQALM_SMOKE_URL ??= secrets.REQALM_ISSUER_URL || baseUrl;
   const { runAuthFlowSmoke } = await import("./auth-flow-smoke.mjs");
   const authSmoke = await runAuthFlowSmoke(smokePassword, {
-    mfaDevSecret: secrets.REQAML_MFA_DEV_SECRET,
-    agentClientSecret: secrets.REQAML_AGENT_CLIENT_SECRET,
+    mfaDevSecret: secrets.REQALM_MFA_DEV_SECRET,
+    agentClientSecret: secrets.REQALM_AGENT_CLIENT_SECRET,
   });
   if (!authSmoke.privileged_mfa_login) fail("privileged MFA login did not run");
   if (!authSmoke.agent_client_credentials) fail("agent client_credentials did not run");
@@ -272,8 +272,8 @@ async function main() {
     (
       await run(
         "docker",
-        ["compose", ...composeBase, "exec", "-T", "peripherals", "psql", "-U", secrets.POSTGRES_USER ?? "reqaml",
-          "-d", secrets.POSTGRES_DB ?? "reqaml", "-Atc", sql],
+        ["compose", ...composeBase, "exec", "-T", "peripherals", "psql", "-U", secrets.POSTGRES_USER ?? "reqalm",
+          "-d", secrets.POSTGRES_DB ?? "reqalm", "-Atc", sql],
         { quiet: true },
       )
     ).stdout.trim();
@@ -302,9 +302,9 @@ async function main() {
        FROM unnest(ARRAY['127.0.0.1', '::1', '::ffff:127.0.0.1']) AS ip)`,
   );
   const throttleScript = `
-    const base = "http://127.0.0.1:3000", iss = process.env.REQAML_ISSUER_URL;
+    const base = "http://127.0.0.1:3000", iss = process.env.REQALM_ISSUER_URL;
     async function handoff() {
-      const q = new URLSearchParams({ response_type: "code", client_id: "reqaml-web",
+      const q = new URLSearchParams({ response_type: "code", client_id: "reqalm-web",
         redirect_uri: iss + "/oauth/callback", state: "s", code_challenge: "x".repeat(43),
         code_challenge_method: "S256", resource: iss + "/api" });
       const r = await fetch(base + "/oauth/authorize?" + q, { redirect: "manual" });
@@ -354,7 +354,7 @@ async function main() {
       ),
   );
 
-  if (process.env.REQAML_SMOKE_DOWN === "1") {
+  if (process.env.REQALM_SMOKE_DOWN === "1") {
     await run("docker", ["compose", ...composeBase, "down", "-v"]);
   }
 }

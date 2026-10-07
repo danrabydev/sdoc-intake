@@ -1,6 +1,6 @@
 # AS04 — PROPOSAL: MCP tool reaching a provider API on the user's behalf
 
-**Not locked.** This diagram exists to compare options (b) token exchange and (c) stored upstream grant from [`../../auth/mcp-upstream-identity.md`](../../auth/mcp-upstream-identity.md). Option (d) passthrough is shown only as rejected. The inbound half is settled: the MCP credential is always the internal-AS token. The outbound half (how ReqAML obtains a provider-audience token) is open question §5.
+**Not locked.** This diagram exists to compare options (b) token exchange and (c) stored upstream grant from [`../../auth/mcp-upstream-identity.md`](../../auth/mcp-upstream-identity.md). Option (d) passthrough is shown only as rejected. The inbound half is settled: the MCP credential is always the internal-AS token. The outbound half (how ReqALM obtains a provider-audience token) is open question §5.
 
 | Field | Value |
 |-------|--------|

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# ReqAML — one Dockerfile, multiple targets (ARCH-DEPLOY-MINIMAL / ARCH-DEPLOY-PERIPHERALS).
+# ReqALM — one Dockerfile, multiple targets (ARCH-DEPLOY-MINIMAL / ARCH-DEPLOY-PERIPHERALS).
 
 ARG OPENBAO_VERSION=2.1.0
 
@@ -9,33 +9,33 @@ WORKDIR /repo
 
 FROM node-base AS app-deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/reqaml/package.json apps/reqaml/package.json
+COPY apps/reqalm/package.json apps/reqalm/package.json
 COPY packages/intake/package.json packages/intake/package.json
-RUN pnpm install --filter @reqaml/app --frozen-lockfile
+RUN pnpm install --filter @reqalm/app --frozen-lockfile
 
 FROM app-deps AS app-build
-COPY apps/reqaml apps/reqaml
+COPY apps/reqalm apps/reqalm
 COPY docs/design/seed docs/design/seed
-RUN pnpm --filter @reqaml/app build
+RUN pnpm --filter @reqalm/app build
 
 FROM node-base AS app
 RUN apt-get update \
   && apt-get install -y --no-install-recommends curl \
   && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
-WORKDIR /repo/apps/reqaml
+WORKDIR /repo/apps/reqalm
 COPY --from=app-deps /repo/node_modules /repo/node_modules
-COPY --from=app-deps /repo/apps/reqaml/node_modules ./node_modules
-COPY --from=app-build /repo/apps/reqaml/dist ./dist
-COPY --from=app-build /repo/apps/reqaml/openapi ./openapi
-COPY --from=app-build /repo/apps/reqaml/package.json ./package.json
+COPY --from=app-deps /repo/apps/reqalm/node_modules ./node_modules
+COPY --from=app-build /repo/apps/reqalm/dist ./dist
+COPY --from=app-build /repo/apps/reqalm/openapi ./openapi
+COPY --from=app-build /repo/apps/reqalm/package.json ./package.json
 COPY --from=app-build /repo/docs/design/seed /repo/docs/design/seed
-COPY docker/app-entrypoint.sh /usr/local/bin/reqaml-entrypoint.sh
-RUN chmod +x /usr/local/bin/reqaml-entrypoint.sh
+COPY docker/app-entrypoint.sh /usr/local/bin/reqalm-entrypoint.sh
+RUN chmod +x /usr/local/bin/reqalm-entrypoint.sh
 EXPOSE 3000
 HEALTHCHECK --interval=10s --timeout=5s --retries=12 --start-period=30s \
-  CMD curl -sf "http://127.0.0.1:${REQAML_PORT:-3000}/ready" || exit 1
-ENTRYPOINT ["/usr/local/bin/reqaml-entrypoint.sh"]
+  CMD curl -sf "http://127.0.0.1:${REQALM_PORT:-3000}/ready" || exit 1
+ENTRYPOINT ["/usr/local/bin/reqalm-entrypoint.sh"]
 CMD ["node", "dist/main.js"]
 
 FROM postgres:16-bookworm AS peripherals
@@ -68,11 +68,11 @@ COPY docker/peripherals/entrypoint.sh /entrypoint.sh
 COPY docker/peripherals/healthcheck.sh /healthcheck.sh
 RUN chmod +x /docker/openbao-init.sh /wait-and-init-openbao.sh /entrypoint.sh /healthcheck.sh
 
-ENV POSTGRES_USER=reqaml
-ENV POSTGRES_PASSWORD=reqaml
-ENV POSTGRES_DB=reqaml
+ENV POSTGRES_USER=reqalm
+ENV POSTGRES_PASSWORD=reqalm
+ENV POSTGRES_DB=reqalm
 
-VOLUME ["/var/lib/postgresql/data", "/var/lib/reqaml/openbao", "/var/lib/reqaml/secrets"]
+VOLUME ["/var/lib/postgresql/data", "/var/lib/reqalm/openbao", "/var/lib/reqalm/secrets"]
 
 EXPOSE 5432 8200
 HEALTHCHECK --interval=10s --timeout=5s --retries=18 --start-period=40s \
@@ -86,4 +86,4 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends softhsm2 \
   && rm -rf /var/lib/apt/lists/*
 USER node
-ENV REQAML_PKCS11_ENABLED=1
+ENV REQALM_PKCS11_ENABLED=1

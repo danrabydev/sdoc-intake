@@ -28,7 +28,7 @@ def cm(**kwargs):
     return m
 
 
-def line(base_uid, parent, kind, title, project_id="reqaml"):
+def line(base_uid, parent, kind, title, project_id="reqalm"):
     return cm(
         base_uid=base_uid,
         project_id=project_id,
@@ -286,7 +286,7 @@ def main():
     if not has_id(change_sets, "id", "cs-stack-older"):
         change_sets.append(cm(
             id="cs-stack-older",
-            project_id="reqaml",
+            project_id="reqalm",
             kind="leaf",
             parent_id=None,
             scope="project",
@@ -300,7 +300,7 @@ def main():
     if not has_id(change_sets, "id", "cs-stack-newer"):
         change_sets.append(cm(
             id="cs-stack-newer",
-            project_id="reqaml",
+            project_id="reqalm",
             kind="leaf",
             parent_id=None,
             scope="project",
@@ -319,7 +319,7 @@ def main():
             at="2026-10-07T11:20:00-04:00",
             identity_id="alex-author",
             client_id="raby-family",
-            project_id="reqaml",
+            project_id="reqalm",
             action="changeset:revert",
             outcome="deny",
             http_status=409,

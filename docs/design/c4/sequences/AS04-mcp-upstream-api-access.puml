@@ -4,7 +4,7 @@
 title AS04 — PROPOSAL (not locked): MCP tool reaching a provider API on the user's behalf\n(b) RFC 8693 token exchange vs (c) stored upstream grant · MCP token never forwarded
 
 C4Seq_McpHost()
-C4Seq_ReqAmlMcp()
+C4Seq_ReqAlmMcp()
 C4Seq_Business()
 C4Seq_RBAC()
 C4Seq_KeyProvider()
@@ -20,8 +20,8 @@ note over seqAzureDevOps : Provider API\n(e.g. Azure DevOps, Graph)
 
 == Inbound: MCP call with internal-AS token (settled) ==
 
-seqMcpHost -> seqMcpServer : tools/call sync_work_item\nBearer access_token(aud=MCP, iss=ReqAML AS)
-TokenValidate(seqMcpServer, "https://reqaml/mcp")
+seqMcpHost -> seqMcpServer : tools/call sync_work_item\nBearer access_token(aud=MCP, iss=ReqALM AS)
+TokenValidate(seqMcpServer, "https://reqalm/mcp")
 ControlNote(seqMcpServer, "IA-2, SC-23", "V-222522", "MCP credential is always the internal-AS token (ARCH-AUTH-MCP-REQUIRED)")
 seqMcpServer -> seqBusiness : syncWorkItem(principal=human sub, client_id=MCP host)
 RbacCheck("workitem:sync")
@@ -35,7 +35,7 @@ alt (b) Token exchange (RFC 8693) — no long-lived upstream credential
   KeyOp("unwrap", "DEK for upstream subject token")
   seqBusiness -> seqIdP : POST /token grant_type=token-exchange\nsubject_token=<upstream token>, audience=provider API, scope=…
   seqIdP --> seqBusiness : provider access token (short TTL, narrow scope)
-  ControlNote(seqBusiness, "AC-6, SC-23", "TBD (ASD V6R4)", "Requires a subject token the provider trusts — ReqAML's own token is NOT one")
+  ControlNote(seqBusiness, "AC-6, SC-23", "TBD (ASD V6R4)", "Requires a subject token the provider trusts — ReqALM's own token is NOT one")
 else (c) Stored upstream grant — user consented 'Connect provider' earlier
   seqBusiness -> seqData : load connector grant (user, provider)
   seqData -> seqPostgres : SELECT encrypted refresh token + wrapped DEK

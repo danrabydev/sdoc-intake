@@ -1,11 +1,11 @@
 # AS03 — Federated enterprise SSO through the internal AS
 
-How enterprise SSO (A01 / CAP-SSO / REQAML-SEC-SSO) federates *through* the internal AS:
+How enterprise SSO (A01 / CAP-SSO / REQALM-SEC-SSO) federates *through* the internal AS:
 1. The AS picks the client tenant's upstream connector, and the upstream IdP authenticates the user.
-2. The AS validates the assertion and maps issuer + subject to a ReqAML identity within that tenant, enforcing step-up MFA through the IdP when needed.
+2. The AS validates the assertion and maps issuer + subject to a ReqALM identity within that tenant, enforcing step-up MFA through the IdP when needed.
 3. The AS mints the tokens the UI, API and MCP accept.
 
-Upstream tokens never reach the API. An upstream back-channel logout ends ReqAML sessions and token families. With the production default profile (`local_accounts=disabled`), no local sign-in form exists.
+Upstream tokens never reach the API. An upstream back-channel logout ends ReqALM sessions and token families. With the production default profile (`local_accounts=disabled`), no local sign-in form exists.
 
 Options for reaching the provider's *own* APIs are in [`../../auth/mcp-upstream-identity.md`](../../auth/mcp-upstream-identity.md) (see AS04).
 
@@ -24,8 +24,8 @@ Options for reaching the provider's *own* APIs are in [`../../auth/mcp-upstream-
 | 2 | NIST CM-6, CM-7 | The auth profile decides which sign-in options exist. The production default is federated only, with no local form. |
 | 3 | NIST IA-8, AC-3; STIG V-222559, V-222560 | Each connector is bound to one client tenant. Home-realm discovery is an open question. |
 | 4 | NIST IA-5, SC-23; STIG V-222403, V-222404 | The AS validates the IdP assertion: issuer, audience = AS client, signature, nonce. |
-| 5 | NIST AC-2, AC-6 | Issuer + subject maps to an identity inside the tenant. Grants come from ReqAML records, never inferred across tenants. |
+| 5 | NIST AC-2, AC-6 | Issuer + subject maps to an identity inside the tenant. Grants come from ReqALM records, never inferred across tenants. |
 | 6 | NIST IA-2(1), IA-11; STIG V-222523, V-222520 | Privileged or step-up actions require fresh MFA evidence from the IdP (`max_age`, `acr_values`). |
 | 7 | NIST SC-12(3), IA-5(6); STIG V-222570 | The AS mints tokens signed in OpenBao. Refresh lifetime is at most the connector's maximum authentication age. |
 | 8 | NIST IA-2, AC-3 | The API accepts only internal-AS tokens. An upstream token gets 401. |
-| 9 | NIST AC-12, AC-2(3); STIG V-222549, V-222391 | Upstream back-channel logout or SLO revokes ReqAML sessions and the UI and MCP token families. |
+| 9 | NIST AC-12, AC-2(3); STIG V-222549, V-222391 | Upstream back-channel logout or SLO revokes ReqALM sessions and the UI and MCP token families. |

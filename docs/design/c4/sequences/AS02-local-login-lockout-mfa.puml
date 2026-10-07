@@ -36,7 +36,7 @@ else password ok
   AuthAuditLog("auth:local:signin allow")
   seqAuthServer -> seqCredStore : create session (idle + absolute timeout)\nhash(session id / refresh)
   ControlNote(seqCredStore, "AC-12, AC-2(5), SC-23", "V-222389, V-222390, V-222575", "Idle/absolute timeouts; session secrets hashed (ARCH-CRED-SESSION / TOKENS)")
-  seqAuthServer --> seqWebUI : set session cookie / tokens (iss=ReqAML AS)
+  seqAuthServer --> seqWebUI : set session cookie / tokens (iss=ReqALM AS)
 end
 
 == Privileged op without MFA evidence ==

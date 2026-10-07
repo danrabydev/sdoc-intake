@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-mkdir -p /var/lib/reqaml/openbao /var/lib/reqaml/secrets
+mkdir -p /var/lib/reqalm/openbao /var/lib/reqalm/secrets
 
 # Start Postgres using the official image entrypoint (background).
 docker-entrypoint.sh postgres &

@@ -1,0 +1,132 @@
+openapi: 3.1.0
+info:
+  title: ReqALM API
+  version: 0.1.0
+  description: Schema-first HTTP surface for ReqALM (foundation slice).
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Liveness probe (M04) — process only; no Postgres/OpenBao calls
+      description: |
+        Orchestrator **liveness**: returns 200 while the Node process serves HTTP.
+        Peripheral outages must not fail liveness (ARCH-DEVENV-HEALTH).
+      tags: [ops]
+      responses:
+        "200":
+          description: Process is up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /ready:
+    get:
+      operationId: getReadiness
+      summary: Readiness probe (M04, ARCH-DEVENV-HEALTH, ARCH-KEY-FAILCLOSED)
+      description: |
+        **Readiness** re-probes Postgres, pending migrations, OpenBao (unsealed + Transit KEK round-trip),
+        and cheap checks for each enabled role. Results are cached briefly to avoid flooding OpenBao.
+        Returns 503 when not ready; check `checks` for per-dependency detail (no secrets).
+      tags: [ops]
+      responses:
+        "200":
+          description: Enabled roles and dependencies are ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: Not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+  /api/v1/seed/summary:
+    get:
+      operationId: getSeedSummary
+      summary: Dogfood seed counts (dev smoke; no client data in health)
+      tags: [ops]
+      responses:
+        "200":
+          description: Aggregate fixture counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeedSummary"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, version, mode]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        version:
+          type: string
+        mode:
+          type: string
+          enum: [development, production]
+    ReadinessResponse:
+      type: object
+      required: [ready, roles, checks]
+      properties:
+        ready:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+        checks:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              detail:
+                type: string
+    SeedSummary:
+      type: object
+      required: [identities, project_grants, requirement_lines, requirement_versions]
+      properties:
+        identities:
+          type: integer
+        project_grants:
+          type: integer
+        requirement_lines:
+          type: integer
+        requirement_versions:
+          type: integer
+        capabilities:
+          type: integer
+          description: requirement lines of kind capability
+        release_count:
+          type: integer
+        release_delivers:
+          type: integer
+          description: rows in the release → version delivers junction
+        releases:
+          type: array
+          items:
+            type: object
+            required: [id, name, status, delivers, capabilities]
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              status:
+                type: string
+                enum: [planned, shipped]
+              planned_on:
+                type: [string, "null"]
+              shipped_on:
+                type: [string, "null"]
+              delivers:
+                type: integer
+              capabilities:
+                type: integer
+        sample_identity_id:
+          type: string
+          description: e.g. taylor-tester for smoke queries

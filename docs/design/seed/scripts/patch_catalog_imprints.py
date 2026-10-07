@@ -28,7 +28,7 @@ NIST_UID_RE = re.compile(r"^[A-Z]{1,4}-\d+(?:\.\d+)?$")
 STIG_UID_RE = re.compile(r"^V-\d+$")
 
 SEC_META = {
-    "catalog_ref": "REQAML-SEC-CATALOG",
+    "catalog_ref": "REQALM-SEC-CATALOG",
     "verification_note": (
         "Catalog steward gates; standard catalogs imprint-published read-only. "
         "AC-3/CM-5 aligned. Pins are (imprint_id, item_uid)."
@@ -93,9 +93,9 @@ def ensure_imprints(data: dict) -> None:
                 f"(catalog_imprint_id, item_uid) e.g. ({STIG_IMPRINT_ID}, V-222536)."
             )
             cat["current_imprint_id"] = STIG_IMPRINT_ID
-        elif cat.get("id") == "cat-reqaml-security":
+        elif cat.get("id") == "cat-reqalm-security":
             cat["notes"] = (
-                "Project catalog (REQAML-SEC-*): steward-mutable without an imprint until "
+                "Project catalog (REQALM-SEC-*): steward-mutable without an imprint until "
                 "publish. Standards always require imprint publish (H03 / ARCH-CAT-SCOPE)."
             )
 
@@ -164,22 +164,22 @@ def expand_statements(data: dict) -> None:
     updates = {
         "SEC-CAT": (
             "Catalogs provide standard and project templates. Standard catalogs (NIST/STIG) "
-            "are versioned as imprints; project REQAML-SEC-* entries are steward-mutable "
+            "are versioned as imprints; project REQALM-SEC-* entries are steward-mutable "
             "until imprint publish. Stewardship, browse, reference, copy, imprint publish, "
             "import-diff, drift review, and pin semantics live here."
         ),
         "H03": (
             "A Catalog steward publishes a catalog imprint (library revision + import identity), "
-            f"e.g. {NIST_IMPRINT_ID} or {STIG_IMPRINT_ID}. ReqAML freezes item rows for that "
+            f"e.g. {NIST_IMPRINT_ID} or {STIG_IMPRINT_ID}. ReqALM freezes item rows for that "
             "imprint — published catalog item rows are never rewritten in place; a later import "
             "creates a new imprint. Standard catalogs (is_standard) always require imprint "
-            "publish before ConformsTo pins may target them. Project catalogs (REQAML-SEC-*) "
+            "publish before ConformsTo pins may target them. Project catalogs (REQALM-SEC-*) "
             "may stay steward-mutable without an imprint until the steward publishes one. "
             "Publish is steward-only and audited (actor, catalog_id, imprint_id)."
         ),
         "H06": (
             "An Author references a standard catalog item from a requirement version without "
-            "copying control text into the project tree (Northline). ReqAML stores a ConformsTo "
+            "copying control text into the project tree (Northline). ReqALM stores a ConformsTo "
             "pin as (catalog_imprint_id, item_uid) — edges resolve through the imprint, not a "
             "floating global UID alone. security.catalog_ref may mirror the item_uid for browse."
         ),
@@ -233,7 +233,7 @@ def add_arch_cat(data: dict) -> tuple[int, int, int]:
             "Import imprint diffs; no auto-retarget",
             "ARCH-CAT-IMPRINT",
             (
-                "When a steward imports a new imprint of a standard catalog, ReqAML diffs "
+                "When a steward imports a new imprint of a standard catalog, ReqALM diffs "
                 "items by UID against the prior imprint and classifies each change as "
                 "editorial | normative | withdrawn | renumbered (new UID). Live ConformsTo "
                 "pins are NOT auto-retargeted to the new imprint."
@@ -247,7 +247,7 @@ def add_arch_cat(data: dict) -> tuple[int, int, int]:
             "Catalog-drift flag on affected versions",
             "ARCH-CAT-IMPORT",
             (
-                "After an import diff, ReqAML marks affected requirement versions with a "
+                "After an import diff, ReqALM marks affected requirement versions with a "
                 "first-class catalog_drift field (status/flag, change_class, prior/new "
                 "imprint refs) so Author/Security review UIs can queue them for action."
             ),
@@ -287,7 +287,7 @@ def add_arch_cat(data: dict) -> tuple[int, int, int]:
             "Project vs standard catalog imprint rules",
             "H03",
             (
-                "Project catalogs (REQAML-SEC-*) are steward-mutable without an imprint until "
+                "Project catalogs (REQALM-SEC-*) are steward-mutable without an imprint until "
                 "publish. Standard catalogs (is_standard) always require imprint publish "
                 "(H03) before pins; stewards cannot mutate published standard imprint rows "
                 "in place (FIX-DENY-STEWARD-STANDARD)."
@@ -308,7 +308,7 @@ def add_arch_cat(data: dict) -> tuple[int, int, int]:
     for bu, title, parent, stmt, rbac, prio, it in arch_defs:
         line = {
             "base_uid": bu,
-            "project_id": "reqaml",
+            "project_id": "reqalm",
             "parent": parent if parent.startswith("ARCH-CAT") or parent.startswith("H") else "SEC-CAT",
             "kind": "requirement",
             "title": title,

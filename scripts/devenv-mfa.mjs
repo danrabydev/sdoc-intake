@@ -5,7 +5,7 @@
  * default `docker compose up`, no hostports overlay).
  *
  * Usage:
- *   pnpm devenv:mfa <identity-id>                      # enroll with REQAML_MFA_DEV_SECRET (.reqaml/devenv.env)
+ *   pnpm devenv:mfa <identity-id>                      # enroll with REQALM_MFA_DEV_SECRET (.reqalm/devenv.env)
  *   pnpm devenv:mfa <identity-id> --interactive        # print a fresh otpauth URI + ticket
  *   pnpm devenv:mfa <identity-id> --ticket=<id> --confirm=<6-digit-code>
  */
@@ -21,22 +21,22 @@ if (!args[0] || args[0].startsWith("-")) {
   process.exit(1);
 }
 
-const secretsFile = path.join(root, ".reqaml/devenv.env");
-let devSecret = process.env.REQAML_MFA_DEV_SECRET;
+const secretsFile = path.join(root, ".reqalm/devenv.env");
+let devSecret = process.env.REQALM_MFA_DEV_SECRET;
 if (!devSecret && existsSync(secretsFile)) {
-  devSecret = /^REQAML_MFA_DEV_SECRET=(.*)$/m.exec(readFileSync(secretsFile, "utf8"))?.[1]?.trim();
+  devSecret = /^REQALM_MFA_DEV_SECRET=(.*)$/m.exec(readFileSync(secretsFile, "utf8"))?.[1]?.trim();
 }
 const interactive = args.includes("--interactive") || args.some((a) => a.startsWith("--confirm="));
 const passArgs = args.filter((a) => a !== "--interactive");
 
-const execEnv = interactive || !devSecret ? [] : ["-e", "REQAML_MFA_DEV_SECRET"];
+const execEnv = interactive || !devSecret ? [] : ["-e", "REQALM_MFA_DEV_SECRET"];
 const r = spawnSync(
   "docker",
   ["compose", "exec", "-T", ...execEnv, "app", "node", "dist/cli/enroll-mfa.js", ...passArgs],
   {
     cwd: root,
     stdio: "inherit",
-    env: { ...process.env, REQAML_MFA_DEV_SECRET: devSecret ?? "" },
+    env: { ...process.env, REQALM_MFA_DEV_SECRET: devSecret ?? "" },
   },
 );
 process.exit(r.status ?? 1);

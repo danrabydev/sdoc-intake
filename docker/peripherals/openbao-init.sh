@@ -2,8 +2,8 @@
 set -euo pipefail
 
 export BAO_ADDR="${BAO_ADDR:-http://127.0.0.1:8200}"
-MARKER="/var/lib/reqaml/openbao/.reqaml-dev-init-done"
-SECRETS_DIR="/var/lib/reqaml/secrets"
+MARKER="/var/lib/reqalm/openbao/.reqalm-dev-init-done"
+SECRETS_DIR="/var/lib/reqalm/secrets"
 TOKEN_FILE="${SECRETS_DIR}/openbao-root.token"
 
 mkdir -p "$(dirname "$MARKER")" "$SECRETS_DIR"
@@ -55,12 +55,13 @@ fi
 # Dev marker (ARCH-DEVENV-KEYS / FIX-DENY-DEV-KEK-IN-PROD). Transit keys have no custom metadata
 # endpoint, so the marker lives on the Transit mount description, which the app reads from
 # GET /v1/sys/mounts/transit and refuses in production.
-DEV_MARK="reqaml_dev=true: dev-only Transit KeyProvider (never valid in production)"
+DEV_MARK="reqalm_dev=true: dev-only Transit KeyProvider (never valid in production)"
 if bao secrets list -format=json | jq -e 'has("transit/")' >/dev/null; then
   bao secrets tune -description="$DEV_MARK" transit/ >/dev/null
 else
   bao secrets enable -description="$DEV_MARK" transit >/dev/null
 fi
+# KEK name keeps the legacy ReqAML spelling: existing ciphertexts are bound to it (see TRANSIT_KEK_NAME).
 if ! bao read transit/keys/reqaml-kek >/dev/null 2>&1; then
   bao write -f transit/keys/reqaml-kek \
     type=aes256-gcm96 \
@@ -68,5 +69,5 @@ if ! bao read transit/keys/reqaml-kek >/dev/null 2>&1; then
     allow_plaintext_backup=false >/dev/null
 fi
 
-echo "ReqAML dev OpenBao initialized (dev-marked Transit mount, KEK reqaml-kek)."
+echo "ReqALM dev OpenBao initialized (dev-marked Transit mount, KEK reqaml-kek)."
 touch "$MARKER"
