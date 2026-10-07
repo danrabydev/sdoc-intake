@@ -1,7 +1,7 @@
 @startuml MC02-mcp-mutate-requirement-version
 !include ../includes/C4_Sequence_Macros.puml
 
-title MC02 — ReqAML MCP: mutating tool with desk attached\n(e.g. update draft requirement version statement)
+title MC02 — ReqAML MCP: mutating tool with desk attached\n**draft** update_draft (NOT mint successor — see D39d)
 
 C4Seq_McpHost()
 C4Seq_ReqAmlMcp()
@@ -20,6 +20,9 @@ note over seqMcpHost, seqWebUI
   Preconditions: MC01 complete —
   MCP session authenticated, desk attached,
   browser tab on same client-scoped desk.
+  **Draft vs mint:** this path is in-place
+  draft field edit (requirement:version:update_draft).
+  Successor .N with mint_kind → **D39d**.
 end note
 
 == Mutating MCP tool (HTTPS only, not desk socket) ==
@@ -28,26 +31,40 @@ seqMcpHost -> seqMcpServer : tool update_requirement_draft\n(uid, field, value)
 ControlNote(seqMcpServer, "AC-3", "TBD (ASD V6R4)", "Tool invocation bound to authenticated MCP session + attached desk context")
 
 seqMcpServer -> seqAPI : PATCH /clients/{clientId}/requirements/{uid}/versions/{n}
-ClientScopedQuery("PATCH", "/clients/{clientId}/requirements/{uid}/versions/{n}")
+note over seqMcpServer, seqAPI
+  Client Scoped View filters queries
+  server-side; never trust client-only filters.
+  MCP carries same client scope as attached desk.
+end note
 ControlNote(seqAPI, "SC-8", "TBD (ASD V6R4)", "Mutations via OpenAPI HTTPS like UI; MCP does not write over WSS")
 
 seqAPI -> seqBusiness : updateDraftVersion(actor, clientId, uid, n, patch)
-ControlNote(seqBusiness, "AC-3, CM-3", "TBD (ASD V6R4)", "Business rules: draft-only, optimistic concurrency optional")
+ControlNote(seqBusiness, "AC-3, CM-3", "TBD (ASD V6R4)", "Draft-only in-place edit; does not mint .N or clear ApprovalRecord")
 
-seqBusiness -> seqRBAC : require requirement:version:update_draft
+== ActionHook pipeline (ARCH-HOOK-EVAL) ==
+
 RbacCheck("requirement:version:update_draft")
 ControlNote(seqRBAC, "AC-3, AC-6", "TBD (ASD V6R4)", "Same RBAC op family as Author UI; client scope enforced")
 
-seqBusiness -> seqData : updateRequirementVersion(...)
+HookEval("requirement:version:update_draft")
+ControlNote(seqData, "CM-3", "TBD (ASD V6R4)", "Profile may bind empty gates_before for draft edit; still evaluate via HookEval")
+
+' Draft edit typically has empty gates_before; show pattern for consistency
+note right of seqBusiness
+  Draft update ≠ mint: no mint_kind,
+  no gate-noop-successor-block,
+  no clear_line_approval / planning_blocked.
+end note
+
+seqBusiness -> seqData : updateRequirementVersion(draft patch)
 seqData -> seqPostgres : UPDATE requirement_version … WHERE client_id = scope
 ControlNote(seqPostgres, "AC-3", "TBD (ASD V6R4)", "SoT write with client boundary")
-
 seqPostgres --> seqData : ok
 seqData --> seqBusiness : updated row
 
-seqBusiness -> seqAudit : requirementVersionUpdated(actor, uid, n, field, source=mcp)
+HookEffectsAfter("audit")
+AuditLog("requirementVersionUpdated", "uid.n field source=mcp")
 ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable agent write distinguishable from human UI")
-seqAudit -> seqOTEL : export audit event (OTLP)
 
 seqBusiness --> seqAPI : DTO
 seqAPI --> seqMcpServer : tool result (structuredContent)
