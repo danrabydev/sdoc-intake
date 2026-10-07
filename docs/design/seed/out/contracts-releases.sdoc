@@ -607,11 +607,117 @@ RELATIONS:
   ROLE: Delivers
 
 [REQUIREMENT]
+UID: RELEASE-rel-pr11-planning-baseline
+STATUS: Active
+TITLE: Release PR #11 — planning baseline
+STATEMENT: >>>
+ReqAML release `PR #11 — planning baseline` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-pr11-planning-baseline
+project_id: reqaml
+shipped_on: 2026-10-07
+raw_status: shipped
+delivers: (none)
+delivers_count: 0
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+
+[REQUIREMENT]
+UID: RELEASE-rel-pr12-devenv-foundation
+STATUS: Draft
+TITLE: Release PR #12 — devenv foundation
+STATEMENT: >>>
+ReqAML release `PR #12 — devenv foundation` (status=planned, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-pr12-devenv-foundation
+project_id: reqaml
+shipped_on: None
+raw_status: planned
+delivers: ARCH-DEVENV-MODES.1, ARCH-DEVENV-PARITY.1, ARCH-DEVENV-KEYS, ARCH-DEVENV-CLONE, ARCH-DEVENV-SEED, ARCH-DEVENV-SECRETS, ARCH-DEVENV-HEALTH, M04, FIX-ALLOW-DEVENV-SMOKE, FIX-ALLOW-DEVENV-SEED-IDEMPOTENT, CAP-DEVENV-MONOREPO, CAP-DEVENV-DOC...
+delivers_count: 22
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-MODES.1
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-PARITY.1
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-KEYS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-CLONE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SECRETS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-HEALTH
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: M04
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-ALLOW-DEVENV-SMOKE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-DEVENV-MONOREPO
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-DEVENV-DOCKERFILE-ROLES
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-DEVENV-PERIPHERALS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-DEVENV-COMPOSE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-HEALTH-LIVENESS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-READY-PROBES
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-DEVENV-STARTUP-BACKOFF
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-PROD-SELFCHECK
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-DEVENV-MIGRATE-SEED
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-API-DOCS-SEED-SUMMARY
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-DEVENV-SMOKE
+  ROLE: Delivers
+
+[REQUIREMENT]
 UID: RELEASE-rel-r1-foundation-shell-auth
 STATUS: Draft
-TITLE: Release R1-foundation-shell-auth
+TITLE: Release R1-foundation-shell-auth — next PR: UI frame + internal auth
 STATEMENT: >>>
-ReqAML release `R1-foundation-shell-auth` (status=planned, planned_on=None). delivers is a snapshot of requirement version UIDs.
+ReqAML release `R1-foundation-shell-auth — next PR: UI frame + internal auth` (status=planned, planned_on=None). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
@@ -620,7 +726,7 @@ project_id: reqaml
 shipped_on: None
 raw_status: planned
 delivers: ARCH-BUILD-FOUNDATION, ARCH-AUTH-AS, ARCH-AUTH-PKCE, ARCH-AUTH-METADATA, ARCH-AUTH-AUDIENCE, ARCH-AUTH-REFRESH, ARCH-AUTH-REVOKE, ARCH-AUTH-CLIENTREG, ARCH-AUTH-FEDERATION, ARCH-AUTH-LOCAL.1, ARCH-CRED, ARCH-CRED-HASH, ARCH-CRED-POLICY, ...
-delivers_count: 50
+delivers_count: 48
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -719,28 +825,7 @@ RELATIONS:
   VALUE: ARCH-DEVENV-COMPOSE.1
   ROLE: Delivers
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-MODES.1
-  ROLE: Delivers
-- TYPE: Parent
-  VALUE: ARCH-DEVENV-PARITY.1
-  ROLE: Delivers
-- TYPE: Parent
   VALUE: ARCH-DEVENV-IDENTITY.1
-  ROLE: Delivers
-- TYPE: Parent
-  VALUE: ARCH-DEVENV-KEYS
-  ROLE: Delivers
-- TYPE: Parent
-  VALUE: ARCH-DEVENV-CLONE
-  ROLE: Delivers
-- TYPE: Parent
-  VALUE: ARCH-DEVENV-SEED
-  ROLE: Delivers
-- TYPE: Parent
-  VALUE: ARCH-DEVENV-SECRETS
-  ROLE: Delivers
-- TYPE: Parent
-  VALUE: ARCH-DEVENV-HEALTH
   ROLE: Delivers
 - TYPE: Parent
   VALUE: ARCH-API-LAYERS
@@ -750,9 +835,6 @@ RELATIONS:
   ROLE: Delivers
 - TYPE: Parent
   VALUE: ARCH-UI-GUARD
-  ROLE: Delivers
-- TYPE: Parent
-  VALUE: M04
   ROLE: Delivers
 - TYPE: Parent
   VALUE: ARCH-AUTH-PROFILE
@@ -774,6 +856,24 @@ RELATIONS:
   ROLE: Delivers
 - TYPE: Parent
   VALUE: ARCH-AUTH-AGENT-ATTRIBUTION
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-UI-FRAME
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-OAUTH-AS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-CRED-STORE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-KEY-ENVELOPE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-AUTH-AUDIT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-RBAC
   ROLE: Delivers
 
 [REQUIREMENT]

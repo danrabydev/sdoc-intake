@@ -1,0 +1,16 @@
+# Keep the build context small and free of host state/secrets (ARCH-DEVENV-SECRETS).
+# Host node_modules (pnpm symlinks) and dist must never overwrite what the image installs/builds.
+**/node_modules
+**/dist
+**/.output
+**/.tanstack
+.git
+.github
+.env
+.env.*
+!.env.example
+.reqaml
+docker-data
+screenshots
+artifacts
+*.log
