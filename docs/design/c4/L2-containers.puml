@@ -8,7 +8,7 @@ title Requirements Product — Containers (C4 L2)
 Person(user, "User", "Author, developer, release manager, steward")
 
 System_Boundary(reqprod, "Requirements Product") {
-  Container(web, "Web UI", "React + TypeScript", "App→Routes/guards→Layout→Page→View→Components; Client Scoped View; OTEL-ready")
+  Container(web, "Web UI", "React + TypeScript", "App→Layout→Page→View→Components; Client Scoped View; OTEL-ready")
   Container(api, "API", "Node + TypeScript", "OpenAPI schema-first; HTTP→business→data; RBAC on every route")
   Container(sync, "Sync worker", "Node + TypeScript", "Bidirectional work-item sync with DevOps")
   ContainerDb(db, "Database", "Postgres", "SoT: clients, projects, requirement versions, contracts, releases, catalogs, edges")
