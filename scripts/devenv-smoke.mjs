@@ -295,6 +295,12 @@ async function main() {
   // IP throttle: 20 failed logins from one source IP block that IP. Run from inside the app
   // container (source 127.0.0.1) so the host's shared bridge IP is not throttled for real use.
   console.log("\nIP throttle (from inside the app container)…");
+  // A previous smoke run on the same volume leaves 127.0.0.1 throttled for 15 min; start clean
+  // so re-running against a running dev stack is repeatable.
+  await psql(
+    `DELETE FROM auth_ip_throttle WHERE ip_hash IN (SELECT encode(sha256(convert_to(ip, 'UTF8')), 'hex')
+       FROM unnest(ARRAY['127.0.0.1', '::1', '::ffff:127.0.0.1']) AS ip)`,
+  );
   const throttleScript = `
     const base = "http://127.0.0.1:3000", iss = process.env.REQAML_ISSUER_URL;
     async function handoff() {
