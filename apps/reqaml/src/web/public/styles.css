@@ -90,6 +90,15 @@ body {
   border-radius: 8px;
 }
 
+.auth-card form > * {
+  min-width: 0;
+}
+
+/* MFA setup key / otpauth URI must wrap inside the card. */
+.auth-card code {
+  overflow-wrap: anywhere;
+}
+
 .auth-card button {
   margin-top: 0.5rem;
   padding: 0.65rem;
