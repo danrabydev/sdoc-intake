@@ -25,10 +25,10 @@ docker compose up --build # app listens on 127.0.0.1:3000 only
 1. Open **http://127.0.0.1:3000/login** (or `http://localhost:3000/login`).
 2. Sign in as `<identity-id>@dev.local` using the dev password from `devenv:init`.
 3. **Privileged roles (Security, AO, etc.)** must enroll MFA: use the first-login enrollment screen, or run  
-   `pnpm devenv:mfa sam-security` (uses `REQAML_MFA_DEV_SECRET` from devenv for non-interactive dev enroll).
+   `pnpm devenv:mfa sam-security` (runs inside the app container; uses `REQAML_MFA_DEV_SECRET` from devenv for non-interactive dev enroll, or `--interactive` for a fresh secret + `--ticket=… --confirm=<code>`).
 4. **Coding agents** (Cursor Cloud, etc.): run  
-   `pnpm devenv:agent-token --agent cursor-cloud --role Developer [--ttl 3600] [--acting-for dan]`  
-   Export `REQAML_AGENT_CLIENT_SECRET` comes from `devenv:init`. Tokens are OAuth **client_credentials** on `reqaml-agent-dev` (short TTL, revocable like any access token). Mutations audit `agent_name` / acting-for when present.
+   `pnpm devenv:agent-token --agent cursor-cloud [--role Reader|Author] [--ttl 3600] [--acting-for dan]`  
+   `REQAML_AGENT_CLIENT_SECRET` comes from `devenv:init`. Tokens are OAuth **client_credentials** on `reqaml-agent-dev` (TTL ≤ 1h, revocable like any access token). The agent is its own principal (`agent-cursor-cloud`) with explicit Reader + Author grants on `reqaml`; each token carries one role (default Reader), roles above Author or not granted are refused, and authorization uses only that role. Mutation attempts audit `agent_name`, token role and acting-for.
 
 **Hybrid hot reload** (app on the host): expose Postgres/OpenBao on the loopback only:
 
@@ -37,7 +37,7 @@ docker compose -f docker-compose.yml -f docker-compose.hostports.yml up peripher
 pnpm dev:reqaml
 ```
 
-**Production issuer:** set `REQAML_ISSUER_URL` to the public HTTPS origin (startup self-check requires it in production). Terminate TLS at your reverse proxy; leave `REQAML_TRUST_PROXY=false` unless the proxy sets trusted `X-Forwarded-*` headers.
+**Production issuer:** set `REQAML_ISSUER_URL` to the public HTTPS origin (startup self-check requires it in production). Terminate TLS at your reverse proxy; leave `REQAML_TRUST_PROXY=false` unless the proxy sets trusted `X-Forwarded-*` headers, and then list the proxies in `REQAML_TRUSTED_PROXIES` (production refuses blanket trust).
 
 **Signing (R1):** JWT signing uses Transit-**wrapped** ES256 keys in the app process. FIPS-validated modules and OpenBao Transit-**sign** (private key never leaves HSM) are documented follow-ups in the seed (`CAP-KEY-ENVELOPE`).
 

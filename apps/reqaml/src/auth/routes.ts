@@ -42,6 +42,7 @@ import {
 } from "./web-session.js";
 import { randomToken } from "../credential/password.js";
 import { reserveLoginAttempt } from "../credential/lockout.js";
+import { recordIpLoginFailure } from "../credential/ip-throttle.js";
 import type { AuthProfile } from "./profile.js";
 import { localLoginAllowed } from "./profile.js";
 
@@ -267,7 +268,7 @@ export async function registerAuthRoutes(
       if (!agentName) {
         return reply.code(400).send({ error: "invalid_request", error_description: "agent_name required" });
       }
-      const ttl = Math.min(Number(body.ttl_seconds ?? 3600), 86400);
+      const ttl = Number(body.ttl_seconds ?? 3600);
       const result = await issueClientCredentialsToken(
         pool,
         config,
@@ -280,16 +281,21 @@ export async function registerAuthRoutes(
           issuer: iss,
           ttlSeconds: ttl,
           actingForIdentityId: body.acting_for,
+          role: body.role,
         },
         ctx,
       );
       if ("error" in result) {
-        return reply.code(400).send({ error: result.error });
+        const status = result.error === "invalid_client" ? 401 : 400;
+        return reply
+          .code(status)
+          .send({ error: result.error, error_description: result.errorDescription });
       }
       return reply.send({
         access_token: result.accessToken,
         token_type: "Bearer",
         expires_in: result.expiresIn,
+        reqaml_role: result.role,
       });
     }
     return reply.code(400).send({ error: "unsupported_grant_type" });
@@ -383,6 +389,7 @@ export async function registerAuthRoutes(
       );
       if (!confirmed.ok || confirmed.identityId !== auth.identityId) {
         await reserveLoginAttempt(pool, auth.identityId);
+        await recordIpLoginFailure(pool, req.ip);
         return reply.code(401).send({ error: "invalid_mfa" });
       }
       await clearLoginFailures(pool, auth.identityId);
@@ -399,6 +406,7 @@ export async function registerAuthRoutes(
       );
       if (!mfaVerified) {
         await reserveLoginAttempt(pool, auth.identityId);
+        await recordIpLoginFailure(pool, req.ip);
         await writeAuthAudit(pool, {
           eventType: "mfa.verify",
           outcome: "failure",

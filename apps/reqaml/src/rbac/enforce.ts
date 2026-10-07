@@ -1,4 +1,5 @@
 import type pg from "pg";
+import { effectiveRoles } from "./agent-role.js";
 
 /** Minimal v1 role → permission map (aligned to permission-matrix-flat.md). */
 const ROLE_PERMISSIONS: Record<string, Set<string>> = {
@@ -91,8 +92,10 @@ export async function authorize(
   identityId: string,
   permission: string,
   projectId?: string,
+  /** Verified access-token claims; a bound `reqaml_role` (agent tokens) narrows the grants. */
+  token?: { readonly [claim: string]: unknown },
 ): Promise<boolean> {
-  const roles = await listActiveRoles(pool, identityId, projectId);
+  const roles = effectiveRoles(await listActiveRoles(pool, identityId, projectId), token);
   if (roles.length === 0) return false;
   const perms = permissionsForRoles(roles);
   return perms.has(permission);

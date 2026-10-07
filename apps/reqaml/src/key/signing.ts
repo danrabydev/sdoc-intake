@@ -125,6 +125,9 @@ export async function signAccessToken(
     mfa?: boolean;
     agentName?: string;
     actingFor?: string;
+    /** Single project role bound to the token (agent least privilege). */
+    role?: string;
+    projectId?: string;
   },
   ttlSeconds: number,
 ): Promise<{ token: string; jti: string }> {
@@ -140,6 +143,11 @@ export async function signAccessToken(
   if (claims.agentName) {
     payload.agent_name = claims.agentName;
     payload.client_type = "agent";
+  }
+  if (claims.role) {
+    payload.reqaml_role = claims.role;
+    if (claims.projectId) payload.reqaml_project = claims.projectId;
+    payload.amr = ["client_credentials"];
   }
   if (claims.actingFor) {
     payload.act = { sub: claims.actingFor };

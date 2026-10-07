@@ -20,6 +20,7 @@ import { registerProbeRoutes } from "./routes-probes.js";
 import { createBearerGuard, type AuthedRequest } from "./middleware/bearer-auth.js";
 import { resolveRequestAuth } from "../auth/request-auth.js";
 import { authorize } from "../rbac/enforce.js";
+import { effectiveRoles } from "../rbac/agent-role.js";
 import { writeAuthAudit } from "../audit/auth-audit.js";
 
 export type RuntimeState = {
@@ -42,7 +43,14 @@ export async function buildApiServer(state: RuntimeState) {
         },
       },
     },
-    trustProxy: config.REQAML_TRUST_PROXY === true,
+    // Trust X-Forwarded-* only from the listed proxies; never blanket trust in production
+    // (startup self-check refuses REQAML_TRUST_PROXY=true without REQAML_TRUSTED_PROXIES).
+    trustProxy:
+      config.REQAML_TRUST_PROXY === true
+        ? config.REQAML_TRUSTED_PROXIES
+          ? config.REQAML_TRUSTED_PROXIES.split(",").map((s) => s.trim()).filter(Boolean)
+          : true
+        : false,
   });
   const keyProvider = createOpenBaoKeyProvider(config);
 
@@ -97,6 +105,11 @@ export async function buildApiServer(state: RuntimeState) {
           auth_profile: authProfileFromEnv(config),
           grants: grants.rows,
           agent_name: (auth.accessToken as { agent_name?: string }).agent_name ?? null,
+          token_role: (auth.accessToken as { reqaml_role?: string }).reqaml_role ?? null,
+          effective_roles: effectiveRoles(
+            grants.rows.map((g: { role: string }) => g.role),
+            auth.accessToken,
+          ),
         };
       });
 
@@ -107,21 +120,23 @@ export async function buildApiServer(state: RuntimeState) {
         }
         const sub = auth.accessToken.sub!;
         const projectId = (req.params as { projectId: string }).projectId;
-        const allowed = await authorize(pool, sub, "grant:manage", projectId);
+        const allowed = await authorize(pool, sub, "grant:manage", projectId, auth.accessToken);
+        // Every mutation attempt is audited with agent attribution (allow and deny).
+        await writeAuthAudit(pool, {
+          eventType: allowed ? "grant.manage" : "rbac.deny",
+          outcome: allowed ? "success" : "deny",
+          identityId: sub,
+          clientId: auth.accessToken.client_id as string | undefined,
+          detail: {
+            permission: "grant:manage",
+            projectId,
+            agent_name: (auth.accessToken as { agent_name?: string }).agent_name,
+            token_role: (auth.accessToken as { reqaml_role?: string }).reqaml_role,
+            acting_for: (auth.accessToken as { act?: { sub?: string } }).act?.sub,
+          },
+          ip: req.ip,
+        });
         if (!allowed) {
-          await writeAuthAudit(pool, {
-            eventType: "rbac.deny",
-            outcome: "deny",
-            identityId: sub,
-            clientId: auth.accessToken.client_id as string | undefined,
-            detail: {
-              permission: "grant:manage",
-              projectId,
-              agent_name: (auth.accessToken as { agent_name?: string }).agent_name,
-              acting_for: (auth.accessToken as { act?: { sub?: string } }).act?.sub,
-            },
-            ip: req.ip,
-          });
           return reply.code(403).send({ error: "forbidden" });
         }
         return reply.send({ ok: true, message: "grant manage authorized (stub)" });
