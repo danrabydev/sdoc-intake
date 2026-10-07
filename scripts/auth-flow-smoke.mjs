@@ -359,7 +359,7 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
       headers: { Authorization: `Bearer ${cc.body.access_token}` },
     });
     const agentMeBody = await agentMe.json();
-    if (agentMe.status !== 200 || JSON.stringify(agentMeBody.effective_roles) !== '["Reader"]') {
+    if (agentMe.status !== 200 || JSON.stringify(agentMeBody.data?.effective_roles) !== '["Reader"]') {
       fail("agent token effective roles should be [Reader]", agentMeBody);
     }
     const author = await mint({ role: "Author" });
