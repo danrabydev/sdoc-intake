@@ -11,6 +11,20 @@ export async function runStartupSelfCheck(
   const errors: string[] = [];
 
   if (isProduction(config)) {
+    const issuer = process.env.REQAML_ISSUER_URL?.trim();
+    if (!issuer) {
+      errors.push("REQAML_ISSUER_URL must be set in production");
+    } else if (!issuer.startsWith("https://")) {
+      errors.push("REQAML_ISSUER_URL must use https in production");
+    }
+    if (config.REQAML_TRUST_PROXY === true && !config.REQAML_TRUSTED_PROXIES?.trim()) {
+      errors.push(
+        "REQAML_TRUST_PROXY=true trusts X-Forwarded-* from any peer; set REQAML_TRUSTED_PROXIES to the proxy IPs/CIDRs in production",
+      );
+    }
+    if (!process.env.REQAML_SESSION_SECRET?.trim()) {
+      errors.push("REQAML_SESSION_SECRET must be set in production");
+    }
     if (config.REQAML_SEED_ON_START) {
       errors.push("REQAML_SEED_ON_START must be off in production");
     }
@@ -21,7 +35,7 @@ export async function runStartupSelfCheck(
     }
 
     const devAccounts = await pool.query(
-      "SELECT count(*)::int AS c FROM dev_local_accounts WHERE is_dev_seeded = true",
+      "SELECT count(*)::int AS c FROM local_credentials WHERE is_dev_seeded = true",
     );
     if ((devAccounts.rows[0]?.c as number) > 0) {
       errors.push(

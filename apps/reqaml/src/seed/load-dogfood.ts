@@ -1,4 +1,5 @@
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
+import { hashPassword } from "../credential/password.js";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { parse } from "yaml";
@@ -16,6 +17,7 @@ export type DogfoodSeed = {
   requirement_lines?: Record<string, unknown>[];
   requirement_versions?: Record<string, unknown>[];
   releases?: Record<string, unknown>[];
+  platform_grants?: Record<string, unknown>[];
 };
 
 export type SeedResult = {
@@ -23,14 +25,6 @@ export type SeedResult = {
   devAccountsCreated: number;
   unchanged: boolean;
 };
-
-function hashPassword(password: string): string {
-  const salt = randomBytes(16).toString("hex");
-  const digest = createHash("sha256")
-    .update(`${salt}:${password}`)
-    .digest("hex");
-  return `sha256:${salt}:${digest}`;
-}
 
 export async function readDogfoodFile(seedPath: string): Promise<DogfoodSeed> {
   const abs = path.resolve(seedPath);
@@ -60,6 +54,8 @@ export async function loadDogfoodSeed(
     releases: 0,
     release_delivers: 0,
     dev_local_accounts: 0,
+    local_credentials: 0,
+    platform_grants: 0,
   };
 
   try {
@@ -91,6 +87,9 @@ export async function loadDogfoodSeed(
     }
     for (const [position, rel] of (seed.releases ?? []).entries()) {
       await upsertRelease(client, rel, position, inserted);
+    }
+    for (const g of seed.platform_grants ?? []) {
+      await upsertPlatformGrant(client, g, inserted);
     }
 
     // ARCH-DEVENV-IDENTITY.1: no committed/default dev credential. Use the local .env value, or
@@ -155,6 +154,8 @@ async function countSeedRows(client: pg.PoolClient) {
     "releases",
     "release_delivers",
     "dev_local_accounts",
+    "local_credentials",
+    "platform_grants",
   ] as const;
   const counts: Record<string, number> = {};
   for (const t of tables) {
@@ -366,17 +367,37 @@ async function upsertRelease(
   }
 }
 
+async function upsertPlatformGrant(
+  client: pg.PoolClient,
+  row: Record<string, unknown>,
+  inserted: Record<string, number>,
+) {
+  const id =
+    row.id ??
+    `platform-${row.identity_id}-${row.role}`.replace(/\s+/g, "-");
+  const r = await client.query(
+    `
+    INSERT INTO platform_grants (id, identity_id, role, notes)
+    VALUES ($1, $2, $3, $4)
+    ON CONFLICT (id) DO NOTHING
+    RETURNING id
+  `,
+    [id, row.identity_id, row.role, row.notes ?? null],
+  );
+  if (r.rowCount) inserted.platform_grants++;
+}
+
 async function upsertDevLocalAccounts(
   client: pg.PoolClient,
   identities: Record<string, unknown>[],
   password: string,
 ): Promise<number> {
   let created = 0;
-  const hash = hashPassword(password);
+  const hash = await hashPassword(password);
   for (const id of identities) {
     const identityId = String(id.id);
     const username = `${identityId}@dev.local`;
-    const r = await client.query(
+    const legacy = await client.query(
       `
       INSERT INTO dev_local_accounts (identity_id, username, password_hash, is_dev_seeded)
       VALUES ($1, $2, $3, true)
@@ -385,7 +406,16 @@ async function upsertDevLocalAccounts(
     `,
       [identityId, username, hash],
     );
-    if (r.rowCount) created++;
+    const cred = await client.query(
+      `
+      INSERT INTO local_credentials (identity_id, username, password_hash, is_dev_seeded)
+      VALUES ($1, $2, $3, true)
+      ON CONFLICT (identity_id) DO NOTHING
+      RETURNING identity_id
+    `,
+      [identityId, username, hash],
+    );
+    if (legacy.rowCount || cred.rowCount) created++;
   }
   return created;
 }

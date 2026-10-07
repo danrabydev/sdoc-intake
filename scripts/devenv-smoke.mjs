@@ -4,24 +4,34 @@
  *
  * Primary check for the ReqAML dev environment; run locally with `pnpm devenv:smoke`
  * (the GitHub workflow is manual-dispatch only to save Actions minutes).
- *
- * Covers: Compose services healthy (ARCH-DEVENV-HEALTH), /health + /ready + seed summary
- * (FIX-ALLOW-DEVENV-SMOKE), migrate/seed idempotency (FIX-ALLOW-DEVENV-SEED-IDEMPOTENT),
- * exactly 2 containers (FIX-ALLOW-DEVENV-MIN-CONTAINERS), and production-mode refusal of the
- * dev seed loader / dev accounts / dev OpenBao (FIX-DENY-DEVENV-PROD-LOGIN.1, FIX-DENY-DEV-KEK-IN-PROD).
- *
- * Every failing command has its stdout/stderr printed, followed by `docker compose ps -a` and
- * recent `docker compose logs`, so CI/local failures are diagnosable from the log alone.
- *
- * Env: REQAML_SMOKE_URL (default http://127.0.0.1:3000), DATABASE_URL (host DSN),
- *      REQAML_SMOKE_DOWN=1 to run `docker compose down -v` at the end.
  */
 import { spawn } from "node:child_process";
-import { copyFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const baseUrl = process.env.REQAML_SMOKE_URL ?? "http://127.0.0.1:3000";
-const hostDsn =
-  process.env.DATABASE_URL ?? "postgresql://reqaml:reqaml@127.0.0.1:5432/reqaml";
+
+const composeBase = ["-f", "docker-compose.yml", "-f", "docker-compose.hostports.yml"];
+
+function parseEnv(text) {
+  const out = {};
+  for (const line of text.split("\n")) {
+    const m = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/.exec(line.trim());
+    if (m) out[m[1]] = m[2];
+  }
+  return out;
+}
+
+function loadMergedEnv() {
+  const files = [path.join(root, ".env"), path.join(root, ".reqaml/devenv.env")];
+  const merged = {};
+  for (const f of files) {
+    if (existsSync(f)) Object.assign(merged, parseEnv(readFileSync(f, "utf8")));
+  }
+  return merged;
+}
 
 class CommandError extends Error {
   constructor(label, result) {
@@ -30,12 +40,12 @@ class CommandError extends Error {
   }
 }
 
-/** Run a command, streaming output live (unless quiet) and capturing it for failure reports. */
-function run(cmd, args, { env, quiet = false, allowFail = false } = {}) {
+function run(cmd, args, { env, cwd = root, quiet = false, allowFail = false } = {}) {
   const label = [cmd, ...args].join(" ");
   if (!quiet) console.log(`\n$ ${label}`);
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, {
+      cwd,
       env: { ...process.env, ...env },
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -92,11 +102,11 @@ async function reportFailure(err) {
   }
   if (!(err instanceof CommandError) && !err.detail) console.error(err.stack);
   for (const args of [
-    ["compose", "ps", "-a"],
-    ["compose", "logs", "--no-color", "--tail=150"],
+    [...composeBase, "ps", "-a"],
+    [...composeBase, "logs", "--no-color", "--tail=150"],
   ]) {
-    const r = await run("docker", args, { quiet: true, allowFail: true });
-    console.error(`----- docker ${args.join(" ")} (exit ${r.code}) -----`);
+    const r = await run("docker", ["compose", ...args], { quiet: true, allowFail: true });
+    console.error(`----- docker compose ${args.join(" ")} (exit ${r.code}) -----`);
     console.error((r.stdout + r.stderr).trimEnd());
   }
 }
@@ -107,14 +117,30 @@ function lastJsonObject(text) {
 }
 
 async function main() {
-  if (!existsSync(".env")) {
-    console.log("No .env found; copying .env.example (README clone-to-running step).");
-    copyFileSync(".env.example", ".env");
-  }
+  process.env.DEVENV_INIT_QUIET = "1";
+  await run("node", ["scripts/devenv-init.mjs"], { quiet: true });
+  const secrets = loadMergedEnv();
+  const smokePassword = secrets.REQAML_DEV_ACCOUNT_PASSWORD;
+  if (!smokePassword) fail("REQAML_DEV_ACCOUNT_PASSWORD missing after devenv:init");
+  process.env.REQAML_DEV_ACCOUNT_PASSWORD = smokePassword;
+  process.env.REQAML_MFA_DEV_SECRET = secrets.REQAML_MFA_DEV_SECRET;
+  process.env.REQAML_AGENT_CLIENT_SECRET = secrets.REQAML_AGENT_CLIENT_SECRET;
 
-  console.log("Starting peripherals + app (full-container)…");
-  // --wait blocks until every service is healthy and exits non-zero if any becomes unhealthy/exits.
-  await run("docker", ["compose", "up", "--build", "-d", "--wait", "--wait-timeout", "300"]);
+  const hostDsn =
+    secrets.DATABASE_URL ??
+    `postgresql://${secrets.POSTGRES_USER ?? "reqaml"}:${secrets.POSTGRES_PASSWORD}@127.0.0.1:5432/${secrets.POSTGRES_DB ?? "reqaml"}`;
+
+  console.log("Starting peripherals + app (full-container, hostports for migrate)…");
+  await run("docker", [
+    "compose",
+    ...composeBase,
+    "up",
+    "--build",
+    "-d",
+    "--wait",
+    "--wait-timeout",
+    "300",
+  ]);
 
   const health = await getJson("/health");
   if (health.status !== 200 || health.body.status !== "ok") fail("/health not ok", health);
@@ -130,6 +156,11 @@ async function main() {
   ) {
     fail("Seed summary unexpected", summary1);
   }
+
+  console.log("\nEnrolling privileged dev MFA (sam-security) for smoke…");
+  await run("pnpm", ["--silent", "devenv:mfa", "sam-security", "--quiet"], {
+    env: { ...secrets, DATABASE_URL: hostDsn },
+  });
 
   console.log("\nRe-running migrate + seed (idempotency)…");
   const env = { DATABASE_URL: hostDsn };
@@ -157,8 +188,9 @@ async function main() {
     }
   }
 
-  // FIX-ALLOW-DEVENV-MIN-CONTAINERS: count *all* project containers, not just the expected names.
-  const psOut = (await run("docker", ["compose", "ps", "-a", "--format", "json"], { quiet: true })).stdout;
+  const psOut = (
+    await run("docker", ["compose", ...composeBase, "ps", "-a", "--format", "json"], { quiet: true })
+  ).stdout;
   const containers = psOut
     .trim()
     .split("\n")
@@ -185,10 +217,22 @@ async function main() {
   const prodApp = await run(
     "docker",
     [
-      "compose", "run", "--rm", "--no-deps", "-T",
-      "-e", "REQAML_MODE=production",
-      "-e", "REQAML_SEED_ON_START=false",
-      "-e", "REQAML_DEV_ACCOUNT_PASSWORD=",
+      "compose",
+      ...composeBase,
+      "run",
+      "--rm",
+      "--no-deps",
+      "-T",
+      "-e",
+      "REQAML_MODE=production",
+      "-e",
+      "REQAML_SEED_ON_START=false",
+      "-e",
+      "REQAML_DEV_ACCOUNT_PASSWORD=",
+      "-e",
+      "REQAML_ISSUER_URL=",
+      "-e",
+      "REQAML_TRUST_PROXY=true",
       "app",
     ],
     { quiet: true, allowFail: true },
@@ -198,10 +242,83 @@ async function main() {
     prodApp.code === 0 ||
     !/Startup self-check failed/.test(prodOut) ||
     !/Seeded dev local accounts exist/.test(prodOut) ||
-    !/Dev-marked (OpenBao|Transit)[^\n]*refused in production/.test(prodOut)
+    !/Dev-marked (OpenBao|Transit)[^\n]*refused in production/.test(prodOut) ||
+    !/REQAML_ISSUER_URL must be set in production/.test(prodOut) ||
+    !/REQAML_TRUST_PROXY=true trusts X-Forwarded-\* from any peer/.test(prodOut)
   ) {
     fail("App started (or failed for the wrong reason) in production mode with dev accounts/keys", prodApp);
   }
+
+  console.log("\nAuth flow smoke (PKCE login, refresh/reuse, revoke, lockout, RBAC deny, MFA, agent token)…");
+  // Tokens and redirect URIs are bound to the configured issuer origin (REQAML_ISSUER_URL).
+  process.env.REQAML_SMOKE_URL ??= secrets.REQAML_ISSUER_URL || baseUrl;
+  const { runAuthFlowSmoke } = await import("./auth-flow-smoke.mjs");
+  const authSmoke = await runAuthFlowSmoke(smokePassword, {
+    mfaDevSecret: secrets.REQAML_MFA_DEV_SECRET,
+    agentClientSecret: secrets.REQAML_AGENT_CLIENT_SECRET,
+  });
+  if (!authSmoke.privileged_mfa_login) fail("privileged MFA login did not run");
+  if (!authSmoke.agent_client_credentials) fail("agent client_credentials did not run");
+
+  const psql = async (sql) =>
+    (
+      await run(
+        "docker",
+        ["compose", ...composeBase, "exec", "-T", "peripherals", "psql", "-U", secrets.POSTGRES_USER ?? "reqaml",
+          "-d", secrets.POSTGRES_DB ?? "reqaml", "-Atc", sql],
+        { quiet: true },
+      )
+    ).stdout.trim();
+  const auditCounts = await psql(
+    `SELECT string_agg(event_type || ':' || outcome || '=' || n, ',' ORDER BY event_type, outcome) FROM (
+       SELECT event_type, outcome, count(*) n FROM auth_audit_events GROUP BY 1,2) t`,
+  );
+  for (const needed of ["login.local:success", "login.local:failure", "login.lockout:deny", "token.client_credentials:success",
+    "token.client_credentials:deny", "token.refresh_reuse:deny", "token.revoke:success", "mfa.verify:success", "mfa.verify:failure"]) {
+    if (!auditCounts.includes(`${needed}=`)) fail(`audit missing ${needed}`, auditCounts);
+  }
+  const agentAudit = await psql(
+    `SELECT count(*) FROM auth_audit_events WHERE event_type = 'rbac.deny'
+       AND detail->>'agent_name' = 'cursor-cloud' AND detail->>'token_role' = 'Author'
+       AND identity_id = 'agent-cursor-cloud'`,
+  );
+  if (agentAudit === "0") fail("agent mutation attempt not audited with agent attribution");
+
+  // IP throttle: 20 failed logins from one source IP block that IP. Run from inside the app
+  // container (source 127.0.0.1) so the host's shared bridge IP is not throttled for real use.
+  console.log("\nIP throttle (from inside the app container)…");
+  const throttleScript = `
+    const base = "http://127.0.0.1:3000", iss = process.env.REQAML_ISSUER_URL;
+    async function handoff() {
+      const q = new URLSearchParams({ response_type: "code", client_id: "reqaml-web",
+        redirect_uri: iss + "/oauth/callback", state: "s", code_challenge: "x".repeat(43),
+        code_challenge_method: "S256", resource: iss + "/api" });
+      const r = await fetch(base + "/oauth/authorize?" + q, { redirect: "manual" });
+      return new URL(r.headers.get("location"), base).searchParams.get("h");
+    }
+    async function login(username, password) {
+      const r = await fetch(base + "/api/v1/auth/local/login", { method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ username, password, h: await handoff() }) });
+      return r.status;
+    }
+    const pw = process.env.SMOKE_PW;
+    const before = await login("alex-author@dev.local", pw);
+    for (let i = 0; i < 20; i++) await login("nobody-" + i + "@dev.local", "wrong");
+    const after = await login("alex-author@dev.local", pw);
+    console.log(JSON.stringify({ before, after }));
+  `;
+  const throttle = await run(
+    "docker",
+    ["compose", ...composeBase, "exec", "-T", "-e", "SMOKE_PW", "app", "node", "--input-type=module", "-e", throttleScript],
+    { quiet: true, env: { SMOKE_PW: smokePassword } },
+  );
+  const throttleResult = lastJsonObject(throttle.stdout);
+  if (throttleResult.before !== 200 || throttleResult.after !== 401) {
+    fail("IP throttle did not trip after 20 failures", throttleResult);
+  }
+  const hostStillOk = await (await fetch(`${baseUrl}/health`)).status;
+  if (hostStillOk !== 200) fail("health after throttle check", hostStillOk);
 
   console.log(
     "\n" +
@@ -213,6 +330,10 @@ async function main() {
           seed: summary2,
           containers: services,
           production_refused: true,
+          auth_smoke: authSmoke,
+          audit_events: auditCounts,
+          agent_mutation_audited: Number(agentAudit),
+          ip_throttle: throttleResult,
         },
         null,
         2,
@@ -220,7 +341,7 @@ async function main() {
   );
 
   if (process.env.REQAML_SMOKE_DOWN === "1") {
-    await run("docker", ["compose", "down", "-v"]);
+    await run("docker", ["compose", ...composeBase, "down", "-v"]);
   }
 }
 

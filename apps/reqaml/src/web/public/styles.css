@@ -1,0 +1,131 @@
+:root {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #0f172a;
+  background: #eef2ff;
+  --accent: #4338ca;
+  --muted: #64748b;
+  --border: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.topbar nav {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+.topbar a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sidebar {
+  padding: 1.25rem;
+  background: #fff;
+  border-right: 1px solid var(--border);
+}
+
+.content {
+  padding: 1.5rem 2rem;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.auth-card {
+  max-width: 26rem;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+}
+
+.auth-card form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.auth-card label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.auth-card input {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.auth-card form > * {
+  min-width: 0;
+}
+
+/* MFA setup key / otpauth URI must wrap inside the card. */
+.auth-card code {
+  overflow-wrap: anywhere;
+}
+
+.auth-card button {
+  margin-top: 0.5rem;
+  padding: 0.65rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+pre {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow: auto;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    display: none;
+  }
+}

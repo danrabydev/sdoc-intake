@@ -39,6 +39,12 @@ const EnvSchema = z
     REQAML_READY_PROBE_TIMEOUT_MS: z.coerce.number().default(3_000),
     REQAML_STARTUP_MAX_WAIT_MS: z.coerce.number().default(120_000),
     REQAML_STARTUP_INITIAL_DELAY_MS: z.coerce.number().default(1_000),
+    REQAML_ISSUER_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
+    REQAML_TRUST_PROXY: envFlag,
+    // Comma-separated proxy IPs/CIDRs whose X-Forwarded-* headers are trusted (with REQAML_TRUST_PROXY).
+    REQAML_TRUSTED_PROXIES: z.preprocess(emptyToUndefined, z.string().optional()),
+    REQAML_SESSION_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
+    REQAML_AGENT_CLIENT_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
   })
   .transform((raw) => {
     let token = raw.OPENBAO_TOKEN;

@@ -1437,9 +1437,9 @@ requirement_lines:
   title: Client Scoped View binding
 - base_uid: CAP-RBAC
   project_id: reqaml
-  parent: SEC-SEC
+  parent: SEC-IA
   kind: capability
-  title: Project RBAC grants
+  title: RBAC enforcement on API mutations
 - base_uid: CAP-MCP-DESK
   project_id: reqaml
   parent: SEC-MCP
@@ -2504,17 +2504,42 @@ requirement_lines:
   project_id: reqaml
   parent: SEC-SEC
   kind: capability
-  title: 'Credential store: hashes, lockout, MFA, sessions, step-up'
+  title: 'Credential store: Argon2id, lockout, MFA, hashed tokens'
 - base_uid: CAP-KEY-ENVELOPE
   project_id: reqaml
   parent: SEC-SEC
   kind: capability
-  title: KeyProvider envelope encryption and JWKS signing-key rotation
+  title: KeyProvider envelope encryption and JWKS signing keys
 - base_uid: CAP-AUTH-AUDIT
   project_id: reqaml
   parent: SEC-AUDIT
   kind: capability
-  title: Authentication audit events
+  title: Authentication audit events (append-only)
+- base_uid: CAP-AUTH-UPSTREAM-SEAM
+  project_id: reqaml
+  parent: SEC-IA
+  kind: capability
+  title: Pluggable upstream IdP connector seam (stub)
+- base_uid: CAP-DEVENV-INIT
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: Idempotent devenv:init secrets CLI
+- base_uid: CAP-MFA-ENROLL
+  project_id: reqaml
+  parent: SEC-IA
+  kind: capability
+  title: TOTP MFA enrollment (UI + devenv:mfa CLI)
+- base_uid: CAP-AGENT-ACCESS
+  project_id: reqaml
+  parent: SEC-IA
+  kind: capability
+  title: Dev agent OAuth client_credentials tokens
+- base_uid: CAP-AUTH-HARDEN
+  project_id: reqaml
+  parent: SEC-IA
+  kind: capability
+  title: 'Auth hardening: handoffs, BFF session, throttle, prod issuer'
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -3935,16 +3960,16 @@ requirement_versions:
   base_uid: CAP-RBAC
   version_n: 0
   status: active
-  statement: 'Capability pack for project_grant create/revoke/list and permission checks used by business services
-
-    on every mutating API. Effective permissions recompute from active grants only; revoked tombstones never
-
-    authorize. Aligns to AC-2 / AC-6 / REQAML-SEC-RBAC.'
+  statement: 'API routes enforce project-grant derived permissions (CAP-RBAC matrix subset). `POST /api/v1/projects/:projectId/grants` requires `grant:manage`; Readers receive 403 with audit. MCP `/mcp` requires MCP-audience tokens. Acceptance: auth-flow-smoke RBAC deny for casey-reader.'
   priority: 10
-  iteration: iter-r0
+  iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+    verification_note: 'AC-3 enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
+      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+  statement_hash: sha256:07904dc523cccd3c24e8ab49deca0a2aa3cbaaf2882a8d8028c24eaf737ea60b
+  grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-MCP-DESK
   base_uid: CAP-MCP-DESK
   version_n: 0
@@ -6570,63 +6595,142 @@ requirement_versions:
 - uid: CAP-UI-FRAME
   base_uid: CAP-UI-FRAME
   version_n: 0
-  status: draft
-  statement: 'Planned capability: the Web UI frame served by the web role: App providers (session, Client Scoped View), layout and navigation, and route guards that send unauthenticated users to sign-in and project pages without a server-bound scope to scope selection, instead of rendering empty shells. Acceptance (planned): protected routes never render data without a valid internal-AS session; guard decisions match server authorization.'
+  status: active
+  statement: 'The Web UI frame served by the web role: top navigation, client-scoped sidebar chrome, and route guards that send unauthenticated users to the internal-AS sign-in flow and keep `/app/*` behind a valid API-audience session via HttpOnly SameSite=Lax cookies (BFF) with CSRF on sign-out; API clients use bearer tokens. Sign-out revokes refresh tokens via RFC 7009. Acceptance: unauthenticated `/app` redirects to login; authenticated shell renders `/api/v1/me` grants.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: Planned. Verify with guard redirect tests and an unauthenticated crawl of protected routes.
-  statement_hash: sha256:2cd13e7b5ba6d969856f66e50bf11ed7acca84c0c79c0c4047cdfd6c8b195e88
+    verification_note: 'AC-3 guard enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
+      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.'
+  statement_hash: sha256:0828332feb654b6ef8c411828750b14e293b41e4400377cb3abf3d6c18aefde6
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-OAUTH-AS
   base_uid: CAP-OAUTH-AS
   version_n: 0
-  status: draft
-  statement: "Planned capability: ReqAML's internal OAuth 2.1 AS in the API role, the single token issuer for Web UI, API and MCP: authorization code + PKCE S256 only, RFC 8414 AS metadata and RFC 9728 protected-resource metadata, RFC 8707 resource indicators with audience-bound tokens, refresh-token rotation with reuse detection, revocation with session-linked teardown, and pre-registered clients (CIMD/DCR policy-gated). Acceptance (planned): the AS01 MCP authorize flow and the FIX-DENY-PKCE-PLAIN / wrong-audience / refresh-reuse / revoked-token beds."
+  status: active
+  statement: "ReqAML's internal OAuth 2.1 AS in the API role is the single token issuer for Web UI, API, and MCP: authorization code + PKCE S256 only, RFC 8414 AS metadata, RFC 9728 protected-resource metadata for API and MCP, RFC 8707 resource indicators with audience-bound access tokens, refresh-token rotation with reuse detection (family revocation), RFC 7009 revocation, pre-registered clients, dynamic client registration disabled by default. Acceptance: auth-flow-smoke covers AS01 beds (PKCE, refresh/reuse, revoke, wrong audience)."
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: IA-2
-    verification_note: Planned. REQAML-SEC-OAUTH; IA-2 / IA-5 / SC-23. Verify with FIX-ALLOW-MCP-OAUTH-PKCE and the FIX-DENY-* OAuth beds.
-  statement_hash: sha256:f9f3c23e165d4c8ac6d460cb46f451889037e33911e8fff409520cc07519cba3
+    verification_note: 'IA-2 / SC-23 OAuth beds. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
+      refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+  statement_hash: sha256:2bd4307c791183ba58e460d4c7556b19e61f1d6e469cf4e8a269f00de4f8b49c
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-CRED-STORE
   base_uid: CAP-CRED-STORE
   version_n: 0
-  status: draft
-  statement: 'Planned capability: the local-account credential store behind the AS: Argon2id (PBKDF2 in FIPS mode) salted one-way hashes with configurable parameters, password policy presets, throttling and lockout, MFA required for privileged roles, server-side tokens and client secrets stored hashed, session management (idle/absolute timeout, fixation protection, secure cookies) and step-up re-authentication for sensitive actions. Acceptance (planned): AS02 local login with lockout and MFA; FIX-DENY-LOCKOUT, FIX-DENY-PRIV-NO-MFA, FIX-DENY-SESSION-IDLE, FIX-DENY-STEPUP-STALE-AUTH, FIX-ALLOW-CRED-HASH-ONLY.'
+  status: active
+  statement: 'Local credentials use Argon2id password hashes (legacy dev SHA-256 re-hashed on login), throttling/lockout after repeated failures, TOTP MFA for privileged roles (wrapped MFA secrets via KeyProvider), server-side refresh token hashes, and lockout audit events. Acceptance: auth-flow-smoke lockout bed; privileged MFA login (sam-security) after `pnpm devenv:mfa` or first-login enrollment.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: IA-5
-    verification_note: Planned. REQAML-SEC-CRED; IA-5 / AC-7 / AC-12. Verify with the AS02 sequence and the credential FIX beds.
-  statement_hash: sha256:073a8b49653f6a90d71279a0322e40c52a7003ae59d63132c3a687e66b3b78c9
+    verification_note: 'IA-5 / AC-7 credential controls. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
+      refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; TOTP secrets envelope-wrapped; replay of the same code within its window rejected.'
+  statement_hash: sha256:cfd369100cb9be628e6bca2ca3f22c1b00e37e12795e816d999a72f97f1784ec
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-KEY-ENVELOPE
   base_uid: CAP-KEY-ENVELOPE
   version_n: 0
-  status: draft
-  statement: 'Planned capability: the app-side KeyProvider over OpenBao Transit: wrap/unwrap and re-wrap DEKs for sensitive fields and secrets, non-exportable token signing keys with kid and a JWKS endpoint, rotation with an overlap window, key lifecycle operations, and fail-closed behavior in production when the KEK is unreachable or sealed. Builds on the dev Transit bootstrap delivered in PR #12. Acceptance (planned): FIX-JWKS-ROTATION-OVERLAP, FIX-ALLOW-KEK-REWRAP-ONLINE, FIX-DENY-KEK-UNREACHABLE-PROD.'
+  status: active
+  statement: 'OpenBao Transit wraps signing private keys and MFA secrets (envelope encryption). ES256 signing keys are published at `/oauth/jwks` with rotation support (retired keys remain during overlap window). Production startup fails closed when dev-marked OpenBao is configured (existing prod self-check). Acceptance: JWKS endpoint serves active keys; token issue uses KeyProvider-wrapped private key. Production follow-up: FIPS-validated modules and OpenBao Transit-sign (signing in HSM) — R1 uses Transit-wrapped extractable ES256 private keys in the app process.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: SC-12
-    verification_note: Planned. REQAML-SEC-KEYS; SC-12 / SC-13 / SC-28(3). Verify with the KEK / JWKS FIX beds.
-  statement_hash: sha256:dabb656dc95615521b484fff37037ce70a565781ab3f461412dc0cb872d70b4d
+    verification_note: 'SC-12 / SC-28(3). Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
+      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; `/oauth/jwks` serves Transit-wrapped ES256. FIPS/Transit-sign deferred.'
+  statement_hash: sha256:a705e5c39bd7ea6a4f37e3d9bd224f85f22916512c2d9b4fbb1adc0277491299
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-AUTH-AUDIT
   base_uid: CAP-AUTH-AUDIT
   version_n: 0
-  status: draft
-  statement: 'Planned capability: every authentication event (login success/failure, lockout/unlock, MFA, step-up, token issue/refresh/revoke, client registration, key operations) is written through the AuditLog pattern with subject, client_id, source IP, user agent, outcome and timestamp, and exported via OTEL. Audit reads and sinks reuse CAP-AUDIT. Acceptance (planned): each auth FIX bed asserts its audit row.'
+  status: active
+  statement: 'Authentication events are appended to `auth_audit_events`: local login success/failure, lockout, MFA verify, token issue/refresh/reuse/revoke, DCR deny, and RBAC deny samples. Acceptance: auth-flow-smoke exercises login, refresh reuse, revoke, lockout, and RBAC deny paths.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: AU-2
-    verification_note: Planned. AU-2 / AU-3 / AU-12. Verify via audit assertions in the auth FIX beds.
-  statement_hash: sha256:66254b47e6c4e46e0d66d94bc0848ab442986d110a0ce8e3d4771aed85605f3d
+    verification_note: 'AU-2 / AU-3 / AU-12. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
+      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.'
+  statement_hash: sha256:9e67395126b2352f3b3448a0f9a9f362d1633b66041b1da79e12d568b185af13
   grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-AUTH-UPSTREAM-SEAM
+  base_uid: CAP-AUTH-UPSTREAM-SEAM
+  version_n: 0
+  status: active
+  statement: Upstream federation is not fully implemented in R1; the `UpstreamConnector` interface and `upstream_connectors` table plus read-only listing API document the extension point without token passthrough. OIDC/SAML RP implementations and home-realm discovery are deferred.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-8
+    verification_note: Seam only — no live federation in R1. Verified by code review + typecheck.
+  statement_hash: sha256:1c60bafa0af9a2b69b5439701388213780aa12ceb2513f400ba8193ac4d4dc5d
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-DEVENV-INIT
+  base_uid: CAP-DEVENV-INIT
+  version_n: 0
+  status: active
+  statement: '`pnpm devenv:init` writes per-developer random secrets to gitignored `.reqaml/devenv.env` and merges root `.env` for Compose (Postgres password, dev account password, session/agent secrets). Reruns preserve values unless `--rotate`. No fixed default passwords in the repo.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-5
+    verification_note: 'IA-5 dev credential hygiene. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
+      refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+  statement_hash: sha256:f2224091a2e630376b036c38cffe22254712e3c5afb5aeef358a3ddd2f043d67
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-MFA-ENROLL
+  base_uid: CAP-MFA-ENROLL
+  version_n: 0
+  status: active
+  statement: Privileged roles require MFA in all modes. First login can return `mfa_enrollment_required` with otpauth URI; the sign-in card shows a setup key and the otpauth URI (no QR code) and asks for the 6-digit code. `pnpm devenv:mfa <identity-id>` enrolls dev users inside the app container (or `--interactive` prints the URI + ticket, confirmed with `--ticket=… --confirm=<code>`). TOTP secrets are envelope-encrypted; a code is accepted once (replay of the matched time step is rejected).
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-2
+    verification_note: 'IA-2 MFA enrollment. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
+      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+  statement_hash: sha256:ea65e8ae0ed82a9287326222ff49d3f74f6abb901ad5c1cb46050231af545045
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-AGENT-ACCESS
+  base_uid: CAP-AGENT-ACCESS
+  version_n: 0
+  status: active
+  statement: '`pnpm devenv:agent-token --agent <name> [--role Reader|Author]` mints short-lived (<= 1 h) audience-bound tokens via registered `reqaml-agent-dev` client_credentials (not a backdoor password). The agent is its own principal (`agent-<name>`) with explicit project grants; each token carries one role (default Reader), roles above Author or not granted are refused, and authorization uses only the token''s role. Agent name, token role and optional acting-for are recorded on token issue and mutation audit.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-2
+    verification_note: 'IA-2 agent attribution. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
+      dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+  statement_hash: sha256:f71263df62f9ede6dbe321ef345a56c83e523cbcabac2557a448e14662c77154
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-AUTH-HARDEN
+  base_uid: CAP-AUTH-HARDEN
+  version_n: 0
+  status: active
+  statement: Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF required on every cookie-authenticated mutation, per-IP failed-login throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default (production requires an explicit REQAML_TRUSTED_PROXIES list), auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, JWT signature verify before access-token revocation, normalized usernames.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-23
+    verification_note: 'SC-23 session/OAuth hardening. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
+      refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+  statement_hash: sha256:f5ebe525628150baa5e42b194b775edc62e7f2f69bcf6efb53da28bff7accbb6
+  grooming_state: detailed
+  verification_outcome: pass
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -6850,6 +6954,78 @@ capability_artifacts:
 - requirement_version_uid: CAP-KEY-ENVELOPE
   kind: other
   uri: ../c4/sequences/KS01-kek-rotate-dek-rewrap.puml
+- requirement_version_uid: CAP-UI-FRAME
+  kind: other
+  uri: ../../../apps/reqaml/src/web/public/app.js
+- requirement_version_uid: CAP-UI-FRAME
+  kind: other
+  uri: ../../../apps/reqaml/src/web/public/styles.css
+- requirement_version_uid: CAP-OAUTH-AS
+  kind: other
+  uri: ../../../apps/reqaml/src/auth/routes.ts
+- requirement_version_uid: CAP-OAUTH-AS
+  kind: other
+  uri: ../../../apps/reqaml/src/auth/oauth-service.ts
+- requirement_version_uid: CAP-OAUTH-AS
+  kind: other
+  uri: ../../../scripts/auth-flow-smoke.mjs
+- requirement_version_uid: CAP-CRED-STORE
+  kind: other
+  uri: ../../../apps/reqaml/src/credential/password.ts
+- requirement_version_uid: CAP-CRED-STORE
+  kind: other
+  uri: ../../../apps/reqaml/src/credential/lockout.ts
+- requirement_version_uid: CAP-CRED-STORE
+  kind: other
+  uri: ../../../apps/reqaml/src/credential/mfa.ts
+- requirement_version_uid: CAP-KEY-ENVELOPE
+  kind: other
+  uri: ../../../apps/reqaml/src/key/provider.ts
+- requirement_version_uid: CAP-KEY-ENVELOPE
+  kind: other
+  uri: ../../../apps/reqaml/src/key/signing.ts
+- requirement_version_uid: CAP-AUTH-AUDIT
+  kind: other
+  uri: ../../../apps/reqaml/src/audit/auth-audit.ts
+- requirement_version_uid: CAP-RBAC
+  kind: other
+  uri: ../../../apps/reqaml/src/rbac/enforce.ts
+- requirement_version_uid: CAP-RBAC
+  kind: other
+  uri: ../../../apps/reqaml/src/http/server.ts
+- requirement_version_uid: CAP-AUTH-UPSTREAM-SEAM
+  kind: other
+  uri: ../../../apps/reqaml/src/auth/upstream-connector.ts
+- requirement_version_uid: CAP-DEVENV-INIT
+  kind: other
+  uri: ../../../scripts/devenv-init.mjs
+- requirement_version_uid: CAP-DEVENV-INIT
+  kind: other
+  uri: ../../../.env.example
+- requirement_version_uid: CAP-MFA-ENROLL
+  kind: other
+  uri: ../../../apps/reqaml/src/auth/mfa-enroll.ts
+- requirement_version_uid: CAP-MFA-ENROLL
+  kind: other
+  uri: ../../../apps/reqaml/src/cli/enroll-mfa.ts
+- requirement_version_uid: CAP-AGENT-ACCESS
+  kind: other
+  uri: ../../../scripts/devenv-agent-token.mjs
+- requirement_version_uid: CAP-AGENT-ACCESS
+  kind: other
+  uri: ../../../apps/reqaml/src/auth/agent-auth.ts
+- requirement_version_uid: CAP-AUTH-HARDEN
+  kind: other
+  uri: ../../../apps/reqaml/src/auth/handoff.ts
+- requirement_version_uid: CAP-AUTH-HARDEN
+  kind: other
+  uri: ../../../apps/reqaml/src/auth/web-session.ts
+- requirement_version_uid: CAP-AUTH-HARDEN
+  kind: other
+  uri: ../../../apps/reqaml/src/credential/ip-throttle.ts
+- requirement_version_uid: CAP-AUTH-HARDEN
+  kind: other
+  uri: ../../../apps/reqaml/src/db/migrations/004_devenv_hardening.sql
 edges:
 - from: CAP-SSO
   to: A01
@@ -12254,6 +12430,47 @@ edges:
   to: AU-2
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-AUTH-UPSTREAM-SEAM
+  to: ARCH-AUTH-UPSTREAM-CONNECTOR
+  kind: satisfies
+- from: CAP-AUTH-UPSTREAM-SEAM
+  to: IA-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-INIT
+  to: ARCH-DEVENV-SECRETS
+  kind: satisfies
+- from: CAP-DEVENV-INIT
+  to: ARCH-DEVENV-IDENTITY.1
+  kind: satisfies
+- from: CAP-DEVENV-INIT
+  to: IA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-MFA-ENROLL
+  to: ARCH-CRED-MFA
+  kind: satisfies
+- from: CAP-MFA-ENROLL
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-AGENT-ACCESS
+  to: ARCH-AUTH-AGENT-ATTRIBUTION
+  kind: satisfies
+- from: CAP-AGENT-ACCESS
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-AUTH-HARDEN
+  to: ARCH-AUTH-AS
+  kind: satisfies
+- from: CAP-AUTH-HARDEN
+  to: ARCH-CRED-LOCKOUT
+  kind: satisfies
+- from: CAP-AUTH-HARDEN
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -12456,8 +12673,8 @@ releases:
   project_id: reqaml
   name: 'PR #12 — devenv foundation'
   planned_on: '2026-10-07'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-07'
+  status: shipped
   delivers:
   - ARCH-DEVENV-MODES.1
   - ARCH-DEVENV-PARITY.1
@@ -12482,63 +12699,56 @@ releases:
   - CAP-API-DOCS-SEED-SUMMARY
   - CAP-DEVENV-SMOKE
   cyber_gate: false
-  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/12 (branch cursor/reqaml-devenv-foundation-b0e0). About to merge: flip to shipped with shipped_on + merge SHA at merge. pnpm monorepo, one Dockerfile, 2-container Compose (app + peripherals: Postgres + OpenBao), app shell, /health liveness, /ready live peripheral checks, startup backoff, production self-check refusing dev keys/accounts, `pnpm devenv:smoke` (CI manual-only). Requirement versions listed here moved from rel-r1-foundation-shell-auth (fully met). cyber_gate=false: developer tooling, no client data.'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/12 merged to main as 67131da on 2026-10-07. pnpm monorepo, one Dockerfile, 2-container Compose (app + peripherals: Postgres + OpenBao), app shell, /health liveness, /ready live peripheral checks, startup backoff, production self-check refusing dev keys/accounts, `pnpm devenv:smoke` (CI manual-only).'
 - id: rel-r1-foundation-shell-auth
   project_id: reqaml
-  name: 'R1-foundation-shell-auth — next PR: UI frame + internal auth'
-  planned_on:
+  name: 'R1 — foundation shell + internal auth'
+  planned_on: '2026-10-07'
   shipped_on:
   status: planned
   delivers:
-  - ARCH-BUILD-FOUNDATION
+  - ARCH-API-RBAC
+  - ARCH-AUTH-AGENT-ATTRIBUTION
   - ARCH-AUTH-AS
-  - ARCH-AUTH-PKCE
-  - ARCH-AUTH-METADATA
   - ARCH-AUTH-AUDIENCE
+  - ARCH-AUTH-CLIENTREG
+  - ARCH-AUTH-LOCAL.1
+  - ARCH-AUTH-MCP-REQUIRED
+  - ARCH-AUTH-METADATA
+  - ARCH-AUTH-PKCE
+  - ARCH-AUTH-PROFILE
   - ARCH-AUTH-REFRESH
   - ARCH-AUTH-REVOKE
-  - ARCH-AUTH-CLIENTREG
-  - ARCH-AUTH-FEDERATION
-  - ARCH-AUTH-LOCAL.1
+  - ARCH-AUTH-UPSTREAM-CONNECTOR
+  - ARCH-BUILD-FOUNDATION
   - ARCH-CRED
+  - ARCH-CRED-AUDIT
   - ARCH-CRED-HASH
-  - ARCH-CRED-POLICY
   - ARCH-CRED-LOCKOUT
   - ARCH-CRED-MFA
+  - ARCH-CRED-POLICY
   - ARCH-CRED-TOKENS
-  - ARCH-CRED-SESSION
-  - ARCH-CRED-REAUTH
-  - ARCH-CRED-AUDIT
+  - ARCH-DEVENV-IDENTITY.1
   - ARCH-KEY
-  - ARCH-KEY-PROVIDER
-  - ARCH-KEY-SCOPE
+  - ARCH-KEY-FAILCLOSED
   - ARCH-KEY-JWKS
   - ARCH-KEY-LIFECYCLE
-  - ARCH-KEY-CUSTODIAN
-  - ARCH-KEY-BREAKGLASS
-  - ARCH-KEY-FIPS
-  - ARCH-KEY-FAILCLOSED
-  - ARCH-DEPLOY-MINIMAL
-  - ARCH-DEPLOY-PERIPHERALS
-  - ARCH-DEVENV-COMPOSE.1
-  - ARCH-DEVENV-IDENTITY.1
-  - ARCH-API-LAYERS
-  - ARCH-API-RBAC
+  - ARCH-KEY-PROVIDER
+  - ARCH-KEY-SCOPE
   - ARCH-UI-GUARD
-  - ARCH-AUTH-PROFILE
-  - ARCH-AUTH-MCP-REQUIRED
-  - ARCH-AUTH-LOCAL-BREAKGLASS
-  - ARCH-AUTH-UPSTREAM-CONNECTOR
-  - ARCH-AUTH-CLAIM-MAP
-  - ARCH-AUTH-UPSTREAM-REVOKE
-  - ARCH-AUTH-AGENT-ATTRIBUTION
-  - CAP-UI-FRAME
-  - CAP-OAUTH-AS
-  - CAP-CRED-STORE
-  - CAP-KEY-ENVELOPE
+  - CAP-AGENT-ACCESS
   - CAP-AUTH-AUDIT
+  - CAP-AUTH-HARDEN
+  - CAP-AUTH-UPSTREAM-SEAM
+  - CAP-CRED-STORE
+  - CAP-DEVENV-INIT
+  - CAP-KEY-ENVELOPE
+  - CAP-MFA-ENROLL
+  - CAP-OAUTH-AS
   - CAP-RBAC
-  notes: 'Next planned release after PR #12 (rel-pr12-devenv-foundation); PR not opened yet (one PR = one release). Scope: UI frame (CAP-UI-FRAME), internal OAuth 2.1 AS (CAP-OAUTH-AS), credential store (CAP-CRED-STORE), KeyProvider envelope encryption + JWKS (CAP-KEY-ENVELOPE), RBAC (CAP-RBAC), auth audit (CAP-AUTH-AUDIT). 2026-10-07 split: ARCH-DEVENV-MODES.1, -PARITY.1, -KEYS, -CLONE, -SEED, -SECRETS, -HEALTH and M04 moved to rel-pr12-devenv-foundation (fully met there). ARCH-DEVENV-COMPOSE.1 (hsm-test profile, internal-AS sign-in), ARCH-DEVENV-IDENTITY.1 (dev sign-in via AS), ARCH-DEPLOY-MINIMAL (AS + real MCP role) and ARCH-DEPLOY-PERIPHERALS (prod split) stay here: PR #12 meets them only in part (see its Satisfies edges). Build sequencing only (ARCH-BUILD-FOUNDATION); no v1 scope cut. planned_on / cyber_gate pending Dan (open-questions).'
+  - CAP-UI-FRAME
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/13 (planned until merge). Built: UI frame (BFF session cookies), internal OAuth 2.1 AS with server-side handoffs, Argon2id + MFA enrollment, agent client_credentials, KeyProvider JWKS (Transit-wrapped ES256; FIPS/Transit-sign follow-up), RBAC, auth audit, upstream connector seam, `pnpm devenv:init` / MFA / agent-token CLIs. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation
+    without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass. Deferred items moved to rel-r1-platform-followups (federation, break-glass, full step-up session UX, FIPS, etc.).'
 - id: rel-r1-core-alm
   project_id: reqaml
   name: R1-core-ALM
@@ -12644,6 +12854,28 @@ releases:
   - UI-APPROVE-TREE
   notes: 'Includes obsolete ARCH-CONTRACT intentionally for FIX-REL-SNAP stale-backlog UX. cyber_gate=true: G05 ship needs Security sign-off + AO approve (ARCH-CYBER-GATE).'
   cyber_gate: true
+- id: rel-r1-platform-followups
+  project_id: reqaml
+  name: R1 platform follow-ups (deferred from foundation PR)
+  planned_on: '2026-11-30'
+  shipped_on:
+  status: planned
+  delivers:
+  - ARCH-API-LAYERS
+  - ARCH-AUTH-CLAIM-MAP
+  - ARCH-AUTH-FEDERATION
+  - ARCH-AUTH-LOCAL-BREAKGLASS
+  - ARCH-AUTH-UPSTREAM-REVOKE
+  - ARCH-CRED-REAUTH
+  - ARCH-CRED-SESSION
+  - ARCH-DEPLOY-MINIMAL
+  - ARCH-DEPLOY-PERIPHERALS
+  - ARCH-DEVENV-COMPOSE.1
+  - ARCH-KEY-BREAKGLASS
+  - ARCH-KEY-CUSTODIAN
+  - ARCH-KEY-FIPS
+  cyber_gate: false
+  notes: Architecture requirements intentionally not claimed by rel-r1-foundation-shell-auth. Includes federation SSO, break-glass, claim mapping, upstream revoke propagation, full HttpOnly session/step-up product UX beyond R1 BFF, key custodian UI, FIPS/Transit-sign, production deploy split, full API layering, hsm-test Compose profile.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqaml
