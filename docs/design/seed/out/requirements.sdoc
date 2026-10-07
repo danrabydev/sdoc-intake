@@ -9793,7 +9793,7 @@ UID: CAP-TEST-MEMORY-KEYPROVIDER
 STATUS: Active
 TITLE: In-memory KeyProvider fake for tests
 STATEMENT: >>>
-Tests import `createMemoryKeyProvider()` from `apps/reqaml/src/key/memory-provider.ts` (dev/test only). Production `provider.ts` does not re-export the fake; production build excludes `memory-provider.ts`.
+Tests inject `createMemoryKeyProvider()` implementing the production KeyProvider interface (wrapSecret/unwrapSecret/ensureReady) without OpenBao. Production wiring still uses OpenBao Transit.
 <<<
 COMMENT: >>>
 KIND: capability

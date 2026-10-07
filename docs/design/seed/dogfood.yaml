@@ -6887,13 +6887,13 @@ requirement_versions:
   base_uid: CAP-TEST-MEMORY-KEYPROVIDER
   version_n: 0
   status: active
-  statement: Tests import `createMemoryKeyProvider()` from `apps/reqaml/src/key/memory-provider.ts` (dev/test only). Production `provider.ts` does not re-export the fake; production build excludes `memory-provider.ts`.
+  statement: Tests inject `createMemoryKeyProvider()` implementing the production KeyProvider interface (wrapSecret/unwrapSecret/ensureReady) without OpenBao. Production wiring still uses OpenBao Transit.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: SC-12
     verification_note: Dev/test only; no production path change.
-  statement_hash: sha256:76ea9ad330c3f71bd00c7cfaf34c260b0375298a45b1f11cfb9808831a04784a
+  statement_hash: sha256:d69e689a691105b0952230ee4976b094fd631d828dbf346cdcd5a159641d2c69
   grooming_state: detailed
   verification_outcome: pass
 - uid: CAP-TEST-PGLITE-DB
@@ -7279,13 +7279,13 @@ capability_artifacts:
   kind: other
   uri: ../../../apps/reqaml/src/test/harness.ts
 - requirement_version_uid: CAP-TEST-PROD-BUILD-EXCLUDE
-  kind: code
+  kind: other
   uri: ../../../apps/reqaml/tsconfig.build.json
 - requirement_version_uid: CAP-TEST-AUTH-HYGIENE
-  kind: code
+  kind: other
   uri: ../../../apps/reqaml/src/auth/auth.integration.test.ts
 - requirement_version_uid: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
-  kind: code
+  kind: other
   uri: ../../../scripts/devenv-smoke.mjs
 edges:
 - from: CAP-SSO
