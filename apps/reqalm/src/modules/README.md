@@ -11,7 +11,7 @@ Each feature lives under `src/modules/<feature>/` with:
 1. Declare permission on the route: `config.reqalmSecurity = { kind: "permission", permission: "…" }` (or `public` / `authenticated`).
 2. Define an `OperationDef` with `name`, `permission`, optional `projectScoped`, and `execute`.
 3. Call `runOperation(ctx, def, input)` from the route — authorization, audit (`audit_events`), structured logs, and typed errors are automatic.
-4. Add schema under `schema` on the route so OpenAPI stays current.
+4. Document the route in `openapi/openapi.yaml`. `/docs` serves that static file; a route `schema` only validates and serializes, it does not reach the docs.
 5. Register the module in `register.ts`.
 
 ## Policies
