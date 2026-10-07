@@ -1,8 +1,9 @@
 import type pg from "pg";
 import type { AppConfig } from "../config.js";
 import { isProduction } from "../config.js";
-import { checkOpenBao } from "../key/openbao.js";
+import { isDevMarkedOpenBaoAddr } from "../key/openbao.js";
 
+/** Policy checks that do not substitute for live /ready probes (ARCH-DEVENV-IDENTITY.1). */
 export async function runStartupSelfCheck(
   config: AppConfig,
   pool: pg.Pool,
@@ -27,21 +28,15 @@ export async function runStartupSelfCheck(
         "Seeded dev local accounts exist in database; refuse production startup",
       );
     }
-  }
 
-  const openbao = await checkOpenBao(config);
-  if (isProduction(config)) {
-    if (!openbao.ok) {
-      errors.push(`KeyProvider not ready: ${openbao.detail ?? "unknown"}`);
-    }
-    if (openbao.devMarked) {
+    if (
+      config.REQAML_OPENBAO_DEV_MARKED ||
+      isDevMarkedOpenBaoAddr(config.OPENBAO_ADDR)
+    ) {
       errors.push(
-        openbao.detail ??
-          "Dev-marked OpenBao configuration refused in production",
+        "Dev-marked OpenBao configuration refused in production (FIX-DENY-DEV-KEK-IN-PROD)",
       );
     }
-  } else if (config.OPENBAO_ADDR && !openbao.ok) {
-    errors.push(`Dev OpenBao not ready: ${openbao.detail ?? "unknown"}`);
   }
 
   if (errors.length) {

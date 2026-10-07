@@ -35,6 +35,10 @@ const EnvSchema = z
     REQAML_SEED_PATH: z.string().default("docs/design/seed/dogfood.yaml"),
     // Empty (e.g. `REQAML_DEV_ACCOUNT_PASSWORD=` from .env.example) means "not set".
     REQAML_DEV_ACCOUNT_PASSWORD: z.preprocess(emptyToUndefined, z.string().optional()),
+    REQAML_READY_CACHE_MS: z.coerce.number().default(2_000),
+    REQAML_READY_PROBE_TIMEOUT_MS: z.coerce.number().default(3_000),
+    REQAML_STARTUP_MAX_WAIT_MS: z.coerce.number().default(120_000),
+    REQAML_STARTUP_INITIAL_DELAY_MS: z.coerce.number().default(1_000),
   })
   .transform((raw) => {
     let token = raw.OPENBAO_TOKEN;

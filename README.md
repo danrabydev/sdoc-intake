@@ -31,6 +31,8 @@ docker compose up --build
 
 Open **http://localhost:3000** (web placeholder). Probes: `/health`, `/ready`, `/docs` (OpenAPI UI), `/api/v1/seed/summary`.
 
+**Liveness vs readiness:** `/health` only confirms the app process is up (Compose liveness). `/ready` live-checks Postgres, pending migrations, OpenBao (unsealed + Transit KEK encrypt/decrypt), and each enabled role; it returns **503** when a dependency is down (Compose readiness). Startup waits for peripherals with backoff so the app container does not crash-loop while OpenBao unseals.
+
 First start applies migrations and loads the dogfood seed (`REQAML_SEED_ON_START=true`). OpenBao initializes Transit with a **dev-marked** mount and KEK (`reqaml-kek`); unseal key and root token are stored in the `reqaml-secrets` volume (never committed).
 
 Seeded dev local accounts are `<identity-id>@dev.local`. Their password comes from `REQAML_DEV_ACCOUNT_PASSWORD` in your `.env`; if it is empty, the first seed generates one and prints it once (`docker compose logs app | grep "reqaml seed"`). No default credential is committed.

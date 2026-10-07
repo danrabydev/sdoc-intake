@@ -1,13 +1,16 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig, type AppRole } from "./config.js";
-import { closePool, getPool, pingDatabase } from "./db/pool.js";
+import { closePool, getPool } from "./db/pool.js";
 import { runMigrations } from "./db/migrate.js";
-import { checkOpenBao } from "./key/openbao.js";
-import { buildApiServer, type RuntimeState } from "./http/server.js";
+import { buildApiServer } from "./http/server.js";
 import { buildProbesServer } from "./http/probes-only.js";
+import { ProbeCache } from "./readiness/cache.js";
+import { defaultRoleAssets } from "./readiness/report.js";
+import type { ReadinessContext } from "./readiness/report.js";
 import { readDogfoodFile, loadDogfoodSeed } from "./seed/load-dogfood.js";
 import { runStartupSelfCheck } from "./startup/self-check.js";
+import { waitForPeripherals } from "./startup/wait-for-peripherals.js";
 import { startSyncWorker, type SyncHandle } from "./roles/sync-worker.js";
 
 function resolveSeedPath(config: ReturnType<typeof loadConfig>): string {
@@ -26,11 +29,9 @@ async function bootstrap() {
   const roles = new Set<AppRole>(config.REQAML_ROLES);
   const pool = getPool(config.DATABASE_URL);
 
-  await pingDatabase(config.DATABASE_URL);
+  await waitForPeripherals(config, pool);
   await runMigrations(pool);
 
-  // Self-check first so production mode refuses dev seed/accounts/keys with one explicit error
-  // before any dev fixture code runs (FIX-DENY-DEVENV-PROD-LOGIN.1, FIX-DENY-DEV-KEK-IN-PROD).
   await runStartupSelfCheck(config, pool);
 
   if (config.REQAML_SEED_ON_START) {
@@ -38,18 +39,27 @@ async function bootstrap() {
     await loadDogfoodSeed(pool, config, seed);
   }
 
-  const openbao = await checkOpenBao(config);
   let sync: SyncHandle | null = null;
   if (roles.has("sync")) {
     sync = startSyncWorker(config);
   }
 
-  const state: RuntimeState = {
+  const readiness: ReadinessContext = {
     config,
     pool,
     roles,
-    openbao,
-    syncRunning: Boolean(sync),
+    sync,
+    roleAssets: await defaultRoleAssets(),
+    cache: new ProbeCache(config.REQAML_READY_CACHE_MS),
+    probeTimeoutMs: config.REQAML_READY_PROBE_TIMEOUT_MS,
+  };
+
+  const state = {
+    config,
+    pool,
+    roles,
+    sync,
+    readiness,
   };
 
   const apiSurface =

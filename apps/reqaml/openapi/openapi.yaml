@@ -7,7 +7,10 @@ paths:
   /health:
     get:
       operationId: getHealth
-      summary: Liveness probe (M04)
+      summary: Liveness probe (M04) — process only; no Postgres/OpenBao calls
+      description: |
+        Orchestrator **liveness**: returns 200 while the Node process serves HTTP.
+        Peripheral outages must not fail liveness (ARCH-DEVENV-HEALTH).
       tags: [ops]
       responses:
         "200":
@@ -19,7 +22,11 @@ paths:
   /ready:
     get:
       operationId: getReadiness
-      summary: Readiness probe (M04, ARCH-DEVENV-HEALTH)
+      summary: Readiness probe (M04, ARCH-DEVENV-HEALTH, ARCH-KEY-FAILCLOSED)
+      description: |
+        **Readiness** re-probes Postgres, pending migrations, OpenBao (unsealed + Transit KEK round-trip),
+        and cheap checks for each enabled role. Results are cached briefly to avoid flooding OpenBao.
+        Returns 503 when not ready; check `checks` for per-dependency detail (no secrets).
       tags: [ops]
       responses:
         "200":
