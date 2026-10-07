@@ -7372,13 +7372,13 @@ requirement_versions:
   base_uid: CAP-OTEL-KEY-DEP
   version_n: 0
   status: draft
-  statement: Transit HTTP calls wrapped without changing KeyProvider interface.
+  statement: KeyProvider calls emit key.* spans (dependency and purpose only; no key material or tokens) without changing the KeyProvider interface; the OpenBao HTTP calls are their undici-instrumented child spans.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until OTel tracing PR merges.
-  statement_hash: sha256:1c883e7f0d0461c5637553775e7c041077c8e466d65416bf0883a4ff9cd1b3bc
+  statement_hash: sha256:02819b54f7e6518c03935765a9c584f00485495629b16c83f86e6cece2925703
   grooming_state: detailed
 - uid: CAP-OTEL-AUDIT-TRACE
   base_uid: CAP-OTEL-AUDIT-TRACE
@@ -7408,13 +7408,13 @@ requirement_versions:
   base_uid: CAP-OTEL-TEST-HARNESS
   version_n: 0
   status: draft
-  statement: otel-preload registers SDK before pg import; PGLiteSocketServer + pg Pool; in-memory exporter assertions.
+  statement: otel-preload starts the test SDK with the production instrumentation list before pg is imported; real pg Pool over PGLiteSocketServer; in-memory exporter assertions.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until OTel tracing PR merges.
-  statement_hash: sha256:6f052e4c5168a295b858322dd76ce49c9ab79f1d0cfd089346ab98ed4297fac5
+  statement_hash: sha256:219e7548856ee534175a05c25c514168f77fc2b060943b0afdca6800e59342b4
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -7783,6 +7783,9 @@ capability_artifacts:
 - requirement_version_uid: CAP-OTEL-SDK-BOOTSTRAP
   kind: other
   uri: ../../../apps/reqalm/src/telemetry/otel-env.ts
+- requirement_version_uid: CAP-OTEL-SDK-BOOTSTRAP
+  kind: other
+  uri: ../../../apps/reqalm/src/telemetry/instrumentations.ts
 - requirement_version_uid: CAP-OTEL-W3C-CONTEXT
   kind: other
   uri: ../../../apps/reqalm/src/telemetry/request-id.ts
@@ -7810,6 +7813,9 @@ capability_artifacts:
 - requirement_version_uid: CAP-OTEL-TEST-HARNESS
   kind: other
   uri: ../../../apps/reqalm/src/test/otel-preload.ts
+- requirement_version_uid: CAP-OTEL-TEST-HARNESS
+  kind: other
+  uri: ../../../apps/reqalm/src/test/otel-testing.ts
 - requirement_version_uid: CAP-OTEL-TEST-HARNESS
   kind: other
   uri: ../../../apps/reqalm/src/test/pglite-pool.ts
@@ -13338,7 +13344,7 @@ edges:
   kind: satisfies
 - from: ARCH-OTEL-TRACE
   to: ARCH-OTEL
-  kind: refines
+  kind: uses
 - from: CAP-OTEL-SDK-BOOTSTRAP
   to: ARCH-OTEL-TRACE
   kind: satisfies
@@ -13348,14 +13354,8 @@ edges:
 - from: CAP-OTEL-OPERATION-SPANS
   to: ARCH-OTEL-TRACE
   kind: satisfies
-- from: CAP-OTEL-OPERATION-SPANS
-  to: ARCH-API-RBAC
-  kind: satisfies
 - from: CAP-OTEL-KEY-DEP
   to: ARCH-OTEL-TRACE
-  kind: satisfies
-- from: CAP-OTEL-KEY-DEP
-  to: ARCH-KEY
   kind: satisfies
 - from: CAP-OTEL-AUDIT-TRACE
   to: ARCH-OTEL-TRACE

@@ -81,6 +81,7 @@ OTEL_CAPS = [
         [
             f"{REPO}/apps/reqalm/src/telemetry/register.ts",
             f"{REPO}/apps/reqalm/src/telemetry/otel-env.ts",
+            f"{REPO}/apps/reqalm/src/telemetry/instrumentations.ts",
         ],
     ),
     (
@@ -97,14 +98,15 @@ OTEL_CAPS = [
         "CAP-OTEL-OPERATION-SPANS",
         "Manual operation spans (runOperation)",
         "Operation span with RBAC/outcome attributes; error status on deny/error; no secrets in attributes.",
-        ["ARCH-OTEL-TRACE", "ARCH-API-RBAC"],
+        ["ARCH-OTEL-TRACE"],
         [f"{REPO}/apps/reqalm/src/core/operation.ts"],
     ),
     (
         "CAP-OTEL-KEY-DEP",
         "OpenBao dependency spans (KeyProvider)",
-        "Transit HTTP calls wrapped without changing KeyProvider interface.",
-        ["ARCH-OTEL-TRACE", "ARCH-KEY"],
+        "KeyProvider calls emit key.* spans (dependency and purpose only; no key material or tokens) without "
+        "changing the KeyProvider interface; the OpenBao HTTP calls are their undici-instrumented child spans.",
+        ["ARCH-OTEL-TRACE"],
         [f"{REPO}/apps/reqalm/src/key/provider.ts", f"{REPO}/apps/reqalm/src/telemetry/key-provider-tracing.ts"],
     ),
     (
@@ -127,10 +129,12 @@ OTEL_CAPS = [
     (
         "CAP-OTEL-TEST-HARNESS",
         "In-process tracing tests (real pg + PGlite socket)",
-        "otel-preload registers SDK before pg import; PGLiteSocketServer + pg Pool; in-memory exporter assertions.",
+        "otel-preload starts the test SDK with the production instrumentation list before pg is imported; "
+        "real pg Pool over PGLiteSocketServer; in-memory exporter assertions.",
         ["ARCH-OTEL-TRACE"],
         [
             f"{REPO}/apps/reqalm/src/test/otel-preload.ts",
+            f"{REPO}/apps/reqalm/src/test/otel-testing.ts",
             f"{REPO}/apps/reqalm/src/test/pglite-pool.ts",
             f"{REPO}/apps/reqalm/src/telemetry/otel-tracing.test.ts",
         ],
@@ -194,7 +198,7 @@ def main() -> None:
     )
     ensure_edge(
         data.setdefault("edges", []),
-        {"from": "ARCH-OTEL-TRACE", "to": "ARCH-OTEL", "kind": "refines"},
+        {"from": "ARCH-OTEL-TRACE", "to": "ARCH-OTEL", "kind": "uses"},
     )
 
     deliver_uids = []

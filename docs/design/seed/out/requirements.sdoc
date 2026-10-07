@@ -8316,7 +8316,7 @@ edge: ← refines from ARCH-CRED-AUDIT
 edge: ← uses from ARCH-KEY-LIFECYCLE
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
-edge: ← refines from ARCH-OTEL-TRACE
+edge: ← uses from ARCH-OTEL-TRACE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -8450,7 +8450,6 @@ edge: ← satisfies from CAP-SVC-REQUEST-CONTEXT
 edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR
 edge: ← satisfies from CAP-SVC-ROUTE-REGISTRY
 edge: ← satisfies from CAP-SVC-PROJECT-READ
-edge: ← satisfies from CAP-OTEL-OPERATION-SPANS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -8809,7 +8808,7 @@ RELATIONS:
   VALUE: SEC-API
 - TYPE: Parent
   VALUE: ARCH-OTEL
-  ROLE: Refines
+  ROLE: Uses
 
 [REQUIREMENT]
 UID: CAP-OTEL-SDK-BOOTSTRAP
@@ -8888,9 +8887,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL-TRACE
   ROLE: Satisfies
-- TYPE: Parent
-  VALUE: ARCH-API-RBAC
-  ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-otel-tracing
   ROLE: Delivers
@@ -8900,7 +8896,7 @@ UID: CAP-OTEL-KEY-DEP
 STATUS: Draft
 TITLE: OpenBao dependency spans (KeyProvider)
 STATEMENT: >>>
-Transit HTTP calls wrapped without changing KeyProvider interface.
+KeyProvider calls emit key.* spans (dependency and purpose only; no key material or tokens) without changing the KeyProvider interface; the OpenBao HTTP calls are their undici-instrumented child spans.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -8917,9 +8913,6 @@ RELATIONS:
   VALUE: SEC-API
 - TYPE: Parent
   VALUE: ARCH-OTEL-TRACE
-  ROLE: Satisfies
-- TYPE: Parent
-  VALUE: ARCH-KEY
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-otel-tracing
@@ -8984,7 +8977,7 @@ UID: CAP-OTEL-TEST-HARNESS
 STATUS: Draft
 TITLE: In-process tracing tests (real pg + PGlite socket)
 STATEMENT: >>>
-otel-preload registers SDK before pg import; PGLiteSocketServer + pg Pool; in-memory exporter assertions.
+otel-preload starts the test SDK with the production instrumentation list before pg is imported; real pg Pool over PGLiteSocketServer; in-memory exporter assertions.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -9734,7 +9727,6 @@ edge: ← uses from ARCH-DEPLOY-PERIPHERALS
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from FIX-ALLOW-CRED-HASH-ONLY
 edge: ← satisfies from CAP-KEY-ENVELOPE
-edge: ← satisfies from CAP-OTEL-KEY-DEP
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-28 (pin imprint=nist-800-53@rev5-dogfood-20261006)
