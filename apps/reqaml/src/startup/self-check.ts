@@ -21,7 +21,7 @@ export async function runStartupSelfCheck(
     }
 
     const devAccounts = await pool.query(
-      "SELECT count(*)::int AS c FROM dev_local_accounts WHERE is_dev_seeded = true",
+      "SELECT count(*)::int AS c FROM local_credentials WHERE is_dev_seeded = true",
     );
     if ((devAccounts.rows[0]?.c as number) > 0) {
       errors.push(

@@ -17,7 +17,7 @@
  *      REQAML_SMOKE_DOWN=1 to run `docker compose down -v` at the end.
  */
 import { spawn } from "node:child_process";
-import { copyFileSync, existsSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 
 const baseUrl = process.env.REQAML_SMOKE_URL ?? "http://127.0.0.1:3000";
 const hostDsn =
@@ -106,11 +106,31 @@ function lastJsonObject(text) {
   return JSON.parse(text.slice(start === -1 ? text.indexOf("{") : start + 1));
 }
 
-async function main() {
+function ensureSmokeDevPassword() {
+  const smokePassword =
+    process.env.REQAML_DEV_ACCOUNT_PASSWORD ??
+    process.env.REQAML_SMOKE_DEV_PASSWORD ??
+    "reqaml-dev-smoke-fixed-2026";
   if (!existsSync(".env")) {
     console.log("No .env found; copying .env.example (README clone-to-running step).");
     copyFileSync(".env.example", ".env");
   }
+  let envText = readFileSync(".env", "utf8");
+  if (/^REQAML_DEV_ACCOUNT_PASSWORD=.*$/m.test(envText)) {
+    envText = envText.replace(
+      /^REQAML_DEV_ACCOUNT_PASSWORD=.*$/m,
+      `REQAML_DEV_ACCOUNT_PASSWORD=${smokePassword}`,
+    );
+  } else {
+    envText += `\nREQAML_DEV_ACCOUNT_PASSWORD=${smokePassword}\n`;
+  }
+  writeFileSync(".env", envText);
+  process.env.REQAML_DEV_ACCOUNT_PASSWORD = smokePassword;
+  return smokePassword;
+}
+
+async function main() {
+  const smokePassword = ensureSmokeDevPassword();
 
   console.log("Starting peripherals + app (full-container)…");
   // --wait blocks until every service is healthy and exits non-zero if any becomes unhealthy/exits.
@@ -203,6 +223,10 @@ async function main() {
     fail("App started (or failed for the wrong reason) in production mode with dev accounts/keys", prodApp);
   }
 
+  console.log("\nAuth flow smoke (PKCE login, refresh/reuse, revoke, lockout, RBAC deny)…");
+  const { runAuthFlowSmoke } = await import("./auth-flow-smoke.mjs");
+  const authSmoke = await runAuthFlowSmoke(smokePassword);
+
   console.log(
     "\n" +
       JSON.stringify(
@@ -213,6 +237,7 @@ async function main() {
           seed: summary2,
           containers: services,
           production_refused: true,
+          auth_smoke: authSmoke,
         },
         null,
         2,
