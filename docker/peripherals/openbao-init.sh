@@ -61,12 +61,13 @@ if bao secrets list -format=json | jq -e 'has("transit/")' >/dev/null; then
 else
   bao secrets enable -description="$DEV_MARK" transit >/dev/null
 fi
-if ! bao read transit/keys/reqalm-kek >/dev/null 2>&1; then
-  bao write -f transit/keys/reqalm-kek \
+# KEK name keeps the legacy ReqAML spelling: existing ciphertexts are bound to it (see TRANSIT_KEK_NAME).
+if ! bao read transit/keys/reqaml-kek >/dev/null 2>&1; then
+  bao write -f transit/keys/reqaml-kek \
     type=aes256-gcm96 \
     exportable=false \
     allow_plaintext_backup=false >/dev/null
 fi
 
-echo "ReqALM dev OpenBao initialized (dev-marked Transit mount, KEK reqalm-kek)."
+echo "ReqALM dev OpenBao initialized (dev-marked Transit mount, KEK reqaml-kek)."
 touch "$MARKER"

@@ -55,7 +55,7 @@ Open **http://127.0.0.1:3000**. Probes: `/health`, `/ready`, `/docs` (OpenAPI UI
 
 **Liveness vs readiness:** `/health` only confirms the app process is up (Compose liveness). `/ready` live-checks Postgres, pending migrations, OpenBao (unsealed + Transit KEK encrypt/decrypt), and each enabled role; it returns **503** when a dependency is down (Compose readiness). Startup waits for peripherals with backoff so the app container does not crash-loop while OpenBao unseals.
 
-First start applies migrations and loads the dogfood seed (`REQALM_SEED_ON_START=true`). OpenBao initializes Transit with a **dev-marked** mount and KEK (`reqalm-kek`); unseal key and root token are stored in the `reqalm-secrets` volume (never committed).
+First start applies migrations and loads the dogfood seed (`REQALM_SEED_ON_START=true`). OpenBao initializes Transit with a **dev-marked** mount and KEK (`reqaml-kek`); unseal key and root token are stored in the `reqaml-secrets` volume (never committed). The Compose volume names and the Transit key name keep the legacy ReqAML spelling on purpose so existing dev stacks keep their data and ciphertexts across the rename.
 
 Seeded dev local accounts are `<identity-id>@dev.local`. Passwords come from `pnpm devenv:init` (`REQALM_DEV_ACCOUNT_PASSWORD` in `.env`). No default credential is committed.
 

@@ -13,9 +13,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run pnpm devenv:init — POSTGRES_PASSWORD is required}
       POSTGRES_DB: ${POSTGRES_DB:-reqalm}
     volumes:
-      - reqalm-pg:/var/lib/postgresql/data
-      - reqalm-openbao:/var/lib/reqalm/openbao
-      - reqalm-secrets:/var/lib/reqalm/secrets
+      - reqaml-pg:/var/lib/postgresql/data
+      - reqaml-openbao:/var/lib/reqalm/openbao
+      - reqaml-secrets:/var/lib/reqalm/secrets
     healthcheck:
       test: ["CMD", "/healthcheck.sh"]
       interval: 10s
@@ -48,7 +48,7 @@ services:
       REQALM_SEED_ON_START: ${REQALM_SEED_ON_START:-true}
       REQALM_SEED_PATH: /repo/docs/design/seed/dogfood.yaml
     volumes:
-      - reqalm-secrets:/var/lib/reqalm/secrets:ro
+      - reqaml-secrets:/var/lib/reqalm/secrets:ro
     ports:
       - "127.0.0.1:${REQALM_HOST_PORT:-3000}:${REQALM_PORT:-3000}"
     healthcheck:
@@ -64,7 +64,9 @@ services:
       retries: 12
       start_period: 45s
 
+# Volume names keep the legacy ReqAML spelling on purpose: existing dev stacks keep their Postgres,
+# OpenBao and secrets data across the rename (renaming them would silently start from empty volumes).
 volumes:
-  reqalm-pg:
-  reqalm-openbao:
-  reqalm-secrets:
+  reqaml-pg:
+  reqaml-openbao:
+  reqaml-secrets:

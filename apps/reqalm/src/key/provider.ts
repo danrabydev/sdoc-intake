@@ -62,6 +62,9 @@ async function transitDecrypt(
   return body.data.plaintext;
 }
 
+/** Persisted Transit key prefix; legacy spelling kept with TRANSIT_KEK_NAME (see openbao.ts). */
+const TRANSIT_DEK_PREFIX = "reqaml-dek-";
+
 export function createOpenBaoKeyProvider(config: AppConfig): KeyProvider {
   return {
     async ensureReady() {
@@ -75,7 +78,7 @@ export function createOpenBaoKeyProvider(config: AppConfig): KeyProvider {
       }
     },
     async wrapSecret(plaintext, purpose) {
-      const dekKey = `reqalm-dek-${purpose}`;
+      const dekKey = `${TRANSIT_DEK_PREFIX}${purpose}`;
       const b64 = plaintext.toString("base64");
       return transitEncrypt(config, b64, dekKey).catch(async () => {
         // Fall back to shared KEK if purpose-specific DEK key not created yet.
@@ -83,7 +86,7 @@ export function createOpenBaoKeyProvider(config: AppConfig): KeyProvider {
       });
     },
     async unwrapSecret(ciphertext, purpose) {
-      const dekKey = `reqalm-dek-${purpose}`;
+      const dekKey = `${TRANSIT_DEK_PREFIX}${purpose}`;
       let b64: string;
       try {
         b64 = await transitDecrypt(config, ciphertext, dekKey);

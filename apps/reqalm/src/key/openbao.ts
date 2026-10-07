@@ -12,7 +12,13 @@ export type KeyProviderStatus = {
 };
 
 export const DEV_TRANSIT_MARKER = "reqalm_dev=true";
-export const TRANSIT_KEK_NAME = "reqalm-kek";
+/** Mount description written by pre-rename dev stacks (still dev-only; refused in production). */
+export const LEGACY_DEV_TRANSIT_MARKER = "reqaml_dev=true";
+/**
+ * Persisted OpenBao Transit key name. Keeps the legacy ReqAML spelling: existing ciphertexts
+ * (signing keys, MFA secrets, web sessions) are bound to this key and Transit keys cannot be renamed.
+ */
+export const TRANSIT_KEK_NAME = "reqaml-kek";
 const READINESS_PLAINTEXT = Buffer.from("reqalm-readiness-probe").toString(
   "base64",
 );
@@ -147,7 +153,8 @@ export async function probeOpenBao(
         data?: { description?: string };
       };
       const description = mount.description ?? mount.data?.description ?? "";
-      kekDev = description.includes(DEV_TRANSIT_MARKER);
+      kekDev =
+        description.includes(DEV_TRANSIT_MARKER) || description.includes(LEGACY_DEV_TRANSIT_MARKER);
     }
 
     if (isProduction(config) && kekDev) {

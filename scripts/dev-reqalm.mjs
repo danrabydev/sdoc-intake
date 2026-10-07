@@ -2,7 +2,7 @@
 /**
  * Hybrid mode launcher (ARCH-DEVENV-MODES.1): peripherals in Compose, app native with hot reload.
  *
- * The dev OpenBao root token is generated on first peripherals start into the `reqalm-secrets`
+ * The dev OpenBao root token is generated on first peripherals start into the `reqaml-secrets`
  * volume (never committed, ARCH-DEVENV-KEYS). If OPENBAO_TOKEN is not set in the environment or
  * in .env, read it from the running peripherals container and pass it to the app process env only
  * (nothing is written to disk). Then run `pnpm --filter @reqalm/app dev` (tsx watch, loads ../../.env).
