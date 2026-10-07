@@ -9,7 +9,7 @@ Reusable PlantUML fragments for **user-action sequence diagrams** (RBAC + system
 | `C4_Sequence_Styles.puml` | Skinparams aligned with C4-PlantUML colors |
 | `C4_Sequence_Participants.puml` | Canonical participant aliases + `C4Seq_*` / bundle procedures (incl. `C4Seq_McpHost`, `C4Seq_ReqAmlMcp`, `C4Seq_DeskSocket`, `C4Seq_Bundle_McpDesk`) |
 | `C4_Sequence_Controls.puml` | **`ControlNote`** / **`ComplianceNote`** — one place for control annotations |
-| `C4_Sequence_Macros.puml` | Flow macros (`RbacCheck`, `AuditLog`, …) — includes the files above |
+| `C4_Sequence_Macros.puml` | Flow macros (`RbacCheck`, `AuditLog`, `HookEval`, `GateCheck`, `HookEffectsAfter`, …) — includes the files above |
 
 Container/context diagrams (L1–L3) use remote C4-PlantUML from [plantuml-stdlib](https://github.com/plantuml-stdlib/C4-PlantUML); action sequences use **local** includes only.
 
@@ -80,3 +80,18 @@ pnpm run diagrams:render
 ```
 
 Output PNG/SVG next to sources unless you pass `-o outdir`.
+
+
+## ActionHook pipeline macros
+
+Use these instead of copy-pasting the gate/mutate/effects flow (ARCH-WORKFLOW / ARCH-HOOK-EVAL):
+
+| Macro | Role |
+|-------|------|
+| `RbacCheck(op)` | Permission gate (can attempt) |
+| `HookEval(action_id)` | Load profile ActionHooks → `gates_before[]`, `effects_after[]` |
+| `GateCheck(gate_id)` | Evaluate one gate; skip optional if disabled on profile |
+| `HookEffectsAfter(effects)` | Run post-mutate effects (clear approval, suspect, audit helpers, …) |
+| `AuditLog(action, entity)` | Structured audit + OTEL export |
+
+Canonical shared diagram: [`../sequences/WF01-actionhook-eval.puml`](../sequences/WF01-actionhook-eval.puml).

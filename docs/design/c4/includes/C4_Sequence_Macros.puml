@@ -8,7 +8,14 @@
 '   ClientScopedQuery(method, path)   — API call carrying client scope header/context
 '   AuditLog(action, entity)          — structured audit emission
 '   SyncWorkItem(direction)           — push/pull hint via business → DevOps
+'   HookEval(action_id)     — load WorkflowProfile ActionHooks (ARCH-HOOK-EVAL)
+'   GateCheck(gate_id)      — evaluate one gate (skip optional if disabled)
+'   HookEffectsAfter(effects) — run effects_after list after mutate
 '   ControlNote / ComplianceNote      — see C4_Sequence_Controls.puml
+'
+' ActionHook pipeline (ARCH-WORKFLOW / ARCH-HOOK-EVAL):
+'   RBAC → HookEval → GateCheck* → mutate → HookEffectsAfter → AuditLog
+'   Nest under change_set when present. Do NOT copy-paste this pipeline.
 
 !include ./C4_Sequence_Participants.puml
 !include ./C4_Sequence_Controls.puml
@@ -55,6 +62,35 @@ seqAudit -> seqOTEL : export audit event (OTLP)
 !unquoted procedure SyncWorkItem($direction)
 seqBusiness -> seqAzureDevOps : **$direction** work item fields
 seqAzureDevOps --> seqBusiness : ack / payload
+!endprocedure
+
+' --- ActionHook / Gate (ARCH-HOOK-EVAL / ARCH-WORKFLOW) ---
+
+!unquoted procedure HookEval($action_id)
+seqBusiness -> seqData : load ActionHooks(**$action_id**)\nfrom project WorkflowProfile
+seqData -> seqPostgres : SELECT action_hooks, gates,\nrole_bindings, profile switches
+seqPostgres --> seqData : rows
+seqData --> seqBusiness : gates_before[], effects_after[]
+note right of seqBusiness
+  **ARCH-HOOK-EVAL:** RBAC → gates_before
+  → mutate → effects_after → audit
+  (nest under change_set when present)
+end note
+!endprocedure
+
+!unquoted procedure GateCheck($gate_id)
+seqBusiness -> seqBusiness : GateCheck **$gate_id**
+alt optional + disabled on profile
+  seqBusiness -> seqBusiness : skip gate
+else deny (predicate / RoleBinding slot /\nrequired rows missing)
+  seqBusiness --> seqAPI : 403/409 gate deny
+else pass
+  seqBusiness -> seqBusiness : gate ok
+end
+!endprocedure
+
+!unquoted procedure HookEffectsAfter($effects)
+seqBusiness -> seqBusiness : effects_after:\n**$effects**
 !endprocedure
 
 !endif
