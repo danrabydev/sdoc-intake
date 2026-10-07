@@ -147,6 +147,15 @@ describe("OpenTelemetry tracing", () => {
     assert.ok(finishedSpans().some((s) => s.name === "request"), "expected top-level request span");
   });
 
+  it("pg queries outside any span (migrations, seed) are not traced as orphan roots", async () => {
+    resetTelemetrySpans();
+    await ctx.pool.query("SELECT 1");
+    assert.deepEqual(
+      finishedSpans().filter((s) => s.attributes["db.system.name"] === "postgresql").map((s) => s.name),
+      [],
+    );
+  });
+
   it("KeyProvider OpenBao calls emit dependency spans under the active span", async () => {
     let server: Server | null = null;
     try {

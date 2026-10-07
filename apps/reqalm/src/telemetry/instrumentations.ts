@@ -46,7 +46,9 @@ export function createInstrumentations() {
       redactedQueryParamsServer: REDACTED_SERVER_QUERY_PARAMS,
     }),
     new UndiciInstrumentation(),
-    new PgInstrumentation({ enhancedDatabaseReporting: false }),
+    // requireParentSpan: queries outside a request/operation (migrations, the startup seed: ~500
+    // INSERTs per boot) would otherwise each export as their own single-span trace.
+    new PgInstrumentation({ enhancedDatabaseReporting: false, requireParentSpan: true }),
     getFastifyOtelInstrumentation() as never,
   ];
 }
