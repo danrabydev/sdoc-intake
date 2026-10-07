@@ -75,8 +75,11 @@ export async function seedAuthUsers(pool: pg.Pool, keyProvider: KeyProvider): Pr
   await storeMfaSecret(pool, keyProvider, "sam-security", TEST_MFA_SECRET);
 }
 
-export async function createTestApp(): Promise<TestApp> {
-  const { pool } = await createMigratedPglitePool();
+export async function createTestApp(opts?: {
+  testLogger?: import("fastify").FastifyBaseLogger;
+}): Promise<TestApp> {
+  const pgFixture = await createMigratedPglitePool();
+  const { pool } = pgFixture;
   const config = loadConfig(testConfigEnv());
   const keyProvider = createMemoryKeyProvider();
   await seedAuthUsers(pool, keyProvider);
@@ -98,6 +101,7 @@ export async function createTestApp(): Promise<TestApp> {
     sync: null,
     readiness,
     keyProvider,
+    testLogger: opts?.testLogger,
   };
   const app = await buildApiServer(state);
   return {
@@ -107,7 +111,7 @@ export async function createTestApp(): Promise<TestApp> {
     keyProvider,
     close: async () => {
       await app.close();
-      await pool.end();
+      await pgFixture.close();
     },
   };
 }

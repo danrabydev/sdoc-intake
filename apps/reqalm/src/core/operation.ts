@@ -1,7 +1,9 @@
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { authorize } from "../rbac/enforce.js";
 import { writeBusinessAudit } from "../audit/business-audit.js";
 import { logOperation } from "./logging/structured-log.js";
 import type { RequestContext } from "./request-context.js";
+import { setSpanError } from "../telemetry/trace-context.js";
 import { err, ok, type ServiceErrorCode, type ServiceResult } from "./service-result.js";
 
 export type OperationAuditMeta = {
@@ -22,6 +24,8 @@ export type OperationDef<TIn, TOut> = {
   execute: (ctx: RequestContext, input: TIn) => Promise<ServiceResult<TOut>>;
 };
 
+const OP_TRACER = "reqalm.operation";
+
 async function recordAudit(
   ctx: RequestContext,
   def: OperationDef<unknown, unknown>,
@@ -31,6 +35,7 @@ async function recordAudit(
 ): Promise<void> {
   await writeBusinessAudit(ctx.pool, {
     requestId: ctx.requestId,
+    traceId: ctx.traceId,
     operation: def.name,
     permission: def.permission ?? null,
     outcome,
@@ -54,80 +59,129 @@ function serviceOutcomeToAudit(
   return "error";
 }
 
+function identityKind(ctx: RequestContext): string {
+  if (!ctx.auth) return "none";
+  const token = ctx.auth.accessToken;
+  if (ctx.agentName) return "agent";
+  if (token.client_id && !ctx.identityId) return "client";
+  return "user";
+}
+
+function operationSpanAttributes(
+  ctx: RequestContext,
+  def: OperationDef<unknown, unknown>,
+  projectId: string | undefined,
+): Record<string, string | boolean> {
+  const attrs: Record<string, string | boolean> = {
+    "reqalm.operation": def.name,
+    "reqalm.identity.kind": identityKind(ctx),
+  };
+  if (def.permission) attrs["reqalm.permission"] = def.permission;
+  if (projectId) attrs["reqalm.project_id"] = projectId;
+  if (ctx.agentName) attrs["reqalm.agent_name"] = ctx.agentName;
+  const clientId = ctx.auth?.accessToken.client_id;
+  if (typeof clientId === "string") attrs["reqalm.client_id"] = clientId;
+  return attrs;
+}
+
 export async function runOperation<TIn, TOut>(
   ctx: RequestContext,
   def: OperationDef<TIn, TOut>,
   input: TIn,
 ): Promise<ServiceResult<TOut>> {
-  const started = ctx.clock.now();
-  const meta = def.auditMeta?.(input) ?? {};
-  const projectId = def.projectIdFromInput?.(input) ?? meta.projectId ?? undefined;
+  const tracer = trace.getTracer(OP_TRACER);
+  return tracer.startActiveSpan(`operation ${def.name}`, async (span) => {
+    try {
+    const started = ctx.clock.now();
+    const meta = def.auditMeta?.(input) ?? {};
+    const projectId = def.projectIdFromInput?.(input) ?? meta.projectId ?? undefined;
 
-  const finish = async (
-    result: ServiceResult<TOut>,
-    auditOutcome: "allow" | "deny" | "error",
-    logOutcome: "allow" | "deny" | "error",
-  ): Promise<ServiceResult<TOut>> => {
-    await recordAudit(ctx, def as OperationDef<unknown, unknown>, auditOutcome, {
-      ...meta,
-      projectId: projectId ?? meta.projectId,
-    });
-    logOperation(ctx.logger, {
-      requestId: ctx.requestId,
-      operation: def.name,
-      outcome: logOutcome,
-      permission: def.permission,
-      identityId: ctx.identityId,
-      projectId: projectId ?? meta.projectId ?? null,
-      durationMs: ctx.clock.now() - started,
-    });
-    return result;
-  };
+    for (const [k, v] of Object.entries(operationSpanAttributes(ctx, def as OperationDef<unknown, unknown>, projectId))) {
+      span.setAttribute(k, v);
+    }
 
-  if (!ctx.auth || !ctx.identityId) {
-    return finish(
-      err("unauthenticated", "Authentication required"),
-      "deny",
-      "deny",
-    );
-  }
+    const finish = async (
+      result: ServiceResult<TOut>,
+      auditOutcome: "allow" | "deny" | "error",
+      logOutcome: "allow" | "deny" | "error",
+    ): Promise<ServiceResult<TOut>> => {
+      span.setAttribute("reqalm.outcome", logOutcome);
+      if (!result.ok) {
+        span.setAttribute("reqalm.error_code", result.error.code);
+      }
+      if (auditOutcome === "deny" || auditOutcome === "error") {
+        setSpanError(span, result.ok ? auditOutcome : result.error.message);
+      } else {
+        span.setStatus({ code: SpanStatusCode.OK });
+      }
+      await recordAudit(ctx, def as OperationDef<unknown, unknown>, auditOutcome, {
+        ...meta,
+        projectId: projectId ?? meta.projectId,
+      });
+      logOperation(ctx.logger, {
+        requestId: ctx.requestId,
+        traceId: ctx.traceId,
+        spanId: ctx.spanId,
+        operation: def.name,
+        outcome: logOutcome,
+        permission: def.permission,
+        identityId: ctx.identityId,
+        projectId: projectId ?? meta.projectId ?? null,
+        durationMs: ctx.clock.now() - started,
+      });
+      return result;
+    };
 
-  if (def.projectScoped) {
-    // Fail closed: a project-scoped op without a project id must not fall through to a
-    // cross-project authorize() (which unions roles from every grant).
-    if (!projectId || !ctx.projectIds.has(projectId)) {
+    if (!ctx.auth || !ctx.identityId) {
       return finish(
-        err("not_found", "Project not found"),
+        err("unauthenticated", "Authentication required"),
         "deny",
         "deny",
       );
     }
-  }
 
-  if (def.permission) {
-    const allowed = await authorize(
-      ctx.pool,
-      ctx.identityId,
-      def.permission,
-      projectId,
-      ctx.auth.accessToken,
-    );
-    if (!allowed) {
-      return finish(err("forbidden", "Insufficient permission"), "deny", "deny");
+    if (def.projectScoped) {
+      if (!projectId || !ctx.projectIds.has(projectId)) {
+        return finish(
+          err("not_found", "Project not found"),
+          "deny",
+          "deny",
+        );
+      }
     }
-  }
 
-  try {
-    const result = await def.execute(ctx, input);
-    if (result.ok) {
-      return finish(result, "allow", "allow");
+    if (def.permission) {
+      const allowed = await authorize(
+        ctx.pool,
+        ctx.identityId,
+        def.permission,
+        projectId,
+        ctx.auth.accessToken,
+      );
+      if (!allowed) {
+        return finish(err("forbidden", "Insufficient permission"), "deny", "deny");
+      }
     }
-    const auditOutcome = serviceOutcomeToAudit(result.error.code);
-    return finish(result, auditOutcome, auditOutcome === "allow" ? "allow" : auditOutcome);
-  } catch (e) {
-    ctx.logger.error({ err: e, operation: def.name, request_id: ctx.requestId }, "operation_failed");
-    return finish(err("internal", "Internal error"), "error", "error");
-  }
+
+    try {
+      const result = await def.execute(ctx, input);
+      if (result.ok) {
+        return finish(result, "allow", "allow");
+      }
+      const auditOutcome = serviceOutcomeToAudit(result.error.code);
+      return finish(result, auditOutcome, auditOutcome === "allow" ? "allow" : auditOutcome);
+    } catch (e) {
+      ctx.logger.error(
+        { err: e, operation: def.name, request_id: ctx.requestId, trace_id: ctx.traceId },
+        "operation_failed",
+      );
+      setSpanError(span, e instanceof Error ? e.message : "Internal error");
+      return finish(err("internal", "Internal error"), "error", "error");
+    }
+    } finally {
+      span.end();
+    }
+  });
 }
 
 /** Authenticated read with no permission (e.g. /me). */

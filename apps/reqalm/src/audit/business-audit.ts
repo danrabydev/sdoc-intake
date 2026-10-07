@@ -2,6 +2,7 @@ import type pg from "pg";
 
 export type BusinessAuditInput = {
   requestId: string;
+  traceId?: string | null;
   operation: string;
   permission?: string | null;
   outcome: "allow" | "deny" | "error";
@@ -24,13 +25,14 @@ export async function writeBusinessAudit(
   await pool.query(
     `
     INSERT INTO audit_events (
-      request_id, operation, permission, outcome,
+      request_id, trace_id, operation, permission, outcome,
       identity_id, client_id, agent_name, token_role, acting_for,
       project_id, target_type, target_id, detail
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::jsonb)
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb)
   `,
     [
       input.requestId,
+      input.traceId ?? null,
       input.operation,
       input.permission ?? null,
       input.outcome,

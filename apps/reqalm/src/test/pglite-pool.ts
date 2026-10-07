@@ -2,7 +2,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { PGlite } from "@electric-sql/pglite";
-import type pg from "pg";
+import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
+import pg from "pg";
 import { listMigrationFiles } from "../db/migrate.js";
 
 const migrationsDir = path.join(
@@ -29,42 +30,52 @@ async function runMigrationsOnPglite(db: PGlite): Promise<void> {
   }
 }
 
-function mapResult(r: Awaited<ReturnType<PGlite["query"]>>): pg.QueryResult {
-  return {
-    rows: r.rows,
-    rowCount: r.rowCount ?? r.affectedRows ?? r.rows.length,
-    command: r.command ?? "",
-    oid: 0,
-    fields: [],
-  };
-}
-
-/** PGlite-backed pool compatible with the app's `pg.Pool` usage in tests. */
-export function createPglitePool(db: PGlite): pg.Pool {
-  const clientQuery = async (text: string, params?: unknown[]) =>
-    mapResult(await db.query(text, params));
-
-  const pool = {
-    query: clientQuery,
-    connect: async () =>
-      ({
-        query: clientQuery,
-        release: () => {},
-      }) as pg.PoolClient,
-    end: async () => {
-      await db.close();
-    },
-    on: () => pool,
-  };
-  return pool as unknown as pg.Pool;
-}
-
-export async function createMigratedPglitePool(): Promise<{
+export type MigratedPglitePgPool = {
   db: PGlite;
   pool: pg.Pool;
-}> {
+  /** Stops pool, socket server, and PGlite (call once per fixture). */
+  close: () => Promise<void>;
+};
+
+/**
+ * In-process Postgres via PGlite + TCP socket + real `pg` Pool (same driver as production).
+ * PGlite serializes queries internally (see @electric-sql/pglite-socket); use `max: 1` on the pool
+ * and a modest `maxConnections` on the socket server to avoid connection-queue timeouts in tests.
+ */
+export async function createMigratedPglitePool(): Promise<MigratedPglitePgPool> {
   const db = new PGlite();
   await runMigrationsOnPglite(db);
-  const pool = createPglitePool(db);
-  return { db, pool };
+
+  const server = new PGLiteSocketServer({
+    db,
+    port: 0,
+    host: "127.0.0.1",
+    maxConnections: 4,
+  });
+  await server.start();
+  const [, portStr] = server.getServerConn().split(":");
+  const port = Number(portStr);
+  if (!Number.isFinite(port)) {
+    throw new Error(`PGLite socket server returned invalid conn: ${server.getServerConn()}`);
+  }
+
+  const pool = new pg.Pool({
+    host: "127.0.0.1",
+    port,
+    database: "postgres",
+    user: "postgres",
+    password: "postgres",
+    max: 1,
+    connectionTimeoutMillis: 5_000,
+  });
+
+  return {
+    db,
+    pool,
+    close: async () => {
+      await pool.end();
+      await server.stop();
+      await db.close();
+    },
+  };
 }

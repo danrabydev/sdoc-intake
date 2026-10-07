@@ -20,6 +20,7 @@ import { registerProbeRoutes } from "./routes-probes.js";
 import { createBearerGuard, type AuthedRequest } from "./middleware/bearer-auth.js";
 import { installRouteCapture } from "./route-security.js";
 import { registerFeatureModules } from "../modules/register.js";
+import { requestIdFromHeaders } from "../telemetry/request-id.js";
 
 export type RuntimeState = {
   config: AppConfig;
@@ -29,12 +30,14 @@ export type RuntimeState = {
   readiness: ReadinessContext;
   /** Test seam: inject an in-memory KeyProvider instead of OpenBao. */
   keyProvider?: KeyProvider;
+  /** Test seam: capture structured logs from Fastify. */
+  testLogger?: import("fastify").FastifyBaseLogger;
 };
 
 export async function buildApiServer(state: RuntimeState) {
   const { config, pool, roles, readiness } = state;
   const app = Fastify({
-    logger: {
+    logger: state.testLogger ?? {
       level: "info",
       serializers: {
         req(req) {
@@ -43,6 +46,7 @@ export async function buildApiServer(state: RuntimeState) {
         },
       },
     },
+    genReqId: (req) => requestIdFromHeaders(req.headers),
     // Trust X-Forwarded-* only from the listed proxies; never blanket trust in production
     // (startup self-check refuses REQALM_TRUST_PROXY=true without REQALM_TRUSTED_PROXIES).
     trustProxy:

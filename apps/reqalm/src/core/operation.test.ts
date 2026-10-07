@@ -10,6 +10,8 @@ import { ok } from "./service-result.js";
 function minimalCtx(pool: pg.Pool, requestId = "op-test"): RequestContext {
   return {
     requestId,
+    traceId: null,
+    spanId: null,
     ip: "127.0.0.1",
     userAgent: null,
     pool,
@@ -47,8 +49,8 @@ function minimalCtx(pool: pg.Pool, requestId = "op-test"): RequestContext {
 
 describe("runOperation", () => {
   it("audits error when execute throws", async () => {
-    const { pool } = await createMigratedPglitePool();
-    const ctx = minimalCtx(pool);
+    const fixture = await createMigratedPglitePool();
+    const ctx = minimalCtx(fixture.pool);
     await runOperation(
       ctx,
       {
@@ -59,17 +61,17 @@ describe("runOperation", () => {
       },
       {},
     );
-    const r = await pool.query<{ outcome: string }>(
+    const r = await fixture.pool.query<{ outcome: string }>(
       `SELECT outcome FROM audit_events WHERE request_id = $1`,
       ["op-test"],
     );
     assert.equal(r.rows[0]?.outcome, "error");
-    await pool.end();
+    await fixture.close();
   });
 
   it("project-scoped op without a project id fails closed (not_found, audited deny)", async () => {
-    const { pool } = await createMigratedPglitePool();
-    const ctx = minimalCtx(pool, "op-noproj");
+    const fixture = await createMigratedPglitePool();
+    const ctx = minimalCtx(fixture.pool, "op-noproj");
     const res = await runOperation(
       ctx,
       {
@@ -82,11 +84,11 @@ describe("runOperation", () => {
       {},
     );
     assert.equal(!res.ok && res.error.code, "not_found");
-    const r = await pool.query<{ outcome: string }>(
+    const r = await fixture.pool.query<{ outcome: string }>(
       `SELECT outcome FROM audit_events WHERE request_id = 'op-noproj'`,
     );
     assert.equal(r.rows[0]?.outcome, "deny");
-    await pool.end();
+    await fixture.close();
   });
 
   it("authorizes with the token-bound agent role, not the identity's wider grants", async () => {

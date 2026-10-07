@@ -36,7 +36,7 @@ EXPOSE 3000
 HEALTHCHECK --interval=10s --timeout=5s --retries=12 --start-period=30s \
   CMD curl -sf "http://127.0.0.1:${REQALM_PORT:-3000}/ready" || exit 1
 ENTRYPOINT ["/usr/local/bin/reqalm-entrypoint.sh"]
-CMD ["node", "dist/main.js"]
+CMD ["node", "--import", "./dist/telemetry/register.js", "dist/main.js"]
 
 FROM postgres:16-bookworm AS peripherals
 ARG OPENBAO_VERSION

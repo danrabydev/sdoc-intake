@@ -10,9 +10,6 @@ export function getPool(databaseUrl: string): pg.Pool {
       // Fail fast instead of hanging when Postgres is down (readiness / startup backoff retry).
       connectionTimeoutMillis: 3_000,
     });
-    // Idle clients emit 'error' when Postgres restarts or terminates connections. Without a
-    // listener Node treats it as an unhandled 'error' event and the whole app crashes; /ready
-    // reports the outage instead and the pool reconnects on the next query.
     pool.on("error", (err) => {
       console.warn(`[db] idle client error: ${err.message}`);
     });

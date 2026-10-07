@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import type { FastifyBaseLogger, FastifyRequest } from "fastify";
 import type pg from "pg";
 import type { AppConfig } from "../config.js";
@@ -7,11 +6,15 @@ import { resolveRequestAuth } from "../auth/request-auth.js";
 import type { KeyProvider } from "../key/provider.js";
 import { effectiveRoles } from "../rbac/agent-role.js";
 import { listActiveRoles, permissionsForRoles } from "../rbac/enforce.js";
+import { requestIdFromFastify } from "../telemetry/request-id.js";
+import { activeTraceIds } from "../telemetry/trace-context.js";
 
 export type ProjectGrantRow = { project_id: string; role: string };
 
 export type RequestContext = {
   requestId: string;
+  traceId: string | null;
+  spanId: string | null;
   ip: string;
   userAgent: string | null;
   pool: pg.Pool;
@@ -37,12 +40,6 @@ export type RequestContextDeps = {
   logger: FastifyBaseLogger;
 };
 
-function requestIdFrom(req: FastifyRequest): string {
-  const header = req.headers["x-request-id"];
-  if (typeof header === "string" && header.trim()) return header.trim();
-  return randomUUID();
-}
-
 function tokenStringField(token: { readonly [k: string]: unknown }, key: string): string | null {
   const v = token[key];
   return typeof v === "string" ? v : null;
@@ -52,7 +49,8 @@ export async function buildRequestContext(
   req: FastifyRequest,
   deps: RequestContextDeps,
 ): Promise<RequestContext> {
-  const requestId = requestIdFrom(req);
+  const requestId = requestIdFromFastify(req);
+  const trace = activeTraceIds();
   const auth = await resolveRequestAuth(req, deps.pool, deps.config, deps.keyProvider);
   const identityId = auth?.accessToken.sub ?? null;
   let projectGrants: ProjectGrantRow[] = [];
@@ -75,6 +73,8 @@ export async function buildRequestContext(
   const act = token?.act as { sub?: string } | undefined;
   return {
     requestId,
+    traceId: trace?.traceId ?? null,
+    spanId: trace?.spanId ?? null,
     ip: req.ip,
     userAgent: typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : null,
     pool: deps.pool,
