@@ -18,7 +18,7 @@
   },
   "scripts": {
     "dev": "pnpm --filter sdoc-intake dev",
-    "dev:reqaml": "pnpm --filter @reqaml/app dev",
+    "dev:reqaml": "node scripts/dev-reqaml.mjs",
     "build": "pnpm -r build",
     "build:cli": "pnpm --filter sdoc-intake build:cli",
     "publish:cli": "pnpm --filter sdoc-intake publish:cli",
