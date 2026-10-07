@@ -686,6 +686,159 @@ approval_records:
   notes: 'FIX-GRANDFATHER-SEED-APPROVED sample: prioritized seed line grandfathered.'
   approved_version_uid: A02
   approved_statement_hash: sha256:a02-v0-imported
+- id: ar-cap-devenv-monorepo
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-MONOREPO
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-devenv-dockerfile-roles
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-DOCKERFILE-ROLES
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-devenv-peripherals
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-PERIPHERALS
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-devenv-compose
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-COMPOSE
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-health-liveness
+  subject_kind: CapabilityLine
+  base_uid: CAP-HEALTH-LIVENESS
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-ready-probes
+  subject_kind: CapabilityLine
+  base_uid: CAP-READY-PROBES
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-devenv-startup-backoff
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-STARTUP-BACKOFF
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-prod-selfcheck
+  subject_kind: CapabilityLine
+  base_uid: CAP-PROD-SELFCHECK
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-devenv-openbao-bootstrap
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-devenv-migrate-seed
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-MIGRATE-SEED
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-api-docs-seed-summary
+  subject_kind: CapabilityLine
+  base_uid: CAP-API-DOCS-SEED-SUMMARY
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-devenv-smoke
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-SMOKE
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #12 and verified locally; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-ui-frame
+  subject_kind: CapabilityLine
+  base_uid: CAP-UI-FRAME
+  status: unapproved
+  by:
+  at:
+  notes: Planned for the next PR (UI frame + internal auth); approve as solution once built and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-oauth-as
+  subject_kind: CapabilityLine
+  base_uid: CAP-OAUTH-AS
+  status: unapproved
+  by:
+  at:
+  notes: Planned for the next PR (UI frame + internal auth); approve as solution once built and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-cred-store
+  subject_kind: CapabilityLine
+  base_uid: CAP-CRED-STORE
+  status: unapproved
+  by:
+  at:
+  notes: Planned for the next PR (UI frame + internal auth); approve as solution once built and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-key-envelope
+  subject_kind: CapabilityLine
+  base_uid: CAP-KEY-ENVELOPE
+  status: unapproved
+  by:
+  at:
+  notes: Planned for the next PR (UI frame + internal auth); approve as solution once built and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-auth-audit
+  subject_kind: CapabilityLine
+  base_uid: CAP-AUTH-AUDIT
+  status: unapproved
+  by:
+  at:
+  notes: Planned for the next PR (UI frame + internal auth); approve as solution once built and verified.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -2277,6 +2430,91 @@ requirement_lines:
   parent: SEC-FIX
   kind: requirement
   title: MCP mutation audit names human subject + OAuth client
+- base_uid: CAP-DEVENV-MONOREPO
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: pnpm workspace monorepo (apps/reqaml + packages/intake)
+- base_uid: CAP-DEVENV-DOCKERFILE-ROLES
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: Single Dockerfile; one app container with REQAML_ROLES toggles
+- base_uid: CAP-DEVENV-PERIPHERALS
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: 'Dev peripherals container: Postgres + OpenBao'
+- base_uid: CAP-DEVENV-COMPOSE
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: 'Clone-to-running Compose: full-container and hybrid modes'
+- base_uid: CAP-HEALTH-LIVENESS
+  project_id: reqaml
+  parent: SEC-AUDIT
+  kind: capability
+  title: /health liveness probe with version
+- base_uid: CAP-READY-PROBES
+  project_id: reqaml
+  parent: SEC-AUDIT
+  kind: capability
+  title: /ready live peripheral and per-role checks (cached, time-boxed)
+- base_uid: CAP-DEVENV-STARTUP-BACKOFF
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: Startup backoff waiting for Postgres and OpenBao
+- base_uid: CAP-PROD-SELFCHECK
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: Production startup self-check refuses dev keys and dev accounts
+- base_uid: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: Dev OpenBao Transit KEK bootstrap and round-trip
+- base_uid: CAP-DEVENV-MIGRATE-SEED
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: Idempotent DB migrations and dogfood seed load
+- base_uid: CAP-API-DOCS-SEED-SUMMARY
+  project_id: reqaml
+  parent: SEC-API
+  kind: capability
+  title: OpenAPI docs (/docs) and seed summary endpoint
+- base_uid: CAP-DEVENV-SMOKE
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: Local devenv smoke harness; CI smoke is manual-only
+- base_uid: CAP-UI-FRAME
+  project_id: reqaml
+  parent: SEC-UI
+  kind: capability
+  title: 'UI frame: app shell, layout, guarded routes'
+- base_uid: CAP-OAUTH-AS
+  project_id: reqaml
+  parent: SEC-IA
+  kind: capability
+  title: Internal OAuth 2.1 authorization server
+- base_uid: CAP-CRED-STORE
+  project_id: reqaml
+  parent: SEC-SEC
+  kind: capability
+  title: 'Credential store: hashes, lockout, MFA, sessions, step-up'
+- base_uid: CAP-KEY-ENVELOPE
+  project_id: reqaml
+  parent: SEC-SEC
+  kind: capability
+  title: KeyProvider envelope encryption and JWKS signing-key rotation
+- base_uid: CAP-AUTH-AUDIT
+  project_id: reqaml
+  parent: SEC-AUDIT
+  kind: capability
+  title: Authentication audit events
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -6173,6 +6411,222 @@ requirement_versions:
     verification_note: AC-2 account management; CM-7 local accounts off by default; ASD V-222407 / V-222412 / V-222661.
   grooming_state: detailed
   mint_kind: content
+- uid: CAP-DEVENV-MONOREPO
+  base_uid: CAP-DEVENV-MONOREPO
+  version_n: 0
+  status: active
+  statement: 'The repository is a pnpm workspace (pnpm-workspace.yaml: packages/*, apps/*) with one lockfile. The ReqAML platform app lives in apps/reqaml (@reqaml/app) and the SDoc Intake editor and CLI in packages/intake (sdoc-intake), so both build from one clone with `pnpm install`. Root scripts proxy per-package tasks (dev, dev:reqaml, build:cli, reqaml:migrate, reqaml:seed, devenv:smoke). Acceptance: `pnpm install --frozen-lockfile` succeeds on a clean clone; the editor still runs (`pnpm dev`) and builds (`pnpm build:cli`); the app typechecks and tests pass.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: 'CM-2 baseline: one lockfile pins the supported toolchain. Verified 2026-10-07: pnpm install --frozen-lockfile; pnpm build:cli OK; editor dev server on :8087; sdoc-intake typecheck + 39/39 tests; @reqaml/app typecheck + tests.'
+  statement_hash: sha256:2043d359fac6caced4f17a4c282f1372ffca5beef613e0b2f18394f7f884946c
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-DEVENV-DOCKERFILE-ROLES
+  base_uid: CAP-DEVENV-DOCKERFILE-ROLES
+  version_n: 0
+  status: active
+  statement: 'One multi-stage Dockerfile builds every image: app (Node 22, the deploy target), peripherals (dev/test only) and app-hsm-test. The app container runs one Node process whose roles are toggled by REQAML_ROLES (api, web, mcp, sync); /ready reports per enabled role, and routes for disabled roles are not mounted. Acceptance: the same image started with REQAML_ROLES=sync serves only probes (readiness lists sync only; /api and /mcp return 404) without a rebuild; with all roles it serves API, web, MCP stub and runs sync.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-7
+    verification_note: 'CM-7 least functionality: disabled roles expose no endpoints. Verified 2026-10-07: docker compose build; REQAML_ROLES=sync run → /ready roles=[sync], /api/v1/seed/summary 404, POST /mcp 404, /health 200. Internal OAuth AS role not built yet (R1), so FIX-ALLOW-APP-ROLE-SPLIT is only partly exercised.'
+  statement_hash: sha256:852e8a3e9b67e790dc34fb6a2d6b770307329cb4f266b36f1293c64144d0b75b
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-DEVENV-PERIPHERALS
+  base_uid: CAP-DEVENV-PERIPHERALS
+  version_n: 0
+  status: active
+  statement: 'The peripherals Dockerfile target runs Postgres 16 and OpenBao (checksum-verified release binary) in one dev/test container, each with its own named volume (reqaml-pg, reqaml-openbao) plus reqaml-secrets for the generated unseal key and root token. Its healthcheck passes only when Postgres accepts connections and OpenBao is initialized and unsealed. Acceptance: first start initializes both within seconds; restarting the container unseals OpenBao from the stored key and keeps data; production is documented as separate Postgres and OpenBao units.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: SC-12
+    verification_note: 'SC-12 dev key material isolated in its own volume; never committed. Verified 2026-10-07: fresh start healthy; docker compose restart → unsealed and healthy, data kept. Production split (separate units) is a deploy concern not exercised here.'
+  statement_hash: sha256:6bd12c43e51c7166a832fb74f77627cb9a4d5aa2d4e1a5241f054085f195ae4e
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-DEVENV-COMPOSE
+  base_uid: CAP-DEVENV-COMPOSE
+  version_n: 0
+  status: active
+  statement: 'docker-compose.yml defines the default 2-container stack (app + peripherals) from the one Dockerfile, with .env.example holding only safe dev defaults (empty OpenBao token, no dev password). Full-container: copy .env.example to .env and `docker compose up --build`. Hybrid: `docker compose up peripherals -d` then `pnpm dev:reqaml` (native tsx watch), which loads .env and takes the dev OpenBao token from the running peripherals container without writing it to disk. Acceptance: following the README from a clean clone yields a healthy app on :3000 with the seed loaded; `docker compose ps` shows exactly 2 containers; hybrid mode reaches /ready 200.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: 'CM-2 / IA-5: no secrets in the repo; Compose is the documented baseline. Verified 2026-10-07: `pnpm devenv:smoke` from clean (no volumes, no .env) passed 2026-10-07; exactly 2 containers; hybrid mode /health, /ready, seed summary OK. Optional hsm-test Compose profile not yet wired.'
+  statement_hash: sha256:ac7666a7189d9319bb00b89f6325014eb21ff7cac7620978a16627412b618c75
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-HEALTH-LIVENESS
+  base_uid: CAP-HEALTH-LIVENESS
+  version_n: 0
+  status: active
+  statement: 'GET /health is liveness only: it returns 200 with status ok, the app version and mode whenever the process can serve HTTP, and never touches Postgres, OpenBao or client data. Acceptance: /health stays 200 while dependencies are down (OpenBao sealed, Postgres stopped) so orchestrators do not restart a healthy process for a dependency outage.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: SI-4
+    verification_note: 'No client data in the probe (M04). Verified 2026-10-07: /health 200 throughout the OpenBao-sealed and Postgres-stopped fault tests.'
+  statement_hash: sha256:4ebc32eba8cffefe6e26ca50ba1712a0be399c4cb6424eb45c58aa4fe9b33246
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-READY-PROBES
+  base_uid: CAP-READY-PROBES
+  version_n: 0
+  status: active
+  statement: 'GET /ready live-probes Postgres (SELECT 1), pending migrations, OpenBao (initialized, unsealed, Transit encrypt/decrypt round-trip on reqaml-kek) and each enabled role, caching results for REQAML_READY_CACHE_MS (2 s) and bounding each probe by REQAML_READY_PROBE_TIMEOUT_MS (3 s). It returns 503 with the failing check named and recovers without a restart. Acceptance: sealing OpenBao gives 503 with openbao failing; stopping Postgres gives 503 with database failing; both return to 200 after recovery; the app container is not restarted.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: SI-4
+    verification_note: "Readiness gates traffic on live dependencies (ARCH-DEVENV-HEALTH). Verified 2026-10-07: OpenBao seal → 503 openbao 'sealed', unseal → 200; Postgres stop → 503 database ECONNREFUSED, recovery → 200; app restart count 0; unit tests for cache, database (incl. hung-DB timeout), migrations, openbao, roles. Fail-closed for key operations is R1."
+  statement_hash: sha256:c678cc166665c2a1d31cbe6695178714d1e28611d74f7905bf528e5a928644e3
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-DEVENV-STARTUP-BACKOFF
+  base_uid: CAP-DEVENV-STARTUP-BACKOFF
+  version_n: 0
+  status: active
+  statement: 'Before migrating or serving, the app waits for Postgres and a usable OpenBao with exponential backoff (1 s start, x1.5, capped at 15 s, up to REQAML_STARTUP_MAX_WAIT_MS = 120 s), then fails with a clear timeout. The pg pool survives server-side disconnects (idle-client errors are logged, not fatal). A dev-marked OpenBao in production is not retried; it goes straight to the self-check refusal. Acceptance: `docker compose restart` brings the stack back healthy with zero app container restarts, even while OpenBao is still sealed.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: CP-10
+    verification_note: "Recovery without crash-loops. Verified 2026-10-07: docker compose restart → app logged 'waiting for OpenBao: sealed' then healthy, RestartCount 0; unit tests for timeout and the production no-wait path."
+  statement_hash: sha256:22458cf48384f6aff3d72f6d27b6fc020718d673fc1a3aeb8cec633424d4d89a
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-PROD-SELFCHECK
+  base_uid: CAP-PROD-SELFCHECK
+  version_n: 0
+  status: active
+  statement: 'With REQAML_MODE=production the app refuses to start, with one explicit error listing every violation, when seeded dev local accounts exist, REQAML_SEED_ON_START or REQAML_DEV_ACCOUNT_PASSWORD is set, or OpenBao is dev-marked (dev address, REQAML_OPENBAO_DEV_MARKED, or the reqaml_dev marker on the Transit mount). The dev seed loader also exits non-zero in production. Acceptance: production mode against the dev stack exits 1 within about a second naming the dev accounts and dev OpenBao; no keys are unwrapped.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-6
+    verification_note: "CM-6 / IA-5: no default credentials in production. Verified 2026-10-07: docker compose run with REQAML_MODE=production → 'Startup self-check failed' (seeded dev accounts; dev-marked OpenBao / Transit mount), exit 1 in ~1 s; `REQAML_MODE=production pnpm reqaml:seed` refused. Dev-account login denial (FIX-DENY-DEVENV-PROD-LOGIN.1 (a)) needs the R1 internal AS."
+  statement_hash: sha256:9acf3d7832d68bd34c662813fe8ce86fd9ad67bf12f35db5e9ff73b3aaf07bfb
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  base_uid: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  version_n: 0
+  status: active
+  statement: 'On first start the peripherals container initializes OpenBao (1 key share, dev-only), stores the unseal key and root token in the reqaml-secrets volume, enables Transit with a reqaml_dev=true mount description, and creates the non-exportable aes256-gcm96 KEK reqaml-kek; later starts unseal from the stored key. The app proves the KEK works with a Transit encrypt/decrypt round-trip in /ready. Acceptance: fresh volumes initialize in seconds; /ready reports openbao ok only after a successful round-trip; restarts keep the KEK.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: SC-12
+    verification_note: "SC-12 / SC-28: dev KEK is dev-marked and refused in production. Verified 2026-10-07: init log 'dev-marked Transit mount, KEK reqaml-kek'; /ready openbao ok via round-trip; seal/unseal and restart tests. The pluggable KeyProvider API for app data (wrap/unwrap DEKs) is R1."
+  statement_hash: sha256:8ec4a75335b83e92af6d14e402766e8b927a715dd913344e4bb29b19ae777cbb
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-DEVENV-MIGRATE-SEED
+  base_uid: CAP-DEVENV-MIGRATE-SEED
+  version_n: 0
+  status: active
+  statement: 'SQL migrations (schema_migrations ledger, one transaction) run at startup and via `pnpm reqaml:migrate`; the dogfood seed (docs/design/seed/dogfood.yaml) loads on first start (REQAML_SEED_ON_START) and via `pnpm reqaml:seed` using insert-if-absent upserts, including releases and their delivers junction. Dev local accounts get a password from .env or one generated and printed once; no default credential is committed. Acceptance: re-running migrate and seed inserts zero rows and leaves counts unchanged; seed is refused in production.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: "Idempotent fixture load (FIX-ALLOW-DEVENV-SEED-IDEMPOTENT). Verified 2026-10-07: devenv smoke re-runs migrate + seed twice → 'Migrations up to date', inserted all 0, unchanged=true."
+  statement_hash: sha256:b2929d8b8f429af0ca21f2265bc3650339377c873743db444e98f2436d1b0be1
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-API-DOCS-SEED-SUMMARY
+  base_uid: CAP-API-DOCS-SEED-SUMMARY
+  version_n: 0
+  status: active
+  statement: 'The API role serves its static OpenAPI 3.1 spec (apps/reqaml/openapi/openapi.yaml) through Swagger UI at /docs (JSON at /docs/json) and exposes GET /api/v1/seed/summary with aggregate seed counts (identities, grants, requirement lines and versions, capabilities, releases) and a sample identity, without client content. Acceptance: /docs and /docs/json return 200; the summary reflects the loaded dogfood seed and is unchanged after a seed re-run.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: SA-5
+    verification_note: 'SA-5 system documentation served from the schema-first spec. Verified 2026-10-07: /docs 200, /docs/json 200, /api/v1/seed/summary 200 with seed counts (smoke asserts it).'
+  statement_hash: sha256:9957517e487f82022fbd7c0814329f19b45473e022df47f9af8a0ecc04fde70d
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-DEVENV-SMOKE
+  base_uid: CAP-DEVENV-SMOKE
+  version_n: 0
+  status: active
+  statement: "`pnpm devenv:smoke` is the primary dev-environment check: `docker compose up --build -d --wait`, /health, /ready and seed summary, migrate + seed re-run twice with no new rows, exactly 2 healthy containers, and production-mode refusal of the dev seed loader, dev accounts and dev OpenBao. Any failing command's stdout/stderr is printed, followed by `docker compose ps -a` and recent logs. The GitHub workflow runs only on workflow_dispatch to save Actions minutes. Acceptance: the smoke passes from a clean clone and a failure is diagnosable from its output alone."
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: SA-11
+    verification_note: 'SA-11 developer testing. Verified 2026-10-07: `pnpm devenv:smoke` from clean (no volumes, no .env) passed 2026-10-07 (exit 0); forced failure (bad COMPOSE_FILE) printed the command stderr plus compose ps/logs.'
+  statement_hash: sha256:8ca8bfe22ce7232abc5c635beaf416978d443d28b2522f5ab355919e905242b6
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-UI-FRAME
+  base_uid: CAP-UI-FRAME
+  version_n: 0
+  status: draft
+  statement: 'Planned capability: the Web UI frame served by the web role: App providers (session, Client Scoped View), layout and navigation, and route guards that send unauthenticated users to sign-in and project pages without a server-bound scope to scope selection, instead of rendering empty shells. Acceptance (planned): protected routes never render data without a valid internal-AS session; guard decisions match server authorization.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-3
+    verification_note: Planned. Verify with guard redirect tests and an unauthenticated crawl of protected routes.
+  statement_hash: sha256:2cd13e7b5ba6d969856f66e50bf11ed7acca84c0c79c0c4047cdfd6c8b195e88
+  grooming_state: detailed
+- uid: CAP-OAUTH-AS
+  base_uid: CAP-OAUTH-AS
+  version_n: 0
+  status: draft
+  statement: "Planned capability: ReqAML's internal OAuth 2.1 AS in the API role, the single token issuer for Web UI, API and MCP: authorization code + PKCE S256 only, RFC 8414 AS metadata and RFC 9728 protected-resource metadata, RFC 8707 resource indicators with audience-bound tokens, refresh-token rotation with reuse detection, revocation with session-linked teardown, and pre-registered clients (CIMD/DCR policy-gated). Acceptance (planned): the AS01 MCP authorize flow and the FIX-DENY-PKCE-PLAIN / wrong-audience / refresh-reuse / revoked-token beds."
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-2
+    verification_note: Planned. REQAML-SEC-OAUTH; IA-2 / IA-5 / SC-23. Verify with FIX-ALLOW-MCP-OAUTH-PKCE and the FIX-DENY-* OAuth beds.
+  statement_hash: sha256:f9f3c23e165d4c8ac6d460cb46f451889037e33911e8fff409520cc07519cba3
+  grooming_state: detailed
+- uid: CAP-CRED-STORE
+  base_uid: CAP-CRED-STORE
+  version_n: 0
+  status: draft
+  statement: 'Planned capability: the local-account credential store behind the AS: Argon2id (PBKDF2 in FIPS mode) salted one-way hashes with configurable parameters, password policy presets, throttling and lockout, MFA required for privileged roles, server-side tokens and client secrets stored hashed, session management (idle/absolute timeout, fixation protection, secure cookies) and step-up re-authentication for sensitive actions. Acceptance (planned): AS02 local login with lockout and MFA; FIX-DENY-LOCKOUT, FIX-DENY-PRIV-NO-MFA, FIX-DENY-SESSION-IDLE, FIX-DENY-STEPUP-STALE-AUTH, FIX-ALLOW-CRED-HASH-ONLY.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-5
+    verification_note: Planned. REQAML-SEC-CRED; IA-5 / AC-7 / AC-12. Verify with the AS02 sequence and the credential FIX beds.
+  statement_hash: sha256:073a8b49653f6a90d71279a0322e40c52a7003ae59d63132c3a687e66b3b78c9
+  grooming_state: detailed
+- uid: CAP-KEY-ENVELOPE
+  base_uid: CAP-KEY-ENVELOPE
+  version_n: 0
+  status: draft
+  statement: 'Planned capability: the app-side KeyProvider over OpenBao Transit: wrap/unwrap and re-wrap DEKs for sensitive fields and secrets, non-exportable token signing keys with kid and a JWKS endpoint, rotation with an overlap window, key lifecycle operations, and fail-closed behavior in production when the KEK is unreachable or sealed. Builds on the dev Transit bootstrap delivered in PR #12. Acceptance (planned): FIX-JWKS-ROTATION-OVERLAP, FIX-ALLOW-KEK-REWRAP-ONLINE, FIX-DENY-KEK-UNREACHABLE-PROD.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-12
+    verification_note: Planned. REQAML-SEC-KEYS; SC-12 / SC-13 / SC-28(3). Verify with the KEK / JWKS FIX beds.
+  statement_hash: sha256:dabb656dc95615521b484fff37037ce70a565781ab3f461412dc0cb872d70b4d
+  grooming_state: detailed
+- uid: CAP-AUTH-AUDIT
+  base_uid: CAP-AUTH-AUDIT
+  version_n: 0
+  status: draft
+  statement: 'Planned capability: every authentication event (login success/failure, lockout/unlock, MFA, step-up, token issue/refresh/revoke, client registration, key operations) is written through the AuditLog pattern with subject, client_id, source IP, user agent, outcome and timestamp, and exported via OTEL. Audit reads and sinks reuse CAP-AUDIT. Acceptance (planned): each auth FIX bed asserts its audit row.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AU-2
+    verification_note: Planned. AU-2 / AU-3 / AU-12. Verify via audit assertions in the auth FIX beds.
+  statement_hash: sha256:66254b47e6c4e46e0d66d94bc0848ab442986d110a0ce8e3d4771aed85605f3d
+  grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -6276,6 +6730,126 @@ capability_artifacts:
 - requirement_version_uid: ARCH-AUTH-MCP-REQUIRED
   kind: other
   uri: ../c4/sequences/AS04-mcp-upstream-api-access.puml
+- requirement_version_uid: CAP-DEVENV-MONOREPO
+  kind: other
+  uri: ../../../pnpm-workspace.yaml
+- requirement_version_uid: CAP-DEVENV-MONOREPO
+  kind: other
+  uri: ../../../package.json
+- requirement_version_uid: CAP-DEVENV-MONOREPO
+  kind: other
+  uri: ../../../apps/reqaml/package.json
+- requirement_version_uid: CAP-DEVENV-MONOREPO
+  kind: other
+  uri: ../../../packages/intake/package.json
+- requirement_version_uid: CAP-DEVENV-DOCKERFILE-ROLES
+  kind: other
+  uri: ../../../Dockerfile
+- requirement_version_uid: CAP-DEVENV-DOCKERFILE-ROLES
+  kind: other
+  uri: ../../../.dockerignore
+- requirement_version_uid: CAP-DEVENV-DOCKERFILE-ROLES
+  kind: other
+  uri: ../../../apps/reqaml/src/main.ts
+- requirement_version_uid: CAP-DEVENV-DOCKERFILE-ROLES
+  kind: other
+  uri: ../../../apps/reqaml/src/config.ts
+- requirement_version_uid: CAP-DEVENV-PERIPHERALS
+  kind: other
+  uri: ../../../docker/peripherals/entrypoint.sh
+- requirement_version_uid: CAP-DEVENV-PERIPHERALS
+  kind: other
+  uri: ../../../docker/peripherals/healthcheck.sh
+- requirement_version_uid: CAP-DEVENV-PERIPHERALS
+  kind: other
+  uri: ../../../docker/peripherals/openbao.hcl
+- requirement_version_uid: CAP-DEVENV-COMPOSE
+  kind: other
+  uri: ../../../docker-compose.yml
+- requirement_version_uid: CAP-DEVENV-COMPOSE
+  kind: other
+  uri: ../../../.env.example
+- requirement_version_uid: CAP-DEVENV-COMPOSE
+  kind: other
+  uri: ../../../scripts/dev-reqaml.mjs
+- requirement_version_uid: CAP-DEVENV-COMPOSE
+  kind: other
+  uri: ../../../README.md
+- requirement_version_uid: CAP-HEALTH-LIVENESS
+  kind: other
+  uri: ../../../apps/reqaml/src/http/server.ts
+- requirement_version_uid: CAP-HEALTH-LIVENESS
+  kind: openapi
+  uri: ../../../apps/reqaml/openapi/openapi.yaml
+- requirement_version_uid: CAP-READY-PROBES
+  kind: other
+  uri: ../../../apps/reqaml/src/readiness/report.ts
+- requirement_version_uid: CAP-READY-PROBES
+  kind: other
+  uri: ../../../apps/reqaml/src/readiness/cache.ts
+- requirement_version_uid: CAP-READY-PROBES
+  kind: other
+  uri: ../../../apps/reqaml/src/readiness/checks/openbao.ts
+- requirement_version_uid: CAP-DEVENV-STARTUP-BACKOFF
+  kind: other
+  uri: ../../../apps/reqaml/src/startup/wait-for-peripherals.ts
+- requirement_version_uid: CAP-DEVENV-STARTUP-BACKOFF
+  kind: other
+  uri: ../../../apps/reqaml/src/db/pool.ts
+- requirement_version_uid: CAP-PROD-SELFCHECK
+  kind: other
+  uri: ../../../apps/reqaml/src/startup/self-check.ts
+- requirement_version_uid: CAP-PROD-SELFCHECK
+  kind: other
+  uri: ../../../apps/reqaml/src/seed/load-dogfood.ts
+- requirement_version_uid: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  kind: other
+  uri: ../../../docker/peripherals/openbao-init.sh
+- requirement_version_uid: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  kind: other
+  uri: ../../../docker/peripherals/wait-and-init-openbao.sh
+- requirement_version_uid: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  kind: other
+  uri: ../../../apps/reqaml/src/key/openbao.ts
+- requirement_version_uid: CAP-DEVENV-MIGRATE-SEED
+  kind: other
+  uri: ../../../apps/reqaml/src/db/migrations/001_foundation.sql
+- requirement_version_uid: CAP-DEVENV-MIGRATE-SEED
+  kind: other
+  uri: ../../../apps/reqaml/src/db/migrate.ts
+- requirement_version_uid: CAP-DEVENV-MIGRATE-SEED
+  kind: other
+  uri: ../../../apps/reqaml/src/seed/load-dogfood.ts
+- requirement_version_uid: CAP-API-DOCS-SEED-SUMMARY
+  kind: openapi
+  uri: ../../../apps/reqaml/openapi/openapi.yaml
+- requirement_version_uid: CAP-API-DOCS-SEED-SUMMARY
+  kind: other
+  uri: ../../../apps/reqaml/src/http/server.ts
+- requirement_version_uid: CAP-DEVENV-SMOKE
+  kind: other
+  uri: ../../../scripts/devenv-smoke.mjs
+- requirement_version_uid: CAP-DEVENV-SMOKE
+  kind: other
+  uri: ../../../.github/workflows/devenv-smoke.yml
+- requirement_version_uid: CAP-UI-FRAME
+  kind: other
+  uri: ../c4/sequences/A01-sign-in-sso.puml
+- requirement_version_uid: CAP-UI-FRAME
+  kind: other
+  uri: ../c4/sequences/A03-select-client-scoped-view.puml
+- requirement_version_uid: CAP-OAUTH-AS
+  kind: other
+  uri: ../c4/sequences/AS01-mcp-oauth-authorize.puml
+- requirement_version_uid: CAP-OAUTH-AS
+  kind: other
+  uri: ../auth/mcp-upstream-identity.md
+- requirement_version_uid: CAP-CRED-STORE
+  kind: other
+  uri: ../c4/sequences/AS02-local-login-lockout-mfa.puml
+- requirement_version_uid: CAP-KEY-ENVELOPE
+  kind: other
+  uri: ../c4/sequences/KS01-kek-rotate-dek-rewrap.puml
 edges:
 - from: CAP-SSO
   to: A01
@@ -11441,6 +12015,245 @@ edges:
   to: V-222438
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
+- from: CAP-DEVENV-MONOREPO
+  to: ARCH-DEVENV-CLONE
+  kind: satisfies
+- from: CAP-DEVENV-MONOREPO
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-DOCKERFILE-ROLES
+  to: ARCH-DEPLOY-MINIMAL
+  kind: satisfies
+- from: CAP-DEVENV-DOCKERFILE-ROLES
+  to: ARCH-DEVENV-PARITY.1
+  kind: satisfies
+- from: CAP-DEVENV-DOCKERFILE-ROLES
+  to: FIX-ALLOW-APP-ROLE-SPLIT
+  kind: satisfies
+- from: CAP-DEVENV-DOCKERFILE-ROLES
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-PERIPHERALS
+  to: ARCH-DEPLOY-PERIPHERALS
+  kind: satisfies
+- from: CAP-DEVENV-PERIPHERALS
+  to: ARCH-DEVENV-KEYS
+  kind: satisfies
+- from: CAP-DEVENV-PERIPHERALS
+  to: SC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-COMPOSE
+  to: ARCH-DEVENV-COMPOSE.1
+  kind: satisfies
+- from: CAP-DEVENV-COMPOSE
+  to: ARCH-DEVENV-MODES.1
+  kind: satisfies
+- from: CAP-DEVENV-COMPOSE
+  to: ARCH-DEVENV-CLONE
+  kind: satisfies
+- from: CAP-DEVENV-COMPOSE
+  to: ARCH-DEVENV-SECRETS
+  kind: satisfies
+- from: CAP-DEVENV-COMPOSE
+  to: FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  kind: satisfies
+- from: CAP-DEVENV-COMPOSE
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-HEALTH-LIVENESS
+  to: M04
+  kind: satisfies
+- from: CAP-HEALTH-LIVENESS
+  to: SI-4
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-READY-PROBES
+  to: ARCH-DEVENV-HEALTH
+  kind: satisfies
+- from: CAP-READY-PROBES
+  to: M04
+  kind: satisfies
+- from: CAP-READY-PROBES
+  to: ARCH-KEY-FAILCLOSED
+  kind: satisfies
+- from: CAP-READY-PROBES
+  to: SI-4
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-STARTUP-BACKOFF
+  to: ARCH-DEVENV-HEALTH
+  kind: satisfies
+- from: CAP-DEVENV-STARTUP-BACKOFF
+  to: CP-10
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-PROD-SELFCHECK
+  to: ARCH-DEVENV-IDENTITY.1
+  kind: satisfies
+- from: CAP-PROD-SELFCHECK
+  to: ARCH-DEVENV-KEYS
+  kind: satisfies
+- from: CAP-PROD-SELFCHECK
+  to: FIX-DENY-DEV-KEK-IN-PROD
+  kind: satisfies
+- from: CAP-PROD-SELFCHECK
+  to: FIX-DENY-DEVENV-PROD-LOGIN.1
+  kind: satisfies
+- from: CAP-PROD-SELFCHECK
+  to: CM-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  to: ARCH-DEVENV-KEYS
+  kind: satisfies
+- from: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  to: ARCH-KEY-PROVIDER
+  kind: satisfies
+- from: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  to: SC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-MIGRATE-SEED
+  to: ARCH-DEVENV-SEED
+  kind: satisfies
+- from: CAP-DEVENV-MIGRATE-SEED
+  to: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  kind: satisfies
+- from: CAP-DEVENV-MIGRATE-SEED
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-API-DOCS-SEED-SUMMARY
+  to: ARCH-API
+  kind: satisfies
+- from: CAP-API-DOCS-SEED-SUMMARY
+  to: ARCH-DEVENV-CLONE
+  kind: satisfies
+- from: CAP-API-DOCS-SEED-SUMMARY
+  to: SA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-SMOKE
+  to: FIX-ALLOW-DEVENV-SMOKE
+  kind: satisfies
+- from: CAP-DEVENV-SMOKE
+  to: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  kind: satisfies
+- from: CAP-DEVENV-SMOKE
+  to: FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  kind: satisfies
+- from: CAP-DEVENV-SMOKE
+  to: SA-11
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-UI-FRAME
+  to: ARCH-UI
+  kind: satisfies
+- from: CAP-UI-FRAME
+  to: ARCH-UI-GUARD
+  kind: satisfies
+- from: CAP-UI-FRAME
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-OAUTH-AS
+  to: ARCH-AUTH-AS
+  kind: satisfies
+- from: CAP-OAUTH-AS
+  to: ARCH-AUTH-PKCE
+  kind: satisfies
+- from: CAP-OAUTH-AS
+  to: ARCH-AUTH-METADATA
+  kind: satisfies
+- from: CAP-OAUTH-AS
+  to: ARCH-AUTH-AUDIENCE
+  kind: satisfies
+- from: CAP-OAUTH-AS
+  to: ARCH-AUTH-REFRESH
+  kind: satisfies
+- from: CAP-OAUTH-AS
+  to: ARCH-AUTH-REVOKE
+  kind: satisfies
+- from: CAP-OAUTH-AS
+  to: ARCH-AUTH-CLIENTREG
+  kind: satisfies
+- from: CAP-OAUTH-AS
+  to: ARCH-AUTH-MCP-REQUIRED
+  kind: satisfies
+- from: CAP-OAUTH-AS
+  to: ARCH-AUTH-PROFILE
+  kind: satisfies
+- from: CAP-OAUTH-AS
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-CRED-STORE
+  to: ARCH-AUTH-LOCAL.1
+  kind: satisfies
+- from: CAP-CRED-STORE
+  to: ARCH-CRED
+  kind: satisfies
+- from: CAP-CRED-STORE
+  to: ARCH-CRED-HASH
+  kind: satisfies
+- from: CAP-CRED-STORE
+  to: ARCH-CRED-POLICY
+  kind: satisfies
+- from: CAP-CRED-STORE
+  to: ARCH-CRED-LOCKOUT
+  kind: satisfies
+- from: CAP-CRED-STORE
+  to: ARCH-CRED-MFA
+  kind: satisfies
+- from: CAP-CRED-STORE
+  to: ARCH-CRED-TOKENS
+  kind: satisfies
+- from: CAP-CRED-STORE
+  to: ARCH-CRED-SESSION
+  kind: satisfies
+- from: CAP-CRED-STORE
+  to: ARCH-CRED-REAUTH
+  kind: satisfies
+- from: CAP-CRED-STORE
+  to: IA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-KEY-ENVELOPE
+  to: ARCH-KEY
+  kind: satisfies
+- from: CAP-KEY-ENVELOPE
+  to: ARCH-KEY-PROVIDER
+  kind: satisfies
+- from: CAP-KEY-ENVELOPE
+  to: ARCH-KEY-SCOPE
+  kind: satisfies
+- from: CAP-KEY-ENVELOPE
+  to: ARCH-KEY-JWKS
+  kind: satisfies
+- from: CAP-KEY-ENVELOPE
+  to: ARCH-KEY-LIFECYCLE
+  kind: satisfies
+- from: CAP-KEY-ENVELOPE
+  to: ARCH-KEY-FAILCLOSED
+  kind: satisfies
+- from: CAP-KEY-ENVELOPE
+  to: SC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-AUTH-AUDIT
+  to: ARCH-CRED-AUDIT
+  kind: satisfies
+- from: CAP-AUTH-AUDIT
+  to: CAP-AUDIT
+  kind: uses
+- from: CAP-AUTH-AUDIT
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -11630,9 +12443,49 @@ releases:
   - MC01.1
   - MC02
   cyber_gate: false
+- id: rel-pr11-planning-baseline
+  project_id: reqaml
+  name: 'PR #11 — planning baseline'
+  planned_on: '2026-10-07'
+  shipped_on: '2026-10-07'
+  status: shipped
+  delivers: []
+  cyber_gate: false
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/11 merged to main as 50877ca1e717a46ce7f2bfbefc563dbd90c929e5 on 2026-10-07. Planning/design baseline: design docs (C4, sequences, roles, user actions), the dogfood seed, and folded reviews from PRs #1-#5 and #7. Documentation only: no runtime code, so it delivers no requirement or capability versions (no capabilities invented).'
+- id: rel-pr12-devenv-foundation
+  project_id: reqaml
+  name: 'PR #12 — devenv foundation'
+  planned_on: '2026-10-07'
+  shipped_on:
+  status: planned
+  delivers:
+  - ARCH-DEVENV-MODES.1
+  - ARCH-DEVENV-PARITY.1
+  - ARCH-DEVENV-KEYS
+  - ARCH-DEVENV-CLONE
+  - ARCH-DEVENV-SEED
+  - ARCH-DEVENV-SECRETS
+  - ARCH-DEVENV-HEALTH
+  - M04
+  - FIX-ALLOW-DEVENV-SMOKE
+  - FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  - CAP-DEVENV-MONOREPO
+  - CAP-DEVENV-DOCKERFILE-ROLES
+  - CAP-DEVENV-PERIPHERALS
+  - CAP-DEVENV-COMPOSE
+  - CAP-HEALTH-LIVENESS
+  - CAP-READY-PROBES
+  - CAP-DEVENV-STARTUP-BACKOFF
+  - CAP-PROD-SELFCHECK
+  - CAP-DEVENV-OPENBAO-BOOTSTRAP
+  - CAP-DEVENV-MIGRATE-SEED
+  - CAP-API-DOCS-SEED-SUMMARY
+  - CAP-DEVENV-SMOKE
+  cyber_gate: false
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/12 (branch cursor/reqaml-devenv-foundation-b0e0). About to merge: flip to shipped with shipped_on + merge SHA at merge. pnpm monorepo, one Dockerfile, 2-container Compose (app + peripherals: Postgres + OpenBao), app shell, /health liveness, /ready live peripheral checks, startup backoff, production self-check refusing dev keys/accounts, `pnpm devenv:smoke` (CI manual-only). Requirement versions listed here moved from rel-r1-foundation-shell-auth (fully met). cyber_gate=false: developer tooling, no client data.'
 - id: rel-r1-foundation-shell-auth
   project_id: reqaml
-  name: R1-foundation-shell-auth
+  name: 'R1-foundation-shell-auth — next PR: UI frame + internal auth'
   planned_on:
   shipped_on:
   status: planned
@@ -11668,18 +12521,10 @@ releases:
   - ARCH-DEPLOY-MINIMAL
   - ARCH-DEPLOY-PERIPHERALS
   - ARCH-DEVENV-COMPOSE.1
-  - ARCH-DEVENV-MODES.1
-  - ARCH-DEVENV-PARITY.1
   - ARCH-DEVENV-IDENTITY.1
-  - ARCH-DEVENV-KEYS
-  - ARCH-DEVENV-CLONE
-  - ARCH-DEVENV-SEED
-  - ARCH-DEVENV-SECRETS
-  - ARCH-DEVENV-HEALTH
   - ARCH-API-LAYERS
   - ARCH-API-RBAC
   - ARCH-UI-GUARD
-  - M04
   - ARCH-AUTH-PROFILE
   - ARCH-AUTH-MCP-REQUIRED
   - ARCH-AUTH-LOCAL-BREAKGLASS
@@ -11687,7 +12532,13 @@ releases:
   - ARCH-AUTH-CLAIM-MAP
   - ARCH-AUTH-UPSTREAM-REVOKE
   - ARCH-AUTH-AGENT-ATTRIBUTION
-  notes: 'Build sequencing only (ARCH-BUILD-FOUNDATION): first implementation slice = platform shell + internal OAuth AS + local accounts/credential store + key store + RBAC + audit + health + minimal-container Compose. No v1 scope cut. planned_on / cyber_gate pending Dan (open-questions).'
+  - CAP-UI-FRAME
+  - CAP-OAUTH-AS
+  - CAP-CRED-STORE
+  - CAP-KEY-ENVELOPE
+  - CAP-AUTH-AUDIT
+  - CAP-RBAC
+  notes: 'Next planned release after PR #12 (rel-pr12-devenv-foundation); PR not opened yet (one PR = one release). Scope: UI frame (CAP-UI-FRAME), internal OAuth 2.1 AS (CAP-OAUTH-AS), credential store (CAP-CRED-STORE), KeyProvider envelope encryption + JWKS (CAP-KEY-ENVELOPE), RBAC (CAP-RBAC), auth audit (CAP-AUTH-AUDIT). 2026-10-07 split: ARCH-DEVENV-MODES.1, -PARITY.1, -KEYS, -CLONE, -SEED, -SECRETS, -HEALTH and M04 moved to rel-pr12-devenv-foundation (fully met there). ARCH-DEVENV-COMPOSE.1 (hsm-test profile, internal-AS sign-in), ARCH-DEVENV-IDENTITY.1 (dev sign-in via AS), ARCH-DEPLOY-MINIMAL (AS + real MCP role) and ARCH-DEPLOY-PERIPHERALS (prod split) stay here: PR #12 meets them only in part (see its Satisfies edges). Build sequencing only (ARCH-BUILD-FOUNDATION); no v1 scope cut. planned_on / cyber_gate pending Dan (open-questions).'
 - id: rel-r1-core-alm
   project_id: reqaml
   name: R1-core-ALM

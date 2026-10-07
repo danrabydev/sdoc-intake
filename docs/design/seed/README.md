@@ -84,12 +84,12 @@ Re-run `patch_catalog_reverse_conforms.py` after re-copying catalogs from sdoc-i
 
 | Entity | Count (approx.) |
 |--------|----------------:|
-| requirement_lines | 314 (sections + req/capability; + ARCH-AUTH/CRED/KEY/DEPLOY/BUILD + local-optional/upstream + ARCH-DEVENV-* + ARCH-MINT/SUSPECT/GATE-SIGNOFF + Cyber+QA and auth FIX beds) |
-| requirement_versions | 326 (incl. FIX-SUCC-2HOP/DEVENV/AUTH-LOCAL content successors `.1`; + auth foundation + local-optional/upstream ARCH/FIX) |
-| edges | 1377 (conforms_to + uses/satisfies/refines; + auth foundation + local-optional/upstream NIST/ASD pins + suspect detect bed) |
+| requirement_lines | 331 (sections + req/capability; + 17 PR-release CapabilityLines (12 delivered by PR #12, 5 planned for the next PR); + ARCH-AUTH/CRED/KEY/DEPLOY/BUILD + local-optional/upstream + ARCH-DEVENV-* + ARCH-MINT/SUSPECT/GATE-SIGNOFF + Cyber+QA and auth FIX beds) |
+| requirement_versions | 343 (incl. the 17 capability versions; FIX-SUCC-2HOP/DEVENV/AUTH-LOCAL content successors `.1`; + auth foundation + local-optional/upstream ARCH/FIX) |
+| edges | 1451 (conforms_to + uses/satisfies/refines; + auth foundation + local-optional/upstream NIST/ASD pins + suspect detect bed) |
 | catalog_imprints | 2 (`nist-800-53@rev5-dogfood-20261006`, `asd-stig@v6r4`) |
 | contracts | 5 (Design-2026-10, Security package, Platform baseline, **Legacy intake closed**, Fixture doc-walk) |
-| releases | 3 (R0-sequences **shipped**, **R1-foundation-shell-auth planned** (build sequencing only; dates/cyber_gate open), R1-core-ALM **planned** — includes obsolete `ARCH-CONTRACT` for stale-backlog UX) |
+| releases | 5 (R0-sequences **shipped**; **PR #11 planning baseline shipped** (docs only, delivers nothing); **PR #12 devenv foundation planned** (until merge); **R1-foundation-shell-auth planned** = next PR (UI frame + internal auth); R1-core-ALM **planned** — includes obsolete `ARCH-CONTRACT` for stale-backlog UX) |
 | identities / grants | 13 / 11 project + 1 client_grant + 1 platform_grant (incl. jordan Auditor, morgan steward, **pat-client-admin**, **jamie-ao**, **drew-developer**, **kim-key-custodian** (deployment-scoped Key custodian via `platform_grants`), no-grant-user, tombstone `grant-alex-author-revoked`) |
 | catalog_steward_grants | 1 (`steward-morgan-reqaml-project` on `cat-reqaml-security`) |
 | clients (extra) | 1 (`other-family` — cross-client denial; no projects/grants into reqaml) |
@@ -98,7 +98,7 @@ Re-run `patch_catalog_reverse_conforms.py` after re-copying catalogs from sdoc-i
 | work_item_links | 2 (FIX-SAMPLE-APPROVED, A01) |
 | catalog entries | 9 project `REQAML-SEC-*` (incl. OAUTH / CRED / KEYS) only; NIST/STIG via imprints → `catalog/*.sdoc` |
 | iterations | 3 (R0 / R1 / R2) |
-| capability_artifacts | 23 (sequences A01–A08/MC*, C4 L1–L3/ERD, mockups **01–04** only) |
+| capability_artifacts | 74 (sequences A01–A08/MC*/AS*, C4 L1–L3/ERD, mockups **01–04**, auth design notes; PR #12 capabilities point at repo files such as `Dockerfile`, `scripts/devenv-smoke.mjs`, `apps/reqaml/openapi/openapi.yaml`) |
 
 ### Sections
 
@@ -143,6 +143,17 @@ Denial / multi-tenant seed (schema-compatible; root `additionalProperties` + opt
 Backup: `dogfood.yaml.bak-catalog` (NIST/STIG catalog import). Prior: `dogfood.yaml.bak3` / `.bak2`. No git commit from this cut.
 
 Regenerate from the table-driven builder (optional): `python3 scripts/gen_expanded_dogfood.py` then re-apply Cyber+QA cut (or merge) and re-run the converter with `--validate`. The generator does **not** yet emit the Cyber+QA fixtures — prefer editing `dogfood.yaml` directly for this cut.
+
+## Releases = PRs (keep the seed in step with development)
+
+For now **each pull request is one release** (`releases[]`, id `rel-pr<N>-<slug>`), and the seed models ReqAML's real development, not only its design:
+
+- **Every dev PR updates `dogfood.yaml` in the same PR:** add or update its release (status `planned` while open; flip to `shipped` with `shipped_on` and the merge SHA in `notes` once merged; PR URL in `notes`), and add CapabilityLines for what it actually built.
+- **Capabilities follow the locked workflow rules:** born with `satisfies` edges to the requirement versions they meet (gate-satisfies-at-create), a line `ApprovalRecord` (`unapproved` until Dan approves the solution; activate ≠ approve), `security.verification_note` with the evidence, `capability_artifacts` pointing at the code/docs, and `verification_outcome: pass` only when verified. Planned work stays `status: draft` with no outcome.
+- **`delivers` lists what the release fully meets** (capabilities, requirement versions, fixture beds). A requirement met only in part stays in the release that completes it; the partial contribution shows as the capability's `satisfies` edge. Move fully met versions out of later planned releases (see `rel-r1-foundation-shell-auth` notes).
+- Patch with an idempotent script (`scripts/patch_release_per_pr_encode.py` is the model), then `python3 scripts/yaml_to_strictdoc.py --validate` and commit `out/` with the YAML.
+
+**Import-ready:** this seed is intended to be the **first project imported into ReqAML** once auth lands (ReqAML manages its own requirements). Keep it schema-valid (`reqseed.schema.json`) and loadable by the app (`pnpm reqaml:seed`; `/api/v1/seed/summary` lists releases and capability counts). The dev seed loader currently stores clients, projects, identities, grants, requirement lines/versions (including capabilities) and releases with their `delivers`; edges, contracts, approvals, catalogs, audit and workflow rows are not loaded yet, and only releases are updated in place on re-seed (other rows are insert-if-absent; `docker compose down -v` resets).
 
 ## Edit loop
 
