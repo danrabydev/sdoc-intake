@@ -135,7 +135,14 @@ function renderLogin(h, stateParam) {
       enrollmentTicket = data.enrollment_ticket;
       enrollBox.hidden = false;
       enrollBox.replaceChildren(
-        el("p", { className: "muted", text: "Scan this URI in your authenticator app, then enter the code:" }),
+        el("p", {
+          className: "muted",
+          text: "Add this account to your authenticator app (enter the setup key, or use the otpauth URI), then enter the 6-digit code:",
+        }),
+        el("p", {}, [
+          document.createTextNode("Setup key: "),
+          el("code", { text: new URL(data.otpauth_uri).searchParams.get("secret") || "" }),
+        ]),
         el("code", { text: data.otpauth_uri }),
       );
       mfaWrap.hidden = false;

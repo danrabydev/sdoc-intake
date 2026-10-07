@@ -9,7 +9,22 @@ function hashIp(ip: string): string {
   return createHash("sha256").update(ip).digest("hex");
 }
 
-export async function reserveIpLoginAttempt(
+/** True while this source IP is throttled. Does not count the attempt. */
+export async function isIpThrottled(pool: pg.Pool, ip: string | undefined): Promise<boolean> {
+  if (!ip) return false;
+  const r = await pool.query(
+    `SELECT 1 FROM auth_ip_throttle WHERE ip_hash = $1 AND locked_until > now()`,
+    [hashIp(ip)],
+  );
+  return (r.rowCount ?? 0) > 0;
+}
+
+/**
+ * Count a *failed* login (unknown user, wrong password, wrong MFA code) for the source IP.
+ * Successful logins are not counted: behind Docker port publishing every host client shares the
+ * bridge gateway IP, so counting all attempts would lock out normal use after 20 sign-ins.
+ */
+export async function recordIpLoginFailure(
   pool: pg.Pool,
   ip: string | undefined,
 ): Promise<{ blocked: boolean }> {

@@ -25,7 +25,7 @@ import { resolveResource, type OAuthResource } from "./resources.js";
 import type { AuthProfile } from "./profile.js";
 import { localLoginAllowed } from "./profile.js";
 import { hashUsernameForAudit, normalizeUsername } from "../credential/username.js";
-import { reserveIpLoginAttempt } from "../credential/ip-throttle.js";
+import { isIpThrottled, recordIpLoginFailure } from "../credential/ip-throttle.js";
 
 const CODE_TTL_SEC = 120;
 const ACCESS_TTL_SEC = 300;
@@ -50,8 +50,13 @@ export async function authenticateLocalUser(
   | { ok: true; identityId: string; needsMfa: boolean }
   | { ok: false; error: string }
 > {
-  const ipBlock = await reserveIpLoginAttempt(pool, ctx.ip);
-  if (ipBlock.blocked) {
+  if (await isIpThrottled(pool, ctx.ip)) {
+    await writeAuthAudit(pool, {
+      eventType: "login.ip_throttle",
+      outcome: "deny",
+      ip: ctx.ip,
+      userAgent: ctx.userAgent,
+    });
     return { ok: false, error: "invalid_credentials" };
   }
   username = normalizeUsername(username);
@@ -75,6 +80,7 @@ export async function authenticateLocalUser(
     [username],
   );
   if (!r.rowCount) {
+    await recordIpLoginFailure(pool, ctx.ip);
     await writeAuthAudit(pool, {
       eventType: "login.local",
       outcome: "failure",
@@ -103,6 +109,7 @@ export async function authenticateLocalUser(
   }
   const valid = await verifyPassword(password, row.password_hash);
   if (!valid) {
+    await recordIpLoginFailure(pool, ctx.ip);
     await writeAuthAudit(pool, {
       eventType: "login.local",
       outcome: "failure",

@@ -124,6 +124,27 @@ async function loginAndExchange(username, password, resource, mfaCode) {
   return token.body;
 }
 
+async function webSessionLogin(username, password) {
+  const start = await fetch(`${baseUrl}/oauth/web/start`, { redirect: "manual" });
+  if (start.status !== 302) fail("/oauth/web/start should redirect", start.status);
+  const authz = await fetch(new URL(start.headers.get("location"), baseUrl), { redirect: "manual" });
+  if (authz.status !== 302) fail("web authorize should redirect to /login", authz.status);
+  const h = new URL(authz.headers.get("location"), baseUrl).searchParams.get("h");
+  if (!h) fail("web login handoff missing", authz.headers.get("location"));
+  const res = await fetch(`${baseUrl}/api/v1/auth/local/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password, h }),
+  });
+  const body = await res.json();
+  if (!res.ok || !body.csrf_token) fail("web session login failed", body);
+  const setCookies = res.headers.getSetCookie();
+  const sessionCookie = setCookies.find((c) => c.startsWith("reqaml_session="));
+  if (!sessionCookie) fail("no reqaml_session cookie", setCookies);
+  const cookieHeader = setCookies.map((c) => c.split(";")[0]).join("; ");
+  return { sessionCookie, cookieHeader, csrf: body.csrf_token };
+}
+
 async function privilegedLoginWithMfa(username, password, resource, mfaDevSecret) {
   const { handoff } = await authorizeHandoff(resource);
   const step1 = await localLogin(username, password, handoff);
@@ -137,6 +158,10 @@ async function privilegedLoginWithMfa(username, password, resource, mfaDevSecret
   }
   const cb = new URL(step2.body.redirect);
   if (!cb.searchParams.get("code")) fail("missing code after MFA login", step2.body);
+  // Replay: the same TOTP code must not work twice.
+  const { handoff: h2 } = await authorizeHandoff(resource);
+  const replay = await localLogin(username, password, h2, { mfa_code: code });
+  if (replay.ok || replay.body?.error !== "invalid_mfa") fail("replayed TOTP code must be rejected", replay);
   return { ok: true, code: cb.searchParams.get("code") };
 }
 
@@ -266,6 +291,35 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
     if (res.ok) fail(`lockout bypassed via username variant ${JSON.stringify(variant)}`, res);
   }
 
+  // BFF web session: HttpOnly cookie + CSRF on state-changing requests.
+  const web = await webSessionLogin(readerUser, devPassword);
+  const flags = web.sessionCookie.toLowerCase();
+  if (!flags.includes("httponly") || !flags.includes("samesite=lax")) {
+    fail("session cookie must be HttpOnly and SameSite=Lax", web.sessionCookie);
+  }
+  if (flags.includes("secure")) fail("dev (http) session cookie should not be Secure-only", web.sessionCookie);
+  const webMe = await fetch(`${baseUrl}/api/v1/me`, { headers: { Cookie: web.cookieHeader } });
+  if (webMe.status !== 200) fail("cookie session /api/v1/me failed", webMe.status);
+  const noCsrf = await fetch(`${baseUrl}/api/v1/projects/reqaml/grants`, {
+    method: "POST",
+    headers: { Cookie: web.cookieHeader, "Content-Type": "application/x-www-form-urlencoded" },
+    body: "role=Reader",
+  });
+  if (noCsrf.status !== 401) fail("cookie form POST without CSRF token must be rejected", noCsrf.status);
+  const withCsrf = await fetch(`${baseUrl}/api/v1/projects/reqaml/grants`, {
+    method: "POST",
+    headers: { Cookie: web.cookieHeader, "X-CSRF-Token": web.csrf, "Content-Type": "application/json" },
+    body: "{}",
+  });
+  if (withCsrf.status !== 403) fail("cookie POST with CSRF should reach RBAC (403 for Reader)", withCsrf.status);
+  const signout = await fetch(`${baseUrl}/api/v1/auth/signout`, {
+    method: "POST",
+    headers: { Cookie: web.cookieHeader, "X-CSRF-Token": web.csrf },
+  });
+  if (signout.status !== 200) fail("signout failed", signout.status);
+  const afterSignout = await fetch(`${baseUrl}/api/v1/me`, { headers: { Cookie: web.cookieHeader } });
+  if (afterSignout.status !== 401) fail("session must be dead after signout", afterSignout.status);
+
   let privilegedMfa = false;
   if (mfaDevSecret) {
     await privilegedLoginWithMfa("sam-security@dev.local", devPassword, apiResource, mfaDevSecret);
@@ -273,20 +327,61 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
   }
 
   let agentToken = false;
+  let agentJti = null;
   if (agentClientSecret) {
-    const cc = await postForm("/oauth/token", {
-      grant_type: "client_credentials",
-      client_id: "reqaml-agent-dev",
-      client_secret: agentClientSecret,
-      agent_name: "cursor-cloud",
-      resource: apiResource,
-      ttl_seconds: "3600",
-    });
+    const mint = (extra) =>
+      postForm("/oauth/token", {
+        grant_type: "client_credentials",
+        client_id: "reqaml-agent-dev",
+        client_secret: agentClientSecret,
+        agent_name: "cursor-cloud",
+        resource: apiResource,
+        ...extra,
+      });
+    // Default role is Reader; TTL is capped at 1h.
+    const cc = await mint({ ttl_seconds: "86400" });
     if (cc.status !== 200 || !cc.body.access_token) fail("agent client_credentials failed", cc);
+    if (cc.body.reqaml_role !== "Reader" || cc.body.expires_in > 3600) {
+      fail("agent token should default to Reader with TTL <= 3600", cc.body);
+    }
+    const claims = JSON.parse(Buffer.from(cc.body.access_token.split(".")[1], "base64url").toString());
+    if (claims.sub !== "agent-cursor-cloud" || claims.aud !== apiResource || claims.reqaml_role !== "Reader") {
+      fail("agent token must be its own principal, audience-bound, Reader", claims);
+    }
+    agentJti = claims.jti;
     const agentMe = await fetch(`${baseUrl}/api/v1/me`, {
       headers: { Authorization: `Bearer ${cc.body.access_token}` },
     });
-    if (agentMe.status !== 200) fail("agent token /api/v1/me failed", await agentMe.text());
+    const agentMeBody = await agentMe.json();
+    if (agentMe.status !== 200 || JSON.stringify(agentMeBody.effective_roles) !== '["Reader"]') {
+      fail("agent token effective roles should be [Reader]", agentMeBody);
+    }
+    const author = await mint({ role: "Author" });
+    if (author.status !== 200 || author.body.reqaml_role !== "Author") fail("Author agent token should mint", author);
+    for (const role of ["Project admin", "Developer", "Security"]) {
+      const denied = await mint({ role });
+      if (denied.status !== 400 || denied.body.error !== "invalid_scope") {
+        fail(`agent role ${role} must be refused at mint`, denied);
+      }
+    }
+    const wrongAudAgent = await fetch(`${baseUrl}/mcp`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${cc.body.access_token}`, "Content-Type": "application/json" },
+      body: "{}",
+    });
+    if (wrongAudAgent.status !== 401) fail("API-audience agent token must 401 at MCP", wrongAudAgent.status);
+    // Mutation attempt (audited with agent attribution), then revocation.
+    const agentMut = await fetch(`${baseUrl}/api/v1/projects/reqaml/grants`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${author.body.access_token}`, "Content-Type": "application/json" },
+      body: "{}",
+    });
+    if (agentMut.status !== 403) fail("Author agent must not manage grants", agentMut.status);
+    await postForm("/oauth/revoke", { token: cc.body.access_token, token_type_hint: "access_token" });
+    const revokedAgent = await fetch(`${baseUrl}/api/v1/me`, {
+      headers: { Authorization: `Bearer ${cc.body.access_token}` },
+    });
+    if (revokedAgent.status !== 401) fail("revoked agent token should 401", revokedAgent.status);
     agentToken = true;
   }
 
@@ -307,8 +402,15 @@ export async function runAuthFlowSmoke(devPassword, opts = {}) {
     rbac_deny: true,
     wrong_audience_denied: true,
     lockout: true,
+    web_session_cookie_flags: true,
+    csrf_required_for_cookie_mutation: true,
+    signout_kills_session: true,
     privileged_mfa_login: privilegedMfa,
+    totp_replay_rejected: privilegedMfa,
     agent_client_credentials: agentToken,
+    agent_role_default_reader_and_refused_above_author: agentToken,
+    agent_token_revocation: agentToken,
+    agent_jti: agentJti,
   };
 }
 

@@ -6,6 +6,7 @@ import type { VerifiedAccessToken } from "./token-verify.js";
 import { verifyAccessToken } from "./token-verify.js";
 import { apiResource, issuerUrl } from "./resources.js";
 import {
+  assertCsrf,
   loadWebSession,
   verifySessionCookie,
   SESSION_COOKIE,
@@ -44,6 +45,10 @@ export async function resolveRequestAuth(
   if (!sessionId) return null;
   const session = await loadWebSession(pool, sessionId);
   if (!session) return null;
+  // Cookie-authenticated state changes need the session's CSRF token (X-CSRF-Token header).
+  // SameSite=Lax alone does not cover same-site origins (e.g. other localhost ports).
+  const safeMethod = req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS";
+  if (!safeMethod && !assertCsrf(req, session.csrfToken)) return null;
   const refreshPlain = (
     await keyProvider.unwrapSecret(session.refreshTokenCiphertext, "web-session")
   ).toString("utf8");

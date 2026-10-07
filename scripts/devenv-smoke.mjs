@@ -10,7 +10,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const root = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const baseUrl = process.env.REQAML_SMOKE_URL ?? "http://127.0.0.1:3000";
 
 const composeBase = ["-f", "docker-compose.yml", "-f", "docker-compose.hostports.yml"];
@@ -229,6 +229,10 @@ async function main() {
       "REQAML_SEED_ON_START=false",
       "-e",
       "REQAML_DEV_ACCOUNT_PASSWORD=",
+      "-e",
+      "REQAML_ISSUER_URL=",
+      "-e",
+      "REQAML_TRUST_PROXY=true",
       "app",
     ],
     { quiet: true, allowFail: true },
@@ -238,12 +242,16 @@ async function main() {
     prodApp.code === 0 ||
     !/Startup self-check failed/.test(prodOut) ||
     !/Seeded dev local accounts exist/.test(prodOut) ||
-    !/Dev-marked (OpenBao|Transit)[^\n]*refused in production/.test(prodOut)
+    !/Dev-marked (OpenBao|Transit)[^\n]*refused in production/.test(prodOut) ||
+    !/REQAML_ISSUER_URL must be set in production/.test(prodOut) ||
+    !/REQAML_TRUST_PROXY=true trusts X-Forwarded-\* from any peer/.test(prodOut)
   ) {
     fail("App started (or failed for the wrong reason) in production mode with dev accounts/keys", prodApp);
   }
 
   console.log("\nAuth flow smoke (PKCE login, refresh/reuse, revoke, lockout, RBAC deny, MFA, agent token)…");
+  // Tokens and redirect URIs are bound to the configured issuer origin (REQAML_ISSUER_URL).
+  process.env.REQAML_SMOKE_URL ??= secrets.REQAML_ISSUER_URL || baseUrl;
   const { runAuthFlowSmoke } = await import("./auth-flow-smoke.mjs");
   const authSmoke = await runAuthFlowSmoke(smokePassword, {
     mfaDevSecret: secrets.REQAML_MFA_DEV_SECRET,
@@ -251,6 +259,66 @@ async function main() {
   });
   if (!authSmoke.privileged_mfa_login) fail("privileged MFA login did not run");
   if (!authSmoke.agent_client_credentials) fail("agent client_credentials did not run");
+
+  const psql = async (sql) =>
+    (
+      await run(
+        "docker",
+        ["compose", ...composeBase, "exec", "-T", "peripherals", "psql", "-U", secrets.POSTGRES_USER ?? "reqaml",
+          "-d", secrets.POSTGRES_DB ?? "reqaml", "-Atc", sql],
+        { quiet: true },
+      )
+    ).stdout.trim();
+  const auditCounts = await psql(
+    `SELECT string_agg(event_type || ':' || outcome || '=' || n, ',' ORDER BY event_type, outcome) FROM (
+       SELECT event_type, outcome, count(*) n FROM auth_audit_events GROUP BY 1,2) t`,
+  );
+  for (const needed of ["login.local:success", "login.local:failure", "login.lockout:deny", "token.client_credentials:success",
+    "token.client_credentials:deny", "token.refresh_reuse:deny", "token.revoke:success", "mfa.verify:success", "mfa.verify:failure"]) {
+    if (!auditCounts.includes(`${needed}=`)) fail(`audit missing ${needed}`, auditCounts);
+  }
+  const agentAudit = await psql(
+    `SELECT count(*) FROM auth_audit_events WHERE event_type = 'rbac.deny'
+       AND detail->>'agent_name' = 'cursor-cloud' AND detail->>'token_role' = 'Author'
+       AND identity_id = 'agent-cursor-cloud'`,
+  );
+  if (agentAudit === "0") fail("agent mutation attempt not audited with agent attribution");
+
+  // IP throttle: 20 failed logins from one source IP block that IP. Run from inside the app
+  // container (source 127.0.0.1) so the host's shared bridge IP is not throttled for real use.
+  console.log("\nIP throttle (from inside the app container)…");
+  const throttleScript = `
+    const base = "http://127.0.0.1:3000", iss = process.env.REQAML_ISSUER_URL;
+    async function handoff() {
+      const q = new URLSearchParams({ response_type: "code", client_id: "reqaml-web",
+        redirect_uri: iss + "/oauth/callback", state: "s", code_challenge: "x".repeat(43),
+        code_challenge_method: "S256", resource: iss + "/api" });
+      const r = await fetch(base + "/oauth/authorize?" + q, { redirect: "manual" });
+      return new URL(r.headers.get("location"), base).searchParams.get("h");
+    }
+    async function login(username, password) {
+      const r = await fetch(base + "/api/v1/auth/local/login", { method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ username, password, h: await handoff() }) });
+      return r.status;
+    }
+    const pw = process.env.SMOKE_PW;
+    const before = await login("alex-author@dev.local", pw);
+    for (let i = 0; i < 20; i++) await login("nobody-" + i + "@dev.local", "wrong");
+    const after = await login("alex-author@dev.local", pw);
+    console.log(JSON.stringify({ before, after }));
+  `;
+  const throttle = await run(
+    "docker",
+    ["compose", ...composeBase, "exec", "-T", "-e", "SMOKE_PW", "app", "node", "--input-type=module", "-e", throttleScript],
+    { quiet: true, env: { SMOKE_PW: smokePassword } },
+  );
+  const throttleResult = lastJsonObject(throttle.stdout);
+  if (throttleResult.before !== 200 || throttleResult.after !== 401) {
+    fail("IP throttle did not trip after 20 failures", throttleResult);
+  }
+  const hostStillOk = await (await fetch(`${baseUrl}/health`)).status;
+  if (hostStillOk !== 200) fail("health after throttle check", hostStillOk);
 
   console.log(
     "\n" +
@@ -263,6 +331,9 @@ async function main() {
           containers: services,
           production_refused: true,
           auth_smoke: authSmoke,
+          audit_events: auditCounts,
+          agent_mutation_audited: Number(agentAudit),
+          ip_throttle: throttleResult,
         },
         null,
         2,

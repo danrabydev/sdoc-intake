@@ -43,7 +43,9 @@ export function totpTimeStep(secretBase32: string, token: string): number | null
   const totp = new TOTP({ secret: Secret.fromBase32(secretBase32) });
   const delta = totp.validate({ token, window: 1 });
   if (delta === null) return null;
-  return Math.floor(Date.now() / 1000 / totp.period);
+  // The step the code belongs to (current step + drift). Recording the *current* step instead
+  // would let the same code be replayed once the clock moves into the next step.
+  return Math.floor(Date.now() / 1000 / totp.period) + delta;
 }
 
 export function verifyTotp(secretBase32: string, token: string): boolean {

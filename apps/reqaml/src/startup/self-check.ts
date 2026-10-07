@@ -17,6 +17,11 @@ export async function runStartupSelfCheck(
     } else if (!issuer.startsWith("https://")) {
       errors.push("REQAML_ISSUER_URL must use https in production");
     }
+    if (config.REQAML_TRUST_PROXY === true && !config.REQAML_TRUSTED_PROXIES?.trim()) {
+      errors.push(
+        "REQAML_TRUST_PROXY=true trusts X-Forwarded-* from any peer; set REQAML_TRUSTED_PROXIES to the proxy IPs/CIDRs in production",
+      );
+    }
     if (!process.env.REQAML_SESSION_SECRET?.trim()) {
       errors.push("REQAML_SESSION_SECRET must be set in production");
     }
