@@ -85,6 +85,27 @@ export async function reserveLoginAttempt(
   return { locked: false, failedAttempts: r.rows[0].failed_attempts, lockedUntil: r.rows[0].locked_until };
 }
 
+/**
+ * Give back the attempt reserved by this request when it stopped at an intermediate step with a
+ * correct password and no MFA code checked (mfa_required / enrollment prompt). Wrong passwords and
+ * wrong codes stay counted; a lock is lifted only if this request's own reservation caused it.
+ */
+export async function releaseLoginAttempt(
+  pool: pg.Pool,
+  identityId: string,
+): Promise<void> {
+  await pool.query(
+    `
+    UPDATE local_credentials
+    SET failed_attempts = failed_attempts - 1,
+        locked_until = CASE WHEN failed_attempts - 1 >= $2 THEN locked_until ELSE NULL END,
+        updated_at = now()
+    WHERE identity_id = $1 AND failed_attempts > 0
+  `,
+    [identityId, LOCKOUT_THRESHOLD],
+  );
+}
+
 export async function clearLoginFailures(
   pool: pg.Pool,
   identityId: string,

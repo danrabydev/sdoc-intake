@@ -41,7 +41,7 @@ import {
   verifySessionCookie,
 } from "./web-session.js";
 import { randomToken } from "../credential/password.js";
-import { reserveLoginAttempt } from "../credential/lockout.js";
+import { releaseLoginAttempt } from "../credential/lockout.js";
 import { recordIpLoginFailure } from "../credential/ip-throttle.js";
 import type { AuthProfile } from "./profile.js";
 import { localLoginAllowed } from "./profile.js";
@@ -372,6 +372,7 @@ export async function registerAuthRoutes(
           auth.identityId,
           `${body.username}`,
         );
+        await releaseLoginAttempt(pool, auth.identityId);
         return reply.send({
           status: "mfa_enrollment_required",
           enrollment_ticket: enroll.ticketId,
@@ -379,6 +380,7 @@ export async function registerAuthRoutes(
         });
       }
       if (!body.mfa_code) {
+        await releaseLoginAttempt(pool, auth.identityId);
         return reply.code(400).send({ error: "invalid_request" });
       }
       const confirmed = await confirmMfaEnrollment(
@@ -388,7 +390,7 @@ export async function registerAuthRoutes(
         body.mfa_code,
       );
       if (!confirmed.ok || confirmed.identityId !== auth.identityId) {
-        await reserveLoginAttempt(pool, auth.identityId);
+        // This request's attempt (reserved before the password check) stays counted.
         await recordIpLoginFailure(pool, req.ip);
         return reply.code(401).send({ error: "invalid_mfa" });
       }
@@ -396,6 +398,7 @@ export async function registerAuthRoutes(
       mfaVerified = true;
     } else if (auth.needsMfa) {
       if (!body.mfa_code) {
+        await releaseLoginAttempt(pool, auth.identityId);
         return reply.send({ status: "mfa_required", identity_id: auth.identityId });
       }
       mfaVerified = await verifyMfaForLogin(
@@ -405,7 +408,6 @@ export async function registerAuthRoutes(
         body.mfa_code,
       );
       if (!mfaVerified) {
-        await reserveLoginAttempt(pool, auth.identityId);
         await recordIpLoginFailure(pool, req.ip);
         await writeAuthAudit(pool, {
           eventType: "mfa.verify",

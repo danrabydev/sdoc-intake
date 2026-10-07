@@ -162,6 +162,12 @@ async function privilegedLoginWithMfa(username, password, resource, mfaDevSecret
   const { handoff: h2 } = await authorizeHandoff(resource);
   const replay = await localLogin(username, password, h2, { mfa_code: code });
   if (replay.ok || replay.body?.error !== "invalid_mfa") fail("replayed TOTP code must be rejected", replay);
+  // One wrong code counts once and the password-only step counts zero, so a typo does not lock
+  // the account (it used to: password step 1 + wrong code 2 = threshold 3).
+  for (let i = 0; i < 2; i++) {
+    const again = await localLogin(username, password, h2);
+    if (again.body?.status !== "mfa_required") fail("one wrong MFA code must not lock the account", again);
+  }
   return { ok: true, code: cb.searchParams.get("code") };
 }
 
