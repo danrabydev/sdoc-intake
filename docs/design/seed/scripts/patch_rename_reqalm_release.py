@@ -22,8 +22,12 @@ EVIDENCE_HYGIENE = (
     "project sdoc-intake-dev (maintainer Docker)."
 )
 EVIDENCE_RENAME = (
-    "Mechanical rename ReqAML→ReqALM across repo; `pnpm test`, `pnpm typecheck`, `pnpm build` pass; "
-    "seed yaml_to_strictdoc --validate pass; devenv:init migrates legacy .reqaml/ env keys."
+    "Verified 2026-10-07: offline `pnpm test` 39/39 + 209/209, `pnpm typecheck`, `pnpm build` pass; "
+    "seed yaml_to_strictdoc --validate pass. Local Docker in-place upgrade of a PR #15 dev stack (same "
+    "volumes): `pnpm devenv:init` moved .reqaml/ + REQAML_* to .reqalm/ + REQALM_* with byte-identical "
+    "secret values; migration 005 renamed OAuth client ids, the project id and seeded grant ids; /ready "
+    "green, 0 restarts; the existing dev password and sam-security MFA secret still sign in; UI says "
+    "ReqALM; `pnpm devenv:smoke` pass."
 )
 
 yaml = YAML()
@@ -119,9 +123,13 @@ def main() -> None:
 
     stmt = (
         "Repository, runtime identifiers, OAuth client IDs, env vars, and dogfood seed use the product name "
-        "ReqALM (requirements + application lifecycle management). Legacy misspelling ReqAML is removed from "
-        "active code and configuration; hash-pinned requirement statements may retain historical ReqAML prose "
-        "until a content successor."
+        "ReqALM (requirements + application lifecycle management). Persisted identifiers keep the legacy "
+        "ReqAML spelling where renaming would orphan existing data: Compose volume names (reqaml-pg, "
+        "reqaml-openbao, reqaml-secrets), OpenBao Transit key names (reqaml-kek, reqaml-dek-*) and an existing "
+        "Postgres role/database. Existing dev stacks upgrade in place: migration 005 renames OAuth client ids, "
+        "the project id and seeded grant ids, and `pnpm devenv:init` migrates .reqaml/ and REQAML_* names "
+        "keeping secret values. Active requirement statements keep historical ReqAML prose until a content "
+        "successor."
     )
     upsert(
         data.setdefault("requirement_versions", []),
@@ -191,7 +199,7 @@ def main() -> None:
             delivers=["CAP-RENAME-REQALM"],
             cyber_gate=False,
             notes=(
-                "One PR = one release. Rename PR (planned until merge). "
+                "One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/16 (planned until merge). "
                 f"{EVIDENCE_RENAME}"
             ),
         ),
