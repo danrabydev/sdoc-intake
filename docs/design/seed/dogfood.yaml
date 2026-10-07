@@ -839,6 +839,123 @@ approval_records:
   notes: Planned for the next PR (UI frame + internal auth); approve as solution once built and verified.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-cap-agent-access
+  subject_kind: CapabilityLine
+  base_uid: CAP-AGENT-ACCESS
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #13; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-auth-harden
+  subject_kind: CapabilityLine
+  base_uid: CAP-AUTH-HARDEN
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #13; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-auth-upstream-seam
+  subject_kind: CapabilityLine
+  base_uid: CAP-AUTH-UPSTREAM-SEAM
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #13; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-devenv-init
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-INIT
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #13; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-mfa-enroll
+  subject_kind: CapabilityLine
+  base_uid: CAP-MFA-ENROLL
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #13; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-rbac
+  subject_kind: CapabilityLine
+  base_uid: CAP-RBAC
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #13; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-test-memory-keyprovider
+  subject_kind: CapabilityLine
+  base_uid: CAP-TEST-MEMORY-KEYPROVIDER
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #14; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-test-pglite-db
+  subject_kind: CapabilityLine
+  base_uid: CAP-TEST-PGLITE-DB
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #14; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-test-auth-routes
+  subject_kind: CapabilityLine
+  base_uid: CAP-TEST-AUTH-ROUTES
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #14; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-test-pnpm-gate
+  subject_kind: CapabilityLine
+  base_uid: CAP-TEST-PNPM-GATE
+  status: unapproved
+  by:
+  at:
+  notes: 'Delivered in PR #14; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-test-prod-build-exclude
+  subject_kind: CapabilityLine
+  base_uid: CAP-TEST-PROD-BUILD-EXCLUDE
+  status: unapproved
+  by:
+  at:
+  notes: Planned for test-hygiene PR; approve as solution once built and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-test-auth-hygiene
+  subject_kind: CapabilityLine
+  base_uid: CAP-TEST-AUTH-HYGIENE
+  status: unapproved
+  by:
+  at:
+  notes: Planned for test-hygiene PR; approve as solution once built and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-cap-devenv-smoke-compose-isolation
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+  status: unapproved
+  by:
+  at:
+  notes: Planned for test-hygiene PR; approve as solution once built and verified.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -2560,6 +2677,21 @@ requirement_lines:
   parent: SEC-DEVENV
   kind: capability
   title: Docker-free `pnpm test` gate
+- base_uid: CAP-TEST-PROD-BUILD-EXCLUDE
+  project_id: reqaml
+  parent: SEC-BUILD
+  kind: capability
+  title: Production build excludes test harness modules
+- base_uid: CAP-TEST-AUTH-HYGIENE
+  project_id: reqaml
+  parent: SEC-IA
+  kind: capability
+  title: Stronger in-process auth regression beds
+- base_uid: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: capability
+  title: devenv:smoke pins Compose project name
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -6755,13 +6887,13 @@ requirement_versions:
   base_uid: CAP-TEST-MEMORY-KEYPROVIDER
   version_n: 0
   status: active
-  statement: Tests inject `createMemoryKeyProvider()` implementing the production KeyProvider interface (wrapSecret/unwrapSecret/ensureReady) without OpenBao. Production wiring still uses OpenBao Transit.
+  statement: Tests import `createMemoryKeyProvider()` from `apps/reqaml/src/key/memory-provider.ts` (dev/test only). Production `provider.ts` does not re-export the fake; production build excludes `memory-provider.ts`.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: SC-12
     verification_note: Dev/test only; no production path change.
-  statement_hash: sha256:d69e689a691105b0952230ee4976b094fd631d828dbf346cdcd5a159641d2c69
+  statement_hash: sha256:76ea9ad330c3f71bd00c7cfaf34c260b0375298a45b1f11cfb9808831a04784a
   grooming_state: detailed
   verification_outcome: pass
 - uid: CAP-TEST-PGLITE-DB
@@ -6803,6 +6935,42 @@ requirement_versions:
   statement_hash: sha256:773295178e8f99c461e1408130ba0278c1f3aea79683633f2b81909268d5f896
   grooming_state: detailed
   verification_outcome: pass
+- uid: CAP-TEST-PROD-BUILD-EXCLUDE
+  base_uid: CAP-TEST-PROD-BUILD-EXCLUDE
+  version_n: 0
+  status: draft
+  statement: TypeScript production build (`tsconfig.build.json`) excludes `src/test/**` and `src/key/memory-provider.ts`; tests import the in-memory KeyProvider from its own module. Docker `dist/` contains no test harness or fake key files.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: 'Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39); `pnpm typecheck` pass; `pnpm --filter @reqaml/app build` dist has no `dist/test/**` or `dist/key/memory-provider.js`.'
+  statement_hash: sha256:ebc7c1b6e62e2f860deefde1c49589918ccd76793042e4b00f3aeb19ddf27c0a
+  grooming_state: detailed
+- uid: CAP-TEST-AUTH-HYGIENE
+  base_uid: CAP-TEST-AUTH-HYGIENE
+  version_n: 0
+  status: draft
+  statement: In-process auth.integration tests cover lockout window boundaries (SQL clock, no real sleep), username-normalization lockout HTTP 423, MCP audience accept/reject pairs, and agent access-token revocation returning 401 on `/api/v1/me`.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-2
+    verification_note: 'Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass.'
+  statement_hash: sha256:714a8f67b883cf7a2b63612c818842e84ec049094fafc398274ef617202950ba
+  grooming_state: detailed
+- uid: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+  base_uid: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+  version_n: 0
+  status: draft
+  statement: '`pnpm devenv:smoke` sets `COMPOSE_PROJECT_NAME` (default `sdoc-intake-dev`, overridable) on every Compose invocation and logs when the hostports overlay is enabled.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Code change only; not re-run on this VM (no Docker).
+  statement_hash: sha256:a4e7ce8a91af2393bf856d556b73375c602db16581e2b9db7695b19093862664
+  grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -7110,6 +7278,15 @@ capability_artifacts:
 - requirement_version_uid: CAP-TEST-PNPM-GATE
   kind: other
   uri: ../../../apps/reqaml/src/test/harness.ts
+- requirement_version_uid: CAP-TEST-PROD-BUILD-EXCLUDE
+  kind: code
+  uri: ../../../apps/reqaml/tsconfig.build.json
+- requirement_version_uid: CAP-TEST-AUTH-HYGIENE
+  kind: code
+  uri: ../../../apps/reqaml/src/auth/auth.integration.test.ts
+- requirement_version_uid: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+  kind: code
+  uri: ../../../scripts/devenv-smoke.mjs
 edges:
 - from: CAP-SSO
   to: A01
@@ -12579,6 +12756,27 @@ edges:
 - from: CAP-TEST-PNPM-GATE
   to: FIX-ALLOW-DEVENV-SMOKE
   kind: satisfies
+- from: CAP-TEST-PROD-BUILD-EXCLUDE
+  to: ARCH-KEY-PROVIDER
+  kind: satisfies
+- from: CAP-TEST-PROD-BUILD-EXCLUDE
+  to: ARCH-BUILD-FOUNDATION
+  kind: satisfies
+- from: CAP-TEST-AUTH-HYGIENE
+  to: ARCH-CRED-LOCKOUT
+  kind: satisfies
+- from: CAP-TEST-AUTH-HYGIENE
+  to: ARCH-AUTH-AUDIENCE
+  kind: satisfies
+- from: CAP-TEST-AUTH-HYGIENE
+  to: ARCH-AUTH-REVOKE
+  kind: satisfies
+- from: CAP-TEST-AUTH-HYGIENE
+  to: ARCH-AUTH-AGENT-ATTRIBUTION
+  kind: satisfies
+- from: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+  to: FIX-ALLOW-DEVENV-SMOKE
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -12988,15 +13186,27 @@ releases:
   project_id: reqaml
   name: R1 — in-process test harness (no Docker)
   planned_on: '2026-10-07'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-07'
+  status: shipped
   delivers:
   - CAP-TEST-MEMORY-KEYPROVIDER
   - CAP-TEST-PGLITE-DB
   - CAP-TEST-AUTH-ROUTES
   - CAP-TEST-PNPM-GATE
   cyber_gate: false
-  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/14 (planned until merge). Verified (in-process only): 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass. Docker `pnpm devenv:smoke` remains maintainer integration check.'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/14 merged to main as da7086355e9592910e60701851ee50822aab36a4 on 2026-10-07. Shipped: Docker-free in-process test harness (see delivers). Verified (in-process): 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts; PGlite migrations; createMemoryKeyProvider; typecheck pass. Docker `pnpm devenv:smoke` remains maintainer integration check.'
+- id: rel-r1-test-hygiene
+  project_id: reqaml
+  name: R1 — test/build hygiene (Docker-free test follow-ups)
+  planned_on: '2026-10-07'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-TEST-PROD-BUILD-EXCLUDE
+  - CAP-TEST-AUTH-HYGIENE
+  - CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+  cyber_gate: false
+  notes: 'One PR = one release (this PR, planned until merge). Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass; production build dist has no `dist/test/**` or `dist/key/memory-provider.js`. `pnpm devenv:smoke` compose-project pin change not re-run here (no Docker).'
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqaml
