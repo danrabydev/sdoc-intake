@@ -1,5 +1,5 @@
-# ReqAML — one Dockerfile, multiple targets (ARCH-DEPLOY-MINIMAL / ARCH-DEPLOY-PERIPHERALS).
 # syntax=docker/dockerfile:1
+# ReqAML — one Dockerfile, multiple targets (ARCH-DEPLOY-MINIMAL / ARCH-DEPLOY-PERIPHERALS).
 
 ARG OPENBAO_VERSION=2.1.0
 
@@ -40,15 +40,26 @@ CMD ["node", "dist/main.js"]
 
 FROM postgres:16-bookworm AS peripherals
 ARG OPENBAO_VERSION
+# Set by BuildKit (amd64 / arm64). OpenBao release assets are named bao_<ver>_Linux_<x86_64|arm64>.tar.gz.
+ARG TARGETARCH
 USER root
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends curl ca-certificates jq unzip \
+  && apt-get install -y --no-install-recommends curl ca-certificates jq \
   && rm -rf /var/lib/apt/lists/* \
-  && curl -fsSL -o /tmp/openbao.zip \
-    "https://github.com/openbao/openbao/releases/download/v${OPENBAO_VERSION}/openbao_${OPENBAO_VERSION}_linux_amd64.zip" \
-  && unzip /tmp/openbao.zip -d /usr/local/bin \
+  && case "${TARGETARCH:-amd64}" in \
+       amd64) bao_arch=x86_64 ;; \
+       arm64) bao_arch=arm64 ;; \
+       *) echo "unsupported TARGETARCH=${TARGETARCH}" >&2; exit 1 ;; \
+     esac \
+  && bao_tgz="bao_${OPENBAO_VERSION}_Linux_${bao_arch}.tar.gz" \
+  && base="https://github.com/openbao/openbao/releases/download/v${OPENBAO_VERSION}" \
+  && curl -fsSL -o "/tmp/${bao_tgz}" "${base}/${bao_tgz}" \
+  && curl -fsSL -o /tmp/checksums-linux.txt "${base}/checksums-linux.txt" \
+  && (cd /tmp && grep " ${bao_tgz}\$" checksums-linux.txt | sha256sum -c -) \
+  && tar -xzf "/tmp/${bao_tgz}" -C /usr/local/bin bao \
   && chmod +x /usr/local/bin/bao \
-  && rm /tmp/openbao.zip
+  && rm -f "/tmp/${bao_tgz}" /tmp/checksums-linux.txt \
+  && bao version
 
 COPY docker/peripherals/openbao.hcl /etc/openbao/openbao.hcl
 COPY docker/peripherals/openbao-init.sh /docker/openbao-init.sh
