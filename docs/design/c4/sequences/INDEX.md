@@ -5,13 +5,13 @@ Inventory of **104** user actions from [`user-actions-inventory.md`](../user-act
 | Global | ID | Action | Status | RBAC op | Primary control families | Diagram / companion |
 |--------|-----|--------|--------|---------|--------------------------|---------------------|
 | 1 | A01 | Sign in via SSO (OIDC/SAML) | draft | `auth:signin` (TBD with Dan) | IA, AU, AC | [A01-sign-in-sso.puml](./A01-sign-in-sso.puml), [A01-sign-in-sso.md](./A01-sign-in-sso.md) |
-| 2 | A02 | Sign out | stub | TBD |  | — |
-| 3 | A03 | Select Client Scoped View | stub | TBD |  | — |
-| 4 | A04 | Clear / change Scoped View | stub | TBD |  | — |
-| 5 | A05 | View own profile / grants | stub | TBD |  | — |
-| 6 | A06 | Invite / link identity to client or project (admin) | stub | TBD |  | — |
-| 7 | A07 | Grant project role | stub | TBD |  | — |
-| 8 | A08 | Revoke project role | stub | TBD |  | — |
+| 2 | A02 | Sign out | draft | `auth:signout` (proposed) | AC, AU, IA | [A02-sign-out.puml](./A02-sign-out.puml), [A02-sign-out.md](./A02-sign-out.md) |
+| 3 | A03 | Select Client Scoped View | draft | `client:scope:select` (proposed) | AC, AU | [A03-select-client-scoped-view.puml](./A03-select-client-scoped-view.puml), [A03-select-client-scoped-view.md](./A03-select-client-scoped-view.md) |
+| 4 | A04 | Clear / change Scoped View | draft | `client:scope:clear` (proposed) | AC, AU | [A04-clear-change-scoped-view.puml](./A04-clear-change-scoped-view.puml), [A04-clear-change-scoped-view.md](./A04-clear-change-scoped-view.md) |
+| 5 | A05 | View own profile / grants | draft | `identity:read_self` (proposed) | AC, AU, IA | [A05-view-own-profile-grants.puml](./A05-view-own-profile-grants.puml), [A05-view-own-profile-grants.md](./A05-view-own-profile-grants.md) |
+| 6 | A06 | Invite / link identity to client or project (admin) | draft | `identity:link` (proposed) | AC, AU, IA | [A06-invite-link-identity.puml](./A06-invite-link-identity.puml), [A06-invite-link-identity.md](./A06-invite-link-identity.md) |
+| 7 | A07 | Grant project role | draft | `project:grant:create` (proposed) | AC, AU | [A07-grant-project-role.puml](./A07-grant-project-role.puml), [A07-grant-project-role.md](./A07-grant-project-role.md) |
+| 8 | A08 | Revoke project role | draft | `project:grant:revoke` (proposed) | AC, AU | [A08-revoke-project-role.puml](./A08-revoke-project-role.puml), [A08-revoke-project-role.md](./A08-revoke-project-role.md) |
 | 9 | A09 | Grant catalog-steward at global / client / project | stub | TBD |  | — |
 | 10 | A10 | Revoke catalog-steward | stub | TBD |  | — |
 | 11 | A11 | List who has access to a project | stub | TBD |  | — |
@@ -108,3 +108,48 @@ Inventory of **104** user actions from [`user-actions-inventory.md`](../user-act
 | 102 | N01 | Toggle mind-map vs tree vs document view | stub | TBD |  | — |
 | 103 | N02 | Pin favorite contract / project | stub | TBD |  | — |
 | 104 | N03 | Use global search | stub | TBD |  | — |
+
+## ReqAML MCP agent actions (extension)
+
+IDs **`MC**`** avoid collision with inventory section **M** (audit ops M01–M04). Pattern adapted from Operation Charity workflow MCP + desk-session sealing (see MC01 companion).
+
+| Global | ID | Action | Status | RBAC op | Primary control families | Diagram / companion |
+|--------|-----|--------|--------|---------|--------------------------|---------------------|
+| — | MC01 | MCP authenticate session & desk bind | draft | `mcp:session:create`, `desk:list`, `desk:attach`, `desk:detach` (proposed) | IA, AC, AU, SC | [MC01-mcp-auth-desk-bind.puml](./MC01-mcp-auth-desk-bind.puml), [MC01-mcp-auth-desk-bind.md](./MC01-mcp-auth-desk-bind.md) |
+| — | MC02 | MCP mutating tool with desk attached (**draft** update_draft; not mint) | draft | `requirement:version:update_draft` (proposed) | AC, AU, CM, SC | [MC02-mcp-mutate-requirement-version.puml](./MC02-mcp-mutate-requirement-version.puml), [MC02-mcp-mutate-requirement-version.md](./MC02-mcp-mutate-requirement-version.md) |
+
+
+## Auth foundation sequences (internal OAuth AS · credential store · key store)
+
+The first build slice is **ARCH-BUILD-FOUNDATION**: platform shell plus authentication. IDs **`AS**`** (authorization server / credential store) and **`KS**`** (key store) are extensions; they do not collide with inventory letters. Each flow includes `C4_Sequence_Macros.puml` and uses the auth macros (`ProtectedResourceDiscovery`, `PkceAuthorize`, `TokenIssue`, `TokenValidate`, `RefreshRotate`, `LockoutCheck`, `MfaChallenge`, `AuthAuditLog`, `KeyOp`) ahead of the standard RbacCheck → HookEval → GateCheck → mutate → HookEffectsAfter → AuditLog pipeline.
+
+| Global | ID | Action | Status | RBAC op | Primary control families | Diagram / companion |
+|--------|-----|--------|--------|---------|--------------------------|---------------------|
+| — | AS01 | MCP client authorization via internal OAuth 2.1 AS (PKCE S256, PRM, audience, refresh rotation, revoke) | draft | `auth:oauth:authorize`, `auth:oauth:token`, `auth:oauth:revoke` | IA, AC, SC, AU, CM | [AS01-mcp-oauth-authorize.puml](./AS01-mcp-oauth-authorize.puml), [AS01-mcp-oauth-authorize.md](./AS01-mcp-oauth-authorize.md) |
+| — | AS02 | Local account login with lockout and MFA (credential store) | draft | `auth:local:signin`, `auth:account:unlock` | IA, AC, AU, SC | [AS02-local-login-lockout-mfa.puml](./AS02-local-login-lockout-mfa.puml), [AS02-local-login-lockout-mfa.md](./AS02-local-login-lockout-mfa.md) |
+| — | AS03 | Federated enterprise SSO through the internal AS (tenant connector, claim map, step-up via IdP, back-channel logout) | draft | `auth:signin`, `auth:oauth:revoke` | IA, AC, SC, AU | [AS03-federated-sso-via-as.puml](./AS03-federated-sso-via-as.puml), [AS03-federated-sso-via-as.md](./AS03-federated-sso-via-as.md) |
+| — | AS04 | **Proposal:** MCP tool reaching a provider API — (b) token exchange vs (c) stored upstream grant; (d) passthrough rejected | proposal | `workitem:sync` (illustrative) | IA, AC, SC, AU | [AS04-mcp-upstream-api-access.puml](./AS04-mcp-upstream-api-access.puml), [AS04-mcp-upstream-api-access.md](./AS04-mcp-upstream-api-access.md) |
+| — | KS01 | KEK rotation with online DEK re-wrap (OpenBao Transit) | draft | `key:kek:rotate`, `key:dek:rewrap` | SC, AC, IA, AU | [KS01-kek-rotate-dek-rewrap.puml](./KS01-kek-rotate-dek-rewrap.puml), [KS01-kek-rotate-dek-rewrap.md](./KS01-kek-rotate-dek-rewrap.md) |
+| — | KS02 | Token signing via KeyProvider + JWKS rotation overlap | draft | `key:signing:rotate` | SC, AU | [KS02-token-signing-keyprovider.puml](./KS02-token-signing-keyprovider.puml), [KS02-token-signing-keyprovider.md](./KS02-token-signing-keyprovider.md) |
+
+**Notes:** Upstream-identity options are in [`../../auth/mcp-upstream-identity.md`](../../auth/mcp-upstream-identity.md). A01 and MC01 remain as drawn. AS03 shows how A01's IdP federates *through* the AS, and AS01 is the OAuth path MC01.1 relies on (see open questions on minting A01.1 / MC01.2).
+
+## Workflow / Cyber+QA sequences (ActionHook pipeline)
+
+IDs align with [`../../user-actions.md`](../../user-actions.md) / locked seed (ARCH-WORKFLOW, ARCH-MINT-KIND, ARCH-APPROVAL-LINE, ARCH-SUSPECT*, ARCH-GATE-SIGNOFF). All diagrams compose **`HookEval` / `GateCheck` / `HookEffectsAfter`** — see [WF01](./WF01-actionhook-eval.puml).
+
+| Global | ID | Action | Status | RBAC op | Primary control families | Diagram / companion |
+|--------|-----|--------|--------|---------|--------------------------|---------------------|
+| — | WF01 | ActionHook evaluator (shared pattern) | draft | `{action_id}` | AC, AU, CM | [WF01-actionhook-eval.puml](./WF01-actionhook-eval.puml), [WF01-actionhook-eval.md](./WF01-actionhook-eval.md) |
+| 39a | D12 | Stakeholder Approve line (+ children); clears planning_blocked (D39f) | draft | `requirement:line:approve` | AC, AU, CM | [D12-approve-line.puml](./D12-approve-line.puml), [D12-approve-line.md](./D12-approve-line.md) |
+| 39d | D39d | Mint successor `.N` with mint_kind | draft | `requirement:version:mint` | AC, AU, CM | [D39d-mint-successor.puml](./D39d-mint-successor.puml), [D39d-mint-successor.md](./D39d-mint-successor.md) |
+| 39g | D39g | Gate sign-off (Security/AO slots) | draft | `gate:signoff` | AC, AU, CM | [D39g-gate-signoff.puml](./D39g-gate-signoff.puml), [D39g-gate-signoff.md](./D39g-gate-signoff.md) |
+| 41 | E41 | Request ConformsTo pin | draft | `catalog:pin:request` | AC, AU, CM | [E41-pin-request.puml](./E41-pin-request.puml), [E41-pin-request.md](./E41-pin-request.md) |
+| 41a | E41a | Apply / deny ConformsTo pin | draft | `catalog:pin:apply\|deny` | AC, AU, CM | [E41a-pin-apply-deny.puml](./E41a-pin-apply-deny.puml), [E41a-pin-apply-deny.md](./E41a-pin-apply-deny.md) |
+| 46a | E46a | Suspect queue (carry-forward / keep-pinned / drop) | draft | `trace:suspect:*` | AC, AU, CM | [E46a-suspect-queue.puml](./E46a-suspect-queue.puml), [E46a-suspect-queue.md](./E46a-suspect-queue.md) |
+| 61 | G61 | Ship release (cyber_gate trigger; gate_signoff pass) | draft | `release:ship` | AC, AU, CM | [G61-ship-release.puml](./G61-ship-release.puml), [G61-ship-release.md](./G61-ship-release.md) |
+
+**Notes**
+
+- **D39f** (resolve `planning_blocked`) is folded into **D12** via `effects_after: clear_planning_blocked`.
+- Soft: **`cyber_gate`** = ship Gate **trigger**; **`gate_signoff`** rows = **pass condition** (see G61 + D39g).

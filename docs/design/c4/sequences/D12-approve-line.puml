@@ -1,0 +1,69 @@
+@startuml D12-approve-line
+!include ../includes/C4_Sequence_Macros.puml
+
+title D12 — Stakeholder Approve line (+ direct children)\nARCH-APPROVAL-LINE / UI-APPROVE-LINE; also resolves planning_blocked (D39f)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+note over seqUser, seqOTEL
+  Approver = WorkflowProfile RoleBinding slot
+  (stakeholder | solution_approver) — not hard-coded
+  Client admin vs AO (ARCH-APPROVER-SLOTS).
+  **D39f folded here:** re-approve after content .N
+  runs effects_after clear_planning_blocked.
+end note
+
+== Approve (line + direct children) ==
+
+seqUser -> seqWebUI : Approve selected line
+RbacRouteGuard("requirement:line:approve")
+ControlNote(seqRouteGuard, "AC-3", "TBD (ASD V6R4)", "Approval tree route behind Layout + guards")
+
+ClientScopedQuery("POST", "/clients/{clientId}/lines/{baseUid}/approve")
+ControlNote(seqAPI, "SC-8, AC-3", "TBD (ASD V6R4)", "Line-grain approve API; client scope enforced")
+
+seqAPI -> seqBusiness : approveLine(actor, baseUid, scope=direct_children)
+ControlNote(seqBusiness, "AC-3, CM-3", "TBD (ASD V6R4)", "Activate ≠ approve; SoT is ApprovalRecord on line")
+
+RbacCheck("requirement:line:approve")
+ControlNote(seqRBAC, "AC-3, AC-6", "TBD (ASD V6R4)", "Permission-tree verb; slot check is a Gate")
+
+HookEval("requirement:line:approve")
+ControlNote(seqData, "CM-3", "TBD (ASD V6R4)", "hook-line-approve: gates_before=[gate-approver-slot]")
+
+GateCheck("gate-approver-slot")
+ControlNote(seqBusiness, "AC-3, AC-6", "TBD (ASD V6R4)", "Actor must match RoleBinding for stakeholder/solution_approver (FIX-DENY-APPROVE-WITHOUT-SLOT)")
+
+== Mutate: write ApprovalRecord(s) ==
+
+seqBusiness -> seqData : write ApprovalRecord(line + direct children)\npin approved_version_uid + approved_statement_hash
+seqData -> seqPostgres : UPSERT approval_records; mirror version.stakeholder_approval
+ControlNote(seqPostgres, "AC-3, AU-2", "TBD (ASD V6R4)", "Line ApprovalRecord is SoT; version mirror dual-write only")
+seqPostgres --> seqData : ok
+seqData --> seqBusiness : records
+
+HookEffectsAfter("write_approval_record, clear_planning_blocked,\nmirror_version_stakeholder_approval, audit")
+note right of seqBusiness
+  **D39f:** clear_planning_blocked unlocks
+  D08 / profile planning actions after
+  content .N clear (FIX-PLANNING-BLOCKED-AFTER-CONTENT-N).
+end note
+ControlNote(seqBusiness, "CM-3, AC-3", "TBD (ASD V6R4)", "Re-approve clears planning_blocked; priority values retained")
+
+AuditLog("line.approve", "baseUid + children")
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable stakeholder/solution approval")
+
+seqBusiness --> seqAPI : approval DTOs
+seqAPI --> seqWebUI : 200 OK
+seqWebUI --> seqUser : line approved (tree dims/collapses)
+
+@enduml

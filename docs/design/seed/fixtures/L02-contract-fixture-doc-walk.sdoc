@@ -1,0 +1,42 @@
+[DOCUMENT]
+TITLE: L02 golden — contract-fixture-doc-walk (context parents off)
+UID: L02-contract-fixture-doc-walk
+VERSION: 2026-10-06
+OPTIONS:
+  MARKUP: Text
+METADATA:
+  contract_id: contract-fixture-doc-walk
+  context: false
+  schema_version: 2026-10-06
+  note: Golden StrictDoc interchange for FIX-EXPORT-L02-GOLDEN / FIX-CONTRACT-DOC-NOCTX
+
+[REQUIREMENT]
+UID: A01
+STATUS: Active
+TITLE: Sign in via SSO
+STATEMENT: >>>
+A user signs in via enterprise SSO (OIDC or SAML). ReqAML validates the IdP token,
+establishes a least-privilege session, loads project grants, and emits an auditable sign-in event.
+No local password store exists; MFA is enforced at the IdP. Downstream APIs reject callers without a valid session.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: A01
+VERSION_N: 0
+<<<
+
+[REQUIREMENT]
+UID: A02
+STATUS: Active
+TITLE: Sign out
+STATEMENT: >>>
+An authenticated user signs out. ReqAML terminates the server session, clears the client session handle,
+revokes any desk attachments for that session, and records an auditable logout event.
+Subsequent API calls with the old handle receive an unauthorized outcome.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: A02
+VERSION_N: 0
+<<<
+

@@ -1,0 +1,57 @@
+@startuml KS01-kek-rotate-dek-rewrap
+!include ../includes/C4_Sequence_Macros.puml
+
+title KS01 — KEK rotation with online DEK re-wrap\n(KeyProvider = OpenBao Transit · Key custodian · fail closed · audited)
+
+C4Seq_Bundle_KeyOps()
+
+== Custodian requests rotation (or scheduled system principal) ==
+
+seqKeyCustodian -> seqWebUI : Rotate KEK (deployment key admin)
+seqWebUI -> seqAPI : POST /keys/kek/rotate (Bearer AS token, fresh auth_time)
+seqAPI -> seqAPI : TokenValidate (aud=API)
+seqAPI -> seqBusiness : rotateKek(actor)
+
+RbacCheck("key:kek:rotate")
+ControlNote(seqRBAC, "AC-5, AC-6", "TBD (ASD V6R4)", "Deployment-scoped Key custodian only; Client admin → 403 (FIX-DENY-KEYOP-NO-CUSTODIAN)")
+HookEval("key:kek:rotate")
+GateCheck("step-up: MFA + auth_time ≤ max_age (ARCH-CRED-REAUTH)")
+ControlNote(seqBusiness, "IA-2(1), IA-11", "V-222520", "Key ops are privileged: MFA + recent authentication")
+
+== Rotate KEK version (no plaintext export) ==
+
+KeyOp("rotate", "transit/keys/reqaml-kek → v2")
+ControlNote(seqKeyProvider, "SC-12, SC-12(2)", "V-222555", "New KEK version created inside OpenBao; v1 still decrypts until re-wrap verified")
+
+== Online re-wrap of every DEK ==
+
+loop each wrapped DEK (batched)
+  seqBusiness -> seqData : read wrapped DEK (v1)
+  seqData -> seqPostgres : SELECT wrapped_dek WHERE kek_version = 1
+  KeyOp("rewrap", "wrapped DEK v1 → v2")
+  seqBusiness -> seqData : store wrapped DEK (v2)
+  seqData -> seqPostgres : UPDATE wrapped_dek, kek_version = 2
+end
+ControlNote(seqPostgres, "SC-28(1), SC-28(3)", "V-222588", "Only wrapped DEKs in DB; reads/writes continue during re-wrap (FIX-ALLOW-KEK-REWRAP-ONLINE)")
+
+seqBusiness -> seqBusiness : verify all DEKs at v2
+KeyOp("set min_decryption_version", "reqaml-kek = 2")
+ControlNote(seqKeyProvider, "SC-12", "TBD (ASD V6R4)", "Retire v1 only after verification; destroy is a separate custodian op")
+
+HookEffectsAfter("audit")
+AuditLog("key:kek:rotate", "KEK reqaml-kek v1→v2 (no key material)")
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "V-222462", "Every key operation audited with actor, key id/version, outcome")
+
+seqBusiness --> seqAPI : 200 rotation complete
+seqAPI --> seqWebUI : status
+
+== KeyProvider unreachable (prod) ==
+
+opt OpenBao sealed / unreachable
+  KeyOp("unwrap", "any DEK")
+  seqBusiness --> seqAPI : 503 not ready (fail closed)
+  ControlNote(seqBusiness, "SC-24, SC-12(1)", "TBD (ASD V6R4)", "No plaintext/dev-key fallback (FIX-DENY-KEK-UNREACHABLE-PROD)")
+  AuditLog("key:provider:unavailable", "KeyProvider")
+end
+
+@enduml

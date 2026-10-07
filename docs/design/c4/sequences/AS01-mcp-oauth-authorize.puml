@@ -1,0 +1,74 @@
+@startuml AS01-mcp-oauth-authorize
+!include ../includes/C4_Sequence_Macros.puml
+
+title AS01 — MCP client authorization via internal OAuth 2.1 AS\n(PKCE S256 · RFC 8414 / 9728 / 8707 · no token passthrough · then ActionHook pipeline)
+
+C4Seq_Bundle_McpOAuth()
+
+== Discovery (RFC 9728 → RFC 8414) ==
+
+ProtectedResourceDiscovery(seqMcpServer, seqMcpHost)
+ControlNote(seqMcpHost, "IA-2, SC-23", "V-222522", "Client learns the single trusted issuer from PRM; issuer mismatch aborts (ARCH-AUTH-METADATA)")
+
+== Client identification (ARCH-AUTH-CLIENTREG) ==
+
+alt Pre-registered client (baseline)
+  seqMcpHost -> seqMcpHost : use configured client_id (public client, redirect URIs pinned)
+else Client ID Metadata Document (policy-gated)
+  seqMcpHost -> seqAuthServer : client_id = https URL of metadata doc
+  seqAuthServer -> seqAuthServer : fetch + validate doc against allowlist policy
+else DCR (RFC 7591) — off by default
+  seqMcpHost -> seqAuthServer : POST /register
+  seqAuthServer --> seqMcpHost : 403 (no registration_endpoint advertised)
+end
+ControlNote(seqAuthServer, "CM-7, AU-2", "TBD (ASD V6R4)", "Open registration disabled by default; every registration path audited")
+
+== Authorization code + PKCE (S256 only) ==
+
+PkceAuthorize(seqMcpHost, "https://reqaml/mcp")
+ControlNote(seqAuthServer, "IA-2(8)", "V-222530, V-222531", "PKCE S256 replay-resistant; plain/missing challenge rejected (FIX-DENY-PKCE-PLAIN)")
+seqAuthServer -> seqUser : sign in (AS02 local or AS03 federated) + consent
+seqUser --> seqAuthServer : authenticated (auth_time, amr)
+
+TokenIssue(seqMcpHost, "https://reqaml/mcp")
+ControlNote(seqAuthServer, "SC-23, IA-5(6), SC-12(3)", "V-222542", "aud bound to MCP resource; refresh stored hashed; signed in OpenBao Transit (KS02)")
+AuthAuditLog("auth:oauth:token issued")
+
+== MCP call → audience check → ActionHook pipeline ==
+
+seqMcpHost -> seqMcpServer : tools/call update_draft\nAuthorization: Bearer access_token(aud=MCP)
+TokenValidate(seqMcpServer, "https://reqaml/mcp")
+ControlNote(seqMcpServer, "AC-3, SC-23", "TBD (ASD V6R4)", "Wrong audience (e.g. aud=API) → 401 (FIX-DENY-MCP-WRONG-AUDIENCE)")
+
+seqMcpServer -> seqAPI : PATCH /requirement-versions/{uid}\n(internal call as principal; MCP token NOT forwarded)
+ControlNote(seqMcpServer, "AC-3, IA-2", "TBD (ASD V6R4)", "No token passthrough: downstream credential is server-side (mechanism open question)")
+seqAPI -> seqBusiness : updateDraft(principal, uid, patch)
+RbacCheck("requirement:version:update_draft")
+HookEval("requirement:version:update_draft")
+note right of seqBusiness
+  Draft edit (D03): profile may bind empty
+  gates_before; still evaluate via HookEval
+end note
+seqBusiness -> seqData : update draft in place (D03)
+seqData -> seqPostgres : UPDATE requirement_versions
+HookEffectsAfter("audit")
+AuditLog("requirement:version:update_draft", "RequirementVersion")
+seqBusiness --> seqAPI : 200
+seqAPI --> seqMcpServer : 200
+seqMcpServer --> seqMcpHost : tool result
+
+== Refresh rotation & revocation ==
+
+opt Access token expired
+  RefreshRotate(seqMcpHost)
+  ControlNote(seqAuthServer, "SC-23, IA-5", "TBD (ASD V6R4)", "Reuse of a rotated refresh token revokes the family (FIX-DENY-REFRESH-REUSE)")
+  AuthAuditLog("auth:oauth:refresh")
+end
+opt Sign-out / revoke (RFC 7009)
+  seqMcpHost -> seqAuthServer : POST /revoke token
+  seqAuthServer -> seqCredStore : revoke refresh family + access jti
+  ControlNote(seqAuthServer, "AC-12", "V-222578", "Revoked tokens rejected at API/MCP (FIX-DENY-REVOKED-TOKEN)")
+  AuthAuditLog("auth:oauth:revoke")
+end
+
+@enduml

@@ -1,0 +1,54 @@
+@startuml A06-invite-link-identity
+!include ../includes/C4_Sequence_Macros.puml
+
+title A06 — Invite / link identity (admin)\nRBAC: identity:link (draft)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_IdP()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== Admin links identity to client or project ==
+
+seqUser -> seqWebUI : Admin: invite / link user
+ControlNote(seqWebUI, "AC-3", "TBD (ASD V6R4)", "Admin action in scoped Layout")
+
+seqWebUI -> seqRouteGuard : Admin route (client or project)
+RbacRouteGuard("identity:link")
+ControlNote(seqRouteGuard, "AC-3", "TBD (ASD V6R4)", "Guard requires admin-capable route")
+
+ClientScopedQuery("POST", "/clients/{clientId}/identities/link")
+ControlNote(seqWebUI, "AC-6", "TBD (ASD V6R4)", "Link occurs within active client scope")
+
+seqAPI -> seqBusiness : linkIdentity(admin, clientId, projectId?, email)
+ControlNote(seqBusiness, "AC-2, AC-3", "TBD (ASD V6R4)", "Account provisioning / association under admin authority")
+
+seqBusiness -> seqRBAC : require identity:link\n(client admin or project admin)
+RbacCheck("identity:link")
+ControlNote(seqRBAC, "AC-2, AC-6", "TBD (ASD V6R4)", "Only admins may bind identities; least privilege role")
+
+seqBusiness -> seqData : upsertIdentityLink(...)
+seqData -> seqPostgres : INSERT identity / pending_grant
+ControlNote(seqPostgres, "AC-2", "TBD (ASD V6R4)", "SoT records account linkage")
+
+opt Enterprise invite via IdP
+  seqBusiness -> seqIdP : SCIM / invite (optional)
+  ControlNote(seqIdP, "IA-2, AC-2", "TBD (ASD V6R4)", "Federated provisioning when IdP owns mailbox")
+end
+
+seqBusiness -> seqAudit : identityLinked(admin, target, clientId, projectId?)
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable account management")
+seqAudit -> seqOTEL : export audit event (OTLP)
+
+seqBusiness --> seqAPI : link result
+seqAPI --> seqWebUI : Confirmation
+seqWebUI --> seqUser : Invitee shown / pending
+
+@enduml

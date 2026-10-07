@@ -4,7 +4,7 @@ hide circle
 skinparam linetype ortho
 skinparam classAttributeIconSize 0
 
-title Requirements Product — Relational map (draft)
+title Requirements Product — Relational map (Cyber+QA locked 2026-10-07)
 
 entity "client" as client {
   * id : uuid <<PK>>
@@ -19,6 +19,7 @@ entity "project" as project {
   * client_id : uuid <<FK>>
   name : text
   status : text
+  workflow_profile_id : text <<FK>> nullable
 }
 
 entity "identity" as identity {
@@ -34,6 +35,16 @@ entity "project_grant" as grant {
   * project_id : uuid <<FK>>
   * identity_id : uuid <<FK>>
   role : text
+  status : enum <<active|revoked>>
+  revoked_at : timestamptz nullable
+}
+
+entity "client_grant" as cgrant {
+  * id : uuid <<PK>>
+  --
+  * client_id : uuid <<FK>>
+  * identity_id : uuid <<FK>>
+  role : text
 }
 
 entity "catalog" as catalog {
@@ -46,25 +57,67 @@ entity "catalog" as catalog {
   is_standard : bool
 }
 
+entity "catalog_imprint" as imprint {
+  * id : text <<PK>>
+  --
+  * catalog_id : uuid <<FK>>
+  library_revision : text
+  sdoc_path : text
+  published_at : timestamptz
+  status : enum <<published|draft|superseded>>
+}
+
+entity "catalog_item" as citem {
+  * imprint_id : text <<FK>>
+  * item_uid : text
+  --
+  title : text
+  statement : text
+  ** PK (imprint_id, item_uid)
+}
+
+entity "catalog_steward_grant" as cstew {
+  * id : uuid <<PK>>
+  --
+  * catalog_id : uuid <<FK>>
+  * identity_id : uuid <<FK>>
+  scope_note : text
+}
+
 entity "requirement_line" as line {
   * id : uuid <<PK>>
   --
   * project_id : uuid <<FK>>
+  * client_id : uuid <<FK>> <<RLS>>
   base_uid : text
   parent_id : uuid <<FK>> nullable
   kind : enum <<section|requirement|control|capability|release_node>>
+  title : text
+  sibling_order : int nullable
+  planning_blocked : bool
 }
 
 entity "requirement_version" as ver {
   * id : uuid <<PK>>
   --
   * line_id : uuid <<FK>>
-  * uid : text <<unique per client>>
+  * uid : text
   version_n : int
   statement : text
-  status : enum <<draft|active|obsolete>>
+  title : text nullable
+  status : enum <<draft|active|superseded|obsolete|withdrawn>>
+  mint_kind : enum <<content|status|pin|security_meta>> nullable
   priority : int nullable
   iteration_id : uuid <<FK>> nullable
+  grooming_state : enum <<want|detailed|wi_ready>> nullable
+  stakeholder_approval : jsonb nullable <<mirror>>
+  verification_outcome : enum <<pass|fail|pending>> nullable
+  statement_hash : text nullable
+  catalog_drift : jsonb nullable
+  security : jsonb nullable
+  rbac_op : text nullable
+  created_at : timestamptz
+  created_by : uuid <<FK>> nullable
 }
 
 entity "contract" as contract {
@@ -83,6 +136,7 @@ entity "contract_requirement" as creq {
   * requirement_version_id : uuid <<FK>>
   --
   relation : text <<in_scope_of>>
+  trace_suspect : bool
 }
 
 entity "release" as release {
@@ -93,6 +147,7 @@ entity "release" as release {
   planned_on : date nullable
   shipped_on : date nullable
   status : enum <<planned|shipped>>
+  cyber_gate : bool
 }
 
 entity "release_snapshot_item" as snap {
@@ -100,14 +155,42 @@ entity "release_snapshot_item" as snap {
   * requirement_version_id : uuid <<FK>>
   --
   relation : text <<delivers>>
+  trace_suspect : bool
 }
 
 entity "edge" as edge {
   * id : uuid <<PK>>
   --
   * from_version_id : uuid <<FK>>
-  * to_version_id : uuid <<FK>>
+  to_version_id : uuid <<FK>> nullable
   kind : enum <<refines|conforms_to|uses|satisfies>>
+  catalog_imprint_id : text <<FK>> nullable
+  catalog_item_uid : text nullable
+  trace_suspect : bool
+  suspect_reason : text nullable
+}
+
+entity "conformance_pin" as cpin {
+  * id : uuid <<PK>>
+  --
+  * from_version_id : uuid <<FK>>
+  * catalog_imprint_id : text <<FK>>
+  * item_uid : text
+  --
+  ** alternate to polymorphic edge.to for ConformsTo
+}
+
+entity "conformance_pin_request" as cpreq {
+  * id : uuid <<PK>>
+  --
+  * project_id : uuid <<FK>>
+  * requirement_version_id : uuid <<FK>>
+  * catalog_imprint_id : text <<FK>>
+  * item_uid : text
+  requested_by : uuid <<FK>>
+  requested_at : timestamptz
+  status : enum <<pending|applied|denied>>
+  notes : text
 }
 
 entity "work_item_link" as wil {
@@ -115,7 +198,10 @@ entity "work_item_link" as wil {
   --
   * requirement_version_id : uuid <<FK>>
   devops_id : text
+  system : text
   synced_fields : jsonb
+  last_sync_at : timestamptz
+  status : text
 }
 
 entity "iteration" as iter {
@@ -135,15 +221,126 @@ entity "capability_artifact" as art {
   uri : text
 }
 
+entity "change_set" as cs {
+  * id : uuid <<PK>>
+  --
+  * project_id : uuid <<FK>>
+  kind : enum <<leaf|sdlc_parent>>
+  parent_id : uuid <<FK>> nullable
+  scope : text
+  status : enum <<open|closed|reverted|abandoned>>
+  opened_by : uuid <<FK>>
+  opened_at : timestamptz
+  closed_at : timestamptz nullable
+}
+
+entity "audit_event" as ae {
+  * id : uuid <<PK>>
+  --
+  at : timestamptz
+  * identity_id : uuid <<FK>>
+  client_id : uuid <<FK>> nullable
+  project_id : uuid <<FK>> nullable
+  change_set_id : uuid <<FK>> nullable
+  action : text
+  outcome : enum <<allow|deny>>
+  subject_kind : text nullable
+  subject_id : text nullable
+  payload : jsonb nullable
+  reason : text nullable
+}
+
+entity "workflow_profile" as wfp {
+  * id : text <<PK>>
+  --
+  scope : enum <<client|project>>
+  client_id : uuid <<FK>> nullable
+  project_id : uuid <<FK>> nullable
+  title : text
+  gate_ids : text[]
+  enabled_optional_gates : text[]
+  disabled_optional_gates : text[]
+  planning_gate_actions : text[]
+  action_hook_ids : text[]
+}
+
+entity "gate" as gate {
+  * id : text <<PK>>
+  --
+  subject_kinds : text[]
+  mode : enum <<required|optional>>
+  predicate : text
+  approver_slots : text[]
+  on_fail : enum <<deny>>
+}
+
+entity "action_hook" as hook {
+  * id : text <<PK>>
+  --
+  action_id : text
+  subject_kind : text
+  gates_before : text[]
+  effects_after : text[]
+}
+
+entity "role_binding" as rb {
+  * id : text <<PK>>
+  --
+  * profile_id : text <<FK>>
+  * gate_id : text <<FK>>
+  slot : text
+  roles : text[]
+  identities : text[]
+}
+
+entity "approval_record" as ar {
+  * id : text <<PK>>
+  --
+  subject_kind : enum <<RequirementLine|CapabilityLine>>
+  * line_id : uuid <<FK>>
+  base_uid : text
+  status : enum <<unapproved|approved|imported_approved>>
+  by : uuid <<FK>> nullable
+  at : timestamptz nullable
+  approved_version_uid : text nullable
+  approved_statement_hash : text nullable
+}
+
+entity "gate_signoff" as gso {
+  * id : uuid <<PK>>
+  --
+  subject_kind : text
+  subject_id : text
+  * gate_id : text <<FK>>
+  slot : text
+  * identity_id : uuid <<FK>>
+  decision : enum <<approve|deny>>
+  at : timestamptz
+  note : text nullable
+}
+
+entity "subject_kind" as sk {
+  * id : text <<PK>>
+  --
+  backing : text
+  kind_filter : text[]
+}
+
 client ||--o{ project
 client ||--o{ contract
 client ||--o{ catalog
+client ||--o{ cgrant
 project ||--o{ line
 project ||--o{ grant
 project ||--o{ release
 project ||--o{ iter
 project ||--o{ catalog
 identity ||--o{ grant
+identity ||--o{ cgrant
+catalog ||--o{ imprint
+imprint ||--o{ citem
+catalog ||--o{ cstew
+identity ||--o{ cstew
 line ||--o{ ver
 line ||--o| line : parent
 ver }o--|| iter
@@ -153,8 +350,37 @@ release ||--o{ snap
 ver ||--o{ snap
 ver ||--o{ edge : from
 ver ||--o{ edge : to
+imprint ||--o{ edge : catalog_imprint_id
+ver ||--o{ cpin
+imprint ||--o{ cpin
+ver ||--o{ cpreq
+imprint ||--o{ cpreq
+identity ||--o{ cpreq : requested_by
 ver ||--o{ wil
+project ||--o{ cs
+cs ||--o| cs : parent
+cs ||--o{ ae
+identity ||--o{ ae
+identity ||--o{ cs : opened_by
 ver ||--o{ art
-catalog ||--o{ ver : "referenced when standard"
+project }o--o| wfp
+wfp ||--o{ rb
+gate ||--o{ rb
+line ||--o{ ar
+identity ||--o{ ar : by
+ver }o--o| ar : approved_version_uid
+gate ||--o{ gso
+identity ||--o{ gso
+
+note right of line
+  client_id + RLS / repository
+  predicate (ARCH-CP-SCOPE)
+end note
+
+note right of edge
+  ConformsTo: imprint+item OR
+  conformance_pin table
+  trace_suspect on content .N
+end note
 
 @enduml

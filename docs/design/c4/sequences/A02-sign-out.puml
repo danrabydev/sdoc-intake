@@ -1,0 +1,52 @@
+@startuml A02-sign-out
+!include ../includes/C4_Sequence_Macros.puml
+
+title A02 — Sign out\nRBAC: auth:signout (draft)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_IdP()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== User ends session ==
+
+seqUser -> seqWebUI : Choose Sign out
+ControlNote(seqWebUI, "AC-12", "TBD (ASD V6R4)", "Explicit user-initiated session termination control")
+
+seqWebUI -> seqRouteGuard : Navigate / invoke logout
+RbacRouteGuard("auth:signout")
+ControlNote(seqRouteGuard, "AC-3", "TBD (ASD V6R4)", "Only authenticated users may invoke sign-out handler")
+
+AuthenticatedCall("POST", "/auth/logout")
+ControlNote(seqAPI, "SC-8", "TBD (ASD V6R4)", "Logout request over protected transport")
+
+seqAPI -> seqBusiness : terminateSession(sessionId)
+ControlNote(seqBusiness, "AC-12, IA-11", "TBD (ASD V6R4)", "Invalidate server session and authenticator reuse")
+
+seqBusiness -> seqRBAC : assertAuthenticated(actor)
+RbacCheck("auth:signout")
+ControlNote(seqRBAC, "AC-3", "TBD (ASD V6R4)", "Sign-out permitted for active session subject only")
+
+seqBusiness -> seqAudit : signOutSuccess(actor, ip)
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable logout with subject and outcome")
+seqAudit -> seqOTEL : export audit event (OTLP)
+ControlNote(seqOTEL, "AU-6", "TBD (ASD V6R4)", "Central monitoring of session termination events")
+
+seqBusiness --> seqAPI : cleared
+seqAPI --> seqWebUI : Clear session cookie / tokens
+ControlNote(seqWebUI, "IA-5", "TBD (ASD V6R4)", "Remove client-side session artifacts")
+
+opt Federated single logout
+  seqWebUI -> seqIdP : OIDC/SAML SLO (optional)
+  ControlNote(seqIdP, "IA-2", "TBD (ASD V6R4)", "Terminate IdP session when org policy requires SLO")
+end
+
+seqWebUI -> seqRouteGuard : Redirect to public / login
+seqWebUI --> seqUser : Signed out
+
+@enduml

@@ -1,0 +1,92 @@
+@startuml D39d-mint-successor
+!include ../includes/C4_Sequence_Macros.puml
+
+title D39d — Mint successor .N with mint_kind\ncontent | status | pin | security_meta (ARCH-MINT-KIND)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+note over seqUser, seqOTEL
+  **Not draft edit** (that is D03 / MC02 update_draft).
+  statement_hash = statement body only.
+  | kind | noop gate | clear approval | suspect |
+  | content | yes (same-hash deny) | yes + planning_blocked | yes |
+  | pin | no | yes (+ locked migrate gate_signoff) | no |
+  | status / security_meta | no | no (audit only) | no |
+end note
+
+== Mint successor ==
+
+seqUser -> seqWebUI : Mint .N+1 (mint_kind, statement?)
+RbacRouteGuard("requirement:version:mint")
+ClientScopedQuery("POST", "/clients/{clientId}/requirements/{uid}/versions:mint")
+ControlNote(seqAPI, "SC-8, CM-3", "TBD (ASD V6R4)", "Mint creates successor version; not in-place draft PATCH")
+
+seqAPI -> seqBusiness : mintSuccessor(actor, uid, mint_kind, payload)
+ControlNote(seqBusiness, "CM-3, AC-3", "TBD (ASD V6R4)", "ARCH-MINT-KIND drives gates + effects")
+
+RbacCheck("requirement:version:mint")
+ControlNote(seqRBAC, "AC-3, AC-6", "TBD (ASD V6R4)", "Author (or applicator path for locked pin migrate)")
+
+HookEval("requirement:version:mint")
+ControlNote(seqData, "CM-3", "TBD (ASD V6R4)", "hook-mint: gate-noop-successor-block, gate-one-active")
+
+GateCheck("gate-noop-successor-block")
+note right of seqBusiness
+  Applies to **content** only:
+  same statement_hash as head → deny
+  (FIX-DENY-NOOP-CONTENT).
+  status/pin/security_meta exempt.
+end note
+ControlNote(seqBusiness, "CM-3", "TBD (ASD V6R4)", "No-op content mint must not launder an approval clear")
+
+GateCheck("gate-one-active")
+ControlNote(seqBusiness, "CM-3", "TBD (ASD V6R4)", "≤1 active per line after mutate (ARCH-VER-SUCC)")
+
+== Mutate: insert successor .N ==
+
+seqBusiness -> seqData : insert requirement_version(.N, mint_kind, statement_hash)
+seqData -> seqPostgres : INSERT requirement_version; optional supersede prior active
+ControlNote(seqPostgres, "AC-3, CM-3", "TBD (ASD V6R4)", "SoT succession; client boundary")
+seqPostgres --> seqData : new uid.N
+seqData --> seqBusiness : version row
+
+alt mint_kind = content
+  HookEffectsAfter("clear_line_approval_if_content_or_pin,\nset_planning_blocked_if_content,\nmark_trace_suspect_if_content, audit")
+  note right of seqBusiness
+    Clears ApprovalRecord; sets planning_blocked;
+    marks inbound edges/junctions trace_suspect
+    (ARCH-SUSPECT). Membership not auto-dropped.
+  end note
+else mint_kind = pin
+  HookEffectsAfter("clear_line_approval_if_content_or_pin, audit")
+  note right of seqBusiness
+    Clears approval; locked migrate also needs
+    **D39g** gate_signoff then **D12** re-approve
+    (ARCH-GATE-SIGNOFF / ARCH-CAT-MIGRATE).
+  end note
+else mint_kind = status | security_meta
+  HookEffectsAfter("audit")
+  note right of seqBusiness
+    Audit only — does **not** clear ApprovalRecord
+    or set planning_blocked / suspect.
+  end note
+end
+ControlNote(seqBusiness, "CM-3, AU-2", "TBD (ASD V6R4)", "Mint-kind aware effects_after (ARCH-MINT-KIND)")
+
+AuditLog("requirement.version.mint", "uid.N mint_kind")
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable succession with mint_kind")
+
+seqBusiness --> seqAPI : version DTO
+seqAPI --> seqWebUI : 201 Created
+seqWebUI --> seqUser : new tip shown
+
+@enduml

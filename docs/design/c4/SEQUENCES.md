@@ -30,6 +30,14 @@ Sequence diagrams document **who does what**, **RBAC operations**, and **why eac
 
 [A01 Sign in via SSO](./sequences/A01-sign-in-sso.puml) + [companion table](./sequences/A01-sign-in-sso.md) — IA / AU / AC families, federated auth, audit export to OTEL.
 
+**ReqAML MCP:** [MC01](./sequences/MC01-mcp-auth-desk-bind.puml) / [MC02](./sequences/MC02-mcp-mutate-requirement-version.puml) — agent desk auth/bind and HTTPS **draft** mutations (not mint); **`MC**`** IDs in [INDEX](./sequences/INDEX.md).
+
+**Auth foundation (first build slice):** [AS01](./sequences/AS01-mcp-oauth-authorize.puml) MCP OAuth 2.1 + PKCE via internal AS, [AS02](./sequences/AS02-local-login-lockout-mfa.puml) local login/lockout/MFA, [AS03](./sequences/AS03-federated-sso-via-as.puml) federated SSO via AS, [KS01](./sequences/KS01-kek-rotate-dek-rewrap.puml) KEK rotate + DEK re-wrap, [KS02](./sequences/KS02-token-signing-keyprovider.puml) token signing via KeyProvider; [AS04](./sequences/AS04-mcp-upstream-api-access.puml) **proposal** for provider-API access (see [`../auth/mcp-upstream-identity.md`](../auth/mcp-upstream-identity.md)). Use the auth macros (`TokenValidate`, `KeyOp`, …) before the ActionHook pipeline.
+
+**ActionHook / Cyber+QA:** [WF01](./sequences/WF01-actionhook-eval.puml) shared evaluator; [D12](./sequences/D12-approve-line.puml), [D39d](./sequences/D39d-mint-successor.puml), [D39g](./sequences/D39g-gate-signoff.puml), [E41](./sequences/E41-pin-request.puml)/[E41a](./sequences/E41a-pin-apply-deny.puml), [E46a](./sequences/E46a-suspect-queue.puml), [G61](./sequences/G61-ship-release.puml). Compose `HookEval` / `GateCheck` / `HookEffectsAfter` from includes — no one-off pipeline copy-paste.
+
+**Dogfood model:** the same actions (A01–A08, draft MC01–MC02) live in [`../seed/dogfood.yaml`](../seed/dogfood.yaml) with `rbac_op` and security notes for bootstrap/import.
+
 ## Render
 
 See [`includes/README.md`](./includes/README.md). Prefer `pnpm run diagrams:render` from repo root after PlantUML is installed locally.

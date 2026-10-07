@@ -1,0 +1,53 @@
+@startuml A08-revoke-project-role
+!include ../includes/C4_Sequence_Macros.puml
+
+title A08 — Revoke project role\nRBAC: project:grant:revoke (draft)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== Admin revokes project role ==
+
+seqUser -> seqWebUI : Revoke role from identity
+ControlNote(seqWebUI, "AC-3", "TBD (ASD V6R4)", "Privilege removal via guarded admin UI")
+
+seqWebUI -> seqRouteGuard : Project access admin route
+RbacRouteGuard("project:grant:revoke")
+ControlNote(seqRouteGuard, "AC-3", "TBD (ASD V6R4)", "Guard before destructive access change")
+
+ClientScopedQuery("DELETE", "/projects/{projectId}/grants/{grantId}")
+ControlNote(seqAPI, "SC-8, AC-3", "TBD (ASD V6R4)", "Revoke over TLS within client scope")
+
+seqAPI -> seqBusiness : revokeProjectGrant(admin, grantId)
+ControlNote(seqBusiness, "AC-2, AC-6", "TBD (ASD V6R4)", "Remove role promptly; enforce separation of duties")
+
+seqBusiness -> seqRBAC : require project:grant:revoke
+RbacCheck("project:grant:revoke")
+ControlNote(seqRBAC, "AC-2, AC-3", "TBD (ASD V6R4)", "Only admins may revoke; cannot self-elevate via revoke of others only as policy")
+
+seqBusiness -> seqData : deleteGrant(grantId)
+seqData -> seqPostgres : DELETE FROM project_grant WHERE id = …
+ControlNote(seqPostgres, "AC-2, AC-3", "TBD (ASD V6R4)", "SoT reflects removed access immediately")
+
+seqPostgres --> seqData : ok
+seqData --> seqBusiness : revoked
+
+seqBusiness -> seqAudit : projectGrantRevoked(admin, grantId, identityId, role)
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable privilege removal")
+seqAudit -> seqOTEL : export audit event (OTLP)
+
+seqBusiness --> seqAPI : success
+seqAPI --> seqWebUI : 204 No Content
+ControlNote(seqWebUI, "AC-12", "TBD (ASD V6R4)", "If subject is current user, invalidate cached grants / force refresh")
+
+seqWebUI --> seqUser : Access list updated
+
+@enduml

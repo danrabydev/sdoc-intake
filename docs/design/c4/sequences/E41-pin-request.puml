@@ -1,0 +1,59 @@
+@startuml E41-pin-request
+!include ../includes/C4_Sequence_Macros.puml
+
+title E41 — Request ConformsTo pin\ncatalog:pin:request (Author) — ARCH / FIX-ALLOW-PIN-REQUEST
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+note over seqUser, seqOTEL
+  Author **requests** only — does not apply the live
+  ConformsTo pin (FIX-DENY-AUTHOR-PIN-APPLY).
+  Apply/deny = **E41a** via conforms_to_applicator slot.
+end note
+
+== Request pin ==
+
+seqUser -> seqWebUI : Request ConformsTo\n(imprint_id, item_uid)
+RbacRouteGuard("catalog:pin:request")
+ClientScopedQuery("POST", "/clients/{clientId}/conformance-pin-requests")
+ControlNote(seqAPI, "SC-8, AC-3", "TBD (ASD V6R4)", "Creates pending conformance_pin_request")
+
+seqAPI -> seqBusiness : requestPin(actor, version_uid, imprint_id, item_uid)
+ControlNote(seqBusiness, "AC-3, CM-3", "TBD (ASD V6R4)", "Northline: pin is (catalog_imprint_id, item_uid); no copied control text")
+
+RbacCheck("catalog:pin:request")
+ControlNote(seqRBAC, "AC-3, AC-6", "TBD (ASD V6R4)", "Author may request; apply requires applicator slot")
+
+HookEval("catalog:pin:request")
+ControlNote(seqData, "CM-3", "TBD (ASD V6R4)", "hook-pin-request: gates_before=[] ; effects write_conformance_pin_request")
+
+' empty gates_before — still show HookEval pattern
+note right of seqBusiness
+  No gates_before on request path;
+  applicator GateCheck is on E41a apply/deny.
+end note
+
+seqBusiness -> seqData : insert conformance_pin_request(status=pending)
+seqData -> seqPostgres : INSERT conformance_pin_request
+ControlNote(seqPostgres, "AC-3, AU-2", "TBD (ASD V6R4)", "Pending request SoT awaiting applicator")
+seqPostgres --> seqData : row
+seqData --> seqBusiness : request
+
+HookEffectsAfter("write_conformance_pin_request, audit")
+AuditLog("catalog.pin.request", "version_uid imprint item")
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable Author pin request")
+
+seqBusiness --> seqAPI : request DTO
+seqAPI --> seqWebUI : 201 Created
+seqWebUI --> seqUser : pending — awaits Security/Steward
+
+@enduml

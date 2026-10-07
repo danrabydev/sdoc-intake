@@ -1,0 +1,62 @@
+@startuml AS02-local-login-lockout-mfa
+!include ../includes/C4_Sequence_Macros.puml
+
+title AS02 — Local account login with lockout and MFA\n(credential store: Argon2id/PBKDF2 · lockout · privileged MFA · session timeouts)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_AuthServer()
+C4Seq_CredStore()
+C4Seq_KeyProvider()
+C4Seq_API()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== Sign-in form (dev accounts / local accounts via AS) ==
+
+seqUser -> seqWebUI : open /signin (local)
+seqWebUI -> seqAuthServer : POST /authorize (local path) or /login\nusername + password
+ControlNote(seqAuthServer, "IA-2, AC-2", "V-222407, V-222412", "Local accounts authenticate at the internal AS (ARCH-AUTH-LOCAL.1); same issuer as federated SSO")
+seqAuthServer -> seqAuthServer : auth profile check: local_accounts ∈ {enabled, breakglass_only}?
+alt local_accounts=disabled (production default)
+  seqAuthServer --> seqWebUI : 404 (no local route) — federated only
+  ControlNote(seqAuthServer, "CM-7", "V-222661", "Local accounts off by default; A01 posture preserved (FIX-DENY-LOCAL-LOGIN-PROFILE-OFF)")
+end
+
+LockoutCheck("taylor-tester")
+ControlNote(seqCredStore, "AC-7, IA-5(1)", "V-222432, V-222433, V-222462", "Throttle + lockout before/after verify; generic error (FIX-DENY-LOCKOUT)")
+
+alt locked / wrong password
+  AuthAuditLog("auth:local:signin deny")
+  seqAuthServer --> seqWebUI : generic invalid credentials
+else password ok
+  seqAuthServer -> seqCredStore : load roles + MFA requirement for account
+  MfaChallenge("Project admin / privileged")
+  ControlNote(seqAuthServer, "IA-2(1), IA-11", "V-222523, V-222527, V-222520", "Privileged roles require MFA; step-up for approvals/pins (ARCH-CRED-MFA / REAUTH)")
+  AuthAuditLog("auth:local:signin allow")
+  seqAuthServer -> seqCredStore : create session (idle + absolute timeout)\nhash(session id / refresh)
+  ControlNote(seqCredStore, "AC-12, AC-2(5), SC-23", "V-222389, V-222390, V-222575", "Idle/absolute timeouts; session secrets hashed (ARCH-CRED-SESSION / TOKENS)")
+  seqAuthServer --> seqWebUI : set session cookie / tokens (iss=ReqAML AS)
+end
+
+== Privileged op without MFA evidence ==
+
+opt FIX-DENY-PRIV-NO-MFA
+  seqWebUI -> seqAPI : POST /project-grants (session without MFA amr)
+  seqAPI -> seqAPI : TokenValidate + require MFA evidence for project:grant:create
+  seqAPI --> seqWebUI : 403 step-up required
+  AuthAuditLog("project:grant:create deny (no MFA)")
+end
+
+== Idle timeout ==
+
+opt FIX-DENY-SESSION-IDLE
+  ... idle past timeout ...
+  seqWebUI -> seqAPI : any authenticated call
+  seqAPI -> seqCredStore : session lookup
+  seqCredStore --> seqAPI : expired / destroyed
+  seqAPI --> seqWebUI : 401
+  AuthAuditLog("auth:session:timeout")
+end
+
+@enduml

@@ -5,28 +5,47 @@ LAYOUT_WITH_LEGEND()
 
 title Requirements Product — Containers (C4 L2)
 
-Person(user, "User", "Author, developer, release manager, steward")
+Person(user, "User", "Author, developer, release manager, steward, Key custodian")
+System_Ext(mcphost, "MCP host", "Cursor / remote agent (OAuth 2.1 public client)")
 
 System_Boundary(reqprod, "Requirements Product") {
-  Container(web, "Web UI", "React + TypeScript", "App→Routes/guards→Layout→Page→View→Components; Client Scoped View; OTEL-ready")
-  Container(api, "API", "Node + TypeScript", "OpenAPI schema-first; HTTP→business→data; RBAC on every route")
+  Container(web, "Web UI", "React + TypeScript", "App→Layout→Page→View→Components; Client Scoped View; OTEL-ready")
+  Container(api, "API + internal OAuth AS", "Node + TypeScript", "OpenAPI schema-first; HTTP→business→data; RBAC on every route; OAuth 2.1 AS (PKCE S256, RFC 8414/9728/8707), local accounts + credential store")
+  Container(mcp, "MCP server", "Node + TypeScript (Streamable HTTP)", "Resource server: audience-bound AS tokens only; no token passthrough")
   Container(sync, "Sync worker", "Node + TypeScript", "Bidirectional work-item sync with DevOps")
-  ContainerDb(db, "Database", "Postgres", "SoT: clients, projects, requirement versions, contracts, releases, catalogs, edges")
+  ContainerDb(db, "Database", "Postgres", "SoT: clients, projects, requirement versions, contracts, releases, catalogs, edges; credential hashes; wrapped DEKs only")
+  ContainerDb(kms, "Key store", "OpenBao (Transit)", "KEK + non-exportable signing keys; envelope encryption root of trust (ARCH-KEY)")
 }
 
-System_Ext(idp, "Enterprise IdP", "SAML/OIDC")
+System_Ext(idp, "Enterprise IdP", "SAML/OIDC (federated upstream through the AS)")
 System_Ext(ado, "Azure DevOps", "Work items")
 System_Ext(otel, "OTEL collector", "Logs metrics traces")
 
+note right of api
+  **Deploy units (ARCH-DEPLOY-MINIMAL / PERIPHERALS):**
+  web, api(+AS), mcp, sync are LOGICAL containers.
+  They run in ONE app container (one Dockerfile,
+  REQAML_ROLES=api,web,mcp,sync) and can split later.
+  Dev: + one peripherals container (Postgres + OpenBao).
+  Prod: Postgres and OpenBao are separate units
+  (key store isolated from the DB it protects).
+end note
+
 Rel(user, web, "Uses", "HTTPS")
-Rel(web, api, "Calls", "HTTPS JSON OpenAPI")
+Rel(web, api, "Calls; signs in via AS", "HTTPS JSON OpenAPI / OAuth 2.1")
+Rel(mcphost, mcp, "Tool calls", "HTTPS Bearer (aud=MCP)")
+Rel(mcphost, api, "Authorize / token (AS)", "OAuth 2.1 + PKCE")
+Rel(mcp, api, "Business calls as principal", "internal")
 Rel(api, db, "Reads/writes", "SQL")
 Rel(sync, db, "Reads/writes", "SQL")
-Rel(api, idp, "Validates tokens", "OIDC/SAML")
+Rel(api, kms, "Wrap/unwrap DEKs, sign tokens", "OpenBao API (TLS)")
+Rel(sync, kms, "Unwrap connector secrets", "OpenBao API (TLS)")
+Rel(api, idp, "Federates sign-in (upstream)", "OIDC/SAML")
 Rel(api, ado, "Optional sync", "REST")
 Rel(sync, ado, "Syncs fields", "REST")
 Rel(web, otel, "Client telemetry", "OTLP")
 Rel(api, otel, "Audit + app logs", "OTLP")
+Rel(mcp, otel, "Audit + app logs", "OTLP")
 Rel(sync, otel, "Worker logs", "OTLP")
 
 @enduml

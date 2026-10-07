@@ -1,0 +1,59 @@
+@startuml dod_contractor_sdlc_roles
+skinparam backgroundColor #FAFBFC
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam ArrowThickness 1.5
+skinparam ActivityBorderColor #334155
+skinparam ActivityFontSize 12
+skinparam PartitionBorderColor #64748B
+skinparam PartitionFontSize 14
+skinparam PartitionFontStyle bold
+skinparam noteBorderColor #94A3B8
+skinparam noteBackgroundColor #F1F5F9
+
+title DoD / Program Office ↔ Contractor — SDLC roles\n(mapped toward ReqAML)
+
+|Stakeholder / Mission|
+start
+:Need / capability gap\n**<color:#64748B>Mission owner, KO, end users</color>**;
+
+|DoD / Government|
+:Prioritize & fund\n**<color:#64748B>PM / PE / COR</color>**;
+:Author / approve requirements\n& acceptance criteria\n**<color:#64748B>Requirements lead\n(Author + Client admin)</color>**;
+:Security control selection\n& overlays (NIST / STIG)\n**<color:#64748B>ISSM / ISSE / SCA\n(Security + Catalog steward)</color>**;
+
+|Contractor delivery|
+:Design & implement\nagainst pinned req versions\n**<color:#64748B>Dev lead / engineers\n(Developer)</color>**;
+:Build verification evidence\n**<color:#64748B>QA / test\n(Tester)</color>**;
+note right
+  Change sets nest under
+  an SDLC session
+  (e.g. 7-day req window)
+end note
+
+|DoD / Government cyber|
+:Cyber collection & review\ncontrol conformance drift\n**<color:#64748B>ISSM / SCA / AO support\n(Security)</color>**;
+if (Acceptable risk?) then (yes)
+  :AO / ATO decision path\n**<color:#64748B>Authorizing Official</color>**;
+else (gaps)
+  :Return findings →\nnew req .N / WI;
+  kill
+endif
+
+|Release & deploy|
+:Release snapshot\n(contracts / delivers)\n**<color:#64748B>Release manager</color>**;
+:Deploy to authorized enclave\n**<color:#64748B>Ops / Deployer\n(+ Auditor read-only)</color>**;
+stop
+
+legend left
+  |= Lane |= Typical org |= Closest ReqAML roles |
+  | Stakeholder | Mission / KO | Reader (often) |
+  | DoD requirements | PM / COR / reqs | Author, Client admin, Project admin |
+  | DoD cyber | ISSM / ISSE / SCA / AO | Security, Catalog steward |
+  | Contractor | Prime / sub eng + QA | Developer, Tester, Author (if tasked) |
+  | Release / deploy | Gov or contractor ops | Release manager, Auditor |
+endlegend
+
+@enduml

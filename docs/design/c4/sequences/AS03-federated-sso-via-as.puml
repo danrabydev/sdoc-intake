@@ -1,0 +1,62 @@
+@startuml AS03-federated-sso-via-as
+!include ../includes/C4_Sequence_Macros.puml
+
+title AS03 — Federated enterprise SSO through the internal AS\n(tenant connector → AS maps identity → AS mints tokens; upstream logout honored; no upstream token at API)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_AuthServer()
+C4Seq_CredStore()
+C4Seq_KeyProvider()
+C4Seq_IdP()
+C4Seq_API()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== Browser initiates sign-in at the AS ==
+
+seqUser -> seqWebUI : Sign in (A01)
+seqWebUI -> seqAuthServer : GET /authorize (response_type=code, PKCE S256,\nresource=API or UI audience)
+ControlNote(seqAuthServer, "IA-2, IA-8", "V-222400, V-222401, V-222522", "AS is the single issuer; IdP is federated upstream (ARCH-AUTH-FEDERATION / CAP-SSO)")
+
+seqAuthServer -> seqAuthServer : auth profile: identity_mode=federated,\nlocal_accounts=disabled → no local form (ARCH-AUTH-PROFILE)
+seqAuthServer -> seqAuthServer : select tenant connector (client_id → connector;\nhome-realm discovery = open question)
+ControlNote(seqAuthServer, "IA-8, AC-3", "V-222559, V-222560", "Connector bound to one client tenant (ARCH-AUTH-UPSTREAM-CONNECTOR)")
+
+seqAuthServer -> seqIdP : redirect / OIDC authorize (or SAML AuthnRequest)
+seqIdP --> seqUser : IdP login UI
+seqUser -> seqIdP : credentials / MFA at enterprise IdP
+seqIdP --> seqAuthServer : id_token / assertion (code + tokens to AS only)
+ControlNote(seqAuthServer, "IA-5, SC-23", "V-222403, V-222404", "AS validates assertion (iss, aud=AS client, signature, nonce); IdP tokens never reach ReqAML API")
+
+seqAuthServer -> seqCredStore : claim map: (issuer, sub) → identity within connector tenant\n(e.g. oidc:dan-raby → dan); grants from ReqAML records only
+ControlNote(seqCredStore, "AC-2, AC-6", "TBD (ASD V6R4)", "Explicit mapping; never cross-tenant; claims → identity + MFA evidence (ARCH-AUTH-CLAIM-MAP)")
+
+opt privileged role / step-up needed (amr/acr missing or stale)
+  seqAuthServer -> seqIdP : re-authorize with max_age / prompt=login / acr_values
+  seqIdP --> seqAuthServer : fresh assertion with MFA amr/acr
+  ControlNote(seqAuthServer, "IA-2(1), IA-11", "V-222523, V-222520", "MFA at the IdP evidenced to the AS (ARCH-CRED-MFA / REAUTH)")
+end
+
+AuthAuditLog("auth:federated:signin allow")
+seqAuthServer -> seqKeyProvider : sign(access token, kid) — Transit
+seqAuthServer --> seqWebUI : code → tokens (iss=ReqAML AS, aud=API/UI)\n+ rotating refresh (≤ connector max auth age)
+ControlNote(seqAuthServer, "SC-12(3), IA-5(6)", "V-222570", "Tokens minted by AS; signing keys in OpenBao (KS02)")
+
+== API accepts only internal-AS tokens ==
+
+seqWebUI -> seqAPI : AuthenticatedCall (Bearer AS token)
+TokenValidate(seqAPI, "https://reqaml/api")
+ControlNote(seqAPI, "IA-2, AC-3", "TBD (ASD V6R4)", "Upstream IdP token presented at API → 401 (FIX-DENY-UPSTREAM-TOKEN-AT-API)")
+seqAPI --> seqWebUI : 200 + Scoped View context
+
+== Upstream session end ==
+
+opt IdP back-channel logout / SAML SLO (where supported)
+  seqIdP -> seqAuthServer : logout_token (sub / sid)
+  seqAuthServer -> seqCredStore : end linked sessions; revoke token families\n(UI + MCP refresh)
+  ControlNote(seqAuthServer, "AC-12, AC-2(3)", "V-222549, V-222391", "Upstream revocation honored (ARCH-AUTH-UPSTREAM-REVOKE / FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED)")
+  AuthAuditLog("auth:upstream:logout")
+end
+
+@enduml

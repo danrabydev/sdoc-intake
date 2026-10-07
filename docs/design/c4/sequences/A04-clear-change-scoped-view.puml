@@ -1,0 +1,54 @@
+@startuml A04-clear-change-scoped-view
+!include ../includes/C4_Sequence_Macros.puml
+
+title A04 — Clear / change Scoped View\nRBAC: client:scope:clear (draft)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== Clear or switch client scope ==
+
+seqUser -> seqWebUI : Clear scope or pick another client
+ControlNote(seqWebUI, "AC-3", "TBD (ASD V6R4)", "User can drop or replace active client context")
+
+seqWebUI -> seqRouteGuard : Scope action in Layout
+RbacRouteGuard("client:scope:clear")
+ControlNote(seqRouteGuard, "AC-3", "TBD (ASD V6R4)", "Guard ensures authenticated access to scope controls")
+
+alt Clear active client
+  seqWebUI -> seqAPI : DELETE /session/client-scope
+  ControlNote(seqAPI, "AC-12, AC-3", "TBD (ASD V6R4)", "Remove server-bound client scope promptly")
+else Change to another client
+  seqWebUI -> seqAPI : PUT /session/client-scope\n{ clientId }
+  ControlNote(seqAPI, "AC-3, AC-6", "TBD (ASD V6R4)", "Replace scope; same validation as select")
+end
+
+seqAPI -> seqBusiness : clearOrReplaceScope(actor, clientId?)
+ControlNote(seqBusiness, "AC-3", "TBD (ASD V6R4)", "Business owns scope lifecycle HTTP→business→data")
+
+seqBusiness -> seqRBAC : require client:scope:clear\n(+ select if replacing)
+RbacCheck("client:scope:clear")
+ControlNote(seqRBAC, "AC-3, AC-6", "TBD (ASD V6R4)", "Clear always allowed for session; replace re-checks target client")
+
+seqBusiness -> seqAudit : clientScopeClearedOrChanged(actor, from, to?)
+ControlNote(seqAudit, "AU-2, AU-12", "TBD (ASD V6R4)", "Audit loss or change of data visibility context")
+seqAudit -> seqOTEL : export audit event (OTLP)
+
+seqBusiness --> seqAPI : updated scope state
+seqAPI --> seqWebUI : Sync ClientScope context
+ControlNote(seqWebUI, "AC-3", "TBD (ASD V6R4)", "Drop clientId from stores; block scoped queries until re-selected")
+
+seqWebUI --> seqUser : Empty scope or new client context
+
+note over seqWebUI
+  Pages/views must not fetch project data
+  until scope is set again (guard + API 403).
+end note
+
+@enduml

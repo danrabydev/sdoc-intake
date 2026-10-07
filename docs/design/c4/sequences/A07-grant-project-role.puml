@@ -1,0 +1,51 @@
+@startuml A07-grant-project-role
+!include ../includes/C4_Sequence_Macros.puml
+
+title A07 — Grant project role\nRBAC: project:grant:create (draft)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== Admin grants role on project ==
+
+seqUser -> seqWebUI : Grant role to identity (project admin UI)
+ControlNote(seqWebUI, "AC-3", "TBD (ASD V6R4)", "Admin mutation behind Layout + guards")
+
+seqWebUI -> seqRouteGuard : Project access admin route
+RbacRouteGuard("project:grant:create")
+ControlNote(seqRouteGuard, "AC-3", "TBD (ASD V6R4)", "Route guard before grant form")
+
+ClientScopedQuery("POST", "/projects/{projectId}/grants")
+ControlNote(seqAPI, "SC-8, AC-3", "TBD (ASD V6R4)", "Grant API validates client scope + project ownership")
+
+seqAPI -> seqBusiness : createProjectGrant(admin, projectId, identityId, role)
+ControlNote(seqBusiness, "AC-2, AC-6", "TBD (ASD V6R4)", "Assign least-privilege role for project work")
+
+seqBusiness -> seqRBAC : require project:grant:create
+RbacCheck("project:grant:create")
+ControlNote(seqRBAC, "AC-2, AC-3", "TBD (ASD V6R4)", "Only authorized admins create grants")
+
+seqBusiness -> seqData : insertGrant(...)
+seqData -> seqPostgres : INSERT project_grant
+ControlNote(seqPostgres, "AC-2, AC-3", "TBD (ASD V6R4)", "SoT for project RBAC assignments")
+
+seqPostgres --> seqData : ok
+seqData --> seqBusiness : grant row
+
+seqBusiness -> seqAudit : projectGrantCreated(admin, projectId, identityId, role)
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable privilege assignment")
+seqAudit -> seqOTEL : export audit event (OTLP)
+
+seqBusiness --> seqAPI : grant DTO
+seqAPI --> seqWebUI : 201 Created
+seqWebUI --> seqUser : Updated access list
+
+@enduml

@@ -1,0 +1,77 @@
+@startuml workflow_system
+skinparam backgroundColor #FAFBFC
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 12
+skinparam ArrowColor #334155
+skinparam ArrowThickness 1.5
+skinparam ActivityBorderColor #334155
+skinparam ActivityFontSize 11
+skinparam PartitionBorderColor #64748B
+skinparam PartitionFontSize 13
+skinparam PartitionFontStyle bold
+skinparam noteBorderColor #94A3B8
+skinparam noteBackgroundColor #F1F5F9
+
+title ReqAML dynamic workflow — canonical early path\n(composition: WorkflowProfile · Gate · ActionHook · RoleBinding · SubjectKind)
+
+|Client sys-req|
+start
+:Create **RequirementLine**\n+ version (draft)\n**<color:#64748B>SubjectKind: RequirementLine</color>**;
+:Optional **D04** activate\n**<color:#64748B>lifecycle ≠ approve</color>**;
+
+|Approver (RoleBinding)|
+:Tree / line **approve** (D12)\n**<color:#64748B>ActionHook → Gate + ApprovalRecord(line)</color>**;
+note right
+  Pins approved_version_uid
+  + statement_hash.
+  Slot filled by project/client
+  RoleBinding — not hard-coded
+  Client admin vs AO.
+end note
+
+|Contractor cap|
+:Propose **CapabilityLine**\n(+ artifacts)\n**<color:#64748B>SubjectKind: CapabilityLine</color>**;
+:Link **Satisfies**\ncap → req version\n**<color:#64748B>EdgeSatisfies (E04)</color>**;
+
+|Approver (RoleBinding)|
+:Approve **CapabilityLine**\nas solution\n**<color:#64748B>optional gate: Satisfies → approved req</color>**;
+
+|Planning|
+if (Line ApprovalRecord\n**approved**?) then (yes)
+  :**D08** set priority\n+ grooming / WI path\n**<color:#64748B>Gate: gate-line-approved</color>**;
+else (no)
+  :Deny\n**FIX-DENY-PRIORITY-UNAPPROVED**;
+  kill
+endif
+
+|Succession .N|
+if (Mint successor —\nsame statement_hash?) then (yes)
+  :Deny **no-op successor**;
+  kill
+else (new hash)
+  :Clear line ApprovalRecord\n**<color:#64748B>effect on ActionHook mint</color>**;
+endif
+
+|Release|
+if (**cyber_gate** /\nGate cyber-ship on?) then (on)
+  :G05 ship after\nSecurity + AO slots\n**<color:#64748B>ARCH-CYBER-GATE as Gate</color>**;
+else (off)
+  :G05 Release manager ships;
+endif
+stop
+
+legend left
+  |= Component |= Role in engine |
+  | WorkflowProfile | Project/client bundle: which gates + hooks |
+  | Gate | Predicate + approver slots (line-approved, cyber-ship, noop-block) |
+  | ActionHook | action_id → gates_before → effects_after |
+  | RoleBinding | Configurable who fills stakeholder / solution / AO slots |
+  | SubjectKind | RequirementLine · CapabilityLine · Version · Satisfies · Release · ChangeSet |
+  |= Locked |= |
+  | Approval vs cap | First-class early; caps often approved as solutions via Satisfies |
+  | Grain | ApprovalLine; UI may batch-approve a tree |
+  | .N | Clears approval; same-hash mint blocked |
+endlegend
+
+@enduml

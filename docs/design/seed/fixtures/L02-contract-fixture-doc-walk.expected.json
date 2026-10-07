@@ -1,0 +1,14 @@
+{
+  "schema_version": "2026-10-06",
+  "contract_id": "contract-fixture-doc-walk",
+  "context": false,
+  "uids": [
+    "A01",
+    "A02"
+  ],
+  "paths": {
+    "sdoc": "seed/fixtures/L02-contract-fixture-doc-walk.sdoc",
+    "uids_txt": "seed/fixtures/L02-contract-fixture-doc-walk.uids.txt",
+    "expected_json": "seed/fixtures/L02-contract-fixture-doc-walk.expected.json"
+  }
+}

@@ -16,6 +16,7 @@ Design artifacts for the **collaborative requirements + ALM** product (StrictDoc
 | [`sequences/`](./sequences/) | One diagram per action ([INDEX](./sequences/INDEX.md)) |
 | [`SEQUENCES.md`](./SEQUENCES.md) | Workflow + compliance requirements |
 | [`user-actions-inventory.md`](./user-actions-inventory.md) | Full action list by section |
+| [`../seed/`](../seed/) | ReqAML **dogfood YAML** (A01–A08, MC01–MC02) → optional StrictDoc export |
 
 ## Sequences vs container diagrams
 

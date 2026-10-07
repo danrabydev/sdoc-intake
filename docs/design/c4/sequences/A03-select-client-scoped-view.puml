@@ -1,0 +1,62 @@
+@startuml A03-select-client-scoped-view
+!include ../includes/C4_Sequence_Macros.puml
+
+title A03 — Select Client Scoped View\nRBAC: client:scope:select (draft)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== Choose active client scope ==
+
+seqUser -> seqWebUI : Open client scope selector (Layout)
+ControlNote(seqWebUI, "AC-3", "TBD (ASD V6R4)", "Scope selector only in authenticated shell behind routes+guards")
+
+seqWebUI -> seqRouteGuard : Render scope UI (protected layout)
+RbacRouteGuard("client:scope:select")
+ControlNote(seqRouteGuard, "AC-3", "TBD (ASD V6R4)", "Routes+guards wrap Layout before scope change")
+
+seqUser -> seqWebUI : Select client {clientId}
+ControlNote(seqWebUI, "AC-6", "TBD (ASD V6R4)", "User picks one client context for subsequent work")
+
+seqWebUI -> seqAPI : PUT /session/client-scope\n{ clientId }
+ClientScopedQuery("PUT", "/session/client-scope")
+ControlNote(seqAPI, "SC-8, AC-3", "TBD (ASD V6R4)", "Persist active client on server; do not trust UI-only scope")
+
+seqAPI -> seqBusiness : setActiveClientScope(actor, clientId)
+ControlNote(seqBusiness, "AC-3, AC-6", "TBD (ASD V6R4)", "Bind queries to selected client for least privilege")
+
+seqBusiness -> seqRBAC : require client:scope:select\n+ membership on clientId
+RbacCheck("client:scope:select")
+ControlNote(seqRBAC, "AC-3, AC-2", "TBD (ASD V6R4)", "Deny scope for clients where actor has no grant")
+
+seqBusiness -> seqData : verifyClientAccess(actor, clientId)
+seqData -> seqPostgres : SELECT grants / client visibility
+ControlNote(seqPostgres, "AC-3", "TBD (ASD V6R4)", "SoT enforces client boundary in data layer")
+
+seqPostgres --> seqData : ok / deny
+seqData --> seqBusiness : allowed
+
+seqBusiness -> seqAudit : clientScopeSelected(actor, clientId)
+ControlNote(seqAudit, "AU-2, AU-12", "TBD (ASD V6R4)", "Audit scope changes that affect data visibility")
+seqAudit -> seqOTEL : export audit event (OTLP)
+
+seqBusiness --> seqAPI : scope DTO
+seqAPI --> seqWebUI : Update ClientScope context
+ControlNote(seqWebUI, "AC-3", "TBD (ASD V6R4)", "UI state mirrors server-bound scope for all later fetches")
+
+note over seqWebUI, seqAPI
+  Subsequent API calls carry X-Client-Scope
+  (ClientScopedQuery); business re-validates.
+end note
+
+seqWebUI --> seqUser : Scoped shell (projects, lists filtered)
+
+@enduml

@@ -1,0 +1,53 @@
+@startuml A05-view-own-profile-grants
+!include ../includes/C4_Sequence_Macros.puml
+
+title A05 — View own profile / grants\nRBAC: identity:read_self (draft)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== Self-service identity read ==
+
+seqUser -> seqWebUI : Open Profile / My grants
+ControlNote(seqWebUI, "AC-3", "TBD (ASD V6R4)", "Self-view only; no admin enumeration")
+
+seqWebUI -> seqRouteGuard : Navigate /account/profile
+RbacRouteGuard("identity:read_self")
+ControlNote(seqRouteGuard, "AC-3", "TBD (ASD V6R4)", "Routes+guards before Page renders profile View")
+
+AuthenticatedCall("GET", "/identity/me")
+ControlNote(seqAPI, "SC-8", "TBD (ASD V6R4)", "Read self over TLS")
+
+seqAPI -> seqBusiness : getSelfProfile(actor)
+ControlNote(seqBusiness, "AC-3, IA-5", "TBD (ASD V6R4)", "Return only actor-bound identity and grants")
+
+seqBusiness -> seqRBAC : require identity:read_self
+RbacCheck("identity:read_self")
+ControlNote(seqRBAC, "AC-3", "TBD (ASD V6R4)", "Permission scoped to authenticated subject")
+
+seqBusiness -> seqData : loadIdentityAndGrants(actorId)
+seqData -> seqPostgres : SELECT identity, project_grant … WHERE identity_id = actor
+ControlNote(seqPostgres, "AC-3, AC-6", "TBD (ASD V6R4)", "Query constrained to self; no cross-user rows")
+
+seqPostgres --> seqData : rows
+seqData --> seqBusiness : DTO
+
+seqBusiness -> seqAudit : identitySelfView(actor)
+ControlNote(seqAudit, "AU-2, AU-3", "TBD (ASD V6R4)", "Optional audit of sensitive self-read (policy TBD)")
+seqAudit -> seqOTEL : export audit event (OTLP)
+
+seqBusiness --> seqAPI : profile + grants
+seqAPI --> seqWebUI : JSON
+ControlNote(seqWebUI, "IA-5", "TBD (ASD V6R4)", "Display minimal PII; mask where possible")
+
+seqWebUI --> seqUser : Profile and grant list
+
+@enduml

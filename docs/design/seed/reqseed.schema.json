@@ -1,0 +1,1443 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reqaml.local/schemas/reqseed.schema.json",
+  "title": "ReqAML seed bundle",
+  "description": "Practical draft-07 schema for ReqAML dogfood YAML (after YAML\u2192JSON). Not over-strict. Optional Cyber+QA extensions: clients[], catalog_steward_grants[], audit_events[]; project_grant.status/revoked_at for tombstones. Catalog versioning: catalog_imprints[]; conforms_to edges pin via catalog_imprint_id + item UID; optional catalog_drift on versions. Workflow: subject_kinds[], workflow_profiles[], gates[], action_hooks[], role_bindings[], approval_records[]; project.workflow_profile_id; version.statement_hash; version.stakeholder_approval mirror of line ApprovalRecord; change_sets[]; work_item_links[]; release.cyber_gate as gate-cyber-ship trigger. Cyber+QA locked 2026-10-07: mint_kind, superseded, planning_blocked, trace_suspect, gate_signoff, conformance_pin_request, imported_approved.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "client",
+    "projects",
+    "requirement_lines",
+    "requirement_versions"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "client": {
+      "$ref": "#/definitions/client"
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/project"
+      },
+      "minItems": 1
+    },
+    "identities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/identity"
+      }
+    },
+    "project_grants": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/project_grant"
+      }
+    },
+    "catalogs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/catalog"
+      }
+    },
+    "iterations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/iteration"
+      }
+    },
+    "requirement_lines": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/requirement_line"
+      },
+      "minItems": 1
+    },
+    "requirement_versions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/requirement_version"
+      },
+      "minItems": 1
+    },
+    "capability_artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/capability_artifact"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/edge"
+      }
+    },
+    "contracts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/contract"
+      }
+    },
+    "releases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/release"
+      }
+    },
+    "clients": {
+      "type": "array",
+      "description": "Additional clients beyond the primary `client` (e.g. cross-client denial fixtures).",
+      "items": {
+        "$ref": "#/definitions/client"
+      }
+    },
+    "catalog_steward_grants": {
+      "type": "array",
+      "description": "Catalog stewardship grants (identity may edit a specific catalog).",
+      "items": {
+        "$ref": "#/definitions/catalog_steward_grant"
+      }
+    },
+    "audit_events": {
+      "type": "array",
+      "description": "Sample audit event rows for deny/allow fixtures (Cyber+QA).",
+      "items": {
+        "$ref": "#/definitions/audit_event"
+      }
+    },
+    "catalog_imprints": {
+      "type": "array",
+      "description": "Published imprints of standard catalogs (library revision + import identity).",
+      "items": {
+        "$ref": "#/definitions/catalog_imprint"
+      }
+    },
+    "change_sets": {
+      "type": "array",
+      "description": "Project-scoped leaf / SDLC-parent change sets (hybrid audit).",
+      "items": {
+        "$ref": "#/definitions/change_set"
+      }
+    },
+    "work_item_links": {
+      "type": "array",
+      "description": "External tracker mappings for J* actions.",
+      "items": {
+        "$ref": "#/definitions/work_item_link"
+      }
+    },
+    "subject_kinds": {
+      "type": "array",
+      "description": "Workflow SubjectKind registry.",
+      "items": {
+        "$ref": "#/definitions/subject_kind"
+      }
+    },
+    "workflow_profiles": {
+      "type": "array",
+      "description": "Named WorkflowProfile bundles.",
+      "items": {
+        "$ref": "#/definitions/workflow_profile"
+      }
+    },
+    "gates": {
+      "type": "array",
+      "description": "Gate precondition catalog.",
+      "items": {
+        "$ref": "#/definitions/gate"
+      }
+    },
+    "action_hooks": {
+      "type": "array",
+      "description": "ActionHook bindings.",
+      "items": {
+        "$ref": "#/definitions/action_hook"
+      }
+    },
+    "role_bindings": {
+      "type": "array",
+      "description": "RoleBinding for gate approver slots.",
+      "items": {
+        "$ref": "#/definitions/role_binding"
+      }
+    },
+    "approval_records": {
+      "type": "array",
+      "description": "Line-grain ApprovalRecord SoT.",
+      "items": {
+        "$ref": "#/definitions/approval_record"
+      }
+    },
+    "gate_signoffs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/gate_signoff"
+      }
+    },
+    "conformance_pin_requests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/conformance_pin_request"
+      }
+    }
+  },
+  "definitions": {
+    "client": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "created_at": {
+          "type": "string"
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "client_id",
+        "name"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "client_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "workflow_profile_id": {
+          "type": "string"
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "external_sub": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        }
+      }
+    },
+    "project_grant": {
+      "type": "object",
+      "required": [
+        "project_id",
+        "identity_id",
+        "role"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "project_id": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "revoked"
+          ],
+          "description": "Omit or active = live grant; revoked = tombstone (FIX-DENY-REVOKED)."
+        },
+        "revoked_at": {
+          "type": "string",
+          "description": "ISO-8601 timestamp when status=revoked."
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "required": [
+        "id",
+        "scope",
+        "title"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "global",
+            "client",
+            "project"
+          ]
+        },
+        "client_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "is_standard": {
+          "type": "boolean"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "sdoc_path": {
+          "type": "string"
+        },
+        "current_imprint_id": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "iteration": {
+      "type": "object",
+      "required": [
+        "id",
+        "project_id",
+        "name"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "project_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "starts_on": {
+          "type": "string"
+        },
+        "ends_on": {
+          "type": "string"
+        }
+      }
+    },
+    "requirement_line": {
+      "type": "object",
+      "required": [
+        "base_uid",
+        "project_id",
+        "kind",
+        "title"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "base_uid": {
+          "type": "string",
+          "minLength": 1
+        },
+        "project_id": {
+          "type": "string"
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "section",
+            "requirement",
+            "control",
+            "capability",
+            "release_node"
+          ]
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "catalog_ref": {
+          "type": "string"
+        },
+        "verification_note": {
+          "type": "string"
+        }
+      }
+    },
+    "requirement_version": {
+      "type": "object",
+      "required": [
+        "uid",
+        "base_uid",
+        "version_n",
+        "statement",
+        "status"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base_uid": {
+          "type": "string"
+        },
+        "version_n": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "statement": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "active",
+            "superseded",
+            "obsolete",
+            "withdrawn"
+          ]
+        },
+        "priority": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "iteration": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rbac_op": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "security": {
+          "$ref": "#/definitions/security"
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "catalog_drift": {
+          "$ref": "#/definitions/catalog_drift"
+        },
+        "grooming_state": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "want",
+                "detailed",
+                "wi_ready"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stakeholder_approval": {
+          "$ref": "#/definitions/stakeholder_approval"
+        },
+        "verification_outcome": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "pass",
+                "fail",
+                "pending"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "statement_hash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Canonical statement-body-only hash (trim/newline canon). ARCH-SUCCESSION-HASH / ARCH-MINT-KIND."
+        },
+        "mint_kind": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "content",
+                "status",
+                "pin",
+                "security_meta"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "planning_blocked": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "capability_artifact": {
+      "type": "object",
+      "required": [
+        "requirement_version_uid",
+        "kind",
+        "uri"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "requirement_version_uid": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "openapi",
+            "wireframe",
+            "mock",
+            "other"
+          ]
+        },
+        "uri": {
+          "type": "string"
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "required": [
+        "from",
+        "to",
+        "kind"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "refines",
+            "conforms_to",
+            "uses",
+            "satisfies"
+          ]
+        },
+        "catalog_imprint_id": {
+          "type": "string",
+          "description": "Required when kind=conforms_to and to is a catalog item UID. Pin is (catalog_imprint_id, to)."
+        },
+        "trace_suspect": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "suspect_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "required": [
+        "id",
+        "client_id",
+        "name",
+        "status",
+        "in_scope_of"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "client_id": {
+          "type": "string"
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "starts_on": {
+          "type": "string"
+        },
+        "ends_on": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "planned",
+            "active",
+            "closed"
+          ]
+        },
+        "in_scope_of": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "release": {
+      "type": "object",
+      "required": [
+        "id",
+        "project_id",
+        "name",
+        "status",
+        "delivers"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "project_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "planned_on": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "shipped_on": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "planned",
+            "shipped"
+          ]
+        },
+        "delivers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cyber_gate": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "catalog_steward_grant": {
+      "type": "object",
+      "required": [
+        "id",
+        "catalog_id",
+        "identity_id"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "catalog_id": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "audit_event": {
+      "type": "object",
+      "required": [
+        "id",
+        "at",
+        "identity_id",
+        "action",
+        "outcome"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        },
+        "client_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "action": {
+          "type": "string"
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "allow",
+            "deny"
+          ]
+        },
+        "http_status": {
+          "type": "integer"
+        },
+        "grant_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        },
+        "change_set_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "subject_kind": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "subject_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "payload": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "catalog_imprint": {
+      "type": "object",
+      "required": [
+        "id",
+        "catalog_id",
+        "library_revision",
+        "import_identity",
+        "sdoc_path"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "e.g. nist-800-53@rev5-dogfood-20261006, asd-stig@v6r4"
+        },
+        "catalog_id": {
+          "type": "string"
+        },
+        "library_revision": {
+          "type": "string"
+        },
+        "import_identity": {
+          "type": "string"
+        },
+        "sdoc_path": {
+          "type": "string"
+        },
+        "published_at": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "published",
+            "draft",
+            "superseded"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "catalog_drift": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "none",
+            "flagged",
+            "reviewed"
+          ]
+        },
+        "change_class": {
+          "type": "string",
+          "enum": [
+            "editorial",
+            "normative",
+            "withdrawn",
+            "renumbered"
+          ]
+        },
+        "imprint_from": {
+          "type": "string"
+        },
+        "imprint_to": {
+          "type": "string"
+        },
+        "item_uid": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "stakeholder_approval": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "unapproved",
+            "approved"
+          ]
+        },
+        "by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "description": "Denormalized mirror of line ApprovalRecord during migrate; SoT is approval_records[]."
+    },
+    "change_set": {
+      "type": "object",
+      "required": [
+        "id",
+        "project_id",
+        "kind",
+        "status",
+        "opened_by",
+        "opened_at"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "project_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "leaf",
+            "sdlc_parent"
+          ]
+        },
+        "parent_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scope": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "closed",
+            "reverted",
+            "abandoned"
+          ]
+        },
+        "opened_by": {
+          "type": "string"
+        },
+        "opened_at": {
+          "type": "string"
+        },
+        "closed_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "work_item_link": {
+      "type": "object",
+      "required": [
+        "id",
+        "requirement_version_uid",
+        "devops_id"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "requirement_version_uid": {
+          "type": "string"
+        },
+        "devops_id": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "synced_fields": {
+          "type": "object"
+        },
+        "last_sync_at": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "subject_kind": {
+      "type": "object",
+      "required": [
+        "id",
+        "backing"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "backing": {
+          "type": "string"
+        },
+        "kind_filter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "workflow_profile": {
+      "type": "object",
+      "required": [
+        "id",
+        "scope",
+        "title",
+        "gate_ids"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "client",
+            "project"
+          ]
+        },
+        "client_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "gate_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled_optional_gates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "disabled_optional_gates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "planning_gate_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "action_hook_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "required": [
+        "id",
+        "subject_kinds",
+        "mode",
+        "predicate",
+        "on_fail"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "subject_kinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "predicate": {
+          "type": "string"
+        },
+        "approver_slots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "on_fail": {
+          "type": "string",
+          "enum": [
+            "deny"
+          ]
+        },
+        "deny_fixture": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "action_hook": {
+      "type": "object",
+      "required": [
+        "id",
+        "action_id",
+        "subject_kind",
+        "gates_before",
+        "effects_after"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "action_id": {
+          "type": "string"
+        },
+        "subject_kind": {
+          "type": "string"
+        },
+        "gates_before": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "effects_after": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "role_binding": {
+      "type": "object",
+      "required": [
+        "id",
+        "profile_id",
+        "gate_id",
+        "slot",
+        "roles"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "gate_id": {
+          "type": "string"
+        },
+        "slot": {
+          "type": "string"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "identities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "approval_record": {
+      "type": "object",
+      "required": [
+        "id",
+        "subject_kind",
+        "base_uid",
+        "status"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "subject_kind": {
+          "type": "string",
+          "enum": [
+            "RequirementLine",
+            "CapabilityLine"
+          ]
+        },
+        "base_uid": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "unapproved",
+            "approved",
+            "imported_approved"
+          ]
+        },
+        "by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        },
+        "approved_version_uid": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_statement_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "gate_signoff": {
+      "type": "object",
+      "required": [
+        "id",
+        "subject_kind",
+        "subject_id",
+        "gate_id",
+        "slot",
+        "identity_id",
+        "decision",
+        "at"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "subject_kind": {
+          "type": "string"
+        },
+        "subject_id": {
+          "type": "string"
+        },
+        "gate_id": {
+          "type": "string"
+        },
+        "slot": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approve",
+            "deny"
+          ]
+        },
+        "at": {
+          "type": "string"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "conformance_pin_request": {
+      "type": "object",
+      "required": [
+        "id",
+        "project_id",
+        "requirement_version_uid",
+        "catalog_imprint_id",
+        "item_uid",
+        "requested_by",
+        "requested_at",
+        "status"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "project_id": {
+          "type": "string"
+        },
+        "requirement_version_uid": {
+          "type": "string"
+        },
+        "catalog_imprint_id": {
+          "type": "string"
+        },
+        "item_uid": {
+          "type": "string"
+        },
+        "requested_by": {
+          "type": "string"
+        },
+        "requested_at": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "applied",
+            "denied"
+          ]
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

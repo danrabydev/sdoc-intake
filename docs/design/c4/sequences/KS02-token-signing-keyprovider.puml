@@ -1,0 +1,52 @@
+@startuml KS02-token-signing-keyprovider
+!include ../includes/C4_Sequence_Macros.puml
+
+title KS02 — Token signing via KeyProvider and JWKS rotation overlap\n(non-exportable OpenBao Transit signing keys · kid · overlap window)
+
+C4Seq_McpHost()
+C4Seq_AuthServer()
+C4Seq_KeyProvider()
+C4Seq_ReqAmlMcp()
+C4Seq_API()
+C4Seq_Business()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+== Sign access token ==
+
+seqMcpHost -> seqAuthServer : POST /token (code + verifier + resource)
+seqAuthServer -> seqAuthServer : build claims (iss, sub, aud, exp, jti, kid=reqaml-sign:v1)
+seqAuthServer -> seqKeyProvider : transit/sign/reqaml-sign (digest)
+seqKeyProvider --> seqAuthServer : signature (private key never leaves OpenBao)
+ControlNote(seqKeyProvider, "SC-12(3), SC-13", "V-222570", "Asymmetric signing key non-exportable; FIPS-validated module where required (ARCH-KEY-FIPS)")
+seqAuthServer --> seqMcpHost : access_token (kid=v1)
+
+== Resource servers verify via JWKS ==
+
+seqMcpServer -> seqAuthServer : GET /jwks (cached, honors cache headers)
+seqAuthServer -> seqKeyProvider : read public keys (active + overlap versions)
+seqAuthServer --> seqMcpServer : JWKS {v1}
+seqMcpHost -> seqMcpServer : call with token(kid=v1)
+TokenValidate(seqMcpServer, "https://reqaml/mcp")
+
+== Scheduled / on-demand rotation ==
+
+seqBusiness -> seqBusiness : system principal (scheduled) or Key custodian
+KeyOp("rotate", "transit/keys/reqaml-sign → v2")
+seqBusiness -> seqAudit : log(key:signing:rotate, v1→v2)
+seqAudit -> seqOTEL : export audit event (OTLP)
+seqAuthServer -> seqAuthServer : sign new tokens with kid=v2
+seqAuthServer --> seqMcpServer : JWKS {v2, v1(verify-only)}
+ControlNote(seqAuthServer, "SC-12", "TBD (ASD V6R4)", "Overlap ≥ max access-token TTL + skew (ARCH-KEY-JWKS)")
+
+alt token kid=v1 within overlap
+  seqMcpHost -> seqMcpServer : call with token(kid=v1)
+  TokenValidate(seqMcpServer, "https://reqaml/mcp")
+else after overlap window
+  seqAuthServer --> seqMcpServer : JWKS {v2}
+  seqMcpHost -> seqMcpServer : call with token(kid=v1)
+  seqMcpServer --> seqMcpHost : 401 invalid_token (unknown kid)
+  ControlNote(seqMcpServer, "SC-23, SC-12(3)", "TBD (ASD V6R4)", "Retired key rejected (FIX-JWKS-ROTATION-OVERLAP)")
+end
+
+@enduml

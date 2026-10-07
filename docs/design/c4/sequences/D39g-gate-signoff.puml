@@ -1,0 +1,60 @@
+@startuml D39g-gate-signoff
+!include ../includes/C4_Sequence_Macros.puml
+
+title D39g — Gate sign-off (Security / AO slots)\nARCH-GATE-SIGNOFF — cyber ship or locked migrate
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+note over seqUser, seqOTEL
+  **gate_signoff** rows = pass condition for Gates that need
+  slot decisions beyond line ApprovalRecord.
+  **cyber_gate** on release = **trigger** that causes
+  gate-cyber-ship / gate-signoff-complete to evaluate (G61).
+  Also used for AO/Security on locked catalog migrate
+  before re-approve (with D39d mint_kind=pin).
+end note
+
+== Record sign-off ==
+
+seqUser -> seqWebUI : Sign off (approve|deny) for slot
+RbacRouteGuard("gate:signoff")
+ClientScopedQuery("POST", "/clients/{clientId}/gate-signoffs")
+ControlNote(seqAPI, "SC-8, AC-3", "TBD (ASD V6R4)", "gate_signoff write API; subject_kind + gate_id + slot")
+
+seqAPI -> seqBusiness : createGateSignoff(actor, subject, gate_id, slot, decision)
+ControlNote(seqBusiness, "AC-3, CM-3", "TBD (ASD V6R4)", "Slots: security_signoff, ao_approve (RoleBinding)")
+
+RbacCheck("gate:signoff")
+ControlNote(seqRBAC, "AC-3, AC-6", "TBD (ASD V6R4)", "Security/AO (or bound roles) only — not free Author pin edit")
+
+HookEval("gate:signoff")
+note right of seqBusiness
+  Sign-off itself is the slot decision record.
+  Ship (**G61**) later GateChecks gate-signoff-complete
+  requiring these rows when cyber_gate triggers.
+end note
+
+seqBusiness -> seqData : insert gate_signoff
+seqData -> seqPostgres : INSERT gate_signoff\n(subject_kind, subject_id, gate_id, slot,\nidentity_id, decision, at, note)
+ControlNote(seqPostgres, "AC-3, AU-2", "TBD (ASD V6R4)", "SoT for cyber/migrate slot decisions (ARCH-GATE-SIGNOFF)")
+seqPostgres --> seqData : row
+seqData --> seqBusiness : signoff
+
+HookEffectsAfter("audit")
+AuditLog("gate.signoff", "subject gate_id slot decision")
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable Security/AO decision")
+
+seqBusiness --> seqAPI : signoff DTO
+seqAPI --> seqWebUI : 201 Created
+seqWebUI --> seqUser : slot recorded
+
+@enduml

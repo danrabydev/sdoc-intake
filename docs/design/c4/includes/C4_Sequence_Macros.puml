@@ -8,7 +8,28 @@
 '   ClientScopedQuery(method, path)   — API call carrying client scope header/context
 '   AuditLog(action, entity)          — structured audit emission
 '   SyncWorkItem(direction)           — push/pull hint via business → DevOps
+'   HookEval(action_id)     — load WorkflowProfile ActionHooks (ARCH-HOOK-EVAL)
+'   GateCheck(gate_id)      — evaluate one gate (skip optional if disabled)
+'   HookEffectsAfter(effects) — run effects_after list after mutate
 '   ControlNote / ComplianceNote      — see C4_Sequence_Controls.puml
+'
+' Auth foundation macros (ARCH-AUTH-* / ARCH-CRED-* / ARCH-KEY-*):
+'   ProtectedResourceDiscovery($rs, $client) — 401 + WWW-Authenticate → RFC 9728 PRM → RFC 8414 AS metadata
+'   PkceAuthorize($client, $resource)  — authorize with S256 + resource (RFC 8707); plain → 400
+'   TokenIssue($client, $aud)          — code+verifier+resource → aud-bound access + rotating refresh
+'   TokenValidate($rs, $aud)           — iss/aud/exp/kid check at a resource server; no passthrough
+'   RefreshRotate($client)             — refresh rotation with reuse detection (family revoke)
+'   LockoutCheck($account)             — lockout / throttle check before verifying a local password
+'   MfaChallenge($role)                — MFA / step-up for privileged roles
+'   AuthAuditLog($event)               — AS-side audit (same AuditLog pipeline; no secrets logged)
+'   KeyOp($op, $key)                   — KeyProvider (OpenBao Transit) op; plaintext keys never leave memory
+'
+' Auth precedes the ActionHook pipeline: TokenValidate → RBAC → HookEval → GateCheck* → mutate
+'   → HookEffectsAfter → AuditLog.
+'
+' ActionHook pipeline (ARCH-WORKFLOW / ARCH-HOOK-EVAL):
+'   RBAC → HookEval → GateCheck* → mutate → HookEffectsAfter → AuditLog
+'   Nest under change_set when present. Do NOT copy-paste this pipeline.
 
 !include ./C4_Sequence_Participants.puml
 !include ./C4_Sequence_Controls.puml
@@ -55,6 +76,127 @@ seqAudit -> seqOTEL : export audit event (OTLP)
 !unquoted procedure SyncWorkItem($direction)
 seqBusiness -> seqAzureDevOps : **$direction** work item fields
 seqAzureDevOps --> seqBusiness : ack / payload
+!endprocedure
+
+' --- ActionHook / Gate (ARCH-HOOK-EVAL / ARCH-WORKFLOW) ---
+
+!unquoted procedure HookEval($action_id)
+seqBusiness -> seqData : load ActionHooks(**$action_id**)\nfrom project WorkflowProfile
+seqData -> seqPostgres : SELECT action_hooks, gates,\nrole_bindings, profile switches
+seqPostgres --> seqData : rows
+seqData --> seqBusiness : gates_before[], effects_after[]
+note right of seqBusiness
+  **ARCH-HOOK-EVAL:** RBAC → gates_before
+  → mutate → effects_after → audit
+  (nest under change_set when present)
+end note
+!endprocedure
+
+!unquoted procedure GateCheck($gate_id)
+seqBusiness -> seqBusiness : GateCheck **$gate_id**
+alt optional + disabled on profile
+  seqBusiness -> seqBusiness : skip gate
+else deny (predicate / RoleBinding slot /\nrequired rows missing)
+  seqBusiness --> seqAPI : 403/409 gate deny
+else pass
+  seqBusiness -> seqBusiness : gate ok
+end
+!endprocedure
+
+!unquoted procedure HookEffectsAfter($effects)
+seqBusiness -> seqBusiness : effects_after:\n**$effects**
+!endprocedure
+
+' --- Auth foundation (ARCH-AUTH-* / ARCH-CRED-* / ARCH-KEY-*) ---
+' Require C4Seq_AuthServer / C4Seq_CredStore / C4Seq_KeyProvider (+ $rs / $client lifelines).
+
+!unquoted procedure ProtectedResourceDiscovery($rs, $client)
+$client -> $rs : request (no token)
+$rs --> $client : 401 WWW-Authenticate: Bearer\nresource_metadata=".../.well-known/oauth-protected-resource"
+$client -> $rs : GET /.well-known/oauth-protected-resource (RFC 9728)
+$rs --> $client : resource URI, authorization_servers[ReqAML AS]
+$client -> seqAuthServer : GET /.well-known/oauth-authorization-server (RFC 8414)
+seqAuthServer --> $client : issuer, endpoints, code_challenge_methods_supported=[S256]\n(no registration_endpoint unless DCR policy on)
+$client -> $client : verify issuer == advertised AS; S256 present
+!endprocedure
+
+!unquoted procedure PkceAuthorize($client, $resource)
+$client -> $client : code_verifier (random); code_challenge = S256(verifier)
+$client -> seqAuthServer : GET /authorize?response_type=code&code_challenge=…&\ncode_challenge_method=S256&resource=**$resource**&state=…
+alt method=plain or challenge missing
+  seqAuthServer --> $client : 400 invalid_request (no code)
+else ok
+  seqAuthServer -> seqAuthServer : authenticate user (local or federated) + consent
+  seqAuthServer --> $client : redirect code + state + iss (RFC 9207)
+end
+!endprocedure
+
+!unquoted procedure TokenIssue($client, $aud)
+$client -> seqAuthServer : POST /token code + code_verifier + resource=**$aud**
+seqAuthServer -> seqAuthServer : verify S256(verifier) == challenge; code single-use
+seqAuthServer -> seqKeyProvider : sign(access token claims, kid) — Transit sign
+seqKeyProvider --> seqAuthServer : signature (key never exported)
+seqAuthServer -> seqCredStore : store hash(refresh token), family id
+seqAuthServer --> $client : access_token (aud=**$aud**, short TTL)\n+ rotating refresh_token
+!endprocedure
+
+!unquoted procedure TokenValidate($rs, $aud)
+$rs -> $rs : validate iss=ReqAML AS, aud=**$aud**, exp, kid ∈ JWKS (cached),\nnot revoked
+alt wrong aud / unknown iss / revoked / expired
+  $rs --> $rs : 401 invalid_token + WWW-Authenticate resource_metadata
+else ok
+  $rs -> $rs : principal = sub (+ grants loaded server-side)
+end
+!endprocedure
+
+!unquoted procedure RefreshRotate($client)
+$client -> seqAuthServer : POST /token grant_type=refresh_token (R_n)
+seqAuthServer -> seqCredStore : lookup hash(R_n)
+alt R_n already rotated (reuse)
+  seqAuthServer -> seqCredStore : revoke entire token family
+  seqAuthServer --> $client : 400 invalid_grant
+else current
+  seqAuthServer -> seqCredStore : mark R_n used; store hash(R_n+1)
+  seqAuthServer --> $client : new access_token + R_n+1
+end
+!endprocedure
+
+!unquoted procedure LockoutCheck($account)
+seqAuthServer -> seqCredStore : read lockout state(**$account**)
+alt locked or throttled
+  seqAuthServer --> seqAuthServer : refuse (generic error; no enumeration)
+else open
+  seqAuthServer -> seqCredStore : verify Argon2id/PBKDF2(salt, params, password)
+  alt mismatch
+    seqAuthServer -> seqCredStore : increment failures (lock at threshold)
+  else match
+    seqAuthServer -> seqCredStore : reset failures
+  end
+end
+!endprocedure
+
+!unquoted procedure MfaChallenge($role)
+seqAuthServer -> seqAuthServer : role **$role** privileged? / step-up (max_age, acr)
+alt MFA required and absent or stale
+  seqAuthServer --> seqUser : MFA challenge (TOTP / WebAuthn)
+  seqUser -> seqAuthServer : second factor
+  seqAuthServer -> seqKeyProvider : decrypt MFA secret (DEK) / verify assertion
+  seqAuthServer -> seqAuthServer : amr += mfa; auth_time = now
+end
+!endprocedure
+
+!unquoted procedure AuthAuditLog($event)
+seqAuthServer -> seqAudit : log(**$event**, actor, client_id, outcome) — no secrets/tokens
+seqAudit -> seqOTEL : export audit event (OTLP)
+!endprocedure
+
+!unquoted procedure KeyOp($op, $key)
+seqBusiness -> seqKeyProvider : **$op** (**$key**) — authenticated app identity
+alt KeyProvider unreachable / sealed
+  seqKeyProvider --> seqBusiness : error → fail closed (ARCH-KEY-FAILCLOSED)
+else ok
+  seqKeyProvider --> seqBusiness : result (ciphertext / version / signature; never KEK)
+end
 !endprocedure
 
 !endif
