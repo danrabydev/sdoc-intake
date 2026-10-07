@@ -8,6 +8,8 @@ export type KeyProviderStatus = {
   detail?: string;
 };
 
+export const DEV_TRANSIT_MARKER = "reqaml_dev=true";
+
 const DEV_ADDR_MARKERS = ["peripherals:8200", "localhost:8200", "127.0.0.1:8200"];
 
 export function isDevMarkedOpenBaoAddr(addr: string | undefined): boolean {
@@ -60,18 +62,16 @@ export async function checkOpenBao(
     );
     const transitEnabled = mountsRes.ok;
 
+    // Dev OpenBao marks its Transit mount description with DEV_TRANSIT_MARKER
+    // (docker/peripherals/openbao-init.sh); Transit keys themselves carry no custom metadata.
     let kekDev = false;
     if (transitEnabled) {
-      const keyRes = await fetch(
-        `${addr.replace(/\/$/, "")}/v1/transit/keys/reqaml-kek`,
-        { headers: { "X-Vault-Token": token } },
-      );
-      if (keyRes.ok) {
-        const body = (await keyRes.json()) as {
-          data?: { custom_metadata?: Record<string, string> };
-        };
-        kekDev = body.data?.custom_metadata?.reqaml_dev === "true";
-      }
+      const mount = (await mountsRes.json()) as {
+        description?: string;
+        data?: { description?: string };
+      };
+      const description = mount.description ?? mount.data?.description ?? "";
+      kekDev = description.includes(DEV_TRANSIT_MARKER);
     }
 
     if (isProduction(config) && kekDev) {
@@ -79,7 +79,7 @@ export async function checkOpenBao(
         ok: false,
         devMarked: true,
         transitEnabled,
-        detail: "Dev-marked Transit KEK refused in production",
+        detail: "Dev-marked Transit mount refused in production (FIX-DENY-DEV-KEK-IN-PROD)",
       };
     }
 
