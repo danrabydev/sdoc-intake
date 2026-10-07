@@ -87,14 +87,14 @@ CAPABILITIES = [
         "CAP-SVC-AUDIT-APPEND",
         "Append-only business audit_events table",
         "Migration 006 + writeBusinessAudit; auth events remain in auth_audit_events.",
-        ["CAP-AUDIT", "ARCH-OTEL", "ARCH-CRED-AUDIT"],
+        [],
         [f"{REPO}/apps/reqalm/src/db/migrations/006_business_audit.sql", f"{REPO}/apps/reqalm/src/audit/business-audit.ts"],
     ),
     (
         "CAP-SVC-STRUCTURED-LOG",
         "Structured operation logging with redaction",
         "logOperation + redactForLog; secrets/tokens/password keys redacted in log payloads.",
-        ["ARCH-OTEL"],
+        [],
         [f"{REPO}/apps/reqalm/src/core/logging/structured-log.ts", f"{REPO}/apps/reqalm/src/core/logging/redact.ts"],
     ),
     (
@@ -115,7 +115,7 @@ CAPABILITIES = [
         "CAP-SVC-PROJECT-READ",
         "Reference vertical GET /api/v1/projects/:projectId",
         "Project read gated on requirement:read, project-scoped 404 without grant, enveloped response, audited.",
-        ["ARCH-API-RBAC", "ARCH-CP-SCOPE"],
+        ["ARCH-API-RBAC"],
         [f"{REPO}/apps/reqalm/src/modules/projects/routes.ts", f"{REPO}/apps/reqalm/src/modules/service-foundation.test.ts"],
     ),
 ]
@@ -219,7 +219,10 @@ def main() -> None:
             notes=(
                 "One PR = one release. Service layer foundation: ServiceResult + HTTP envelope, RequestContext, "
                 "runOperation with RBAC/project scope, append-only audit_events, structured logging/redaction, "
-                "fail-closed route registry, modules bootstrap, GET project reference vertical. Planned until merge."
+                "fail-closed route registry, modules bootstrap, GET project reference vertical. Planned until merge. "
+                "RBAC allow/deny for business routes (grants.manage) now lands in audit_events, no longer in auth_audit_events as CAP-AUTH-AUDIT describes. "
+                "Not claimed: ARCH-OTEL (no OTLP export or tracing; audit_events only covers its AU-9 append-only part), ARCH-CRED-AUDIT (auth events stay in auth_audit_events), "
+                "CAP-AUDIT (no audit read API), ARCH-CP-SCOPE (scope is grant-based; no client_id predicate or RLS)."
             ),
         ),
     )

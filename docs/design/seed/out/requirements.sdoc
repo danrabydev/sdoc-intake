@@ -2590,7 +2590,6 @@ edge: ← refines from A03
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← uses from FIX-DENY-CROSS-TENANT-CONNECTOR
-edge: ← satisfies from CAP-SVC-PROJECT-READ
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
@@ -7224,7 +7223,6 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from CAP-AUTH-AUDIT
-edge: ← satisfies from CAP-SVC-AUDIT-APPEND
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8318,8 +8316,6 @@ edge: ← refines from ARCH-CRED-AUDIT
 edge: ← uses from ARCH-KEY-LIFECYCLE
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
-edge: ← satisfies from CAP-SVC-AUDIT-APPEND
-edge: ← satisfies from CAP-SVC-STRUCTURED-LOG
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -8674,15 +8670,6 @@ delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, e
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
-- TYPE: Parent
-  VALUE: CAP-AUDIT
-  ROLE: Satisfies
-- TYPE: Parent
-  VALUE: ARCH-OTEL
-  ROLE: Satisfies
-- TYPE: Parent
-  VALUE: ARCH-CRED-AUDIT
-  ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
@@ -8707,9 +8694,6 @@ delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, e
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
-- TYPE: Parent
-  VALUE: ARCH-OTEL
-  ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
@@ -8790,9 +8774,6 @@ RELATIONS:
   VALUE: SEC-API
 - TYPE: Parent
   VALUE: ARCH-API-RBAC
-  ROLE: Satisfies
-- TYPE: Parent
-  VALUE: ARCH-CP-SCOPE
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
@@ -9446,7 +9427,6 @@ edge: ← uses from ARCH-AUTH-AS
 edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← refines from ARCH-AUTH-AGENT-ATTRIBUTION
 edge: ← satisfies from CAP-AUTH-AUDIT
-edge: ← satisfies from CAP-SVC-AUDIT-APPEND
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)

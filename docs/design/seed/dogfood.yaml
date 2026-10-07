@@ -13081,18 +13081,6 @@ edges:
 - from: CAP-SVC-OPERATION-EXECUTOR
   to: CAP-RBAC
   kind: satisfies
-- from: CAP-SVC-AUDIT-APPEND
-  to: CAP-AUDIT
-  kind: satisfies
-- from: CAP-SVC-AUDIT-APPEND
-  to: ARCH-OTEL
-  kind: satisfies
-- from: CAP-SVC-AUDIT-APPEND
-  to: ARCH-CRED-AUDIT
-  kind: satisfies
-- from: CAP-SVC-STRUCTURED-LOG
-  to: ARCH-OTEL
-  kind: satisfies
 - from: CAP-SVC-ROUTE-REGISTRY
   to: ARCH-API-RBAC
   kind: satisfies
@@ -13101,9 +13089,6 @@ edges:
   kind: satisfies
 - from: CAP-SVC-PROJECT-READ
   to: ARCH-API-RBAC
-  kind: satisfies
-- from: CAP-SVC-PROJECT-READ
-  to: ARCH-CP-SCOPE
   kind: satisfies
 contracts:
 - id: contract-design-2026-10
@@ -13561,7 +13546,7 @@ releases:
   - CAP-SVC-MODULE-BOOTSTRAP
   - CAP-SVC-PROJECT-READ
   cyber_gate: false
-  notes: 'One PR = one release. Service layer foundation: ServiceResult + HTTP envelope, RequestContext, runOperation with RBAC/project scope, append-only audit_events, structured logging/redaction, fail-closed route registry, modules bootstrap, GET project reference vertical. Planned until merge.'
+  notes: 'One PR = one release. Service layer foundation: ServiceResult + HTTP envelope, RequestContext, runOperation with RBAC/project scope, append-only audit_events, structured logging/redaction, fail-closed route registry, modules bootstrap, GET project reference vertical. Planned until merge. RBAC allow/deny for business routes (grants.manage) now lands in audit_events, no longer in auth_audit_events as CAP-AUTH-AUDIT describes. Not claimed: ARCH-OTEL (no OTLP export or tracing; audit_events only covers its AU-9 append-only part), ARCH-CRED-AUDIT (auth events stay in auth_audit_events), CAP-AUDIT (no audit read API), ARCH-CP-SCOPE (scope is grant-based; no client_id predicate or RLS).'
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm
