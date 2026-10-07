@@ -72,7 +72,8 @@ function renderShell() {
 async function loadMe() {
   const res = await api("/api/v1/me");
   if (!res) return;
-  const me = await res.json();
+  const body = await res.json();
+  const me = body.data ?? body;
   const section = document.getElementById("me");
   section.replaceChildren(
     el("h2", { text: "Signed in" }),

@@ -285,10 +285,11 @@ async function main() {
     "token.client_credentials:deny", "token.refresh_reuse:deny", "token.revoke:success", "mfa.verify:success", "mfa.verify:failure"]) {
     if (!auditCounts.includes(`${needed}=`)) fail(`audit missing ${needed}`, auditCounts);
   }
+  // Business-route RBAC decisions are audited in audit_events (migration 006), not auth_audit_events.
   const agentAudit = await psql(
-    `SELECT count(*) FROM auth_audit_events WHERE event_type = 'rbac.deny'
-       AND detail->>'agent_name' = 'cursor-cloud' AND detail->>'token_role' = 'Author'
-       AND identity_id = 'agent-cursor-cloud'`,
+    `SELECT count(*) FROM audit_events WHERE operation = 'grants.manage' AND outcome = 'deny'
+       AND agent_name = 'cursor-cloud' AND token_role = 'Author' AND identity_id = 'agent-cursor-cloud'
+       AND occurred_at > now() - interval '15 minutes'`,
   );
   if (agentAudit === "0") fail("agent mutation attempt not audited with agent attribution");
 

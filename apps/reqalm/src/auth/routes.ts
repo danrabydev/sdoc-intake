@@ -510,15 +510,19 @@ export async function registerAuthRoutes(
     return reply.send({ ok: true });
   });
 
-  app.get("/api/v1/auth/upstream/connectors", async (req, reply) => {
-    const { resolveRequestAuth } = await import("./request-auth.js");
-    const auth = await resolveRequestAuth(req, pool, config, keyProvider);
-    if (!auth) {
-      return reply.code(401).send({ error: "unauthorized" });
-    }
-    const r = await pool.query(
-      `SELECT id, client_id, protocol, issuer, enabled FROM upstream_connectors ORDER BY id`,
-    );
-    return reply.send({ connectors: r.rows });
-  });
+  app.get(
+    "/api/v1/auth/upstream/connectors",
+    { config: { reqalmSecurity: { kind: "authenticated" } } },
+    async (req, reply) => {
+      const { resolveRequestAuth } = await import("./request-auth.js");
+      const auth = await resolveRequestAuth(req, pool, config, keyProvider);
+      if (!auth) {
+        return reply.code(401).send({ error: "unauthorized" });
+      }
+      const r = await pool.query(
+        `SELECT id, client_id, protocol, issuer, enabled FROM upstream_connectors ORDER BY id`,
+      );
+      return reply.send({ connectors: r.rows });
+    },
+  );
 }

@@ -962,7 +962,79 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned for rename PR; approve as solution once merged and verified.
+  notes: 'Delivered in PR #16; solution approval (ARCH-CAP-APPROVE) pending Dan at merge review.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-svc-result-envelope
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-RESULT-ENVELOPE
+  status: unapproved
+  by:
+  at:
+  notes: Planned for service-foundation PR; approve as solution once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-svc-request-context
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-REQUEST-CONTEXT
+  status: unapproved
+  by:
+  at:
+  notes: Planned for service-foundation PR; approve as solution once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-svc-operation-executor
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-OPERATION-EXECUTOR
+  status: unapproved
+  by:
+  at:
+  notes: Planned for service-foundation PR; approve as solution once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-svc-audit-append
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-AUDIT-APPEND
+  status: unapproved
+  by:
+  at:
+  notes: Planned for service-foundation PR; approve as solution once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-svc-structured-log
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-STRUCTURED-LOG
+  status: unapproved
+  by:
+  at:
+  notes: Planned for service-foundation PR; approve as solution once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-svc-route-registry
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-ROUTE-REGISTRY
+  status: unapproved
+  by:
+  at:
+  notes: Planned for service-foundation PR; approve as solution once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-svc-module-bootstrap
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-MODULE-BOOTSTRAP
+  status: unapproved
+  by:
+  at:
+  notes: Planned for service-foundation PR; approve as solution once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-svc-project-read
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-PROJECT-READ
+  status: unapproved
+  by:
+  at:
+  notes: Planned for service-foundation PR; approve as solution once merged and verified.
   approved_version_uid:
   approved_statement_hash:
 gate_signoffs:
@@ -2706,6 +2778,46 @@ requirement_lines:
   parent: SEC-BUILD
   kind: capability
   title: 'Product name correction: ReqALM (ALM, not AML)'
+- base_uid: CAP-SVC-RESULT-ENVELOPE
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: ServiceResult + HTTP Problem Details envelope
+- base_uid: CAP-SVC-REQUEST-CONTEXT
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: Per-request RequestContext for services
+- base_uid: CAP-SVC-OPERATION-EXECUTOR
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: Operation executor (authorize → execute → audit → log)
+- base_uid: CAP-SVC-AUDIT-APPEND
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: Append-only business audit_events table
+- base_uid: CAP-SVC-STRUCTURED-LOG
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: Structured operation logging with redaction
+- base_uid: CAP-SVC-ROUTE-REGISTRY
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: Fail-closed API route security registration
+- base_uid: CAP-SVC-MODULE-BOOTSTRAP
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: Feature module convention + registration
+- base_uid: CAP-SVC-PROJECT-READ
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: Reference vertical GET /api/v1/projects/:projectId
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -6991,7 +7103,7 @@ requirement_versions:
 - uid: CAP-RENAME-REQALM
   base_uid: CAP-RENAME-REQALM
   version_n: 0
-  status: draft
+  status: active
   statement: 'Repository, runtime identifiers, OAuth client IDs, env vars, and dogfood seed use the product name ReqALM (requirements + application lifecycle management). Persisted identifiers keep the legacy ReqAML spelling where renaming would orphan existing data: Compose volume names (reqaml-pg, reqaml-openbao, reqaml-secrets), OpenBao Transit key names (reqaml-kek, reqaml-dek-*) and an existing Postgres role/database. Existing dev stacks upgrade in place: migration 005 renames OAuth client ids, the project id and seeded grant ids, and `pnpm devenv:init` migrates .reqaml/ and REQAML_* names keeping secret values. Active requirement statements keep historical ReqAML prose until a content successor.'
   priority: 10
   iteration: iter-r1
@@ -6999,6 +7111,103 @@ requirement_versions:
     catalog_ref: CM-2
     verification_note: 'Verified 2026-10-07: offline `pnpm test` 39/39 + 209/209, `pnpm typecheck`, `pnpm build` pass; seed yaml_to_strictdoc --validate pass. Local Docker in-place upgrade of a PR #15 dev stack (same volumes): `pnpm devenv:init` moved .reqaml/ + REQAML_* to .reqalm/ + REQALM_* with byte-identical secret values; migration 005 renamed OAuth client ids, the project id and seeded grant ids; /ready green, 0 restarts; the existing dev password and sam-security MFA secret still sign in; UI says ReqALM; `pnpm devenv:smoke` pass.'
   statement_hash: sha256:9514cf5f18f514c6ebee4dc479e23b5b0d0a392e4dca415ef24445adc12618a5
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-SVC-RESULT-ENVELOPE
+  base_uid: CAP-SVC-RESULT-ENVELOPE
+  version_n: 0
+  status: draft
+  statement: Typed ServiceResult (ok/err codes) and mapServiceResultToHttp for data and errors with request_id.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until service-foundation PR merges.
+  statement_hash: sha256:226b101ddfd8e865f65cb3bd5ad562ba0a203dd497ac9d03d2d47ab8ac6e5640
+  grooming_state: detailed
+- uid: CAP-SVC-REQUEST-CONTEXT
+  base_uid: CAP-SVC-REQUEST-CONTEXT
+  version_n: 0
+  status: draft
+  statement: buildRequestContext supplies identity, grants, roles, agent attribution, logger, pool, and request id.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until service-foundation PR merges.
+  statement_hash: sha256:768fc1a6cb5fe722791590ceefa65c35d22b34895d25804b955b4232114180c8
+  grooming_state: detailed
+- uid: CAP-SVC-OPERATION-EXECUTOR
+  base_uid: CAP-SVC-OPERATION-EXECUTOR
+  version_n: 0
+  status: draft
+  statement: runOperation enforces RBAC + project scope, writes audit_events, structured logs, returns ServiceResult.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until service-foundation PR merges.
+  statement_hash: sha256:4db7c1cb1e0dadd01c4428291c4c8746f6baa8f86364b385d58f0d098fb9982b
+  grooming_state: detailed
+- uid: CAP-SVC-AUDIT-APPEND
+  base_uid: CAP-SVC-AUDIT-APPEND
+  version_n: 0
+  status: draft
+  statement: Migration 006 + writeBusinessAudit; auth events remain in auth_audit_events.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until service-foundation PR merges.
+  statement_hash: sha256:39e5b2a3ad48fea886782e785db28608dd9abc4099c62eb6b7c2013799fd11bd
+  grooming_state: detailed
+- uid: CAP-SVC-STRUCTURED-LOG
+  base_uid: CAP-SVC-STRUCTURED-LOG
+  version_n: 0
+  status: draft
+  statement: logOperation + redactForLog; secrets/tokens/password keys redacted in log payloads.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until service-foundation PR merges.
+  statement_hash: sha256:2fc1ca6a12b8846335a0dc84fdbc4fe356d6b45f0f1710b000ae6869b80a1e37
+  grooming_state: detailed
+- uid: CAP-SVC-ROUTE-REGISTRY
+  base_uid: CAP-SVC-ROUTE-REGISTRY
+  version_n: 0
+  status: draft
+  statement: Every /api /oauth /mcp /health /ready route declares public, authenticated, or permission; test enforces.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until service-foundation PR merges.
+  statement_hash: sha256:0e246e9c7521ba6948753afdf22daef61a78deea25a29ac580de37a68ed27066
+  grooming_state: detailed
+- uid: CAP-SVC-MODULE-BOOTSTRAP
+  base_uid: CAP-SVC-MODULE-BOOTSTRAP
+  version_n: 0
+  status: draft
+  statement: src/modules/<feature>/ with service, routes, tests; register.ts entrypoint and README.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until service-foundation PR merges.
+  statement_hash: sha256:7ada90fc9c630e0d836d2eefe950899572628ca34ba4b95a60b86b44b940897e
+  grooming_state: detailed
+- uid: CAP-SVC-PROJECT-READ
+  base_uid: CAP-SVC-PROJECT-READ
+  version_n: 0
+  status: draft
+  statement: Project read gated on requirement:read, project-scoped 404 without grant, enveloped response, audited.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until service-foundation PR merges.
+  statement_hash: sha256:1147ac3566673f7eafd71b0f1c2f65cb02e8892f4367327873943d6969af63bc
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -7319,6 +7528,48 @@ capability_artifacts:
 - requirement_version_uid: CAP-RENAME-REQALM
   kind: other
   uri: ../../../README.md
+- requirement_version_uid: CAP-SVC-RESULT-ENVELOPE
+  kind: other
+  uri: ../../../apps/reqalm/src/core/service-result.ts
+- requirement_version_uid: CAP-SVC-RESULT-ENVELOPE
+  kind: other
+  uri: ../../../apps/reqalm/src/core/http-envelope.ts
+- requirement_version_uid: CAP-SVC-REQUEST-CONTEXT
+  kind: other
+  uri: ../../../apps/reqalm/src/core/request-context.ts
+- requirement_version_uid: CAP-SVC-OPERATION-EXECUTOR
+  kind: other
+  uri: ../../../apps/reqalm/src/core/operation.ts
+- requirement_version_uid: CAP-SVC-AUDIT-APPEND
+  kind: other
+  uri: ../../../apps/reqalm/src/db/migrations/006_business_audit.sql
+- requirement_version_uid: CAP-SVC-AUDIT-APPEND
+  kind: other
+  uri: ../../../apps/reqalm/src/audit/business-audit.ts
+- requirement_version_uid: CAP-SVC-STRUCTURED-LOG
+  kind: other
+  uri: ../../../apps/reqalm/src/core/logging/structured-log.ts
+- requirement_version_uid: CAP-SVC-STRUCTURED-LOG
+  kind: other
+  uri: ../../../apps/reqalm/src/core/logging/redact.ts
+- requirement_version_uid: CAP-SVC-ROUTE-REGISTRY
+  kind: other
+  uri: ../../../apps/reqalm/src/http/route-security.ts
+- requirement_version_uid: CAP-SVC-ROUTE-REGISTRY
+  kind: other
+  uri: ../../../apps/reqalm/src/http/route-security.test.ts
+- requirement_version_uid: CAP-SVC-MODULE-BOOTSTRAP
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/README.md
+- requirement_version_uid: CAP-SVC-MODULE-BOOTSTRAP
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/register.ts
+- requirement_version_uid: CAP-SVC-PROJECT-READ
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/projects/routes.ts
+- requirement_version_uid: CAP-SVC-PROJECT-READ
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/service-foundation.test.ts
 edges:
 - from: CAP-SSO
   to: A01
@@ -12812,6 +13063,33 @@ edges:
 - from: CAP-RENAME-REQALM
   to: ARCH-BUILD-FOUNDATION
   kind: satisfies
+- from: CAP-SVC-RESULT-ENVELOPE
+  to: ARCH-API
+  kind: satisfies
+- from: CAP-SVC-RESULT-ENVELOPE
+  to: ARCH-API-LAYERS
+  kind: satisfies
+- from: CAP-SVC-REQUEST-CONTEXT
+  to: ARCH-API-LAYERS
+  kind: satisfies
+- from: CAP-SVC-REQUEST-CONTEXT
+  to: ARCH-API-RBAC
+  kind: satisfies
+- from: CAP-SVC-OPERATION-EXECUTOR
+  to: ARCH-API-RBAC
+  kind: satisfies
+- from: CAP-SVC-OPERATION-EXECUTOR
+  to: CAP-RBAC
+  kind: satisfies
+- from: CAP-SVC-ROUTE-REGISTRY
+  to: ARCH-API-RBAC
+  kind: satisfies
+- from: CAP-SVC-MODULE-BOOTSTRAP
+  to: ARCH-API-LAYERS
+  kind: satisfies
+- from: CAP-SVC-PROJECT-READ
+  to: ARCH-API-RBAC
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -13246,12 +13524,29 @@ releases:
   project_id: reqalm
   name: R1 — product rename ReqALM
   planned_on: '2026-10-07'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-07'
+  status: shipped
   delivers:
   - CAP-RENAME-REQALM
   cyber_gate: false
-  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/16 (planned until merge). Verified 2026-10-07: offline `pnpm test` 39/39 + 209/209, `pnpm typecheck`, `pnpm build` pass; seed yaml_to_strictdoc --validate pass. Local Docker in-place upgrade of a PR #15 dev stack (same volumes): `pnpm devenv:init` moved .reqaml/ + REQAML_* to .reqalm/ + REQALM_* with byte-identical secret values; migration 005 renamed OAuth client ids, the project id and seeded grant ids; /ready green, 0 restarts; the existing dev password and sam-security MFA secret still sign in; UI says ReqALM; `pnpm devenv:smoke` pass.'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/16 merged to main as 2982f0b8fb04e8766281409602ceee65041771ac on 2026-10-07. Verified: in-process tests + typecheck + build; local Docker in-place upgrade of PR #15 dev stack (see CAP-RENAME-REQALM verification_note).'
+- id: rel-r1-service-foundation
+  project_id: reqalm
+  name: R1 — API service foundation (context, RBAC ops, audit, envelope)
+  planned_on: '2026-10-07'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-SVC-RESULT-ENVELOPE
+  - CAP-SVC-REQUEST-CONTEXT
+  - CAP-SVC-OPERATION-EXECUTOR
+  - CAP-SVC-AUDIT-APPEND
+  - CAP-SVC-STRUCTURED-LOG
+  - CAP-SVC-ROUTE-REGISTRY
+  - CAP-SVC-MODULE-BOOTSTRAP
+  - CAP-SVC-PROJECT-READ
+  cyber_gate: false
+  notes: 'One PR = one release. Service layer foundation: ServiceResult + HTTP envelope, RequestContext, runOperation with RBAC/project scope, append-only audit_events, structured logging/redaction, fail-closed route registry, modules bootstrap, GET project reference vertical. Planned until merge. RBAC allow/deny for business routes (grants.manage) now lands in audit_events, no longer in auth_audit_events as CAP-AUTH-AUDIT describes. Not claimed: ARCH-OTEL (no OTLP export or tracing; audit_events only covers its AU-9 append-only part), ARCH-CRED-AUDIT (auth events stay in auth_audit_events), CAP-AUDIT (no audit read API), ARCH-CP-SCOPE (scope is grant-based; no client_id predicate or RLS).'
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm
