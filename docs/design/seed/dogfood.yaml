@@ -12996,7 +12996,7 @@ releases:
   - CAP-TEST-AUTH-ROUTES
   - CAP-TEST-PNPM-GATE
   cyber_gate: false
-  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/TBD (planned until merge). Verified (in-process only): 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass. Docker `pnpm devenv:smoke` remains maintainer integration check.'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/14 (planned until merge). Verified (in-process only): 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass. Docker `pnpm devenv:smoke` remains maintainer integration check.'
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqaml
