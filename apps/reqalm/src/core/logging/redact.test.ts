@@ -16,4 +16,25 @@ describe("redactForLog", () => {
     assert.equal((out.nested as Record<string, unknown>).ok, true);
     assert.equal(out.username, "casey");
   });
+
+  it("redacts every sensitive key family, including inside nested arrays", () => {
+    const keys = [
+      "password",
+      "client_secret",
+      "access_token",
+      "Authorization",
+      "refresh",
+      "csrf",
+      "mfa_code",
+      "credential",
+      "api_key",
+      "apiKey",
+    ];
+    for (const key of keys) {
+      const out = redactForLog({ [key]: "v", items: [{ [key]: "v" }] }) as Record<string, unknown>;
+      assert.equal(out[key], "[REDACTED]", key);
+      assert.equal((out.items as Array<Record<string, unknown>>)[0][key], "[REDACTED]", `items[].${key}`);
+    }
+  });
 });
+
