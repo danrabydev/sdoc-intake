@@ -13206,7 +13206,7 @@ releases:
   - CAP-TEST-AUTH-HYGIENE
   - CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
   cyber_gate: false
-  notes: 'One PR = one release (this PR, planned until merge). Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass; production build dist has no `dist/test/**` or `dist/key/memory-provider.js`. `pnpm devenv:smoke` compose-project pin change not re-run here (no Docker).'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/15 (planned until merge). Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqaml/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass; production build dist has no `dist/test/**` or `dist/key/memory-provider.js`. `pnpm devenv:smoke` compose-project pin change not re-run here (no Docker).'
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqaml
