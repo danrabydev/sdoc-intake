@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { after, before, describe, it } from "node:test";
 import { isIpThrottled } from "../credential/ip-throttle.js";
+import { getLockoutState } from "../credential/lockout.js";
 import {
   createTestApp,
   pkcePair,
@@ -229,11 +230,16 @@ describe("auth routes (in-process)", () => {
       totpIp,
     );
     assert.equal((replay.json() as { error?: string }).error, "invalid_mfa");
-    for (let i = 0; i < 2; i++) {
+    // The wrong code counts exactly once; password-only steps give their reservation back.
+    const afterWrong = await getLockoutState(ctx.pool, "sam-security");
+    assert.equal(afterWrong.failedAttempts, 1);
+    assert.equal(afterWrong.locked, false);
+    for (let i = 0; i < 3; i++) {
       const { handoff: hNew } = await authorizeHandoff(totpIp);
       const again = await localLogin("sam-security@dev.local", TEST_PASSWORD, hNew, {}, totpIp);
       assert.equal((again.json() as { status?: string }).status, "mfa_required");
     }
+    assert.equal((await getLockoutState(ctx.pool, "sam-security")).failedAttempts, 1);
   });
 
   it("CSRF required on cookie-authenticated mutations", async () => {
