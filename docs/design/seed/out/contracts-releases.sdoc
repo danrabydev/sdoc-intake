@@ -1,14 +1,76 @@
 [DOCUMENT]
 TITLE: ReqAML — Contracts & Releases
 UID: reqaml-contracts-releases
-COMMENT: >>>
-client: Raby-Family (raby-family)
-project: ReqAML (reqaml)
-Junction entities exported as REQUIREMENTs with COMMENT UID lists
-Contracts/releases are not tree parents in ReqAML
-<<<
+VERSION: 2026-10-07
+OPTIONS:
+  MARKUP: Text
+METADATA:
+  client: Raby-Family (raby-family)
+  project: ReqAML (reqaml)
+  schema_version: 2026-10-07
+  note: ReqAML dogfood export — StrictDoc interchange only
+  export_kind: contracts-releases
+  tree_note: junction entities; not tree parents
 
-[SECTION]
+[GRAMMAR]
+ELEMENTS:
+- TAG: TEXT
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: False
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+- TAG: REQUIREMENT
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: True
+  - TITLE: STATUS
+    TYPE: String
+    REQUIRED: False
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+  - TITLE: COMMENT
+    TYPE: String
+    REQUIRED: False
+  RELATIONS:
+  - TYPE: Parent
+  - TYPE: Parent
+    ROLE: Satisfies
+  - TYPE: Parent
+    ROLE: ConformsTo
+  - TYPE: Parent
+    ROLE: Uses
+  - TYPE: Parent
+    ROLE: Refines
+  - TYPE: Parent
+    ROLE: InScopeOf
+    REVERSE_ROLE: InScopeOf
+  - TYPE: Parent
+    ROLE: Delivers
+    REVERSE_ROLE: Delivers
+  - TYPE: Child
+  - TYPE: Child
+    ROLE: Satisfies
+  - TYPE: Child
+    ROLE: ConformsTo
+  - TYPE: Child
+    ROLE: Uses
+  - TYPE: Child
+    ROLE: Refines
+  - TYPE: Child
+    ROLE: InScopeOf
+  - TYPE: Child
+    ROLE: Delivers
+  - TYPE: File
+
+[[SECTION]]
 UID: SEC-CONTRACTS-EXPORT
 TITLE: Contracts
 
@@ -24,56 +86,832 @@ KIND: contract
 contract_id: contract-design-2026-10
 client_id: raby-family
 project_id: reqaml
-in_scope_of:
-  - A01
-  - A02
-  - A03
-  - A04
-  - A05
-  - A06
-  - A07
-  - A08
-  - ARCH-CP-HIER
-  - ARCH-VER
-  - ARCH-CONTRACT
-  - ARCH-RELEASE
-  - ARCH-UI
-  - ARCH-API
-  - ARCH-OTEL
-  - CTL-AC-3
-  - MC01
-  - MC02
+in_scope_of: A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, A12.1, B01, B04, B07, B08, C01, C03, C06, C08, D01, D02, D03, D04, D06, E01, E02, E04, F01, F04, F07, F10, G01, G03, G05, G08, H06, H09, I01, I03, ARCH-CP-HIER, ARCH-CP-SCOPE, ARCH-V...
+in_scope_of_count: 63
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CONTRACTS-EXPORT
+- TYPE: Parent
+  VALUE: A01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A05
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A07
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A08
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A09
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A10
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A11
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A12.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B07
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B08
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: C01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: C03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: C06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: C08
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: E01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: E02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: E04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: F01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: F04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: F07
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: F10
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: G01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: G03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: G05
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: G08
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: H06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: H09
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: I01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: I03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CP-HIER
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CP-SCOPE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-VER
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-VER-SUCC
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CONTRACT.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CONTRACT-DOC
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-RELEASE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-RELEASE-FREEZE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-API-LAYERS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SSO
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SCOPED-VIEW
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-TREE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-CONTRACT-UI
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-VERSION-UI
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MC01.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MC02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MC03
+  ROLE: InScopeOf
 
-[/SECTION]
+[REQUIREMENT]
+UID: CONTRACT-contract-security-package
+STATUS: Active
+TITLE: Contract Security package
+STATEMENT: >>>
+ReqAML contract overlay `Security package` (status=active, starts_on=2026-10-06). Links requirement versions via in_scope_of; not a tree parent.
+<<<
+COMMENT: >>>
+KIND: contract
+contract_id: contract-security-package
+client_id: raby-family
+project_id: reqaml
+in_scope_of: A01, A02, A03, A04, A06, A07, A08, A09, A10, A11, A12.1, ARCH-CP-SCOPE, ARCH-API-RBAC, ARCH-OTEL, ARCH-UI-GUARD, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, CAP-MCP-DESK, CAP-AUDIT, MC01.1, MC02, MC03, M01, M02, M03, D11, H06
+in_scope_of_count: 28
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CONTRACTS-EXPORT
+- TYPE: Parent
+  VALUE: A01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A07
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A08
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A09
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A10
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A11
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A12.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CP-SCOPE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SSO
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SCOPED-VIEW
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-MCP-DESK
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-AUDIT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MC01.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MC02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MC03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: M01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: M02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: M03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D11
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: H06
+  ROLE: InScopeOf
 
-[SECTION]
+[REQUIREMENT]
+UID: CONTRACT-contract-platform-baseline
+STATUS: Active
+TITLE: Contract Platform baseline
+STATEMENT: >>>
+ReqAML contract overlay `Platform baseline` (status=active, starts_on=2026-10-01). Links requirement versions via in_scope_of; not a tree parent.
+<<<
+COMMENT: >>>
+KIND: contract
+contract_id: contract-platform-baseline
+client_id: raby-family
+project_id: reqaml
+in_scope_of: A01, A03, B04, B07, B08, C01, C06, D01, D02, D03, D04, ARCH-CP-HIER, ARCH-VER, ARCH-API, ARCH-API-LAYERS, ARCH-UI, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, CAP-TREE, L02, M04, N01
+in_scope_of_count: 23
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CONTRACTS-EXPORT
+- TYPE: Parent
+  VALUE: A01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B07
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B08
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: C01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: C06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CP-HIER
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-VER
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-API-LAYERS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SSO
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SCOPED-VIEW
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-TREE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: L02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: M04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: N01
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CONTRACT-contract-legacy-intake-closed
+STATUS: Draft
+TITLE: Contract Legacy intake (closed)
+STATEMENT: >>>
+ReqAML contract overlay `Legacy intake (closed)` (status=closed, starts_on=2026-09-01). Links requirement versions via in_scope_of; not a tree parent.
+<<<
+COMMENT: >>>
+KIND: contract
+contract_id: contract-legacy-intake-closed
+client_id: raby-family
+project_id: reqaml
+in_scope_of: A01, ARCH-CONTRACT, FIX-SUCC-2HOP.1
+in_scope_of_count: 3
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CONTRACTS-EXPORT
+- TYPE: Parent
+  VALUE: A01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CONTRACT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-SUCC-2HOP.1
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CONTRACT-contract-fixture-doc-walk
+STATUS: Active
+TITLE: Contract Fixture doc-walk
+STATEMENT: >>>
+ReqAML contract overlay `Fixture doc-walk` (status=active, starts_on=2026-10-06). Links requirement versions via in_scope_of; not a tree parent.
+<<<
+COMMENT: >>>
+KIND: contract
+contract_id: contract-fixture-doc-walk
+client_id: raby-family
+project_id: reqaml
+in_scope_of: A01, A02
+in_scope_of_count: 2
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CONTRACTS-EXPORT
+- TYPE: Parent
+  VALUE: A01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A02
+  ROLE: InScopeOf
+
+[[/SECTION]]
+
+[[SECTION]]
 UID: SEC-RELEASES-EXPORT
 TITLE: Releases
 
 [REQUIREMENT]
 UID: RELEASE-rel-r0-sequences
-STATUS: Draft
+STATUS: Active
 TITLE: Release R0-sequences
 STATEMENT: >>>
-ReqAML release `R0-sequences` (status=planned, planned_on=2026-10-31). delivers is a snapshot of requirement version UIDs.
+ReqAML release `R0-sequences` (status=shipped, planned_on=2026-10-15). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r0-sequences
 project_id: reqaml
-shipped_on: None
-delivers:
-  - A01
-  - A02
-  - A03
-  - A04
-  - A05
-  - A06
-  - A07
-  - A08
-  - MC01
-  - MC02
+shipped_on: 2026-10-06
+raw_status: shipped
+delivers: A01, A02, A03, A04, A05, A06, A07, A08, ARCH-CP-HIER, ARCH-VER, ARCH-UI, ARCH-API, ARCH-OTEL, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, MC01.1, MC02
+delivers_count: 18
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: A02
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: A03
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: A04
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: A05
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: A06
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: A07
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: A08
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CP-HIER
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-VER
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-SSO
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-SCOPED-VIEW
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: MC01.1
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: MC02
+  ROLE: Delivers
 
-[/SECTION]
+[REQUIREMENT]
+UID: RELEASE-rel-r1-core-alm
+STATUS: Draft
+TITLE: Release R1-core-ALM
+STATEMENT: >>>
+ReqAML release `R1-core-ALM` (status=planned, planned_on=2026-11-30). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-core-alm
+project_id: reqaml
+shipped_on: None
+raw_status: planned
+delivers: A09, A10, A11, A12.1, B01, B04, B05, B07, B08, C01, C02, C03, C06, C08, D01, D02, D03, D04, D05, D06, D08, D09, E01, E02, E04, E06, F01, F04, F07, F10, G01, G03, G05, G08, H06, H09, I01, I03, J01, J02, J07, K01, K03, K05, L01, L02, L04, ...
+delivers_count: 96
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: A09
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: A10
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: A11
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: A12.1
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: B01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: B04
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: B05
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: B07
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: B08
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: C01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: C02
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: C03
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: C06
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: C08
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: D01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: D02
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: D03
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: D04
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: D05
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: D06
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: D08
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: D09
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: E01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: E02
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: E04
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: E06
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: F01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: F04
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: F07
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: F10
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: G01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: G03
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: G05
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: G08
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: H06
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: H09
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: I01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: I03
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: J01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: J02
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: J07
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: K01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: K03
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: K05
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: L01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: L02
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: L04
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: M01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: M04
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: N01
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: N03
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CONTRACT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CONTRACT.1
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-RELEASE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-VER-SUCC
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-TREE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-CONTRACT-UI
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-VERSION-UI
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-AUDIT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: MC03
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-REL-SNAP
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-SUCC-2HOP.2
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: D12
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-APPROVAL
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CHANGESET
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CYBER-GATE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-VERIFICATION
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-LOCKED
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: M05
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: M06
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-DENY-PRIORITY-UNAPPROVED
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-MINT-KIND
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-SUSPECT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-SUSPECT-QUEUE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-GATE-SIGNOFF
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-SUCCESSION-HASH
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-WORKFLOW
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-APPROVAL-LINE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-HOOK-EVAL
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-GATE-MODEL
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-APPROVER-SLOTS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-CP-SCOPE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-DENY-NOOP-CONTENT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-DENY-SECOND-ACTIVE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-PLANNING-BLOCKED-AFTER-CONTENT-N
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-GRANDFATHER-SEED-APPROVED
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-SUSPECT-ON-CONTENT-N
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-DENY-AUTHOR-PIN-APPLY
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-ALLOW-PIN-REQUEST
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-ALLOW-SECURITY-PIN-APPLY
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-DENY-APPROVE-WITHOUT-SLOT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-ALLOW-APPROVE-LINE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: FIX-DENY-SHIP-UNSIGNED
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: D13
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: UI-APPROVE-LINE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: UI-APPROVE-TREE
+  ROLE: Delivers
+
+[[/SECTION]]

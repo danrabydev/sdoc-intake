@@ -1,0 +1,3069 @@
+[DOCUMENT]
+TITLE: Application Security and Development STIG V6R4
+UID: TPL-ASD-V6R4
+VERSION: 6.4
+DATE: 2025-10-01
+CLASSIFICATION: Unclassified
+ROOT: False
+
+[GRAMMAR]
+ELEMENTS:
+- TAG: TEXT
+  FIELDS:
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: True
+- TAG: SECTION
+  PROPERTIES:
+    IS_COMPOSITE: True
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: False
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: True
+- TAG: REQUIREMENT
+  FIELDS:
+  - TITLE: UID
+    TYPE: String
+    REQUIRED: False
+  - TITLE: TITLE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: STATEMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: RATIONALE
+    TYPE: String
+    REQUIRED: False
+  - TITLE: COMMENT
+    TYPE: String
+    REQUIRED: False
+  - TITLE: SEVERITY
+    TYPE: SingleChoice(High, Medium, Low)
+    REQUIRED: False
+  - TITLE: STATUS
+    TYPE: SingleChoice(Draft, Active, Approved)
+    REQUIRED: False
+  RELATIONS:
+  - TYPE: Parent
+  - TYPE: Child
+  - TYPE: File
+  - TYPE: Parent
+    ROLE: Refines
+  - TYPE: Parent
+    ROLE: Satisfies
+  - TYPE: Parent
+    ROLE: Uses
+  - TYPE: Parent
+    ROLE: ConformsTo
+  - TYPE: Child
+    ROLE: ConformsTo
+
+[TEXT]
+STATEMENT: >>>
+Template for the DISA Application Security and Development STIG, Version 6, Release 4, released 1 October 2025.
+286 rules: 34 high, 230 medium, 22 low. Each requirement UID is the vulnerability id.
+Copy this file into the document root before use. Link a product requirement with Parent role ConformsTo and the V-id.
+This is the public rule list, not the check and fix procedures from the official benchmark.
+<<<
+
+[[SECTION]]
+UID: ASD-CAT-I
+TITLE: CAT I — High
+
+[REQUIREMENT]
+UID: V-222399
+TITLE: Messages protected with WS_Security must use time stamps with creation and expiration times.
+STATEMENT: >>>
+Messages protected with WS_Security must use time stamps with creation and expiration times.
+<<<
+COMMENT: SV-222399r960759_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222400
+TITLE: Validity periods must be verified on all application messages using WS-Security or SAML assertions.
+STATEMENT: >>>
+Validity periods must be verified on all application messages using WS-Security or SAML assertions.
+<<<
+COMMENT: SV-222400r960759_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222403
+TITLE: The application must use the NotOnOrAfter condition when using the SubjectConfirmation element in a SAML assertion.
+STATEMENT: >>>
+The application must use the NotOnOrAfter condition when using the SubjectConfirmation element in a SAML assertion.
+<<<
+COMMENT: SV-222403r960759_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222404
+TITLE: The application must use both the NotBefore and NotOnOrAfter elements or OneTimeUse element when using the Conditions element in a SAML assertion.
+STATEMENT: >>>
+The application must use both the NotBefore and NotOnOrAfter elements or OneTimeUse element when using the Conditions element in a SAML assertion.
+<<<
+COMMENT: SV-222404r960759_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222425
+TITLE: The application must enforce approved authorizations for logical access to information and system resources in accordance with applicable access control policies.
+STATEMENT: >>>
+The application must enforce approved authorizations for logical access to information and system resources in accordance with applicable access control policies.
+<<<
+COMMENT: SV-222425r1117167_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222430
+TITLE: The application must execute without excessive account permissions.
+STATEMENT: >>>
+The application must execute without excessive account permissions.
+<<<
+COMMENT: SV-222430r961359_rule
+SEVERITY: High
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: A05
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: A11
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222432
+TITLE: The application must enforce the limit of three consecutive invalid logon attempts by a user during a 15 minute time period.
+STATEMENT: >>>
+The application must enforce the limit of three consecutive invalid logon attempts by a user during a 15 minute time period.
+<<<
+COMMENT: SV-222432r960840_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222522
+TITLE: The application must uniquely identify and authenticate organizational users (or processes acting on behalf of organizational users).
+STATEMENT: >>>
+The application must uniquely identify and authenticate organizational users (or processes acting on behalf of organizational users).
+<<<
+COMMENT: SV-222522r1051115_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222536
+TITLE: The application must enforce a minimum 15-character password length.
+STATEMENT: >>>
+The application must enforce a minimum 15-character password length.
+<<<
+COMMENT: SV-222536r1015698_rule
+SEVERITY: High
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: A01
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222542
+TITLE: The application must only store cryptographic representations of passwords.
+STATEMENT: >>>
+The application must only store cryptographic representations of passwords.
+<<<
+COMMENT: SV-222542r1015704_rule
+SEVERITY: High
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: A06
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: A07
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222543
+TITLE: The application must transmit only cryptographically-protected passwords.
+STATEMENT: >>>
+The application must transmit only cryptographically-protected passwords.
+<<<
+COMMENT: SV-222543r961029_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222550
+TITLE: The application, when utilizing PKI-based authentication, must validate certificates by constructing a certification path (which includes status information) to an accepted trust anchor.
+STATEMENT: >>>
+The application, when utilizing PKI-based authentication, must validate certificates by constructing a certification path (which includes status information) to an accepted trust anchor.
+<<<
+COMMENT: SV-222550r961038_rule
+SEVERITY: High
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: A02
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: A03
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CAP-SCOPED-VIEW
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222551
+TITLE: The application, when using PKI-based authentication, must enforce authorized access to the corresponding private key.
+STATEMENT: >>>
+The application, when using PKI-based authentication, must enforce authorized access to the corresponding private key.
+<<<
+COMMENT: SV-222551r961041_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222554
+TITLE: The application must not display passwords/PINs as clear text.
+STATEMENT: >>>
+The application must not display passwords/PINs as clear text.
+<<<
+COMMENT: SV-222554r961047_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222555
+TITLE: The application must use mechanisms meeting the requirements of applicable federal laws, Executive Orders, directives, policies, regulations, standards, and guidance for authentication to a cryptographic module.
+STATEMENT: >>>
+The application must use mechanisms meeting the requirements of applicable federal laws, Executive Orders, directives, policies, regulations, standards, and guidance for authentication to a cryptographic module.
+<<<
+COMMENT: SV-222555r961050_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222577
+TITLE: The application must not expose session IDs.
+STATEMENT: >>>
+The application must not expose session IDs.
+<<<
+COMMENT: SV-222577r1043178_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222578
+TITLE: The application must destroy the session ID value and/or cookie on logoff or browser close.
+STATEMENT: >>>
+The application must destroy the session ID value and/or cookie on logoff or browser close.
+<<<
+COMMENT: SV-222578r1043179_rule
+SEVERITY: High
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: A02
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: A04
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: ARCH-OTEL
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222585
+TITLE: The application must fail to a secure state if system initialization fails, shutdown fails, or aborts fail.
+STATEMENT: >>>
+The application must fail to a secure state if system initialization fails, shutdown fails, or aborts fail.
+<<<
+COMMENT: SV-222585r961122_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222588
+TITLE: The application must implement approved cryptographic mechanisms to prevent unauthorized modification of organization-defined information at rest on organization-defined information system components.
+STATEMENT: >>>
+The application must implement approved cryptographic mechanisms to prevent unauthorized modification of organization-defined information at rest on organization-defined information system components.
+<<<
+COMMENT: SV-222588r1067803_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222589
+TITLE: The application must use appropriate cryptography in order to protect stored DOD information when required by the information owner or DOD policy.
+STATEMENT: >>>
+The application must use appropriate cryptography in order to protect stored DOD information when required by the information owner or DOD policy.
+<<<
+COMMENT: SV-222589r1067813_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222596
+TITLE: The application must protect the confidentiality and integrity of transmitted information.
+STATEMENT: >>>
+The application must protect the confidentiality and integrity of transmitted information.
+<<<
+COMMENT: SV-222596r961632_rule
+SEVERITY: High
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: MC01
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222601
+TITLE: The application must not store sensitive information in hidden fields.
+STATEMENT: >>>
+The application must not store sensitive information in hidden fields.
+<<<
+COMMENT: SV-222601r961638_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222602
+TITLE: The application must protect from Cross-Site Scripting (XSS) vulnerabilities.
+STATEMENT: >>>
+The application must protect from Cross-Site Scripting (XSS) vulnerabilities.
+<<<
+COMMENT: SV-222602r961158_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222604
+TITLE: The application must protect from command injection.
+STATEMENT: >>>
+The application must protect from command injection.
+<<<
+COMMENT: SV-222604r961158_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222607
+TITLE: The application must not be vulnerable to SQL Injection.
+STATEMENT: >>>
+The application must not be vulnerable to SQL Injection.
+<<<
+COMMENT: SV-222607r961158_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222608
+TITLE: The application must not be vulnerable to XML-oriented attacks.
+STATEMENT: >>>
+The application must not be vulnerable to XML-oriented attacks.
+<<<
+COMMENT: SV-222608r961158_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222609
+TITLE: The application must not be subject to input handling vulnerabilities.
+STATEMENT: >>>
+The application must not be subject to input handling vulnerabilities.
+<<<
+COMMENT: SV-222609r961656_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222612
+TITLE: The application must not be vulnerable to overflow attacks.
+STATEMENT: >>>
+The application must not be vulnerable to overflow attacks.
+<<<
+COMMENT: SV-222612r961665_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222620
+TITLE: Application web servers must be on a separate network segment from the application and database servers if it is a tiered application operating in the DoD DMZ.
+STATEMENT: >>>
+Application web servers must be on a separate network segment from the application and database servers if it is a tiered application operating in the DoD DMZ.
+<<<
+COMMENT: SV-222620r961863_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222642
+TITLE: The application must not contain embedded authentication data.
+STATEMENT: >>>
+The application must not contain embedded authentication data.
+<<<
+COMMENT: SV-222642r961863_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222643
+TITLE: The application must have the capability to mark sensitive/classified output when required.
+STATEMENT: >>>
+The application must have the capability to mark sensitive/classified output when required.
+<<<
+COMMENT: SV-222643r1136915_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222658
+TITLE: All products must be supported by the vendor or the development team.
+STATEMENT: >>>
+All products must be supported by the vendor or the development team.
+<<<
+COMMENT: SV-222658r961863_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222659
+TITLE: The application must be decommissioned when maintenance or support is no longer available.
+STATEMENT: >>>
+The application must be decommissioned when maintenance or support is no longer available.
+<<<
+COMMENT: SV-222659r961863_rule
+SEVERITY: High
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222662
+TITLE: Default passwords must be changed.
+STATEMENT: >>>
+Default passwords must be changed.
+<<<
+COMMENT: SV-222662r961863_rule
+SEVERITY: High
+STATUS: Draft
+
+[[/SECTION]]
+
+[[SECTION]]
+UID: ASD-CAT-II
+TITLE: CAT II — Medium
+
+[REQUIREMENT]
+UID: V-222387
+TITLE: The application must provide a capability to limit the number of logon sessions per user.
+STATEMENT: >>>
+The application must provide a capability to limit the number of logon sessions per user.
+<<<
+COMMENT: SV-222387r960735_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222388
+TITLE: The application must clear temporary storage and cookies when the session is terminated.
+STATEMENT: >>>
+The application must clear temporary storage and cookies when the session is terminated.
+<<<
+COMMENT: SV-222388r1043182_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222389
+TITLE: The application must automatically terminate the non-privileged user session and log off non-privileged users after a 15 minute idle time period has elapsed.
+STATEMENT: >>>
+The application must automatically terminate the non-privileged user session and log off non-privileged users after a 15 minute idle time period has elapsed.
+<<<
+COMMENT: SV-222389r1043182_rule
+SEVERITY: Medium
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: A04
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222390
+TITLE: The application must automatically terminate the admin user session and log off admin users after a 10 minute idle time period is exceeded.
+STATEMENT: >>>
+The application must automatically terminate the admin user session and log off admin users after a 10 minute idle time period is exceeded.
+<<<
+COMMENT: SV-222390r1043182_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222391
+TITLE: Applications requiring user access authentication must provide a logoff capability for user initiated communication session.
+STATEMENT: >>>
+Applications requiring user access authentication must provide a logoff capability for user initiated communication session.
+<<<
+COMMENT: SV-222391r961224_rule
+SEVERITY: Medium
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: A02
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222393
+TITLE: The application must associate organization-defined types of security attributes having organization-defined security attribute values with information in storage.
+STATEMENT: >>>
+The application must associate organization-defined types of security attributes having organization-defined security attribute values with information in storage.
+<<<
+COMMENT: SV-222393r1136904_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222394
+TITLE: The application must associate organization-defined types of security attributes having organization-defined security attribute values with information in process.
+STATEMENT: >>>
+The application must associate organization-defined types of security attributes having organization-defined security attribute values with information in process.
+<<<
+COMMENT: SV-222394r1136906_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222395
+TITLE: The application must associate organization-defined types of security attributes having organization-defined security attribute values with information in transmission.
+STATEMENT: >>>
+The application must associate organization-defined types of security attributes having organization-defined security attribute values with information in transmission.
+<<<
+COMMENT: SV-222395r1136908_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222396
+TITLE: The application must implement DoD-approved encryption to protect the confidentiality of remote access sessions.
+STATEMENT: >>>
+The application must implement DoD-approved encryption to protect the confidentiality of remote access sessions.
+<<<
+COMMENT: SV-222396r960759_rule
+SEVERITY: Medium
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: MC01.1
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222397
+TITLE: The application must implement cryptographic mechanisms to protect the integrity of remote access sessions.
+STATEMENT: >>>
+The application must implement cryptographic mechanisms to protect the integrity of remote access sessions.
+<<<
+COMMENT: SV-222397r960762_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222398
+TITLE: Applications with SOAP messages requiring integrity must include the following message elements:-Message ID-Service Request-Timestamp-SAML Assertion (optionally included in messages) and all elements of the message must be digitally signed.
+STATEMENT: >>>
+Applications with SOAP messages requiring integrity must include the following message elements:-Message ID-Service Request-Timestamp-SAML Assertion (optionally included in messages) and all elements of the message must be digitally signed.
+<<<
+COMMENT: SV-222398r960762_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222401
+TITLE: The application must ensure each unique asserting party provides unique assertion ID references for each SAML assertion.
+STATEMENT: >>>
+The application must ensure each unique asserting party provides unique assertion ID references for each SAML assertion.
+<<<
+COMMENT: SV-222401r960759_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222402
+TITLE: The application must ensure encrypted assertions, or equivalent confidentiality protections are used when assertion data is passed through an intermediary, and confidentiality of the assertion data is required when passing through the intermediary.
+STATEMENT: >>>
+The application must ensure encrypted assertions, or equivalent confidentiality protections are used when assertion data is passed through an intermediary, and confidentiality of the assertion data is required when passing through the intermediary.
+<<<
+COMMENT: SV-222402r960759_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222405
+TITLE: The application must ensure if a OneTimeUse element is used in an assertion, there is only one of the same used in the Conditions element portion of an assertion.
+STATEMENT: >>>
+The application must ensure if a OneTimeUse element is used in an assertion, there is only one of the same used in the Conditions element portion of an assertion.
+<<<
+COMMENT: SV-222405r960759_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222406
+TITLE: The application must ensure messages are encrypted when the SessionIndex is tied to privacy data.
+STATEMENT: >>>
+The application must ensure messages are encrypted when the SessionIndex is tied to privacy data.
+<<<
+COMMENT: SV-222406r960759_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222407
+TITLE: The application must provide automated mechanisms for supporting account management functions.
+STATEMENT: >>>
+The application must provide automated mechanisms for supporting account management functions.
+<<<
+COMMENT: SV-222407r1043176_rule
+SEVERITY: Medium
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: A06
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: A08
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: A09
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: ARCH-RELEASE-FREEZE
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222408
+TITLE: Shared/group account credentials must be terminated when members leave the group.
+STATEMENT: >>>
+Shared/group account credentials must be terminated when members leave the group.
+<<<
+COMMENT: SV-222408r1015683_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222409
+TITLE: The application must automatically remove or disable temporary user accounts 72 hours after account creation.
+STATEMENT: >>>
+The application must automatically remove or disable temporary user accounts 72 hours after account creation.
+<<<
+COMMENT: SV-222409r960771_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222412
+TITLE: Unnecessary application accounts must be disabled, or deleted.
+STATEMENT: >>>
+Unnecessary application accounts must be disabled, or deleted.
+<<<
+COMMENT: SV-222412r960774_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222413
+TITLE: The application must automatically audit account creation.
+STATEMENT: >>>
+The application must automatically audit account creation.
+<<<
+COMMENT: SV-222413r960777_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222414
+TITLE: The application must automatically audit account modification.
+STATEMENT: >>>
+The application must automatically audit account modification.
+<<<
+COMMENT: SV-222414r960780_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222415
+TITLE: The application must automatically audit account disabling actions.
+STATEMENT: >>>
+The application must automatically audit account disabling actions.
+<<<
+COMMENT: SV-222415r960783_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222416
+TITLE: The application must automatically audit account removal actions.
+STATEMENT: >>>
+The application must automatically audit account removal actions.
+<<<
+COMMENT: SV-222416r960786_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222421
+TITLE: The application must automatically audit account enabling actions.
+STATEMENT: >>>
+The application must automatically audit account enabling actions.
+<<<
+COMMENT: SV-222421r961290_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222423
+TITLE: Application data protection requirements must be identified and documented.
+STATEMENT: >>>
+Application data protection requirements must be identified and documented.
+<<<
+COMMENT: SV-222423r961302_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222424
+TITLE: The application must utilize organization-defined data mining detection techniques for organization-defined data storage objects to adequately detect data mining attempts.
+STATEMENT: >>>
+The application must utilize organization-defined data mining detection techniques for organization-defined data storage objects to adequately detect data mining attempts.
+<<<
+COMMENT: SV-222424r961305_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222426
+TITLE: The application must enforce organization-defined discretionary access control policies over defined subjects and objects.
+STATEMENT: >>>
+The application must enforce organization-defined discretionary access control policies over defined subjects and objects.
+<<<
+COMMENT: SV-222426r961317_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222427
+TITLE: The application must enforce approved authorizations for controlling the flow of information within the system based on organization-defined information flow control policies.
+STATEMENT: >>>
+The application must enforce approved authorizations for controlling the flow of information within the system based on organization-defined information flow control policies.
+<<<
+COMMENT: SV-222427r1117168_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222428
+TITLE: The application must enforce approved authorizations for controlling the flow of information between interconnected systems based on organization-defined information flow control policies.
+STATEMENT: >>>
+The application must enforce approved authorizations for controlling the flow of information between interconnected systems based on organization-defined information flow control policies.
+<<<
+COMMENT: SV-222428r1117169_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222429
+TITLE: The application must prevent non-privileged users from executing privileged functions to include disabling, circumventing, or altering implemented security safeguards/countermeasures.
+STATEMENT: >>>
+The application must prevent non-privileged users from executing privileged functions to include disabling, circumventing, or altering implemented security safeguards/countermeasures.
+<<<
+COMMENT: SV-222429r961353_rule
+SEVERITY: Medium
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: A03
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: A07
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: A12.1
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: ARCH-API-RBAC
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CAP-SCOPED-VIEW
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: FIX-DENY-MCP-ESCALATE
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: FIX-DENY-NO-GRANT
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: FIX-DENY-READER-GRANT
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: FIX-DENY-REVOKED
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: MC03
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222431
+TITLE: The application must audit the execution of privileged functions.
+STATEMENT: >>>
+The application must audit the execution of privileged functions.
+<<<
+COMMENT: SV-222431r961362_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222433
+TITLE: The application administrator must follow an approved process to unlock locked user accounts.
+STATEMENT: >>>
+The application administrator must follow an approved process to unlock locked user accounts.
+<<<
+COMMENT: SV-222433r961368_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222438
+TITLE: The application must protect against an individual (or process acting on behalf of an individual) falsely denying having performed organization-defined actions to be covered by non-repudiation.
+STATEMENT: >>>
+The application must protect against an individual (or process acting on behalf of an individual) falsely denying having performed organization-defined actions to be covered by non-repudiation.
+<<<
+COMMENT: SV-222438r960864_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222439
+TITLE: For applications providing audit record aggregation, the application must compile audit records from organization-defined information system components into a system-wide audit trail that is time-correlated with an organization-defined level of tolerance for the relationship between time stamps of individual records in the audit trail.
+STATEMENT: >>>
+For applications providing audit record aggregation, the application must compile audit records from organization-defined information system components into a system-wide audit trail that is time-correlated with an organization-defined level of tolerance for the relationship between time stamps of individual records in the audit trail.
+<<<
+COMMENT: SV-222439r960873_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222441
+TITLE: The application must provide audit record generation capability for the creation of session IDs.
+STATEMENT: >>>
+The application must provide audit record generation capability for the creation of session IDs.
+<<<
+COMMENT: SV-222441r960879_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222442
+TITLE: The application must provide audit record generation capability for the destruction of session IDs.
+STATEMENT: >>>
+The application must provide audit record generation capability for the destruction of session IDs.
+<<<
+COMMENT: SV-222442r960879_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222443
+TITLE: The application must provide audit record generation capability for the renewal of session IDs.
+STATEMENT: >>>
+The application must provide audit record generation capability for the renewal of session IDs.
+<<<
+COMMENT: SV-222443r960879_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222444
+TITLE: The application must not write sensitive data into the application logs.
+STATEMENT: >>>
+The application must not write sensitive data into the application logs.
+<<<
+COMMENT: SV-222444r960879_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222445
+TITLE: The application must provide audit record generation capability for session timeouts.
+STATEMENT: >>>
+The application must provide audit record generation capability for session timeouts.
+<<<
+COMMENT: SV-222445r960879_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222446
+TITLE: The application must record a time stamp indicating when the event occurred.
+STATEMENT: >>>
+The application must record a time stamp indicating when the event occurred.
+<<<
+COMMENT: SV-222446r960879_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222447
+TITLE: The application must provide audit record generation capability for HTTP headers including User-Agent, Referer, GET, and POST.
+STATEMENT: >>>
+The application must provide audit record generation capability for HTTP headers including User-Agent, Referer, GET, and POST.
+<<<
+COMMENT: SV-222447r960879_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222448
+TITLE: The application must provide audit record generation capability for connecting system IP addresses.
+STATEMENT: >>>
+The application must provide audit record generation capability for connecting system IP addresses.
+<<<
+COMMENT: SV-222448r960879_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222449
+TITLE: The application must record the username or user ID of the user associated with the event.
+STATEMENT: >>>
+The application must record the username or user ID of the user associated with the event.
+<<<
+COMMENT: SV-222449r960879_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222450
+TITLE: The application must generate audit records when successful/unsuccessful attempts to grant privileges occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to grant privileges occur.
+<<<
+COMMENT: SV-222450r960885_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222451
+TITLE: The application must generate audit records when successful/unsuccessful attempts to access security objects occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to access security objects occur.
+<<<
+COMMENT: SV-222451r961791_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222452
+TITLE: The application must generate audit records when successful/unsuccessful attempts to access security levels occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to access security levels occur.
+<<<
+COMMENT: SV-222452r961794_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222453
+TITLE: The application must generate audit records when successful/unsuccessful attempts to access categories of information (e.g., classification levels) occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to access categories of information (e.g., classification levels) occur.
+<<<
+COMMENT: SV-222453r961797_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222454
+TITLE: The application must generate audit records when successful/unsuccessful attempts to modify privileges occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to modify privileges occur.
+<<<
+COMMENT: SV-222454r961800_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222455
+TITLE: The application must generate audit records when successful/unsuccessful attempts to modify security objects occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to modify security objects occur.
+<<<
+COMMENT: SV-222455r961803_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222456
+TITLE: The application must generate audit records when successful/unsuccessful attempts to modify security levels occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to modify security levels occur.
+<<<
+COMMENT: SV-222456r961806_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222457
+TITLE: The application must generate audit records when successful/unsuccessful attempts to modify categories of information (e.g., classification levels) occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to modify categories of information (e.g., classification levels) occur.
+<<<
+COMMENT: SV-222457r961809_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222458
+TITLE: The application must generate audit records when successful/unsuccessful attempts to delete privileges occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to delete privileges occur.
+<<<
+COMMENT: SV-222458r961812_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222459
+TITLE: The application must generate audit records when successful/unsuccessful attempts to delete security levels occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to delete security levels occur.
+<<<
+COMMENT: SV-222459r961815_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222460
+TITLE: The application must generate audit records when successful/unsuccessful attempts to delete application database security objects occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to delete application database security objects occur.
+<<<
+COMMENT: SV-222460r961818_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222461
+TITLE: The application must generate audit records when successful/unsuccessful attempts to delete categories of information (e.g., classification levels) occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful attempts to delete categories of information (e.g., classification levels) occur.
+<<<
+COMMENT: SV-222461r961821_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222462
+TITLE: The application must generate audit records when successful/unsuccessful logon attempts occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful logon attempts occur.
+<<<
+COMMENT: SV-222462r961824_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222463
+TITLE: The application must generate audit records for privileged activities or other system-level access.
+STATEMENT: >>>
+The application must generate audit records for privileged activities or other system-level access.
+<<<
+COMMENT: SV-222463r961827_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222464
+TITLE: The application must generate audit records showing starting and ending time for user access to the system.
+STATEMENT: >>>
+The application must generate audit records showing starting and ending time for user access to the system.
+<<<
+COMMENT: SV-222464r961830_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222465
+TITLE: The application must generate audit records when successful/unsuccessful accesses to objects occur.
+STATEMENT: >>>
+The application must generate audit records when successful/unsuccessful accesses to objects occur.
+<<<
+COMMENT: SV-222465r961836_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222466
+TITLE: The application must generate audit records for all direct access to the information system.
+STATEMENT: >>>
+The application must generate audit records for all direct access to the information system.
+<<<
+COMMENT: SV-222466r961839_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222467
+TITLE: The application must generate audit records for all account creations, modifications, disabling, and termination events.
+STATEMENT: >>>
+The application must generate audit records for all account creations, modifications, disabling, and termination events.
+<<<
+COMMENT: SV-222467r961842_rule
+SEVERITY: Medium
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: A07
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: A08
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: A09
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: A10
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222468
+TITLE: The application must initiate session auditing upon startup.
+STATEMENT: >>>
+The application must initiate session auditing upon startup.
+<<<
+COMMENT: SV-222468r960888_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222469
+TITLE: The application must log application shutdown events.
+STATEMENT: >>>
+The application must log application shutdown events.
+<<<
+COMMENT: SV-222469r960891_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222470
+TITLE: The application must log destination IP addresses.
+STATEMENT: >>>
+The application must log destination IP addresses.
+<<<
+COMMENT: SV-222470r960891_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222471
+TITLE: The application must log user actions involving access to data.
+STATEMENT: >>>
+The application must log user actions involving access to data.
+<<<
+COMMENT: SV-222471r960891_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222472
+TITLE: The application must log user actions involving changes to data.
+STATEMENT: >>>
+The application must log user actions involving changes to data.
+<<<
+COMMENT: SV-222472r960891_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222473
+TITLE: The application must produce audit records containing information to establish when (date and time) the events occurred.
+STATEMENT: >>>
+The application must produce audit records containing information to establish when (date and time) the events occurred.
+<<<
+COMMENT: SV-222473r960894_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222474
+TITLE: The application must produce audit records containing enough information to establish which component, feature or function of the application triggered the audit event.
+STATEMENT: >>>
+The application must produce audit records containing enough information to establish which component, feature or function of the application triggered the audit event.
+<<<
+COMMENT: SV-222474r960897_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222475
+TITLE: When using centralized logging; the application must include a unique identifier in order to distinguish itself from other application logs.
+STATEMENT: >>>
+When using centralized logging; the application must include a unique identifier in order to distinguish itself from other application logs.
+<<<
+COMMENT: SV-222475r960900_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222476
+TITLE: The application must produce audit records that contain information to establish the outcome of the events.
+STATEMENT: >>>
+The application must produce audit records that contain information to establish the outcome of the events.
+<<<
+COMMENT: SV-222476r960903_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222477
+TITLE: The application must generate audit records containing information that establishes the identity of any individual or process associated with the event.
+STATEMENT: >>>
+The application must generate audit records containing information that establishes the identity of any individual or process associated with the event.
+<<<
+COMMENT: SV-222477r960906_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222478
+TITLE: The application must generate audit records containing the full-text recording of privileged commands or the individual identities of group account users.
+STATEMENT: >>>
+The application must generate audit records containing the full-text recording of privileged commands or the individual identities of group account users.
+<<<
+COMMENT: SV-222478r960909_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222479
+TITLE: The application must implement transaction recovery logs when transaction based.
+STATEMENT: >>>
+The application must implement transaction recovery logs when transaction based.
+<<<
+COMMENT: SV-222479r960909_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222480
+TITLE: The application must provide centralized management and configuration of the content to be captured in audit records generated by all application components.
+STATEMENT: >>>
+The application must provide centralized management and configuration of the content to be captured in audit records generated by all application components.
+<<<
+COMMENT: SV-222480r985972_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222481
+TITLE: The application must off-load audit records onto a different system or media than the system being audited.
+STATEMENT: >>>
+The application must off-load audit records onto a different system or media than the system being audited.
+<<<
+COMMENT: SV-222481r961395_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222482
+TITLE: The application must be configured to write application logs to a centralized log repository.
+STATEMENT: >>>
+The application must be configured to write application logs to a centralized log repository.
+<<<
+COMMENT: SV-222482r961860_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222483
+TITLE: The application must provide an immediate warning to the SA and ISSO (at a minimum) when allocated audit record storage volume reaches 75% of repository maximum audit record storage capacity.
+STATEMENT: >>>
+The application must provide an immediate warning to the SA and ISSO (at a minimum) when allocated audit record storage volume reaches 75% of repository maximum audit record storage capacity.
+<<<
+COMMENT: SV-222483r961398_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222484
+TITLE: Applications categorized as having a moderate or high impact must provide an immediate real-time alert to the SA and ISSO (at a minimum) for all audit failure events.
+STATEMENT: >>>
+Applications categorized as having a moderate or high impact must provide an immediate real-time alert to the SA and ISSO (at a minimum) for all audit failure events.
+<<<
+COMMENT: SV-222484r961401_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222485
+TITLE: The application must alert the ISSO and SA (at a minimum) in the event of an audit processing failure.
+STATEMENT: >>>
+The application must alert the ISSO and SA (at a minimum) in the event of an audit processing failure.
+<<<
+COMMENT: SV-222485r960912_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222486
+TITLE: The application must shut down by default upon audit failure (unless availability is an overriding concern).
+STATEMENT: >>>
+The application must shut down by default upon audit failure (unless availability is an overriding concern).
+<<<
+COMMENT: SV-222486r1043188_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222487
+TITLE: The application must provide the capability to centrally review and analyze audit records from multiple components within the system.
+STATEMENT: >>>
+The application must provide the capability to centrally review and analyze audit records from multiple components within the system.
+<<<
+COMMENT: SV-222487r960918_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222488
+TITLE: The application must provide the capability to filter audit records for events of interest based upon organization-defined criteria.
+STATEMENT: >>>
+The application must provide the capability to filter audit records for events of interest based upon organization-defined criteria.
+<<<
+COMMENT: SV-222488r960924_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222489
+TITLE: The application must provide an audit reduction capability that supports on-demand reporting requirements.
+STATEMENT: >>>
+The application must provide an audit reduction capability that supports on-demand reporting requirements.
+<<<
+COMMENT: SV-222489r961056_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222490
+TITLE: The application must provide an audit reduction capability that supports on-demand audit review and analysis.
+STATEMENT: >>>
+The application must provide an audit reduction capability that supports on-demand audit review and analysis.
+<<<
+COMMENT: SV-222490r961413_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222491
+TITLE: The application must provide an audit reduction capability that supports after-the-fact investigations of security incidents.
+STATEMENT: >>>
+The application must provide an audit reduction capability that supports after-the-fact investigations of security incidents.
+<<<
+COMMENT: SV-222491r961416_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222492
+TITLE: The application must provide a report generation capability that supports on-demand audit review and analysis.
+STATEMENT: >>>
+The application must provide a report generation capability that supports on-demand audit review and analysis.
+<<<
+COMMENT: SV-222492r961419_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222493
+TITLE: The application must provide a report generation capability that supports on-demand reporting requirements.
+STATEMENT: >>>
+The application must provide a report generation capability that supports on-demand reporting requirements.
+<<<
+COMMENT: SV-222493r961422_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222494
+TITLE: The application must provide a report generation capability that supports after-the-fact investigations of security incidents.
+STATEMENT: >>>
+The application must provide a report generation capability that supports after-the-fact investigations of security incidents.
+<<<
+COMMENT: SV-222494r961425_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222495
+TITLE: The application must provide an audit reduction capability that does not alter original content or time ordering of audit records.
+STATEMENT: >>>
+The application must provide an audit reduction capability that does not alter original content or time ordering of audit records.
+<<<
+COMMENT: SV-222495r961428_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222496
+TITLE: The application must provide a report generation capability that does not alter original content or time ordering of audit records.
+STATEMENT: >>>
+The application must provide a report generation capability that does not alter original content or time ordering of audit records.
+<<<
+COMMENT: SV-222496r961431_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222497
+TITLE: The applications must use internal system clocks to generate time stamps for audit records.
+STATEMENT: >>>
+The applications must use internal system clocks to generate time stamps for audit records.
+<<<
+COMMENT: SV-222497r960927_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222498
+TITLE: The application must record time stamps for audit records that can be mapped to Coordinated Universal Time (UTC) or Greenwich Mean Time (GMT).
+STATEMENT: >>>
+The application must record time stamps for audit records that can be mapped to Coordinated Universal Time (UTC) or Greenwich Mean Time (GMT).
+<<<
+COMMENT: SV-222498r961443_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222499
+TITLE: The application must record time stamps for audit records that meet a granularity of one second for a minimum degree of precision.
+STATEMENT: >>>
+The application must record time stamps for audit records that meet a granularity of one second for a minimum degree of precision.
+<<<
+COMMENT: SV-222499r961446_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222500
+TITLE: The application must protect audit information from any type of unauthorized read access.
+STATEMENT: >>>
+The application must protect audit information from any type of unauthorized read access.
+<<<
+COMMENT: SV-222500r960930_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222501
+TITLE: The application must protect audit information from unauthorized modification.
+STATEMENT: >>>
+The application must protect audit information from unauthorized modification.
+<<<
+COMMENT: SV-222501r960933_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222502
+TITLE: The application must protect audit information from unauthorized deletion.
+STATEMENT: >>>
+The application must protect audit information from unauthorized deletion.
+<<<
+COMMENT: SV-222502r960936_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222503
+TITLE: The application must protect audit tools from unauthorized access.
+STATEMENT: >>>
+The application must protect audit tools from unauthorized access.
+<<<
+COMMENT: SV-222503r960939_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222504
+TITLE: The application must protect audit tools from unauthorized modification.
+STATEMENT: >>>
+The application must protect audit tools from unauthorized modification.
+<<<
+COMMENT: SV-222504r960942_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222505
+TITLE: The application must protect audit tools from unauthorized deletion.
+STATEMENT: >>>
+The application must protect audit tools from unauthorized deletion.
+<<<
+COMMENT: SV-222505r960945_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222506
+TITLE: The application must back up audit records at least every seven days onto a different system or system component than the system or component being audited.
+STATEMENT: >>>
+The application must back up audit records at least every seven days onto a different system or system component than the system or component being audited.
+<<<
+COMMENT: SV-222506r960948_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222507
+TITLE: The application must use cryptographic mechanisms to protect the integrity of audit information.
+STATEMENT: >>>
+The application must use cryptographic mechanisms to protect the integrity of audit information.
+<<<
+COMMENT: SV-222507r960951_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222508
+TITLE: Application audit tools must be cryptographically hashed.
+STATEMENT: >>>
+Application audit tools must be cryptographically hashed.
+<<<
+COMMENT: SV-222508r961206_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222509
+TITLE: The integrity of the audit tools must be validated by checking the files for changes in the cryptographic hash value.
+STATEMENT: >>>
+The integrity of the audit tools must be validated by checking the files for changes in the cryptographic hash value.
+<<<
+COMMENT: SV-222509r961206_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222510
+TITLE: The application must prohibit user installation of software without explicit privileged status.
+STATEMENT: >>>
+The application must prohibit user installation of software without explicit privileged status.
+<<<
+COMMENT: SV-222510r1015689_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222511
+TITLE: The application must enforce access restrictions associated with changes to application configuration.
+STATEMENT: >>>
+The application must enforce access restrictions associated with changes to application configuration.
+<<<
+COMMENT: SV-222511r961461_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222512
+TITLE: The application must audit who makes configuration changes to the application.
+STATEMENT: >>>
+The application must audit who makes configuration changes to the application.
+<<<
+COMMENT: SV-222512r1015690_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222513
+TITLE: The application must have the capability to prevent the installation of patches, service packs, or application components without verification the software component has been digitally signed using a certificate that is recognized and approved by the organization.
+STATEMENT: >>>
+The application must have the capability to prevent the installation of patches, service packs, or application components without verification the software component has been digitally signed using a certificate that is recognized and approved by the organization.
+<<<
+COMMENT: SV-222513r1015691_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222514
+TITLE: The applications must limit privileges to change the software resident within software libraries.
+STATEMENT: >>>
+The applications must limit privileges to change the software resident within software libraries.
+<<<
+COMMENT: SV-222514r960960_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222515
+TITLE: An application vulnerability assessment must be conducted.
+STATEMENT: >>>
+An application vulnerability assessment must be conducted.
+<<<
+COMMENT: SV-222515r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222516
+TITLE: The application must prevent program execution in accordance with organization-defined policies regarding software program usage and restrictions, and/or rules authorizing the terms and conditions of software program usage.
+STATEMENT: >>>
+The application must prevent program execution in accordance with organization-defined policies regarding software program usage and restrictions, and/or rules authorizing the terms and conditions of software program usage.
+<<<
+COMMENT: SV-222516r961473_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222517
+TITLE: The application must employ a deny-all, permit-by-exception (whitelist) policy to allow the execution of authorized software programs.
+STATEMENT: >>>
+The application must employ a deny-all, permit-by-exception (whitelist) policy to allow the execution of authorized software programs.
+<<<
+COMMENT: SV-222517r961479_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222518
+TITLE: The application must be configured to disable non-essential capabilities.
+STATEMENT: >>>
+The application must be configured to disable non-essential capabilities.
+<<<
+COMMENT: SV-222518r960963_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222519
+TITLE: The application must be configured to use only functions, ports, and protocols permitted to it in the PPSM CAL.
+STATEMENT: >>>
+The application must be configured to use only functions, ports, and protocols permitted to it in the PPSM CAL.
+<<<
+COMMENT: SV-222519r1043177_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222520
+TITLE: The application must require users to reauthenticate when organization-defined circumstances or situations require reauthentication.
+STATEMENT: >>>
+The application must require users to reauthenticate when organization-defined circumstances or situations require reauthentication.
+<<<
+COMMENT: SV-222520r1050664_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222521
+TITLE: The application must require devices to reauthenticate when organization-defined circumstances or situations requiring reauthentication.
+STATEMENT: >>>
+The application must require devices to reauthenticate when organization-defined circumstances or situations requiring reauthentication.
+<<<
+COMMENT: SV-222521r985974_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222523
+TITLE: The application must use multifactor (Alt. Token) authentication for network access to privileged accounts.
+STATEMENT: >>>
+The application must use multifactor (Alt. Token) authentication for network access to privileged accounts.
+<<<
+COMMENT: SV-222523r960972_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222524
+TITLE: The application must accept Personal Identity Verification (PIV) credentials.
+STATEMENT: >>>
+The application must accept Personal Identity Verification (PIV) credentials.
+<<<
+COMMENT: SV-222524r961494_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222525
+TITLE: The application must electronically verify Personal Identity Verification (PIV) credentials.
+STATEMENT: >>>
+The application must electronically verify Personal Identity Verification (PIV) credentials.
+<<<
+COMMENT: SV-222525r961497_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222526
+TITLE: The application must use multifactor (e.g., CAC, Alt. Token) authentication for network access to non-privileged accounts.
+STATEMENT: >>>
+The application must use multifactor (e.g., CAC, Alt. Token) authentication for network access to non-privileged accounts.
+<<<
+COMMENT: SV-222526r960975_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222527
+TITLE: The application must use multifactor (Alt. Token) authentication for local access to privileged accounts.
+STATEMENT: >>>
+The application must use multifactor (Alt. Token) authentication for local access to privileged accounts.
+<<<
+COMMENT: SV-222527r1015693_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222528
+TITLE: The application must use multifactor (e.g., CAC, Alt. Token) authentication for local access to nonprivileged accounts.
+STATEMENT: >>>
+The application must use multifactor (e.g., CAC, Alt. Token) authentication for local access to nonprivileged accounts.
+<<<
+COMMENT: SV-222528r1015694_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222529
+TITLE: The application must ensure users are authenticated with an individual authenticator prior to using a group authenticator.
+STATEMENT: >>>
+The application must ensure users are authenticated with an individual authenticator prior to using a group authenticator.
+<<<
+COMMENT: SV-222529r1015695_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222530
+TITLE: The application must implement replay-resistant authentication mechanisms for network access to privileged accounts.
+STATEMENT: >>>
+The application must implement replay-resistant authentication mechanisms for network access to privileged accounts.
+<<<
+COMMENT: SV-222530r960993_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222531
+TITLE: The application must implement replay-resistant authentication mechanisms for network access to nonprivileged accounts.
+STATEMENT: >>>
+The application must implement replay-resistant authentication mechanisms for network access to nonprivileged accounts.
+<<<
+COMMENT: SV-222531r1015696_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222532
+TITLE: The application must utilize mutual authentication when endpoint device non-repudiation protections are required by DoD policy or by the data owner.
+STATEMENT: >>>
+The application must utilize mutual authentication when endpoint device non-repudiation protections are required by DoD policy or by the data owner.
+<<<
+COMMENT: SV-222532r960999_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222533
+TITLE: The application must authenticate all network connected endpoint devices before establishing any connection.
+STATEMENT: >>>
+The application must authenticate all network connected endpoint devices before establishing any connection.
+<<<
+COMMENT: SV-222533r961503_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222534
+TITLE: Service-Oriented Applications handling non-releasable data must authenticate endpoint devices via mutual SSL/TLS.
+STATEMENT: >>>
+Service-Oriented Applications handling non-releasable data must authenticate endpoint devices via mutual SSL/TLS.
+<<<
+COMMENT: SV-222534r961506_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222535
+TITLE: The application must disable device identifiers after 35 days of inactivity unless a cryptographic certificate is used for authentication.
+STATEMENT: >>>
+The application must disable device identifiers after 35 days of inactivity unless a cryptographic certificate is used for authentication.
+<<<
+COMMENT: SV-222535r1015697_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222537
+TITLE: The application must enforce password complexity by requiring that at least one uppercase character be used.
+STATEMENT: >>>
+The application must enforce password complexity by requiring that at least one uppercase character be used.
+<<<
+COMMENT: SV-222537r1015699_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222538
+TITLE: The application must enforce password complexity by requiring that at least one lowercase character be used.
+STATEMENT: >>>
+The application must enforce password complexity by requiring that at least one lowercase character be used.
+<<<
+COMMENT: SV-222538r1015700_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222539
+TITLE: The application must enforce password complexity by requiring that at least one numeric character be used.
+STATEMENT: >>>
+The application must enforce password complexity by requiring that at least one numeric character be used.
+<<<
+COMMENT: SV-222539r1015701_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222540
+TITLE: The application must enforce password complexity by requiring that at least one special character be used.
+STATEMENT: >>>
+The application must enforce password complexity by requiring that at least one special character be used.
+<<<
+COMMENT: SV-222540r1015702_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222541
+TITLE: The application must require the change of at least eight of the total number of characters when passwords are changed.
+STATEMENT: >>>
+The application must require the change of at least eight of the total number of characters when passwords are changed.
+<<<
+COMMENT: SV-222541r1043189_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222544
+TITLE: The application must enforce 24 hours/1 day as the minimum password lifetime.
+STATEMENT: >>>
+The application must enforce 24 hours/1 day as the minimum password lifetime.
+<<<
+COMMENT: SV-222544r1015705_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222545
+TITLE: The application must enforce a 60-day maximum password lifetime restriction.
+STATEMENT: >>>
+The application must enforce a 60-day maximum password lifetime restriction.
+<<<
+COMMENT: SV-222545r1043190_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222546
+TITLE: The application must prohibit password reuse for a minimum of five generations.
+STATEMENT: >>>
+The application must prohibit password reuse for a minimum of five generations.
+<<<
+COMMENT: SV-222546r1015267_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222547
+TITLE: The application must allow the use of a temporary password for system logons with an immediate change to a permanent password.
+STATEMENT: >>>
+The application must allow the use of a temporary password for system logons with an immediate change to a permanent password.
+<<<
+COMMENT: SV-222547r985976_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222548
+TITLE: The application password must not be changeable by users other than the administrator or the user with which the password is associated.
+STATEMENT: >>>
+The application password must not be changeable by users other than the administrator or the user with which the password is associated.
+<<<
+COMMENT: SV-222548r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222549
+TITLE: The application must terminate existing user sessions upon account deletion.
+STATEMENT: >>>
+The application must terminate existing user sessions upon account deletion.
+<<<
+COMMENT: SV-222549r961521_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222552
+TITLE: The application must map the authenticated identity to the individual user or group account for PKI-based authentication.
+STATEMENT: >>>
+The application must map the authenticated identity to the individual user or group account for PKI-based authentication.
+<<<
+COMMENT: SV-222552r961044_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222553
+TITLE: The application, for PKI-based authentication, must implement a local cache of revocation data to support path discovery and validation in case of the inability to access revocation information via the network.
+STATEMENT: >>>
+The application, for PKI-based authentication, must implement a local cache of revocation data to support path discovery and validation in case of the inability to access revocation information via the network.
+<<<
+COMMENT: SV-222553r1015707_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222556
+TITLE: The application must uniquely identify and authenticate non-organizational users (or processes acting on behalf of non-organizational users).
+STATEMENT: >>>
+The application must uniquely identify and authenticate non-organizational users (or processes acting on behalf of non-organizational users).
+<<<
+COMMENT: SV-222556r961053_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222557
+TITLE: The application must accept Personal Identity Verification (PIV) credentials from other federal agencies.
+STATEMENT: >>>
+The application must accept Personal Identity Verification (PIV) credentials from other federal agencies.
+<<<
+COMMENT: SV-222557r961527_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222558
+TITLE: The application must electronically verify Personal Identity Verification (PIV) credentials from other federal agencies.
+STATEMENT: >>>
+The application must electronically verify Personal Identity Verification (PIV) credentials from other federal agencies.
+<<<
+COMMENT: SV-222558r961530_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222559
+TITLE: The application must accept Federal Identity, Credential, and Access Management (FICAM)-approved third-party credentials.
+STATEMENT: >>>
+The application must accept Federal Identity, Credential, and Access Management (FICAM)-approved third-party credentials.
+<<<
+COMMENT: SV-222559r1015708_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222560
+TITLE: The application must conform to Federal Identity, Credential, and Access Management (FICAM)-issued profiles.
+STATEMENT: >>>
+The application must conform to Federal Identity, Credential, and Access Management (FICAM)-issued profiles.
+<<<
+COMMENT: SV-222560r1067800_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222561
+TITLE: Applications used for non-local maintenance sessions must audit non-local maintenance and diagnostic sessions for organization-defined auditable events.
+STATEMENT: >>>
+Applications used for non-local maintenance sessions must audit non-local maintenance and diagnostic sessions for organization-defined auditable events.
+<<<
+COMMENT: SV-222561r961548_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222562
+TITLE: Applications used for non-local maintenance sessions must implement cryptographic mechanisms to protect the integrity of non-local maintenance and diagnostic communications.
+STATEMENT: >>>
+Applications used for non-local maintenance sessions must implement cryptographic mechanisms to protect the integrity of non-local maintenance and diagnostic communications.
+<<<
+COMMENT: SV-222562r961554_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222563
+TITLE: Applications used for non-local maintenance sessions must implement cryptographic mechanisms to protect the confidentiality of non-local maintenance and diagnostic communications.
+STATEMENT: >>>
+Applications used for non-local maintenance sessions must implement cryptographic mechanisms to protect the confidentiality of non-local maintenance and diagnostic communications.
+<<<
+COMMENT: SV-222563r961557_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222564
+TITLE: Applications used for non-local maintenance sessions must verify remote disconnection at the termination of non-local maintenance and diagnostic sessions.
+STATEMENT: >>>
+Applications used for non-local maintenance sessions must verify remote disconnection at the termination of non-local maintenance and diagnostic sessions.
+<<<
+COMMENT: SV-222564r961560_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222565
+TITLE: The application must employ strong authenticators in the establishment of non-local maintenance and diagnostic sessions.
+STATEMENT: >>>
+The application must employ strong authenticators in the establishment of non-local maintenance and diagnostic sessions.
+<<<
+COMMENT: SV-222565r961062_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222566
+TITLE: The application must terminate all sessions and network connections when nonlocal maintenance is completed.
+STATEMENT: >>>
+The application must terminate all sessions and network connections when nonlocal maintenance is completed.
+<<<
+COMMENT: SV-222566r985978_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222567
+TITLE: The application must not be vulnerable to race conditions.
+STATEMENT: >>>
+The application must not be vulnerable to race conditions.
+<<<
+COMMENT: SV-222567r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+RELATIONS:
+- TYPE: Child
+  VALUE: MC01
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: MC01.1
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: MC02
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: V-222568
+TITLE: The application must terminate all network connections associated with a communications session at the end of the session.
+STATEMENT: >>>
+The application must terminate all network connections associated with a communications session at the end of the session.
+<<<
+COMMENT: SV-222568r961068_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222570
+TITLE: The application must utilize FIPS-validated cryptographic modules when signing application components.
+STATEMENT: >>>
+The application must utilize FIPS-validated cryptographic modules when signing application components.
+<<<
+COMMENT: SV-222570r1117181_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222571
+TITLE: The application must utilize FIPS-validated cryptographic modules when generating cryptographic hashes.
+STATEMENT: >>>
+The application must utilize FIPS-validated cryptographic modules when generating cryptographic hashes.
+<<<
+COMMENT: SV-222571r1117181_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222572
+TITLE: The application must utilize FIPS-validated cryptographic modules when protecting unclassified information that requires cryptographic protection.
+STATEMENT: >>>
+The application must utilize FIPS-validated cryptographic modules when protecting unclassified information that requires cryptographic protection.
+<<<
+COMMENT: SV-222572r1117181_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222573
+TITLE: Applications making SAML assertions must use FIPS-approved random numbers in the generation of SessionIndex in the SAML element AuthnStatement.
+STATEMENT: >>>
+Applications making SAML assertions must use FIPS-approved random numbers in the generation of SessionIndex in the SAML element AuthnStatement.
+<<<
+COMMENT: SV-222573r1117181_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222574
+TITLE: The application user interface must be either physically or logically separated from data storage and management interfaces.
+STATEMENT: >>>
+The application user interface must be either physically or logically separated from data storage and management interfaces.
+<<<
+COMMENT: SV-222574r1117171_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222575
+TITLE: The application must set the HTTPOnly flag on session cookies.
+STATEMENT: >>>
+The application must set the HTTPOnly flag on session cookies.
+<<<
+COMMENT: SV-222575r1043178_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222576
+TITLE: The application must set the secure flag on session cookies.
+STATEMENT: >>>
+The application must set the secure flag on session cookies.
+<<<
+COMMENT: SV-222576r1043178_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222579
+TITLE: Applications must use system-generated session identifiers that protect against session fixation.
+STATEMENT: >>>
+Applications must use system-generated session identifiers that protect against session fixation.
+<<<
+COMMENT: SV-222579r1043180_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222580
+TITLE: Applications must validate session identifiers.
+STATEMENT: >>>
+Applications must validate session identifiers.
+<<<
+COMMENT: SV-222580r1043180_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222581
+TITLE: Applications must not use URL embedded session IDs.
+STATEMENT: >>>
+Applications must not use URL embedded session IDs.
+<<<
+COMMENT: SV-222581r1043180_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222582
+TITLE: The application must not re-use or recycle session IDs.
+STATEMENT: >>>
+The application must not re-use or recycle session IDs.
+<<<
+COMMENT: SV-222582r1043180_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222583
+TITLE: The application must generate a unique session identifier using a FIPS 140-2/140-3 approved random number generator.
+STATEMENT: >>>
+The application must generate a unique session identifier using a FIPS 140-2/140-3 approved random number generator.
+<<<
+COMMENT: SV-222583r1051270_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222584
+TITLE: The application must only allow the use of DoD-approved certificate authorities for verification of the establishment of protected sessions.
+STATEMENT: >>>
+The application must only allow the use of DoD-approved certificate authorities for verification of the establishment of protected sessions.
+<<<
+COMMENT: SV-222584r961596_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222586
+TITLE: In the event of a system failure, applications must preserve any information necessary to determine cause of failure and any information necessary to return to operations with least disruption to mission processes.
+STATEMENT: >>>
+In the event of a system failure, applications must preserve any information necessary to determine cause of failure and any information necessary to return to operations with least disruption to mission processes.
+<<<
+COMMENT: SV-222586r961125_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222587
+TITLE: The application must protect the confidentiality and integrity of stored information when required by DOD policy or the information owner.
+STATEMENT: >>>
+The application must protect the confidentiality and integrity of stored information when required by DOD policy or the information owner.
+<<<
+COMMENT: SV-222587r1136910_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222590
+TITLE: The application must isolate security functions from non-security functions.
+STATEMENT: >>>
+The application must isolate security functions from non-security functions.
+<<<
+COMMENT: SV-222590r961131_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222591
+TITLE: The application must maintain a separate execution domain for each executing process.
+STATEMENT: >>>
+The application must maintain a separate execution domain for each executing process.
+<<<
+COMMENT: SV-222591r1117179_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222592
+TITLE: Applications must prevent unauthorized and unintended information transfer via shared system resources.
+STATEMENT: >>>
+Applications must prevent unauthorized and unintended information transfer via shared system resources.
+<<<
+COMMENT: SV-222592r1117173_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222593
+TITLE: XML-based applications must mitigate DoS attacks by using XML filters, parser options, or gateways.
+STATEMENT: >>>
+XML-based applications must mitigate DoS attacks by using XML filters, parser options, or gateways.
+<<<
+COMMENT: SV-222593r961620_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222594
+TITLE: The application must restrict the ability to launch Denial of Service (DoS) attacks against itself or other information systems.
+STATEMENT: >>>
+The application must restrict the ability to launch Denial of Service (DoS) attacks against itself or other information systems.
+<<<
+COMMENT: SV-222594r961152_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222595
+TITLE: The web service design must include redundancy mechanisms when used with high-availability systems.
+STATEMENT: >>>
+The web service design must include redundancy mechanisms when used with high-availability systems.
+<<<
+COMMENT: SV-222595r961155_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222597
+TITLE: The application must implement cryptographic mechanisms to prevent unauthorized disclosure of information and/or detect changes to information during transmission unless otherwise protected by alternative physical safeguards, such as, at a minimum, a Protected Distribution System (PDS).
+STATEMENT: >>>
+The application must implement cryptographic mechanisms to prevent unauthorized disclosure of information and/or detect changes to information during transmission unless otherwise protected by alternative physical safeguards, such as, at a minimum, a Protected Distribution System (PDS).
+<<<
+COMMENT: SV-222597r1117180_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222598
+TITLE: The application must maintain the confidentiality and integrity of information during preparation for transmission.
+STATEMENT: >>>
+The application must maintain the confidentiality and integrity of information during preparation for transmission.
+<<<
+COMMENT: SV-222598r961638_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222599
+TITLE: The application must maintain the confidentiality and integrity of information during reception.
+STATEMENT: >>>
+The application must maintain the confidentiality and integrity of information during reception.
+<<<
+COMMENT: SV-222599r961641_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222600
+TITLE: The application must not disclose unnecessary information to users.
+STATEMENT: >>>
+The application must not disclose unnecessary information to users.
+<<<
+COMMENT: SV-222600r961638_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222603
+TITLE: The application must protect from Cross-Site Request Forgery (CSRF) vulnerabilities.
+STATEMENT: >>>
+The application must protect from Cross-Site Request Forgery (CSRF) vulnerabilities.
+<<<
+COMMENT: SV-222603r961158_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222605
+TITLE: The application must protect from canonical representation vulnerabilities.
+STATEMENT: >>>
+The application must protect from canonical representation vulnerabilities.
+<<<
+COMMENT: SV-222605r961158_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222606
+TITLE: The application must validate all input.
+STATEMENT: >>>
+The application must validate all input.
+<<<
+COMMENT: SV-222606r961158_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222610
+TITLE: The application must generate error messages that provide information necessary for corrective actions without revealing information that could be exploited by adversaries.
+STATEMENT: >>>
+The application must generate error messages that provide information necessary for corrective actions without revealing information that could be exploited by adversaries.
+<<<
+COMMENT: SV-222610r961167_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222611
+TITLE: The application must reveal error messages only to the ISSO, ISSM, or SA.
+STATEMENT: >>>
+The application must reveal error messages only to the ISSO, ISSM, or SA.
+<<<
+COMMENT: SV-222611r961170_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222613
+TITLE: The application must remove organization-defined software components after updated versions have been installed.
+STATEMENT: >>>
+The application must remove organization-defined software components after updated versions have been installed.
+<<<
+COMMENT: SV-222613r961677_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222614
+TITLE: Security-relevant software updates and patches must be kept up to date.
+STATEMENT: >>>
+Security-relevant software updates and patches must be kept up to date.
+<<<
+COMMENT: SV-222614r1117151_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222615
+TITLE: The application performing organization-defined security functions must verify correct operation of security functions.
+STATEMENT: >>>
+The application performing organization-defined security functions must verify correct operation of security functions.
+<<<
+COMMENT: SV-222615r961731_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222616
+TITLE: The application must perform verification of the correct operation of security functions: upon system startup and/or restart; upon command by a user with privileged access; and/or every 30 days.
+STATEMENT: >>>
+The application must perform verification of the correct operation of security functions: upon system startup and/or restart; upon command by a user with privileged access; and/or every 30 days.
+<<<
+COMMENT: SV-222616r961734_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222618
+TITLE: Unsigned Category 1A mobile code must not be used in the application in accordance with DoD policy.
+STATEMENT: >>>
+Unsigned Category 1A mobile code must not be used in the application in accordance with DoD policy.
+<<<
+COMMENT: SV-222618r961083_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222619
+TITLE: The ISSO must ensure an account management process is implemented, verifying only authorized users can gain access to the application, and individual accounts designated as inactive, suspended, or terminated are promptly removed.
+STATEMENT: >>>
+The ISSO must ensure an account management process is implemented, verifying only authorized users can gain access to the application, and individual accounts designated as inactive, suspended, or terminated are promptly removed.
+<<<
+COMMENT: SV-222619r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222621
+TITLE: The ISSO must ensure application audit trails are retained for at least 30 months (12 months active + 18 months cold storage) for applications without SAMI data and five years for applications including SAMI data.
+STATEMENT: >>>
+The ISSO must ensure application audit trails are retained for at least 30 months (12 months active + 18 months cold storage) for applications without SAMI data and five years for applications including SAMI data.
+<<<
+COMMENT: SV-222621r1136913_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222622
+TITLE: The ISSO must review audit trails periodically based on system documentation recommendations or immediately upon system security events.
+STATEMENT: >>>
+The ISSO must review audit trails periodically based on system documentation recommendations or immediately upon system security events.
+<<<
+COMMENT: SV-222622r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222623
+TITLE: The ISSO must report all suspected violations of IA policies in accordance with DoD information system IA procedures.
+STATEMENT: >>>
+The ISSO must report all suspected violations of IA policies in accordance with DoD information system IA procedures.
+<<<
+COMMENT: SV-222623r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222624
+TITLE: The ISSO must ensure active vulnerability testing is performed.
+STATEMENT: >>>
+The ISSO must ensure active vulnerability testing is performed.
+<<<
+COMMENT: SV-222624r1051272_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222625
+TITLE: Execution flow diagrams and design documents must be created to show how deadlock and recursion issues in web services are being mitigated.
+STATEMENT: >>>
+Execution flow diagrams and design documents must be created to show how deadlock and recursion issues in web services are being mitigated.
+<<<
+COMMENT: SV-222625r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222626
+TITLE: The designer must ensure the application does not store configuration and control files in the same directory as user data.
+STATEMENT: >>>
+The designer must ensure the application does not store configuration and control files in the same directory as user data.
+<<<
+COMMENT: SV-222626r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222627
+TITLE: The ISSO must ensure if a DoD STIG or NSA guide is not available, a third-party product will be configured by following available guidance.
+STATEMENT: >>>
+The ISSO must ensure if a DoD STIG or NSA guide is not available, a third-party product will be configured by following available guidance.
+<<<
+COMMENT: SV-222627r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222628
+TITLE: New IP addresses, data services, and associated ports used by the application must be submitted to the appropriate approving authority for the organization, which in turn will be submitted through the DoD Ports, Protocols, and Services Management (DoD PPSM)
+STATEMENT: >>>
+New IP addresses, data services, and associated ports used by the application must be submitted to the appropriate approving authority for the organization, which in turn will be submitted through the DoD Ports, Protocols, and Services Management (DoD PPSM)
+<<<
+COMMENT: SV-222628r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222629
+TITLE: The application must be registered with the DoD Ports and Protocols Database.
+STATEMENT: >>>
+The application must be registered with the DoD Ports and Protocols Database.
+<<<
+COMMENT: SV-222629r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222630
+TITLE: The Configuration Management (CM) repository must be properly patched and STIG compliant.
+STATEMENT: >>>
+The Configuration Management (CM) repository must be properly patched and STIG compliant.
+<<<
+COMMENT: SV-222630r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222631
+TITLE: Access privileges to the Configuration Management (CM) repository must be reviewed every three months.
+STATEMENT: >>>
+Access privileges to the Configuration Management (CM) repository must be reviewed every three months.
+<<<
+COMMENT: SV-222631r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222632
+TITLE: A Software Configuration Management (SCM) plan describing the configuration control and change management process of application objects developed by the organization and the roles and responsibilities of the organization must be created and maintained.
+STATEMENT: >>>
+A Software Configuration Management (SCM) plan describing the configuration control and change management process of application objects developed by the organization and the roles and responsibilities of the organization must be created and maintained.
+<<<
+COMMENT: SV-222632r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222633
+TITLE: A Configuration Control Board (CCB) that meets at least every release cycle, for managing the Configuration Management (CM) process must be established.
+STATEMENT: >>>
+A Configuration Control Board (CCB) that meets at least every release cycle, for managing the Configuration Management (CM) process must be established.
+<<<
+COMMENT: SV-222633r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222634
+TITLE: The application services and interfaces must be compatible with and ready for IPv6 networks.
+STATEMENT: >>>
+The application services and interfaces must be compatible with and ready for IPv6 networks.
+<<<
+COMMENT: SV-222634r987685_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222635
+TITLE: The application must not be hosted on a general purpose machine if the application is designated as critical or high availability by the ISSO.
+STATEMENT: >>>
+The application must not be hosted on a general purpose machine if the application is designated as critical or high availability by the ISSO.
+<<<
+COMMENT: SV-222635r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222636
+TITLE: A contingency plan must exist in accordance with DOD policy based on the application's availability requirements.
+STATEMENT: >>>
+A contingency plan must exist in accordance with DOD policy based on the application's availability requirements.
+<<<
+COMMENT: SV-222636r1051323_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222637
+TITLE: Recovery procedures and technical system features must exist so recovery is performed in a secure and verifiable manner. The ISSO will document circumstances inhibiting a trusted recovery.
+STATEMENT: >>>
+Recovery procedures and technical system features must exist so recovery is performed in a secure and verifiable manner. The ISSO will document circumstances inhibiting a trusted recovery.
+<<<
+COMMENT: SV-222637r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222638
+TITLE: Data backup must be performed at required intervals in accordance with DoD policy.
+STATEMENT: >>>
+Data backup must be performed at required intervals in accordance with DoD policy.
+<<<
+COMMENT: SV-222638r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222639
+TITLE: Back-up copies of the application software or source code must be stored in a fire-rated container or stored separately (offsite).
+STATEMENT: >>>
+Back-up copies of the application software or source code must be stored in a fire-rated container or stored separately (offsite).
+<<<
+COMMENT: SV-222639r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222640
+TITLE: Procedures must be in place to assure the appropriate physical and technical protection of the backup and restoration of the application.
+STATEMENT: >>>
+Procedures must be in place to assure the appropriate physical and technical protection of the backup and restoration of the application.
+<<<
+COMMENT: SV-222640r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222641
+TITLE: The application must use encryption to implement key exchange and authenticate endpoints prior to establishing a communication channel for key exchange.
+STATEMENT: >>>
+The application must use encryption to implement key exchange and authenticate endpoints prior to establishing a communication channel for key exchange.
+<<<
+COMMENT: SV-222641r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222645
+TITLE: Application files must be cryptographically hashed prior to deploying to DoD operational networks.
+STATEMENT: >>>
+Application files must be cryptographically hashed prior to deploying to DoD operational networks.
+<<<
+COMMENT: SV-222645r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222646
+TITLE: At least one tester must be designated to test for security flaws in addition to functional testing.
+STATEMENT: >>>
+At least one tester must be designated to test for security flaws in addition to functional testing.
+<<<
+COMMENT: SV-222646r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222648
+TITLE: An application code review must be performed on the application.
+STATEMENT: >>>
+An application code review must be performed on the application.
+<<<
+COMMENT: SV-222648r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222650
+TITLE: Flaws found during a code review must be tracked in a defect tracking system.
+STATEMENT: >>>
+Flaws found during a code review must be tracked in a defect tracking system.
+<<<
+COMMENT: SV-222650r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222651
+TITLE: The changes to the application must be assessed for IA and accreditation impact prior to implementation.
+STATEMENT: >>>
+The changes to the application must be assessed for IA and accreditation impact prior to implementation.
+<<<
+COMMENT: SV-222651r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222652
+TITLE: Security flaws must be fixed or addressed in the project plan.
+STATEMENT: >>>
+Security flaws must be fixed or addressed in the project plan.
+<<<
+COMMENT: SV-222652r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222655
+TITLE: Threat models must be documented and reviewed for each application release and updated as required by design and functionality changes or when new threats are discovered.
+STATEMENT: >>>
+Threat models must be documented and reviewed for each application release and updated as required by design and functionality changes or when new threats are discovered.
+<<<
+COMMENT: SV-222655r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222656
+TITLE: The application must not be subject to error handling vulnerabilities.
+STATEMENT: >>>
+The application must not be subject to error handling vulnerabilities.
+<<<
+COMMENT: SV-222656r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222657
+TITLE: The application development team must provide an application incident response plan.
+STATEMENT: >>>
+The application development team must provide an application incident response plan.
+<<<
+COMMENT: SV-222657r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222661
+TITLE: Unnecessary built-in application accounts must be disabled.
+STATEMENT: >>>
+Unnecessary built-in application accounts must be disabled.
+<<<
+COMMENT: SV-222661r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222663
+TITLE: An Application Configuration Guide must be created and included with the application.
+STATEMENT: >>>
+An Application Configuration Guide must be created and included with the application.
+<<<
+COMMENT: SV-222663r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222664
+TITLE: If the application contains classified data, a Security Classification Guide must exist containing data elements and their classification.
+STATEMENT: >>>
+If the application contains classified data, a Security Classification Guide must exist containing data elements and their classification.
+<<<
+COMMENT: SV-222664r1051277_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222665
+TITLE: The designer must ensure uncategorized or emerging mobile code is not used in applications.
+STATEMENT: >>>
+The designer must ensure uncategorized or emerging mobile code is not used in applications.
+<<<
+COMMENT: SV-222665r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222666
+TITLE: Production database exports must have database administration credentials and sensitive data removed before releasing the export.
+STATEMENT: >>>
+Production database exports must have database administration credentials and sensitive data removed before releasing the export.
+<<<
+COMMENT: SV-222666r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222667
+TITLE: Protections against DoS attacks must be implemented.
+STATEMENT: >>>
+Protections against DoS attacks must be implemented.
+<<<
+COMMENT: SV-222667r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222668
+TITLE: The system must alert an administrator when low resource conditions are encountered.
+STATEMENT: >>>
+The system must alert an administrator when low resource conditions are encountered.
+<<<
+COMMENT: SV-222668r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222671
+TITLE: Connections between the DoD enclave and the Internet or other public or commercial wide area networks must require a DMZ.
+STATEMENT: >>>
+Connections between the DoD enclave and the Internet or other public or commercial wide area networks must require a DMZ.
+<<<
+COMMENT: SV-222671r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222673
+TITLE: The Program Manager must verify all levels of program management, designers, developers, and testers receive annual security training pertaining to their job function.
+STATEMENT: >>>
+The Program Manager must verify all levels of program management, designers, developers, and testers receive annual security training pertaining to their job function.
+<<<
+COMMENT: SV-222673r961863_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-265634
+TITLE: The application must implement NSA-approved cryptography to protect classified information in accordance with applicable federal laws, Executive Orders, directives, policies, regulations, and standards.
+STATEMENT: >>>
+The application must implement NSA-approved cryptography to protect classified information in accordance with applicable federal laws, Executive Orders, directives, policies, regulations, and standards.
+<<<
+COMMENT: SV-265634r1117183_rule
+SEVERITY: Medium
+STATUS: Draft
+
+[[/SECTION]]
+
+[[SECTION]]
+UID: ASD-CAT-III
+TITLE: CAT III — Low
+
+[REQUIREMENT]
+UID: V-222392
+TITLE: The application must display an explicit logoff message to users indicating the reliable termination of authenticated communications sessions.
+STATEMENT: >>>
+The application must display an explicit logoff message to users indicating the reliable termination of authenticated communications sessions.
+<<<
+COMMENT: SV-222392r961227_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222410
+TITLE: The application must have a process, feature or function that prevents removal or disabling of emergency accounts.
+STATEMENT: >>>
+The application must have a process, feature or function that prevents removal or disabling of emergency accounts.
+<<<
+COMMENT: SV-222410r961863_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222411
+TITLE: The application must automatically disable accounts after a 35 day period of account inactivity.
+STATEMENT: >>>
+The application must automatically disable accounts after a 35 day period of account inactivity.
+<<<
+COMMENT: SV-222411r960774_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222417
+TITLE: The application must notify system administrators (SAs) and information system security officers (ISSOs) when accounts are created.
+STATEMENT: >>>
+The application must notify system administrators (SAs) and information system security officers (ISSOs) when accounts are created.
+<<<
+COMMENT: SV-222417r1015684_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222418
+TITLE: The application must notify system administrators (SAs) and information system security officers (ISSOs) when accounts are modified.
+STATEMENT: >>>
+The application must notify system administrators (SAs) and information system security officers (ISSOs) when accounts are modified.
+<<<
+COMMENT: SV-222418r1015685_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222419
+TITLE: The application must notify system administrators (SAs) and information system security officers (ISSOs) of account disabling actions.
+STATEMENT: >>>
+The application must notify system administrators (SAs) and information system security officers (ISSOs) of account disabling actions.
+<<<
+COMMENT: SV-222419r1015686_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222420
+TITLE: The application must notify system administrators (SAs) and information system security officers (ISSOs) of account removal actions.
+STATEMENT: >>>
+The application must notify system administrators (SAs) and information system security officers (ISSOs) of account removal actions.
+<<<
+COMMENT: SV-222420r1015687_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222422
+TITLE: The application must notify system administrators (SAs) and information system security officers (ISSOs) of account enabling actions.
+STATEMENT: >>>
+The application must notify system administrators (SAs) and information system security officers (ISSOs) of account enabling actions.
+<<<
+COMMENT: SV-222422r1015688_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222434
+TITLE: The application must display the Standard Mandatory DoD Notice and Consent Banner before granting access to the application.
+STATEMENT: >>>
+The application must display the Standard Mandatory DoD Notice and Consent Banner before granting access to the application.
+<<<
+COMMENT: SV-222434r960843_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222435
+TITLE: The application must retain the Standard Mandatory DoD Notice and Consent Banner on the screen until users acknowledge the usage conditions and take explicit actions to log on for further access.
+STATEMENT: >>>
+The application must retain the Standard Mandatory DoD Notice and Consent Banner on the screen until users acknowledge the usage conditions and take explicit actions to log on for further access.
+<<<
+COMMENT: SV-222435r960846_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222436
+TITLE: The publicly accessible application must display the Standard Mandatory DoD Notice and Consent Banner before granting access to the application.
+STATEMENT: >>>
+The publicly accessible application must display the Standard Mandatory DoD Notice and Consent Banner before granting access to the application.
+<<<
+COMMENT: SV-222436r960849_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222437
+TITLE: The application must display the time and date of the users last successful logon.
+STATEMENT: >>>
+The application must display the time and date of the users last successful logon.
+<<<
+COMMENT: SV-222437r987626_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222617
+TITLE: The application must notify the ISSO and ISSM of failed security verification tests.
+STATEMENT: >>>
+The application must notify the ISSO and ISSM of failed security verification tests.
+<<<
+COMMENT: SV-222617r961185_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222644
+TITLE: Prior to each release of the application, updates to system, or applying patches; tests plans and procedures must be created and executed.
+STATEMENT: >>>
+Prior to each release of the application, updates to system, or applying patches; tests plans and procedures must be created and executed.
+<<<
+COMMENT: SV-222644r961863_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222647
+TITLE: Test procedures must be created and at least annually executed to ensure system initialization, shutdown, and aborts are configured to verify the system remains in a secure state.
+STATEMENT: >>>
+Test procedures must be created and at least annually executed to ensure system initialization, shutdown, and aborts are configured to verify the system remains in a secure state.
+<<<
+COMMENT: SV-222647r961863_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222649
+TITLE: Code coverage statistics must be maintained for each release of the application.
+STATEMENT: >>>
+Code coverage statistics must be maintained for each release of the application.
+<<<
+COMMENT: SV-222649r961863_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222653
+TITLE: The application development team must follow a set of coding standards.
+STATEMENT: >>>
+The application development team must follow a set of coding standards.
+<<<
+COMMENT: SV-222653r961863_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222654
+TITLE: The designer must create and update the Design Document for each release of the application.
+STATEMENT: >>>
+The designer must create and update the Design Document for each release of the application.
+<<<
+COMMENT: SV-222654r961863_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222660
+TITLE: Procedures must be in place to notify users when an application is decommissioned.
+STATEMENT: >>>
+Procedures must be in place to notify users when an application is decommissioned.
+<<<
+COMMENT: SV-222660r961863_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222669
+TITLE: At least one application administrator must be registered to receive update notifications, or security alerts, when automated alerts are available.
+STATEMENT: >>>
+At least one application administrator must be registered to receive update notifications, or security alerts, when automated alerts are available.
+<<<
+COMMENT: SV-222669r961863_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222670
+TITLE: The application must provide notifications or alerts when product update and security related patches are available.
+STATEMENT: >>>
+The application must provide notifications or alerts when product update and security related patches are available.
+<<<
+COMMENT: SV-222670r961863_rule
+SEVERITY: Low
+STATUS: Draft
+
+[REQUIREMENT]
+UID: V-222672
+TITLE: The application must generate audit records when concurrent logons from different workstations occur.
+STATEMENT: >>>
+The application must generate audit records when concurrent logons from different workstations occur.
+<<<
+COMMENT: SV-222672r961833_rule
+SEVERITY: Low
+STATUS: Draft
+
+[[/SECTION]]
