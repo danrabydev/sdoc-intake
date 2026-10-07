@@ -7100,16 +7100,16 @@ capability_artifacts:
   uri: ../../../apps/reqaml/src/db/migrations/004_devenv_hardening.sql
 - requirement_version_uid: CAP-TEST-MEMORY-KEYPROVIDER
   kind: other
-  uri: apps/reqaml/src/key/memory-provider.ts
+  uri: ../../../apps/reqaml/src/key/memory-provider.ts
 - requirement_version_uid: CAP-TEST-PGLITE-DB
   kind: other
-  uri: apps/reqaml/src/test/pglite-pool.ts
+  uri: ../../../apps/reqaml/src/test/pglite-pool.ts
 - requirement_version_uid: CAP-TEST-AUTH-ROUTES
   kind: other
-  uri: apps/reqaml/src/auth/auth.integration.test.ts
+  uri: ../../../apps/reqaml/src/auth/auth.integration.test.ts
 - requirement_version_uid: CAP-TEST-PNPM-GATE
   kind: other
-  uri: apps/reqaml/src/test/harness.ts
+  uri: ../../../apps/reqaml/src/test/harness.ts
 edges:
 - from: CAP-SSO
   to: A01

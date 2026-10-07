@@ -1020,6 +1020,7 @@ security.verification_note: Replay-resistant authentication (IA-2(8)); ASD V-222
 edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
 edge: ← uses from FIX-DENY-PKCE-PLAIN
 edge: ← satisfies from CAP-OAUTH-AS
+edge: ← satisfies from CAP-TEST-AUTH-ROUTES
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2.8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222530 (pin imprint=asd-stig@v6r4)
@@ -1145,6 +1146,7 @@ security.catalog_ref: SC-23
 security.verification_note: SC-23 / IA-5 authenticator protection; replay-resistant refresh.
 edge: ← uses from FIX-DENY-REFRESH-REUSE
 edge: ← satisfies from CAP-OAUTH-AS
+edge: ← satisfies from CAP-TEST-AUTH-ROUTES
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1859,6 +1861,7 @@ security.catalog_ref: AU-3
 security.verification_note: AU-3 content of audit records; AU-10 non-repudiation; ASD V-222438.
 edge: ← uses from FIX-ALLOW-AGENT-ATTRIBUTION
 edge: ← satisfies from CAP-AGENT-ACCESS
+edge: ← satisfies from CAP-TEST-AUTH-ROUTES
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -2082,6 +2085,45 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-TEST-AUTH-ROUTES
+STATUS: Active
+TITLE: In-process auth route integration tests
+STATEMENT: >>>
+Fastify `inject` exercises OAuth authorize/token, local login, web session CSRF, and agent client_credentials without network or Docker.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-TEST-AUTH-ROUTES
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: Regression beds for R1 auth. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.
+delivered_by_release: R1 — in-process test harness (no Docker)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: ARCH-AUTH-PKCE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-AUTH-REFRESH
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CRED-LOCKOUT
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CRED-MFA
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AGENT-ATTRIBUTION
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-test-harness
   ROLE: Delivers
 
 [[/SECTION]]
@@ -8811,6 +8853,7 @@ security.verification_note: AC-7 unsuccessful logon attempts; ASD V-222432 / V-2
 edge: ← uses from FIX-DENY-LOCKOUT
 edge: ← satisfies from CAP-CRED-STORE
 edge: ← satisfies from CAP-AUTH-HARDEN
+edge: ← satisfies from CAP-TEST-AUTH-ROUTES
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222432 (pin imprint=asd-stig@v6r4)
@@ -8865,6 +8908,7 @@ edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← uses from FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
 edge: ← satisfies from CAP-CRED-STORE
 edge: ← satisfies from CAP-MFA-ENROLL
+edge: ← satisfies from CAP-TEST-AUTH-ROUTES
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222523 (pin imprint=asd-stig@v6r4)
@@ -9246,6 +9290,7 @@ edge: ← uses from ARCH-KEY-JWKS
 edge: ← refines from ARCH-DEVENV-KEYS
 edge: ← satisfies from CAP-DEVENV-OPENBAO-BOOTSTRAP
 edge: ← satisfies from CAP-KEY-ENVELOPE
+edge: ← satisfies from CAP-TEST-MEMORY-KEYPROVIDER
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9700,6 +9745,33 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-TEST-MEMORY-KEYPROVIDER
+STATUS: Active
+TITLE: In-memory KeyProvider fake for tests
+STATEMENT: >>>
+Tests inject `createMemoryKeyProvider()` implementing the production KeyProvider interface (wrapSecret/unwrapSecret/ensureReady) without OpenBao. Production wiring still uses OpenBao Transit.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-TEST-MEMORY-KEYPROVIDER
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: SC-12
+security.verification_note: Dev/test only; no production path change.
+delivered_by_release: R1 — in-process test harness (no Docker)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: ARCH-KEY-PROVIDER
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-test-harness
   ROLE: Delivers
 
 [[/SECTION]]
@@ -11715,6 +11787,7 @@ iteration: iter-r1
 security.catalog_ref: CM-6
 security.verification_note: FIXTURE / TEST BED for developer environment smoke and prod-disable.
 edge: ← satisfies from CAP-DEVENV-SMOKE
+edge: ← satisfies from CAP-TEST-PNPM-GATE
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14382,6 +14455,60 @@ RELATIONS:
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
+[REQUIREMENT]
+UID: CAP-TEST-PGLITE-DB
+STATUS: Active
+TITLE: In-process Postgres (PGlite) with real migrations
+STATEMENT: >>>
+Integration tests use `@electric-sql/pglite` with the same migration SQL files as production (`apps/reqaml/src/db/migrations/*.sql`) via `runMigrationsOnPglite`.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-TEST-PGLITE-DB
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Isolated WASM DB; no committed secrets.
+delivered_by_release: R1 — in-process test harness (no Docker)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: ARCH-BUILD-FOUNDATION
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-test-harness
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-TEST-PNPM-GATE
+STATUS: Active
+TITLE: Docker-free `pnpm test` gate
+STATEMENT: >>>
+Root `pnpm test` runs package unit tests plus the in-process auth harness; contributors and cloud agents run it before push. Full stack checks remain `pnpm devenv:smoke` (Docker, maintainer-local).
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-TEST-PNPM-GATE
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Fast feedback without containers. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqaml/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.
+delivered_by_release: R1 — in-process test harness (no Docker)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: FIX-ALLOW-DEVENV-SMOKE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-test-harness
+  ROLE: Delivers
+
 [[/SECTION]]
 
 [[SECTION]]
@@ -14409,6 +14536,7 @@ priority: 1
 iteration: iter-r1
 security.catalog_ref: SA-8
 security.verification_note: SA-8 security engineering: security foundations built first.
+edge: ← satisfies from CAP-TEST-PGLITE-DB
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
