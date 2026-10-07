@@ -31,7 +31,9 @@ docker compose up --build
 
 Open **http://localhost:3000** (web placeholder). Probes: `/health`, `/ready`, `/docs` (OpenAPI UI), `/api/v1/seed/summary`.
 
-First start applies migrations and loads the dogfood seed (`REQAML_SEED_ON_START=true`). OpenBao initializes Transit with a **dev-marked** KEK (`reqaml-kek`); root token is stored in the `reqaml-secrets` volume (never committed).
+First start applies migrations and loads the dogfood seed (`REQAML_SEED_ON_START=true`). OpenBao initializes Transit with a **dev-marked** mount and KEK (`reqaml-kek`); unseal key and root token are stored in the `reqaml-secrets` volume (never committed).
+
+Seeded dev local accounts are `<identity-id>@dev.local`. Their password comes from `REQAML_DEV_ACCOUNT_PASSWORD` in your `.env`; if it is empty, the first seed generates one and prints it once (`docker compose logs app | grep "reqaml seed"`). No default credential is committed.
 
 ### Hybrid mode (hot reload)
 
@@ -42,7 +44,7 @@ docker compose up peripherals -d
 pnpm dev:reqaml
 ```
 
-Same `.env` DSN (`DATABASE_URL=postgresql://reqaml:reqaml@127.0.0.1:5432/reqaml`) and `OPENBAO_ADDR=http://127.0.0.1:8200`. After first peripherals boot, copy the OpenBao root token from the volume or set `OPENBAO_TOKEN` in `.env` (see compose logs / `reqaml-secrets` volume).
+Same `.env` DSN (`DATABASE_URL=postgresql://reqaml:reqaml@127.0.0.1:5432/reqaml`) and `OPENBAO_ADDR=http://127.0.0.1:8200`. `pnpm dev:reqaml` loads the root `.env` and, when `OPENBAO_TOKEN` is empty, reads the dev OpenBao root token from the running peripherals container (`reqaml-secrets` volume) and passes it to the app process only — nothing is written to disk. Stop the app container first (`docker compose stop app`) if you switch from full-container mode, since both use port 3000.
 
 ### One-shot migrate / seed
 
@@ -58,6 +60,8 @@ Re-running seed is idempotent (`FIX-ALLOW-DEVENV-SEED-IDEMPOTENT`).
 ```sh
 pnpm devenv:smoke
 ```
+
+This is the primary check: it builds and starts the 2-container stack (`docker compose up --build -d --wait`), checks `/health`, `/ready` and `/api/v1/seed/summary`, re-runs migrate + seed twice (no new rows), asserts exactly 2 healthy containers, and asserts production mode refuses the dev seed loader, dev accounts and dev OpenBao. Any failing command's stdout/stderr is printed, followed by `docker compose ps -a` and recent logs. The stack is left running; set `REQAML_SMOKE_DOWN=1` to run `docker compose down -v` at the end. The GitHub workflow (`.github/workflows/devenv-smoke.yml`) is manual-dispatch only to save Actions minutes.
 
 ## SDoc Intake editor
 
