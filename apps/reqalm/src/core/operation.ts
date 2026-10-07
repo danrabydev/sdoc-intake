@@ -92,8 +92,10 @@ export async function runOperation<TIn, TOut>(
     );
   }
 
-  if (def.projectScoped && projectId) {
-    if (!ctx.projectIds.has(projectId)) {
+  if (def.projectScoped) {
+    // Fail closed: a project-scoped op without a project id must not fall through to a
+    // cross-project authorize() (which unions roles from every grant).
+    if (!projectId || !ctx.projectIds.has(projectId)) {
       return finish(
         err("not_found", "Project not found"),
         "deny",
