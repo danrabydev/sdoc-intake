@@ -1,0 +1,63 @@
+@startuml E41a-pin-apply-deny
+!include ../includes/C4_Sequence_Macros.puml
+
+title E41a — Apply / deny ConformsTo pin\ncatalog:pin:apply|deny — Security/Steward (conforms_to_applicator)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+note over seqUser, seqOTEL
+  Profile RoleBinding slot **conforms_to_applicator**
+  (Security for standards / Steward for non-standard;
+  commercial may bind Author).
+  AO is approve-only on locked migrate (D39g), never free pin edit.
+end note
+
+== Apply or deny ==
+
+seqUser -> seqWebUI : Apply or Deny pending request
+RbacRouteGuard("catalog:pin:apply")
+ClientScopedQuery("POST", "/clients/{clientId}/conformance-pin-requests/{id}:apply|deny")
+ControlNote(seqAPI, "SC-8, AC-3", "TBD (ASD V6R4)", "Applicator decision on pending request")
+
+seqAPI -> seqBusiness : resolvePinRequest(actor, requestId, decision)
+ControlNote(seqBusiness, "AC-3, CM-3", "TBD (ASD V6R4)", "Apply writes live ConformsTo edge; deny closes request")
+
+RbacCheck("catalog:pin:apply")
+ControlNote(seqRBAC, "AC-3, AC-6", "TBD (ASD V6R4)", "Tree wins: Author without applicator slot → 403")
+
+HookEval("catalog:pin:apply")
+ControlNote(seqData, "CM-3", "TBD (ASD V6R4)", "hook-pin-apply: gate-conforms-applicator")
+
+GateCheck("gate-conforms-applicator")
+ControlNote(seqBusiness, "AC-3, AC-6", "TBD (ASD V6R4)", "RoleBinding conforms_to_applicator required (FIX-DENY-AUTHOR-PIN-APPLY)")
+
+alt decision = apply
+  seqBusiness -> seqData : apply_conformance_pin +\nset request status=applied
+  seqData -> seqPostgres : UPSERT edge conforms_to\n(imprint_id, item_uid); UPDATE request
+  ControlNote(seqPostgres, "AC-3, CM-3", "TBD (ASD V6R4)", "Live pin SoT; Northline no statement copy")
+else decision = deny
+  seqBusiness -> seqData : set request status=denied
+  seqData -> seqPostgres : UPDATE conformance_pin_request
+  ControlNote(seqPostgres, "AC-3, AU-2", "TBD (ASD V6R4)", "Denied request retained for audit")
+end
+seqPostgres --> seqData : ok
+seqData --> seqBusiness : result
+
+HookEffectsAfter("apply_conformance_pin | deny, audit")
+AuditLog("catalog.pin.apply|deny", "requestId")
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable applicator decision")
+
+seqBusiness --> seqAPI : DTO
+seqAPI --> seqWebUI : 200 OK
+seqWebUI --> seqUser : applied or denied
+
+@enduml

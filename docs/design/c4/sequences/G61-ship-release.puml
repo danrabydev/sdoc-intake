@@ -1,0 +1,82 @@
+@startuml G61-ship-release
+!include ../includes/C4_Sequence_Macros.puml
+
+title G61 — Ship release (freeze snapshot)\nProfile Gates: cyber_gate trigger + gate_signoff pass (ARCH-CYBER-GATE)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+note over seqUser, seqOTEL
+  **Soft:** `release.cyber_gate` = **trigger**
+  (when true AND profile enables gate-cyber-ship,
+  cyber ship Gate evaluates).
+  **gate_signoff rows** (D39g) = **pass condition**
+  checked by gate-signoff-complete.
+  Optional gate-verification-ship / gate-no-open-suspect
+  skipped when disabled on profile.
+end note
+
+== Ship ==
+
+seqUser -> seqWebUI : Ship release
+RbacRouteGuard("release:ship")
+ClientScopedQuery("POST", "/clients/{clientId}/releases/{id}:ship")
+ControlNote(seqAPI, "SC-8, CM-3", "TBD (ASD V6R4)", "Freeze delivers snapshot; deny if gates fail")
+
+seqAPI -> seqBusiness : shipRelease(actor, releaseId)
+ControlNote(seqBusiness, "CM-3, AC-3", "TBD (ASD V6R4)", "ActionHook release:ship under WorkflowProfile")
+
+RbacCheck("release:ship")
+ControlNote(seqRBAC, "AC-3, AC-6", "TBD (ASD V6R4)", "Release manager (or bound role)")
+
+HookEval("release:ship")
+ControlNote(seqData, "CM-3", "TBD (ASD V6R4)", "hook-ship: cyber, verification, signoff-complete, no-open-suspect")
+
+GateCheck("gate-cyber-ship")
+note right of seqBusiness
+  Evaluated when **cyber_gate=true** AND
+  profile enables gate-cyber-ship (trigger).
+  Predicate may require Security+AO slots
+  via RoleBinding; unsigned → deny.
+end note
+ControlNote(seqBusiness, "AC-3, CM-3", "TBD (ASD V6R4)", "cyber_gate is trigger, not a mega-status (ARCH-GATE-MODEL)")
+
+GateCheck("gate-verification-ship")
+ControlNote(seqBusiness, "CM-3", "TBD (ASD V6R4)", "Optional; skipped when disabled on profile")
+
+GateCheck("gate-signoff-complete")
+note right of seqBusiness
+  **Pass condition:** required gate_signoff rows
+  exist for security_signoff + ao_approve
+  when cyber path is active (FIX-DENY-SHIP-UNSIGNED).
+end note
+ControlNote(seqBusiness, "AC-3, AU-2", "TBD (ASD V6R4)", "gate_signoff rows from D39g are the pass condition")
+
+GateCheck("gate-no-open-suspect")
+ControlNote(seqBusiness, "CM-3", "TBD (ASD V6R4)", "Optional ARCH-SUSPECT gate; off in commercial default")
+
+== Mutate: freeze snapshot ==
+
+seqBusiness -> seqData : freeze release snapshot (delivers UIDs)
+seqData -> seqPostgres : UPDATE release status=shipped;\nlock delivers membership
+ControlNote(seqPostgres, "CM-3, AC-3", "TBD (ASD V6R4)", "Shipped delivers immutable for migrate lock rule")
+seqPostgres --> seqData : ok
+seqData --> seqBusiness : release
+
+HookEffectsAfter("audit")
+AuditLog("release.ship", "releaseId")
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Auditable ship with gate outcomes")
+
+seqBusiness --> seqAPI : release DTO
+seqAPI --> seqWebUI : 200 OK
+seqWebUI --> seqUser : shipped snapshot
+
+@enduml

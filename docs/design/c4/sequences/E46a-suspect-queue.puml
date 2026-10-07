@@ -1,0 +1,79 @@
+@startuml E46a-suspect-queue
+!include ../includes/C4_Sequence_Macros.puml
+
+title E46a — Suspect queue review\ncarry-forward | keep-pinned | drop (ARCH-SUSPECT-QUEUE)
+
+C4Seq_User()
+C4Seq_WebUI()
+C4Seq_RouteGuard()
+C4Seq_API()
+C4Seq_RBAC()
+C4Seq_Business()
+C4Seq_Data()
+C4Seq_Postgres()
+C4Seq_Audit()
+C4Seq_OTEL()
+
+note over seqUser, seqOTEL
+  After **content** mint (D39d), inbound edges / in_scope_of /
+  delivers that still pin prior UIDs are trace_suspect
+  (ARCH-SUSPECT). Queue reactions are audited.
+  Role defaults: Satisfies/refines/uses → Author;
+  ConformsTo → Security; contract/release → Author + RelMgr.
+end note
+
+== Open queue ==
+
+seqUser -> seqWebUI : Open suspect queue / filter
+RbacRouteGuard("trace:suspect:queue")
+ClientScopedQuery("GET", "/clients/{clientId}/suspects")
+ControlNote(seqAPI, "AC-3", "TBD (ASD V6R4)", "List open trace_suspect edges and junctions")
+
+seqAPI -> seqBusiness : listSuspects(actor, clientId)
+RbacCheck("trace:suspect:queue")
+seqBusiness -> seqData : query trace_suspect=true
+seqData -> seqPostgres : SELECT edges / junctions WHERE trace_suspect
+seqPostgres --> seqData : rows
+seqData --> seqBusiness : suspects
+seqBusiness --> seqAPI : DTO
+seqAPI --> seqWebUI : queue
+seqWebUI --> seqUser : review items
+
+== React (carry-forward | keep-pinned | drop) ==
+
+seqUser -> seqWebUI : Choose reaction on item
+ClientScopedQuery("POST", "/clients/{clientId}/suspects/{id}:react")
+seqAPI -> seqBusiness : reactSuspect(actor, id, action)
+ControlNote(seqBusiness, "AC-3, CM-3", "TBD (ASD V6R4)", "ARCH-SUSPECT-QUEUE reactions")
+
+RbacCheck("trace:suspect:carry|keep_pinned|drop")
+ControlNote(seqRBAC, "AC-3, AC-6", "TBD (ASD V6R4)", "Reaction RBAC by edge/junction kind")
+
+HookEval("trace:suspect:react")
+note right of seqBusiness
+  Profile may bind empty gates_before;
+  optional gate-no-open-suspect on **G61** ship
+  denies while queue remains open.
+end note
+
+alt carry-forward
+  seqBusiness -> seqData : retarget edge/junction to new tip;\nclear trace_suspect
+else keep-pinned
+  seqBusiness -> seqData : acknowledge stale pin;\nclear suspect flag without retarget
+else drop
+  seqBusiness -> seqData : remove edge/junction
+end
+seqData -> seqPostgres : UPDATE/DELETE …
+ControlNote(seqPostgres, "AC-3, CM-3", "TBD (ASD V6R4)", "SoT update for suspect resolution")
+seqPostgres --> seqData : ok
+seqData --> seqBusiness : result
+
+HookEffectsAfter("audit")
+AuditLog("trace.suspect.react", "id action")
+ControlNote(seqAudit, "AU-2, AU-3, AU-12", "TBD (ASD V6R4)", "Every suspect reaction audited")
+
+seqBusiness --> seqAPI : DTO
+seqAPI --> seqWebUI : 200 OK
+seqWebUI --> seqUser : queue updated
+
+@enduml
