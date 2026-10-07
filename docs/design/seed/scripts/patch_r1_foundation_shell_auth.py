@@ -33,7 +33,7 @@ EVIDENCE = (
     "handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username "
     "normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie "
     "HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via "
-    "`devenv:mfa`, TOTP replay rejected, agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, "
+    "`devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, "
     "agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 "
     "failures, production refused dev accounts/keys, missing REQAML_ISSUER_URL and blanket trustProxy; headless "
     "Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqaml/app` test 30/30, typecheck pass; "
