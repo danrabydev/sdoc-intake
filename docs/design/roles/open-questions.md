@@ -47,6 +47,36 @@ Each remaining item: question, options if clear, why it blocks encoding.
 
 ---
 
+## 2. Local OIDC stub for developer identity
+
+**Status:** Open. `ARCH-DEVENV-IDENTITY` / `FIX-DENY-DEVENV-PROD-LOGIN` require *a* local identity path (OIDC stub or equivalent), disabled in production — stub **product choice** not locked.
+
+**Question:** Which local OIDC / IdP stub should Compose run for non-prod sign-in (e.g. Dex, Keycloak, mock-oauth2-server, custom lightweight issuer)?
+
+**Why it blocks:** Compose service name/image and `.env.example` issuer URLs cannot be finalized until chosen; encoding only states the capability.
+
+---
+
+## 3. StrictDoc export service in Compose?
+
+**Status:** Open. L2 containers are Web UI, API, Sync worker, Postgres. StrictDoc export is an IO capability (`SEC-IO` / L02) — not a separate C4 container today.
+
+**Question:** Should Docker Compose also run a StrictDoc export service (sidecar/container), or keep export as an in-process / on-demand API path only?
+
+**Why it blocks:** Adding a Compose service invents a container the L2 diagram does not show until Dan confirms.
+
+---
+
+## 4. Node package manager for hybrid mode
+
+**Status:** Open. Hybrid mode runs native Node with hot reload against Compose deps (`ARCH-DEVENV-MODES`).
+
+**Question:** Which Node package manager is the supported hybrid-mode workflow (npm, pnpm, or yarn)?
+
+**Why it blocks:** Clone-to-running docs and any `packageManager` / lockfile conventions in the repo should match one choice.
+
+---
+
 ## Encoded assumptions (not open — for contrast)
 
 These were encoded with documented locked policy:
@@ -61,3 +91,4 @@ These were encoded with documented locked policy:
 - No orphan capabilities; Satisfies at create; CapabilityLine approve accepts solution.
 - ≤1 active per line; prior active → `superseded` in-place on D04.
 - Mint kinds + suspect queue + ConformsTo request/apply as locked above.
+- Developer environment (2026-10-07): Docker Compose is the single supported dev entry point; hybrid + full-container modes; clone-to-running; migrations + dogfood seed (idempotent); local identity stub disabled in production; no secrets committed; deploy Dockerfile parity; Compose health/readiness (`SEC-DEVENV` / `ARCH-DEVENV-*`). Stub product, StrictDoc-in-Compose, and package manager remain open (§2–§4).

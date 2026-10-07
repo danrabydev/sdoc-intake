@@ -99,6 +99,8 @@ security.verification_note: IA-2 / AC-3 / AU-2/3/12. ASD STIG V6R4 V-222536 (pas
 edge: ← satisfies from CAP-SSO
 edge: ← refines from ARCH-OTEL
 edge: ← refines from MC01.1
+edge: ← refines from ARCH-DEVENV-IDENTITY
+edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -6039,6 +6041,8 @@ priority: 20
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← uses from ARCH-DEVENV-HEALTH
+edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7009,6 +7013,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 catalog_drift: status=flagged class=normative item=AC-3 from=nist-800-53@rev5-dogfood-20261006 to=nist-800-53@rev5-dogfood-20261006
+edge: ← uses from ARCH-DEVENV-IDENTITY
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -9185,6 +9190,104 @@ RELATIONS:
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
+[REQUIREMENT]
+UID: FIX-ALLOW-DEVENV-SMOKE
+STATUS: Active
+TITLE: Fresh clone reaches healthy instance and seed loads
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). From a clean clone of the repo, following the documented clone-to-running sequence yields: Compose services healthy, API health/version OK (M04), and dogfood seed loaded (seed identities/grants/requirement fixtures queryable). Pairs ARCH-DEVENV-CLONE / ARCH-DEVENV-SEED / ARCH-DEVENV-HEALTH.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-ALLOW-DEVENV-SMOKE
+VERSION_N: 0
+priority: 20
+iteration: iter-r1
+security.catalog_ref: CM-6
+security.verification_note: FIXTURE / TEST BED for developer environment smoke and prod-disable.
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-CLONE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-HEALTH
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: M04
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-DENY-DEVENV-PROD-LOGIN
+STATUS: Active
+TITLE: Dev identity path denied or absent in production builds
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). With a production build or production configuration, attempting the local/dev identity path (OIDC stub or dev-login) is denied or the route/config is absent → expect unauthorized/forbidden (or missing endpoint). Enterprise SSO (A01) remains the only sign-in path. Pairs ARCH-DEVENV-IDENTITY and REQAML-SEC-SSO.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-DENY-DEVENV-PROD-LOGIN
+VERSION_N: 0
+rbac_op: auth:signin
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: AC-3: production builds must not accept the local-only identity path.
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222518 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-IDENTITY
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222518
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+STATUS: Active
+TITLE: Re-run migrations and dogfood seed is idempotent
+STATEMENT: >>>
+FIXTURE / TEST BED (not a product feature). After a successful first migration + dogfood seed load, re-running the same migrate/seed command (or Compose first-start hook) succeeds without duplicate key errors and leaves fixture row counts unchanged. Pairs ARCH-DEVENV-SEED.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+VERSION_N: 0
+priority: 25
+iteration: iter-r1
+security.catalog_ref: CM-6
+security.verification_note: FIXTURE / TEST BED for developer environment smoke and prod-disable.
+edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-FIX
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-6
+  ROLE: ConformsTo
+
 [[/SECTION]]
 
 [[SECTION]]
@@ -9849,5 +9952,288 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
+
+[[/SECTION]]
+
+[[SECTION]]
+UID: SEC-DEVENV
+TITLE: Developer environment
+
+[TEXT]
+UID: SEC-DEVENV-INTRO
+STATEMENT: >>>
+Developer environment for ReqAML: Docker Compose is the single supported local stand-up path. Compose services cover the C4 L2 containers (Postgres, API, Web UI, Sync worker) plus a non-prod local identity stub. Hybrid (deps in Compose, app native with hot reload) and full-container modes are both supported. Clone-to-running must be short and documented; migrations and dogfood seed load automatically or with one command; secrets stay out of source; production builds disable local identity.
+<<<
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-COMPOSE
+STATUS: Active
+TITLE: Compose is the single supported dev entry point
+STATEMENT: >>>
+Docker Compose is the single supported developer entry point for ReqAML. The repository includes the Compose file(s) and an env template. Compose services derive from the C4 L2 containers: Postgres (database), API (Node/TypeScript OpenAPI), Web UI (React), and Sync worker (DevOps work-item sync), plus a non-prod local identity stub for A01-aligned sign-in. Operators do not invent ad-hoc local wiring outside Compose for first-time stand-up.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-COMPOSE
+VERSION_N: 0
+priority: 15
+iteration: iter-r0
+security.catalog_ref: CM-2
+security.verification_note: CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.
+edge: ← refines from ARCH-DEVENV-MODES
+edge: ← refines from ARCH-DEVENV-CLONE
+edge: ← refines from ARCH-DEVENV-SEED
+edge: ← refines from ARCH-DEVENV-PARITY
+edge: ← refines from ARCH-DEVENV-HEALTH
+edge: ← uses from ARCH-DEVENV-SECRETS
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+
+[[SECTION]]
+UID: ARCH-DEVENV-COMPOSE-CHILDREN
+TITLE: Children of ARCH-DEVENV-COMPOSE
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-MODES
+STATUS: Active
+TITLE: Hybrid and full-container run modes
+STATEMENT: >>>
+ReqAML supports two Compose-backed run modes: (1) hybrid — Compose provides dependencies (at least Postgres and the local identity stub); the API and/or Web UI run as native Node processes with hot reload against those deps; (2) full-container — API, Web UI, Sync worker, and dependencies all run as Compose services from built images. Both modes share the same Compose project and env contract so developers can switch without re-wiring.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-MODES
+VERSION_N: 0
+priority: 15
+iteration: iter-r0
+security.catalog_ref: CM-2
+security.verification_note: CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.
+edge: ← uses from ARCH-DEVENV-PARITY
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-CLONE
+STATUS: Active
+TITLE: Clone-to-running documented short path
+STATEMENT: >>>
+A new developer clones the repo and reaches a working instance via a documented short sequence (for example: copy env template → compose up → open the published URL) without manual database schema setup. Target: a healthy UI/API against a migrated database with dogfood fixtures available for local exercise. Documentation lives in-repo beside the Compose files.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-CLONE
+VERSION_N: 0
+priority: 10
+iteration: iter-r0
+security.catalog_ref: CM-2
+security.verification_note: CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.
+edge: ← uses from ARCH-DEVENV-SEED
+edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-HEALTH
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-IDENTITY
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-SEED
+STATUS: Active
+TITLE: Migrations and dogfood seed on first start (idempotent)
+STATEMENT: >>>
+On first start (or via one documented command), database migrations and the dogfood seed load run so a fresh instance can act as fixture data and a test oracle. Re-running migrations and seed load is idempotent: repeat application does not duplicate rows or fail on already-applied schema. Seed load must not be required as a production deployment step.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-SEED
+VERSION_N: 0
+priority: 15
+iteration: iter-r0
+security.catalog_ref: CM-6
+security.verification_note: CM-6 configuration settings via Compose + .env; no secrets in source.
+edge: ← uses from ARCH-DEVENV-CLONE
+edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
+edge: ← uses from FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+edge: → uses to ARCH-DEVENV-CLONE (RELATIONS TYPE: Child; Parent would cycle)
+edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CM-6
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: ARCH-DEVENV-CLONE
+  ROLE: Uses
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-PARITY
+STATUS: Active
+TITLE: Full-container Dockerfile matches deployment image
+STATEMENT: >>>
+The container image used for full-container development is built from the same Dockerfile used for deployment (multi-stage builds are allowed). Dev/prod differences are configuration and Compose overrides (ports, env, volume mounts, hot-reload sidecars), not a divergent Dockerfile tree, so local container runs exercise the deployable image contract.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-PARITY
+VERSION_N: 0
+priority: 20
+iteration: iter-r0
+security.catalog_ref: CM-2
+security.verification_note: CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-MODES
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-HEALTH
+STATUS: Active
+TITLE: Compose service health checks and readiness
+STATEMENT: >>>
+Compose services define health checks and readiness so `compose up` (and dependents) report healthy only when dependencies are ready. API readiness aligns with M04 (health/version without leaking client data). Unhealthy deps must block or clearly fail dependent app start rather than silently serving a broken instance.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-HEALTH
+VERSION_N: 0
+rbac_op: ops:health
+priority: 15
+iteration: iter-r0
+security.catalog_ref: CM-6
+security.verification_note: CM-6 configuration settings via Compose + .env; no secrets in source.
+edge: ← uses from ARCH-DEVENV-CLONE
+edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
+edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: M04
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-6
+  ROLE: ConformsTo
+
+[[/SECTION]]
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-IDENTITY
+STATUS: Active
+TITLE: Local identity stub for non-prod; disabled in production builds
+STATEMENT: >>>
+Local development provides a way to sign in without the enterprise IdP (a local OIDC stub or equivalent dev-login path) so A01 session establishment, grants, and Scoped View can be exercised offline. The local identity path is clearly disabled or omitted in production builds and configurations (CM-7 / V-222518). Production continues to require enterprise SSO only (A01 / REQAML-SEC-SSO); no local password store is introduced for production. Which stub implementation is used is an open product choice until Dan locks it.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-IDENTITY
+VERSION_N: 0
+rbac_op: auth:signin
+priority: 10
+iteration: iter-r0
+security.catalog_ref: CM-7
+security.verification_note: CM-7 least functionality: local identity stub is non-essential and disabled in production.
+edge: ← uses from ARCH-DEVENV-CLONE
+edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222518 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CAP-SSO
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222518
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-SECRETS
+STATUS: Active
+TITLE: No secrets committed; .env.example; prod config separate
+STATEMENT: >>>
+No secrets (IdP client secrets, DB passwords, signing keys, API tokens) are committed to source control. The repo ships `.env.example` (or equivalent) with safe non-secret development defaults only. Production configuration is supplied separately (platform secrets / env injection) and is not the same file tree as the committed example. Aligns to CM-6 configuration settings and IA-5 authenticator protection.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-SECRETS
+VERSION_N: 0
+priority: 10
+iteration: iter-r0
+security.catalog_ref: IA-5
+security.verification_note: IA-5 authenticator protection: no secrets/authenticators committed to source.
+edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-6
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-5
+  ROLE: ConformsTo
 
 [[/SECTION]]

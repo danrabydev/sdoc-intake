@@ -1882,6 +1882,66 @@ requirement_lines:
   parent: SEC-FIX
   kind: requirement
   title: Deny cyber ship until required slots signed
+- base_uid: SEC-DEVENV
+  project_id: reqaml
+  parent:
+  kind: section
+  title: Developer environment
+- base_uid: ARCH-DEVENV-COMPOSE
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: requirement
+  title: Compose is the single supported dev entry point
+- base_uid: ARCH-DEVENV-MODES
+  project_id: reqaml
+  parent: ARCH-DEVENV-COMPOSE
+  kind: requirement
+  title: Hybrid and full-container run modes
+- base_uid: ARCH-DEVENV-CLONE
+  project_id: reqaml
+  parent: ARCH-DEVENV-COMPOSE
+  kind: requirement
+  title: Clone-to-running documented short path
+- base_uid: ARCH-DEVENV-SEED
+  project_id: reqaml
+  parent: ARCH-DEVENV-COMPOSE
+  kind: requirement
+  title: Migrations and dogfood seed on first start (idempotent)
+- base_uid: ARCH-DEVENV-IDENTITY
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: requirement
+  title: Local identity stub for non-prod; disabled in production builds
+- base_uid: ARCH-DEVENV-SECRETS
+  project_id: reqaml
+  parent: SEC-DEVENV
+  kind: requirement
+  title: No secrets committed; .env.example; prod config separate
+- base_uid: ARCH-DEVENV-PARITY
+  project_id: reqaml
+  parent: ARCH-DEVENV-COMPOSE
+  kind: requirement
+  title: Full-container Dockerfile matches deployment image
+- base_uid: ARCH-DEVENV-HEALTH
+  project_id: reqaml
+  parent: ARCH-DEVENV-COMPOSE
+  kind: requirement
+  title: Compose service health checks and readiness
+- base_uid: FIX-ALLOW-DEVENV-SMOKE
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Fresh clone reaches healthy instance and seed loads
+- base_uid: FIX-DENY-DEVENV-PROD-LOGIN
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Dev identity path denied or absent in production builds
+- base_uid: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  project_id: reqaml
+  parent: SEC-FIX
+  kind: requirement
+  title: Re-run migrations and dogfood seed is idempotent
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -4843,6 +4903,132 @@ requirement_versions:
   security:
     catalog_ref: AU-2
     verification_note: AU-2/3/12 workflow / approval / suspect audit.
+- uid: SEC-DEVENV
+  base_uid: SEC-DEVENV
+  version_n: 0
+  status: active
+  statement: 'Developer environment for ReqAML: Docker Compose is the single supported local stand-up path. Compose services cover the C4 L2 containers (Postgres, API, Web UI, Sync worker) plus a non-prod local identity stub. Hybrid (deps in Compose, app native with hot reload) and full-container modes are both supported. Clone-to-running must be short and documented; migrations and dogfood seed load automatically or with one command; secrets stay out of source; production builds disable local identity.'
+- uid: ARCH-DEVENV-COMPOSE
+  base_uid: ARCH-DEVENV-COMPOSE
+  version_n: 0
+  status: active
+  statement: 'Docker Compose is the single supported developer entry point for ReqAML. The repository includes the Compose file(s) and an env template. Compose services derive from the C4 L2 containers: Postgres (database), API (Node/TypeScript OpenAPI), Web UI (React), and Sync worker (DevOps work-item sync), plus a non-prod local identity stub for A01-aligned sign-in. Operators do not invent ad-hoc local wiring outside Compose for first-time stand-up.'
+  priority: 15
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: 'CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.'
+  grooming_state: detailed
+- uid: ARCH-DEVENV-MODES
+  base_uid: ARCH-DEVENV-MODES
+  version_n: 0
+  status: active
+  statement: 'ReqAML supports two Compose-backed run modes: (1) hybrid — Compose provides dependencies (at least Postgres and the local identity stub); the API and/or Web UI run as native Node processes with hot reload against those deps; (2) full-container — API, Web UI, Sync worker, and dependencies all run as Compose services from built images. Both modes share the same Compose project and env contract so developers can switch without re-wiring.'
+  priority: 15
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: 'CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.'
+  grooming_state: detailed
+- uid: ARCH-DEVENV-CLONE
+  base_uid: ARCH-DEVENV-CLONE
+  version_n: 0
+  status: active
+  statement: 'A new developer clones the repo and reaches a working instance via a documented short sequence (for example: copy env template → compose up → open the published URL) without manual database schema setup. Target: a healthy UI/API against a migrated database with dogfood fixtures available for local exercise. Documentation lives in-repo beside the Compose files.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: 'CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.'
+  grooming_state: detailed
+- uid: ARCH-DEVENV-SEED
+  base_uid: ARCH-DEVENV-SEED
+  version_n: 0
+  status: active
+  statement: 'On first start (or via one documented command), database migrations and the dogfood seed load run so a fresh instance can act as fixture data and a test oracle. Re-running migrations and seed load is idempotent: repeat application does not duplicate rows or fail on already-applied schema. Seed load must not be required as a production deployment step.'
+  priority: 15
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-6
+    verification_note: CM-6 configuration settings via Compose + .env; no secrets in source.
+  grooming_state: detailed
+- uid: ARCH-DEVENV-IDENTITY
+  base_uid: ARCH-DEVENV-IDENTITY
+  version_n: 0
+  status: active
+  statement: Local development provides a way to sign in without the enterprise IdP (a local OIDC stub or equivalent dev-login path) so A01 session establishment, grants, and Scoped View can be exercised offline. The local identity path is clearly disabled or omitted in production builds and configurations (CM-7 / V-222518). Production continues to require enterprise SSO only (A01 / REQAML-SEC-SSO); no local password store is introduced for production. Which stub implementation is used is an open product choice until Dan locks it.
+  priority: 10
+  iteration: iter-r0
+  rbac_op: auth:signin
+  security:
+    catalog_ref: CM-7
+    verification_note: 'CM-7 least functionality: local identity stub is non-essential and disabled in production.'
+  grooming_state: detailed
+- uid: ARCH-DEVENV-SECRETS
+  base_uid: ARCH-DEVENV-SECRETS
+  version_n: 0
+  status: active
+  statement: No secrets (IdP client secrets, DB passwords, signing keys, API tokens) are committed to source control. The repo ships `.env.example` (or equivalent) with safe non-secret development defaults only. Production configuration is supplied separately (platform secrets / env injection) and is not the same file tree as the committed example. Aligns to CM-6 configuration settings and IA-5 authenticator protection.
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: IA-5
+    verification_note: 'IA-5 authenticator protection: no secrets/authenticators committed to source.'
+  grooming_state: detailed
+- uid: ARCH-DEVENV-PARITY
+  base_uid: ARCH-DEVENV-PARITY
+  version_n: 0
+  status: active
+  statement: The container image used for full-container development is built from the same Dockerfile used for deployment (multi-stage builds are allowed). Dev/prod differences are configuration and Compose overrides (ports, env, volume mounts, hot-reload sidecars), not a divergent Dockerfile tree, so local container runs exercise the deployable image contract.
+  priority: 20
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-2
+    verification_note: 'CM-2 baseline: Compose + Dockerfile define the supported local/deploy baseline.'
+  grooming_state: detailed
+- uid: ARCH-DEVENV-HEALTH
+  base_uid: ARCH-DEVENV-HEALTH
+  version_n: 0
+  status: active
+  statement: Compose services define health checks and readiness so `compose up` (and dependents) report healthy only when dependencies are ready. API readiness aligns with M04 (health/version without leaking client data). Unhealthy deps must block or clearly fail dependent app start rather than silently serving a broken instance.
+  priority: 15
+  iteration: iter-r0
+  rbac_op: ops:health
+  security:
+    catalog_ref: CM-6
+    verification_note: CM-6 configuration settings via Compose + .env; no secrets in source.
+  grooming_state: detailed
+- uid: FIX-ALLOW-DEVENV-SMOKE
+  base_uid: FIX-ALLOW-DEVENV-SMOKE
+  version_n: 0
+  status: active
+  statement: 'FIXTURE / TEST BED (not a product feature). From a clean clone of the repo, following the documented clone-to-running sequence yields: Compose services healthy, API health/version OK (M04), and dogfood seed loaded (seed identities/grants/requirement fixtures queryable). Pairs ARCH-DEVENV-CLONE / ARCH-DEVENV-SEED / ARCH-DEVENV-HEALTH.'
+  priority: 20
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-6
+    verification_note: FIXTURE / TEST BED for developer environment smoke and prod-disable.
+- uid: FIX-DENY-DEVENV-PROD-LOGIN
+  base_uid: FIX-DENY-DEVENV-PROD-LOGIN
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). With a production build or production configuration, attempting the local/dev identity path (OIDC stub or dev-login) is denied or the route/config is absent → expect unauthorized/forbidden (or missing endpoint). Enterprise SSO (A01) remains the only sign-in path. Pairs ARCH-DEVENV-IDENTITY and REQAML-SEC-SSO.
+  priority: 15
+  iteration: iter-r1
+  rbac_op: auth:signin
+  security:
+    catalog_ref: AC-3
+    verification_note: 'AC-3: production builds must not accept the local-only identity path.'
+- uid: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  base_uid: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  version_n: 0
+  status: active
+  statement: FIXTURE / TEST BED (not a product feature). After a successful first migration + dogfood seed load, re-running the same migrate/seed command (or Compose first-start hook) succeeds without duplicate key errors and leaves fixture row counts unchanged. Pairs ARCH-DEVENV-SEED.
+  priority: 25
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-6
+    verification_note: FIXTURE / TEST BED for developer environment smoke and prod-disable.
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -8497,6 +8683,129 @@ edges:
 - from: ARCH-GATE-SIGNOFF
   to: ARCH-CYBER-GATE
   kind: uses
+- from: ARCH-DEVENV-MODES
+  to: ARCH-DEVENV-COMPOSE
+  kind: refines
+- from: ARCH-DEVENV-CLONE
+  to: ARCH-DEVENV-COMPOSE
+  kind: refines
+- from: ARCH-DEVENV-SEED
+  to: ARCH-DEVENV-COMPOSE
+  kind: refines
+- from: ARCH-DEVENV-SEED
+  to: ARCH-DEVENV-CLONE
+  kind: uses
+- from: ARCH-DEVENV-PARITY
+  to: ARCH-DEVENV-COMPOSE
+  kind: refines
+- from: ARCH-DEVENV-PARITY
+  to: ARCH-DEVENV-MODES
+  kind: uses
+- from: ARCH-DEVENV-HEALTH
+  to: ARCH-DEVENV-COMPOSE
+  kind: refines
+- from: ARCH-DEVENV-HEALTH
+  to: M04
+  kind: uses
+- from: ARCH-DEVENV-IDENTITY
+  to: A01
+  kind: refines
+- from: ARCH-DEVENV-IDENTITY
+  to: CAP-SSO
+  kind: uses
+- from: ARCH-DEVENV-SECRETS
+  to: ARCH-DEVENV-COMPOSE
+  kind: uses
+- from: ARCH-DEVENV-CLONE
+  to: ARCH-DEVENV-HEALTH
+  kind: uses
+- from: ARCH-DEVENV-CLONE
+  to: ARCH-DEVENV-SEED
+  kind: uses
+- from: ARCH-DEVENV-CLONE
+  to: ARCH-DEVENV-IDENTITY
+  kind: uses
+- from: FIX-ALLOW-DEVENV-SMOKE
+  to: ARCH-DEVENV-CLONE
+  kind: uses
+- from: FIX-ALLOW-DEVENV-SMOKE
+  to: ARCH-DEVENV-SEED
+  kind: uses
+- from: FIX-ALLOW-DEVENV-SMOKE
+  to: ARCH-DEVENV-HEALTH
+  kind: uses
+- from: FIX-ALLOW-DEVENV-SMOKE
+  to: M04
+  kind: uses
+- from: FIX-DENY-DEVENV-PROD-LOGIN
+  to: ARCH-DEVENV-IDENTITY
+  kind: uses
+- from: FIX-DENY-DEVENV-PROD-LOGIN
+  to: A01
+  kind: uses
+- from: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  to: ARCH-DEVENV-SEED
+  kind: uses
+- from: ARCH-DEVENV-COMPOSE
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-MODES
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-CLONE
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-PARITY
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-SEED
+  to: CM-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-HEALTH
+  to: CM-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-SECRETS
+  to: CM-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-SECRETS
+  to: IA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-IDENTITY
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-IDENTITY
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-IDENTITY
+  to: V-222518
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-DEVENV-PROD-LOGIN
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-DENY-DEVENV-PROD-LOGIN
+  to: V-222518
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-ALLOW-DEVENV-SMOKE
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  to: CM-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family

@@ -84,9 +84,9 @@ Re-run `patch_catalog_reverse_conforms.py` after re-copying catalogs from sdoc-i
 
 | Entity | Count (approx.) |
 |--------|----------------:|
-| requirement_lines | ~237 (sections + req/capability; + ARCH-MINT/SUSPECT/GATE-SIGNOFF + Cyber+QA FIX beds) |
-| requirement_versions | ~242 (incl. FIX-SUCC-2HOP superseded hops; + locked-decision ARCH/FIX) |
-| edges | ~928 (conforms_to + uses/satisfies/refines; + suspect detect bed) |
+| requirement_lines | ~249 (sections + req/capability; + ARCH-DEVENV-* + ARCH-MINT/SUSPECT/GATE-SIGNOFF + Cyber+QA FIX beds) |
+| requirement_versions | ~254 (incl. FIX-SUCC-2HOP superseded hops; + ARCH-DEVENV-* + locked-decision ARCH/FIX) |
+| edges | ~964 (conforms_to + uses/satisfies/refines; + ARCH-DEVENV + suspect detect bed) |
 | catalog_imprints | 2 (`nist-800-53@rev5-dogfood-20261006`, `asd-stig@v6r4`) |
 | contracts | 5 (Design-2026-10, Security package, Platform baseline, **Legacy intake closed**, Fixture doc-walk) |
 | releases | 2 (R0-sequences **shipped**, R1-core-ALM **planned** — includes obsolete `ARCH-CONTRACT` for stale-backlog UX) |
@@ -120,8 +120,9 @@ Re-run `patch_catalog_reverse_conforms.py` after re-copying catalogs from sdoc-i
 | SEC-API | API architecture | ARCH-API*, ARCH-OTEL |
 | SEC-SEC | Security / RBAC | CAP-SSO/SCOPED-VIEW/RBAC; product ConformsTo catalog `AC-*`/`AU-*`/`IA-*`/`SC-*`/`CM-*`/`SI-*` + STIG `V-*` |
 | SEC-MCP | MCP desks | MC01–MC03, CAP-MCP-DESK |
-| SEC-FIX | Cyber+QA fixtures (test beds) | FIX-DENY-*, FIX-ALLOW-*, FIX-COMPARE-2HOP, FIX-EXPORT-L02-GOLDEN, FIX-SUCC-2HOP, FIX-CONTRACT-DOC-*, FIX-REL-SNAP, FIX-DENY-NOOP-CONTENT, FIX-*-SUSPECT-*, FIX-*-PIN-*, FIX-*-APPROVE-*, FIX-DENY-SHIP-UNSIGNED, … |
+| SEC-FIX | Cyber+QA fixtures (test beds) | FIX-DENY-*, FIX-ALLOW-*, FIX-COMPARE-2HOP, FIX-EXPORT-L02-GOLDEN, FIX-SUCC-2HOP, FIX-CONTRACT-DOC-*, FIX-REL-SNAP, FIX-DENY-NOOP-CONTENT, FIX-*-SUSPECT-*, FIX-*-PIN-*, FIX-*-APPROVE-*, FIX-DENY-SHIP-UNSIGNED, FIX-*-DEVENV-*, … |
 | SEC-WF | Workflow + Cyber+QA locked ARCH | ARCH-WORKFLOW…, ARCH-MINT-KIND, ARCH-SUSPECT, ARCH-SUSPECT-QUEUE, ARCH-GATE-SIGNOFF |
+| SEC-DEVENV | Developer environment (Compose) | ARCH-DEVENV-COMPOSE/MODES/CLONE/SEED/IDENTITY/SECRETS/PARITY/HEALTH; FIX-ALLOW-DEVENV-SMOKE, FIX-DENY-DEVENV-PROD-LOGIN, FIX-ALLOW-DEVENV-SEED-IDEMPOTENT |
 
 ### Cyber+QA minimal cut
 
@@ -152,7 +153,7 @@ Client: `Raby-Family`. Project display name: **ReqAML** (working intake repo oft
 
 ## Source-of-truth note
 
-Working expanded seed: `/workspace/requirements-product-diagrams/seed/`. The copy at `repos/sdoc-intake/docs/design/seed/` may lag (small stub on some branches). Prefer this tree; sync converter + `dogfood.yaml` + `catalog/` + `out/` into sdoc-intake when updating PR `pr-11`.
+Canonical design tree for planning: `repos/sdoc-intake/docs/design/` on branch `pr-11`. `/workspace/requirements-product-diagrams/` is a working mirror of `docs/design/` — keep both identical after seed edits.
 
 ### 2026-10-07 encoding pass (approval / change sets / cyber gate)
 

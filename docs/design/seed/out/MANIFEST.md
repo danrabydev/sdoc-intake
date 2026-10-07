@@ -20,9 +20,9 @@ Target grammar: **StrictDoc 0.30**.
 
 | Entity | Count |
 |--------|------:|
-| requirement_lines | 237 |
-| requirement_versions | 242 |
-| edges | 928 |
+| requirement_lines | 249 |
+| requirement_versions | 254 |
+| edges | 964 |
 | contracts | 5 |
 | releases | 2 |
 | catalogs | 3 |
@@ -34,8 +34,8 @@ Target grammar: **StrictDoc 0.30**.
 
 | Kind | Count |
 |------|------:|
-| section lines | 18 |
-| non-section lines → REQUIREMENT | 219 |
+| section lines | 19 |
+| non-section lines → REQUIREMENT | 230 |
 | contracts | 5 |
 | releases | 2 |
 
@@ -43,10 +43,10 @@ Target grammar: **StrictDoc 0.30**.
 
 | Kind | Count |
 |------|------:|
-| conforms_to | 797 |
-| uses | 81 |
+| conforms_to | 812 |
+| uses | 96 |
 | satisfies | 28 |
-| refines | 22 |
+| refines | 28 |
 
 `conforms_to` pins are `(catalog_imprint_id, item_uid)` — `to` is the stable item UID in `catalog/*.sdoc` (`AC-3`, `V-222536`, …) and `catalog_imprint_id` names the published imprint (`nist-800-53@rev5-…`, `asd-stig@v6r4`). YAML `catalog_imprints[]` points at those `.sdoc` files. Project `REQAML-SEC-*` entries remain steward-mutable without imprint until publish; standards always require imprint publish. New imprint import does **not** auto-retarget live pins (see ARCH-CAT-IMPORT / ARCH-CAT-DRIFT).
 
