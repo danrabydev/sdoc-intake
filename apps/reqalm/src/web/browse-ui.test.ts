@@ -498,7 +498,11 @@ describe("browse UI render (jsdom)", () => {
               planned_on: "2026-10-01",
               shipped_on: "2026-10-02",
               notes,
-              delivered_capabilities: [{ uid: "CAP-1", title: "Cap one", status: "active" }],
+              delivered_capabilities: [
+                { uid: "CAP-ZEBRA", title: "Z cap", status: "active" },
+                { uid: "CAP-ALPHA", title: "A cap", status: "draft" },
+                { uid: "CAP-MID", title: "M cap", status: "shipped" },
+              ],
             },
           },
         };
@@ -513,9 +517,16 @@ describe("browse UI render (jsdom)", () => {
     });
     assert.ok(!main.querySelector("img"));
     assert.match(main.textContent ?? "", /onerror=alert\(1\)/);
-    assert.match(main.textContent ?? "", /Line one/);
-    assert.match(main.textContent ?? "", /Line two/);
-    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-1"]'));
+    const notesEl = main.querySelector(".statement-body");
+    assert.ok(notesEl);
+    assert.equal(notesEl.textContent, notes);
+    assert.equal(notesEl.childElementCount, 0);
+    assert.equal(notesEl.className, "statement-body");
+    const capUids = [...main.querySelectorAll("table.data-table tbody tr td:first-child a")].map((a) => a.textContent);
+    assert.deepEqual(capUids, ["CAP-ZEBRA", "CAP-ALPHA", "CAP-MID"]);
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-ZEBRA"]'));
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-ALPHA"]'));
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-MID"]'));
     assert.ok(main.querySelector('a[href="/app/projects/reqalm/releases?status=shipped"]'));
     const badMain = document.createElement("main");
     fetchCalls.length = 0;
