@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Add rel-r1-read-requirements (does not modify rel-r1-browse-clients-projects)."""
+"""Ship rel-r1-browse-ui-cp (PR #23); add rel-r1-read-requirements. Idempotent."""
 from __future__ import annotations
 
 import hashlib
@@ -12,6 +12,10 @@ from ruamel.yaml.comments import CommentedMap
 SEED = Path(__file__).resolve().parent.parent
 DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
+BROWSE_UI_CP_MERGE = "b5c7b5e9efd48de95e5e0ca5a71e23cb0a640f4a"
+SHIPPED_DATE = "2026-10-08"
+CAP_BROWSE_UI = "CAP-BROWSE-UI-CP"
+REL_BROWSE_UI = "rel-r1-browse-ui-cp"
 
 yaml = YAML()
 yaml.preserve_quotes = True
@@ -76,6 +80,23 @@ ARTIFACTS = [
 def main() -> None:
     with DOGFOOD.open("r", encoding="utf-8") as f:
         data = yaml.load(f)
+
+    rel_ui = find(data.get("releases"), "id", REL_BROWSE_UI)
+    if rel_ui:
+        rel_ui["status"] = "shipped"
+        rel_ui["shipped_on"] = SHIPPED_DATE
+        rel_ui["notes"] = (
+            f"PR #23 merged to main as {BROWSE_UI_CP_MERGE} on {SHIPPED_DATE}. "
+            "Read-only /app clients and projects screens on grant-scoped APIs."
+        )
+    ver_ui = find(data.get("requirement_versions"), "uid", CAP_BROWSE_UI)
+    if ver_ui:
+        ver_ui["status"] = "active"
+        ver_ui["verification_outcome"] = "pass"
+        ver_ui["security"] = {
+            "catalog_ref": "CM-2",
+            "verification_note": "Shipped with browse UI PR #23.",
+        }
 
     upsert(
         data.setdefault("requirement_lines", []),

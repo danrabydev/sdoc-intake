@@ -2662,7 +2662,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-CP
-STATUS: Draft
+STATUS: Active
 TITLE: Browse clients and projects UI (read-only)
 STATEMENT: >>>
 Read-only /app browse screens for grant-scoped clients and projects: paged clients list, client detail with projects, all-projects list with client name, and a project header stub (Requirements and Releases sections labelled coming next). Uses existing session/CSRF auth; API data rendered via safe DOM text only.
@@ -2674,7 +2674,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until browse UI PR merges.
+security.verification_note: Shipped with browse UI PR #23.
 delivered_by_release: R1 — browse clients and projects UI (read-only)
 <<<
 RELATIONS:
