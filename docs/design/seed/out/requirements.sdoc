@@ -3164,7 +3164,6 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-READ-HIERARCHY
-edge: ← satisfies from CAP-BROWSE-UI-TREE
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4099,9 +4098,6 @@ RELATIONS:
   VALUE: SEC-RL
 - TYPE: Parent
   VALUE: C06
-  ROLE: Satisfies
-- TYPE: Parent
-  VALUE: C07
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: ARCH-UI

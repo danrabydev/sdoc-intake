@@ -592,6 +592,267 @@ describe("browse UI render (jsdom)", () => {
     assert.doesNotMatch(plain.textContent ?? "", /Root section/);
   });
 
+  it("leaf treeitems have no expander and no aria-expanded", async () => {
+    const main = document.createElement("main");
+    await renderRequirementsTree(main, {
+      apiFn: mockFetch((url) => {
+        if (url.endsWith("tree?limit=100&offset=0")) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [
+                  { uid: "SEC-P", title: "Parent", kind: "section", type: "section", status: "active", child_count: 1 },
+                  { uid: "LEAF-R", title: "Leaf req", kind: "requirement", type: "requirement", status: "active", child_count: 0 },
+                ],
+                total: 2,
+              },
+            },
+          };
+        }
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+    });
+    const leaf = [...main.querySelectorAll('[role="treeitem"]')].find((n) => n.textContent?.includes("LEAF-R"));
+    assert.ok(leaf);
+    assert.equal(leaf?.querySelector(".req-tree-expander"), null);
+    assert.equal(leaf?.hasAttribute("aria-expanded"), false);
+  });
+
+  it("ArrowLeft collapses expanded nodes and moves from child to parent", async () => {
+    const main = document.createElement("main");
+    const apiFn = mockFetch((url) => {
+      if (url.endsWith("tree?limit=100&offset=0")) {
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: [{ uid: "SEC-P", title: "P", kind: "section", type: "section", status: "active", child_count: 1 }],
+              total: 1,
+            },
+          },
+        };
+      }
+      if (url.includes("parent=SEC-P")) {
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: [{ uid: "CHILD-R", title: "C", kind: "requirement", type: "requirement", status: "active", child_count: 0 }],
+              total: 1,
+            },
+          },
+        };
+      }
+      return { status: 404 };
+    });
+    await renderRequirementsTree(main, { apiFn, projectId: "reqalm" });
+    const tree = main.querySelector('[role="tree"]');
+    const parent = main.querySelector('[role="treeitem"][aria-level="1"]');
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(parent?.getAttribute("aria-expanded"), "true");
+    assert.equal(parent?.querySelector('[role="group"]')?.hasAttribute("hidden"), false);
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+    assert.equal(parent?.getAttribute("aria-expanded"), "false");
+    assert.equal(parent?.querySelector('[role="group"]')?.hidden, true);
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    assert.equal(main.querySelector('[role="treeitem"][tabindex="0"]')?.querySelector(".req-tree-uid")?.textContent, "CHILD-R");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+    assert.equal(main.querySelector('[role="treeitem"][tabindex="0"]')?.querySelector(".req-tree-uid")?.textContent, "SEC-P");
+  });
+
+  it("ArrowUp and End move focus among visible treeitems by uid", async () => {
+    const main = document.createElement("main");
+    await renderRequirementsTree(main, {
+      apiFn: mockFetch((url) => {
+        if (url.endsWith("tree?limit=100&offset=0")) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [
+                  { uid: "SEC-A", title: "A", kind: "section", type: "section", status: "active", child_count: 0 },
+                  { uid: "SEC-B", title: "B", kind: "section", type: "section", status: "active", child_count: 0 },
+                  { uid: "SEC-C", title: "C", kind: "section", type: "section", status: "active", child_count: 0 },
+                ],
+                total: 3,
+              },
+            },
+          };
+        }
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+    });
+    const tree = main.querySelector('[role="tree"]');
+    const uid = () => main.querySelector('[role="treeitem"][tabindex="0"]')?.querySelector(".req-tree-uid")?.textContent;
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    assert.equal(uid(), "SEC-C");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+    assert.equal(uid(), "SEC-B");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+    assert.equal(uid(), "SEC-A");
+  });
+
+  it("Enter activates the focused requirement link", async () => {
+    const main = document.createElement("main");
+    await renderRequirementsTree(main, {
+      apiFn: mockFetch((url) => {
+        if (url.endsWith("tree?limit=100&offset=0")) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [{ uid: "REQ-ENTER", title: "Enter me", kind: "requirement", type: "requirement", status: "active", child_count: 0 }],
+                total: 1,
+              },
+            },
+          };
+        }
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+    });
+    const tree = main.querySelector('[role="tree"]');
+    const link = main.querySelector('a[href="/app/projects/reqalm/requirements/REQ-ENTER"]');
+    assert.ok(link);
+    let clicked = false;
+    link?.addEventListener("click", (ev) => {
+      clicked = true;
+      ev.preventDefault();
+    });
+    main.querySelector('[role="treeitem"]')?.setAttribute("tabindex", "0");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    assert.equal(clicked, true);
+  });
+
+  it("expand failure shows alert, resets aria-expanded, and retry succeeds", async () => {
+    const main = document.createElement("main");
+    let parentCalls = 0;
+    await renderRequirementsTree(main, {
+      apiFn: mockFetch((url) => {
+        if (url.endsWith("tree?limit=100&offset=0")) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [{ uid: "SEC-X", title: "X", kind: "section", type: "section", status: "active", child_count: 1 }],
+                total: 1,
+              },
+            },
+          };
+        }
+        if (url.includes("parent=SEC-X")) {
+          parentCalls += 1;
+          if (parentCalls === 1) return { status: 500 };
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [{ uid: "OK-CH", title: "Ok", kind: "requirement", type: "requirement", status: "active", child_count: 0 }],
+                total: 1,
+              },
+            },
+          };
+        }
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+    });
+    const parent = main.querySelector('[role="treeitem"]');
+    parent?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(parent?.getAttribute("aria-expanded"), "false");
+    assert.match(main.textContent ?? "", /Could not load children/);
+    assert.ok(main.querySelector('[role="alert"]'));
+    parent?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(parent?.getAttribute("aria-expanded"), "true");
+    assert.equal(parentCalls, 2);
+    assert.ok(main.querySelector('[role="treeitem"][aria-level="2"]'));
+  });
+
+  it("expander glyph and aria-label reflect expanded state", async () => {
+    const main = document.createElement("main");
+    await renderRequirementsTree(main, {
+      apiFn: mockFetch((url) => {
+        if (url.endsWith("tree?limit=100&offset=0")) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [{ uid: "SEC-G", title: "G", kind: "section", type: "section", status: "active", child_count: 1 }],
+                total: 1,
+              },
+            },
+          };
+        }
+        if (url.includes("parent=SEC-G")) {
+          return { status: 200, body: { data: { items: [], total: 0 } } };
+        }
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+    });
+    const btn = main.querySelector(".req-tree-expander");
+    assert.equal(btn?.textContent, "▸");
+    assert.equal(btn?.getAttribute("aria-label"), "Expand");
+    btn?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(btn?.textContent, "▾");
+    assert.equal(btn?.getAttribute("aria-label"), "Collapse");
+    btn?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    assert.equal(btn?.textContent, "▸");
+    assert.equal(btn?.getAttribute("aria-label"), "Expand");
+  });
+
+  it("ArrowRight on expanded node focuses first child; roving tabindex on treeitems only", async () => {
+    const main = document.createElement("main");
+    await renderRequirementsTree(main, {
+      apiFn: mockFetch((url) => {
+        if (url.endsWith("tree?limit=100&offset=0")) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [{ uid: "SEC-R", title: "R", kind: "section", type: "section", status: "active", child_count: 1 }],
+                total: 1,
+              },
+            },
+          };
+        }
+        if (url.includes("parent=SEC-R")) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [{ uid: "FIRST-CH", title: "First", kind: "requirement", type: "requirement", status: "active", child_count: 0 }],
+                total: 1,
+              },
+            },
+          };
+        }
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+    });
+    const tree = main.querySelector('[role="tree"]');
+    assert.equal(main.querySelectorAll('[role="treeitem"][tabindex="0"]').length, 1);
+    for (const btn of main.querySelectorAll(".req-tree-expander")) {
+      assert.equal(btn.getAttribute("tabindex"), "-1");
+    }
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    assert.equal(main.querySelector('[role="treeitem"][tabindex="0"]')?.querySelector(".req-tree-uid")?.textContent, "FIRST-CH");
+    assert.equal(main.querySelectorAll('[role="treeitem"][tabindex="0"]').length, 1);
+  });
+
   it("requirements tree API 404 does not throw", async () => {
     const main = document.createElement("main");
     await renderRequirementsTree(main, { apiFn: mockFetch(() => ({ status: 404 })), projectId: "reqalm" });

@@ -206,6 +206,12 @@ body {
   text-decoration: none;
 }
 
+.req-tree-load-error {
+  margin: 0.25rem 0 0.35rem 1.6rem;
+  font-size: 0.85rem;
+  color: #b42318;
+}
+
 .detail-meta {
   display: grid;
   grid-template-columns: auto 1fr;

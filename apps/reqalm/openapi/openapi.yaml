@@ -145,6 +145,45 @@ paths:
           $ref: "#/components/responses/ProblemForbidden"
         "404":
           $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/requirements/{requirementId}:
+    get:
+      operationId: getRequirement
+      summary: Read a requirement (current version + hierarchy context)
+      tags: [requirements]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requirementId
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 128
+            pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+      responses:
+        "200":
+          description: Requirement detail (summary fields plus statement, attributes, hierarchy)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/RequirementDetail"
+                  request_id:
+                    type: string
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "403":
+          $ref: "#/components/responses/ProblemForbidden"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
   /api/v1/projects/{projectId}/grants:
     post:
       operationId: postProjectGrants
@@ -212,6 +251,31 @@ components:
         data: {}
         request_id:
           type: string
+    RequirementAncestor:
+      type: object
+      required: [uid, title, kind]
+      properties:
+        uid:
+          type: string
+          description: Ancestor line base_uid
+        title:
+          type: string
+          description: Line title (current version title when available)
+        kind:
+          type: string
+          description: Line kind (e.g. section, requirement, capability)
+    RequirementDetail:
+      type: object
+      description: Current-version requirement read model
+      properties:
+        parent_uid:
+          type: [string, "null"]
+          description: Direct parent line base_uid, or null when the line is a project root
+        ancestors:
+          type: array
+          description: Root-first chain of ancestor lines (excludes the requirement itself)
+          items:
+            $ref: "#/components/schemas/RequirementAncestor"
     ProblemDetails:
       type: object
       required: [type, title, status, code, detail, request_id]

@@ -87,11 +87,11 @@ UI_STMT = (
     "Requirement detail breadcrumbs from ancestors (sections link to tree). Session/CSRF auth; safe DOM text only."
 )
 UI_ARTIFACTS = [
-    f"{REPO}/apps/reqalm/src/web/public/app.js",
     f"{REPO}/apps/reqalm/src/web/public/browse.js",
     f"{REPO}/apps/reqalm/src/web/public/styles.css",
     f"{REPO}/apps/reqalm/src/web/spa-shell-paths.ts",
     f"{REPO}/apps/reqalm/src/web/browse-ui.test.ts",
+    f"{REPO}/apps/reqalm/src/modules/requirements/requirements.service.ts",
     f"{REPO}/docs/design/seed/scripts/patch_browse_ui_tree_release.py",
 ]
 
@@ -151,7 +151,7 @@ def main() -> None:
     )
     edges = data.setdefault("edges", [])
     data["edges"] = [e for e in edges if e.get("from") != CAP_UI]
-    for to in ("C06", "C07", "ARCH-UI", "ARCH-UI-GUARD", CAP_API):
+    for to in ("C06", "ARCH-UI", "ARCH-UI-GUARD", CAP_API):
         ensure_edge(data["edges"], {"from": CAP_UI, "to": to, "kind": "satisfies"})
     arts = data.setdefault("capability_artifacts", [])
     data["capability_artifacts"] = [a for a in arts if a.get("requirement_version_uid") != CAP_UI]

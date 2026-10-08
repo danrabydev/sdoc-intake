@@ -8469,9 +8469,6 @@ capability_artifacts:
   uri: ../../../docs/design/seed/scripts/patch_read_hierarchy_release.py
 - requirement_version_uid: CAP-BROWSE-UI-TREE
   kind: other
-  uri: ../../../apps/reqalm/src/web/public/app.js
-- requirement_version_uid: CAP-BROWSE-UI-TREE
-  kind: other
   uri: ../../../apps/reqalm/src/web/public/browse.js
 - requirement_version_uid: CAP-BROWSE-UI-TREE
   kind: other
@@ -8482,6 +8479,9 @@ capability_artifacts:
 - requirement_version_uid: CAP-BROWSE-UI-TREE
   kind: other
   uri: ../../../apps/reqalm/src/web/browse-ui.test.ts
+- requirement_version_uid: CAP-BROWSE-UI-TREE
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/requirements/requirements.service.ts
 - requirement_version_uid: CAP-BROWSE-UI-TREE
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_browse_ui_tree_release.py
@@ -14187,9 +14187,6 @@ edges:
   kind: satisfies
 - from: CAP-BROWSE-UI-TREE
   to: C06
-  kind: satisfies
-- from: CAP-BROWSE-UI-TREE
-  to: C07
   kind: satisfies
 - from: CAP-BROWSE-UI-TREE
   to: ARCH-UI

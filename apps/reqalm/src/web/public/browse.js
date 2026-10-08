@@ -642,7 +642,7 @@ export async function renderRequirementsTree(container, { apiFn, projectId }) {
     el("h1", { text: "Requirements tree" }),
   );
   container.replaceChildren(shell);
-  const treeEl = el("div", { role: "tree", className: "req-tree", tabindex: "0" });
+  const treeEl = el("div", { role: "tree", className: "req-tree", tabindex: "-1" });
   shell.append(treeEl);
 
   const childCache = new Map();
@@ -668,6 +668,13 @@ export async function renderRequirementsTree(container, { apiFn, projectId }) {
     item.focus();
   }
 
+  function syncExpander(item, isOpen) {
+    const btn = item.querySelector(".req-tree-expander");
+    if (!btn) return;
+    btn.textContent = isOpen ? "▾" : "▸";
+    btn.setAttribute("aria-label", isOpen ? "Collapse" : "Expand");
+  }
+
   async function mountChildren(group, parentUid, level) {
     group.replaceChildren();
     const items = await loadChildren(parentUid);
@@ -685,6 +692,7 @@ export async function renderRequirementsTree(container, { apiFn, projectId }) {
           type: "button",
           className: "req-tree-expander",
           "aria-label": "Expand",
+          tabindex: "-1",
           text: "▸",
         });
         const groupChild = el("div", { role: "group", className: "req-tree-group", hidden: "" });
@@ -708,17 +716,36 @@ export async function renderRequirementsTree(container, { apiFn, projectId }) {
     if (open) {
       expanded.delete(uid);
       item.setAttribute("aria-expanded", "false");
+      syncExpander(item, false);
       group.hidden = true;
       return;
     }
+    item.querySelector(".req-tree-load-error")?.remove();
     expanded.add(uid);
     item.setAttribute("aria-expanded", "true");
+    syncExpander(item, true);
     group.hidden = false;
-    if (!group.childNodes.length) await mountChildren(group, uid, childLevel);
+    if (!group.childNodes.length) {
+      try {
+        await mountChildren(group, uid, childLevel);
+      } catch {
+        expanded.delete(uid);
+        item.setAttribute("aria-expanded", "false");
+        syncExpander(item, false);
+        group.hidden = true;
+        group.replaceChildren();
+        item.append(el("div", { role: "alert", className: "req-tree-load-error", text: "Could not load children" }));
+        return;
+      }
+    }
   }
 
   async function expandItem(item) {
-    if (item.getAttribute("aria-expanded") === "true") return;
+    if (item.getAttribute("aria-expanded") === "true") {
+      const firstChild = item.querySelector('[role="group"] [role="treeitem"]');
+      if (firstChild) focusItem(firstChild);
+      return;
+    }
     const uid = item.querySelector(".req-tree-uid")?.textContent;
     const group = item.querySelector('[role="group"]');
     if (!uid || !group) return;
@@ -731,6 +758,7 @@ export async function renderRequirementsTree(container, { apiFn, projectId }) {
     if (item.getAttribute("aria-expanded") === "true" && uid) {
       expanded.delete(uid);
       item.setAttribute("aria-expanded", "false");
+      syncExpander(item, false);
       const group = item.querySelector('[role="group"]');
       if (group) group.hidden = true;
       return true;
@@ -757,7 +785,7 @@ export async function renderRequirementsTree(container, { apiFn, projectId }) {
       focusItem(items[Math.max(idx - 1, 0)] ?? cur);
     } else if (ev.key === "ArrowRight") {
       ev.preventDefault();
-      void expandItem(cur);
+      void expandItem(cur).catch(() => {});
     } else if (ev.key === "ArrowLeft") {
       ev.preventDefault();
       if (!collapseItem(cur)) {
