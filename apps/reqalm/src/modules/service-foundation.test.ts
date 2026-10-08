@@ -8,7 +8,6 @@ import {
   type TestApp,
 } from "../test/harness.js";
 import { finishedSpans, resetTelemetrySpans } from "../test/otel-testing.js";
-import { DEFAULT_PAGE_SIZE } from "../core/paging.js";
 
 let ctx: TestApp;
 
@@ -44,18 +43,20 @@ async function loginToken(username = "casey-reader@dev.local"): Promise<string> 
   return issueTestAccessToken(ctx.app, username);
 }
 
-async function agentToken(): Promise<string> {
+async function agentToken(role?: string): Promise<string> {
+  const params = new URLSearchParams({
+    grant_type: "client_credentials",
+    client_id: "reqalm-agent-dev",
+    client_secret: TEST_AGENT_SECRET,
+    agent_name: "cursor-cloud",
+    resource: TEST_API_RESOURCE,
+  });
+  if (role) params.set("role", role);
   const res = await inject({
     method: "POST",
     url: "/oauth/token",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    payload: new URLSearchParams({
-      grant_type: "client_credentials",
-      client_id: "reqalm-agent-dev",
-      client_secret: TEST_AGENT_SECRET,
-      agent_name: "cursor-cloud",
-      resource: TEST_API_RESOURCE,
-    }).toString(),
+    payload: params.toString(),
   });
   assert.equal(res.statusCode, 200);
   return (res.json() as { access_token: string }).access_token;
@@ -593,7 +594,7 @@ describe("browse clients and projects", () => {
       await inject({ method: "GET", url: "/api/v1/clients/reqalm-client/projects", headers: h })
     ).json() as { data: { items: Array<{ id: string }>; limit: number } };
     assert.deepEqual(page.data.items.map((p) => p.id), ["reqalm"]);
-    assert.equal(page.data.limit, DEFAULT_PAGE_SIZE);
+    assert.equal(page.data.limit, 20);
     assert.equal((await inject({ method: "GET", url: "/api/v1/projects?limit=500", headers: h })).statusCode, 400);
   });
 
@@ -628,6 +629,40 @@ describe("browse clients and projects", () => {
     assert.equal(
       (await inject({ method: "GET", url: "/api/v1/projects/secret-proj", headers: bearer(token) })).statusCode,
       403,
+    );
+  });
+
+  it("agent Reader token lists Project admin grant on reqalm via narrowed authorize", async () => {
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-agent-padmin-reqalm', 'reqalm', 'agent-cursor-cloud', 'Project admin') ON CONFLICT DO NOTHING`,
+    );
+    const token = await agentToken("Reader");
+    assert.deepEqual(await listIds("/api/v1/projects", token), ["reqalm"]);
+    assert.deepEqual(await listIds("/api/v1/clients", token), ["reqalm-client"]);
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/clients/reqalm-client", headers: bearer(token) })).statusCode,
+      200,
+    );
+  });
+
+  it("agent Reader token excludes project where only non-Reader listing role is granted", async () => {
+    await ctx.pool.query(
+      `INSERT INTO clients (id, name) VALUES ('browse-client-p2', 'Browse P2') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO projects (id, client_id, name) VALUES ('browse-p2', 'browse-client-p2', 'Browse P2') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-agent-padmin-p2', 'browse-p2', 'agent-cursor-cloud', 'Project admin') ON CONFLICT DO NOTHING`,
+    );
+    const token = await agentToken("Reader");
+    assert.deepEqual(await listIds("/api/v1/projects", token), ["reqalm"]);
+    assert.deepEqual(await listIds("/api/v1/clients", token), ["reqalm-client"]);
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/clients/browse-client-p2", headers: bearer(token) })).statusCode,
+      404,
     );
   });
 });
