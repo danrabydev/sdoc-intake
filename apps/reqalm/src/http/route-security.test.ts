@@ -36,7 +36,7 @@ describe("route security registration", () => {
     );
   });
 
-  it("every /api/v1 business route uses defineOperationRoute with matching security", () => {
+  it("every /api/ business route uses defineOperationRoute with matching security", () => {
     const routes = listRoutesForSecurityAudit(ctx.app);
     const violations = assertBusinessApiRoutesCompliant(routes);
     assert.deepEqual(
@@ -82,6 +82,38 @@ describe("assertBusinessApiRoutesCompliant (mutation cases)", () => {
     ];
     const violations = assertBusinessApiRoutesCompliant(routes);
     assert.ok(violations.some((v) => v.includes("disagrees with operation")));
+  });
+
+  const hand = (method: string, url: string, security?: RegisteredRouteSecurity["security"]) =>
+    [{ method, url, security, operationRoute: false }] as RegisteredRouteSecurity[];
+
+  it("allowlist is exact on method and path", () => {
+    assert.deepEqual(assertBusinessApiRoutesCompliant(hand("GET", "/api/v1/auth/session", { kind: "public" })), []);
+    assert.deepEqual(assertBusinessApiRoutesCompliant(hand("HEAD", "/api/v1/seed/summary", { kind: "public" })), []);
+    for (const [method, url] of [
+      ["DELETE", "/api/v1/auth/session"],
+      ["POST", "/api/v1/seed/summary"],
+      ["GET", "/api/v1/auth/session/extra"],
+      ["GET", "/api/v1/auth/upstream/connectors/:id"],
+      ["GET", "/api/v1/auth"],
+    ]) {
+      assert.equal(
+        assertBusinessApiRoutesCompliant(hand(method, url, { kind: "authenticated" })).length,
+        1,
+        `${method} ${url} must not be exempt`,
+      );
+    }
+  });
+
+  it("covers every /api/ version, and permission markers anywhere", () => {
+    assert.equal(assertBusinessApiRoutesCompliant(hand("GET", "/api/v2/x", { kind: "authenticated" })).length, 1);
+    assert.equal(
+      assertBusinessApiRoutesCompliant(hand("POST", "/admin", { kind: "permission", permission: "grant:manage" })).length,
+      1,
+    );
+    // Outside /api/, a non-permission route is left to the all-routes declaration check.
+    assert.deepEqual(assertBusinessApiRoutesCompliant(hand("GET", "/admin", { kind: "authenticated" })), []);
+    assert.deepEqual(assertAllApiRoutesDeclared(hand("GET", "/admin")), ["GET /admin"]);
   });
 
   it("detects a live hand-registered business route on a throwaway app", async () => {

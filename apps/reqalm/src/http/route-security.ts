@@ -53,20 +53,23 @@ function securityEqual(a: RouteSecurity | undefined, b: RouteSecurity | undefine
 }
 
 /**
- * `/api/v1` routes that are not business operations (OAuth-shaped auth endpoints and dev seed summary).
- * These stay hand-registered; everything else under `/api/v1` must use {@link defineOperationRoute}.
+ * Exact `METHOD url` pairs under `/api/` that are not business operations (OAuth-shaped auth endpoints
+ * and the dev seed summary). They stay hand-registered; every other `/api/` route must use
+ * {@link defineOperationRoute}. HEAD is checked as GET (Fastify derives HEAD routes from GET routes).
  */
-export const API_V1_NON_BUSINESS_ROUTES = new Set([
-  "/api/v1/auth/local/login",
-  "/api/v1/auth/session",
-  "/api/v1/auth/signout",
-  "/api/v1/auth/upstream/connectors",
-  "/api/v1/seed/summary",
+export const API_NON_OPERATION_ROUTES = new Set([
+  "POST /api/v1/auth/local/login",
+  "GET /api/v1/auth/session",
+  "POST /api/v1/auth/signout",
+  "GET /api/v1/auth/upstream/connectors",
+  "GET /api/v1/seed/summary",
 ]);
 
-function isBusinessApiV1Route(url: string): boolean {
-  if (!url.startsWith("/api/v1/")) return false;
-  return !API_V1_NON_BUSINESS_ROUTES.has(url);
+function requiresOperationRoute(r: RegisteredRouteSecurity): boolean {
+  if (r.security?.kind === "permission") return true;
+  if (!r.url.startsWith("/api/")) return false;
+  const method = r.method === "HEAD" ? "GET" : r.method;
+  return !API_NON_OPERATION_ROUTES.has(`${method} ${r.url}`);
 }
 
 /** Every route registered after {@link installRouteCapture}, as captured by its onRoute hook. */
@@ -141,19 +144,18 @@ export function assertAllApiRoutesDeclared(routes: RegisteredRouteSecurity[]): s
   return missing;
 }
 
-/** Fail-closed checks for `/api/v1` business routes (helper-only + marker matches operation). */
+/**
+ * Fail-closed: every `/api/` route outside the exact allowlist, and every route anywhere that carries a
+ * `permission` marker, must come from defineOperationRoute with a marker matching its operation.
+ */
 export function assertBusinessApiRoutesCompliant(routes: RegisteredRouteSecurity[]): string[] {
   const violations: string[] = [];
   for (const r of routes) {
-    if (!isBusinessApiV1Route(r.url)) continue;
+    if (!requiresOperationRoute(r)) continue;
 
     const label = `${r.method} ${r.url}`;
-    if (!r.operationRoute) {
+    if (!r.operationRoute || !r.operationRef) {
       violations.push(`${label}: must register via defineOperationRoute`);
-      continue;
-    }
-    if (!r.operationRef) {
-      violations.push(`${label}: missing reqalmOperationRef`);
       continue;
     }
     const expected = securityFromOperationRef(r.operationRef);
