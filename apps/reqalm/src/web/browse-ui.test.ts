@@ -495,47 +495,23 @@ describe("browse UI render (jsdom)", () => {
   });
 
   it("requirements tree loads roots and lazy children once with aria-level", async () => {
-    const main = document.createElement("main");
     let childFetches = 0;
-    const apiFn = mockFetch((url) => {
-      if (url === "/api/v1/projects/reqalm/requirements/tree?limit=100&offset=0") {
-        return {
-          status: 200,
-          body: {
-            data: {
-              items: [{ uid: "SEC-A", title: "Section A", kind: "section", type: "section", status: "active", child_count: 1 }],
-              limit: 100,
-              offset: 0,
-              total: 1,
-            },
-          },
-        };
-      }
-      if (url === "/api/v1/projects/reqalm/requirements/tree?limit=100&offset=0&parent=SEC-A") {
-        childFetches += 1;
-        return {
-          status: 200,
-          body: {
-            data: {
-              items: [{ uid: "CAP-1", title: "Cap one", kind: "capability", type: "capability", status: "draft", child_count: 0 }],
-              limit: 100,
-              offset: 0,
-              total: 1,
-            },
-          },
-        };
-      }
-      return { status: 404 };
+    const stub = treeFetchHandler([treeRow("SEC-A", "section", 1, "Section A")], {
+      children: { "SEC-A": [treeRow("CAP-1", "capability", 0, "Cap one")] },
     });
-    await renderRequirementsTree(main, { apiFn, projectId: "reqalm" });
-    assert.equal(fetchCalls.filter((u) => u.includes("/requirements/tree")).length, 1);
+    const { main, tick } = await mountTreeView((url) => {
+      if (url.includes("parent=SEC-A")) childFetches += 1;
+      return stub(url);
+    });
+    const rootsUrl = requirementsTreeApiPath("reqalm", null);
+    assert.equal(fetchCalls.filter((u) => u === rootsUrl).length, 1);
     const root = main.querySelector('[role="treeitem"][aria-level="1"]');
     assert.ok(root);
     assert.equal(root?.getAttribute("aria-expanded"), "false");
     assert.match(root?.textContent ?? "", /section/);
     assert.match(root?.textContent ?? "", /SEC-A/);
     root?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-    await new Promise((r) => setTimeout(r, 0));
+    await tick(0);
     assert.equal(childFetches, 1);
     assert.equal(fetchCalls.filter((u) => u.includes("parent=SEC-A")).length, 1);
     const child = main.querySelector('[role="treeitem"][aria-level="2"]');
@@ -543,48 +519,33 @@ describe("browse UI render (jsdom)", () => {
     assert.match(child?.textContent ?? "", /capability/);
     assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-1"]'));
     root?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-    await new Promise((r) => setTimeout(r, 0));
+    await tick(0);
+    assert.equal(root?.getAttribute("aria-expanded"), "false");
+    const group = root?.querySelector('[role="group"]');
+    assert.equal(group?.hidden, true);
+    assert.ok(group?.closest("[hidden]") ?? group?.hasAttribute("hidden"));
     root?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-    await new Promise((r) => setTimeout(r, 0));
+    await tick(0);
     assert.equal(childFetches, 1);
   });
 
   it("tree keyboard navigation moves focus and expands with ArrowRight", async () => {
-    const main = document.createElement("main");
-    const apiFn = mockFetch((url) => {
-      if (url.endsWith("tree?limit=100&offset=0")) {
-        return {
-          status: 200,
-          body: {
-            data: {
-              items: [{ uid: "SEC-1", title: "S1", kind: "section", type: "section", status: "active", child_count: 1 }],
-              total: 1,
-            },
-          },
-        };
-      }
-      if (url.includes("parent=SEC-1")) {
-        return {
-          status: 200,
-          body: { data: { items: [{ uid: "R-1", title: "Req", kind: "requirement", type: "req", status: "active", child_count: 0 }], total: 1 } },
-        };
-      }
-      return { status: 404 };
-    });
-    await renderRequirementsTree(main, { apiFn, projectId: "reqalm" });
-    const tree = main.querySelector('[role="tree"]');
+    const { main, tree, tick, focusedUid } = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-1", "section", 1, "S1")], {
+        children: { "SEC-1": [treeRow("R-1", "requirement", 0, "Req")] },
+      }),
+    );
     const items = () => [...main.querySelectorAll('[role="treeitem"]')];
-    const focused = () => main.querySelector('[role="treeitem"][tabindex="0"]');
-    assert.equal(focused()?.querySelector(".req-tree-uid")?.textContent, "SEC-1");
+    assert.equal(focusedUid(), "SEC-1");
     tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
-    await new Promise((r) => setTimeout(r, 30));
+    await tick();
     assert.equal(items()[0]?.getAttribute("aria-expanded"), "true");
     assert.equal(items().length, 2);
     tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
-    assert.equal(focused()?.querySelector(".req-tree-uid")?.textContent, "R-1");
-    assert.equal(focused()?.getAttribute("aria-level"), "2");
+    assert.equal(focusedUid(), "R-1");
+    assert.equal(main.querySelector('[role="treeitem"][tabindex="0"]')?.getAttribute("aria-level"), "2");
     tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Home", bubbles: true }));
-    assert.equal(focused()?.querySelector(".req-tree-uid")?.textContent, "SEC-1");
+    assert.equal(focusedUid(), "SEC-1");
   });
 
   it("requirement detail breadcrumbs use ancestor order and section vs requirement links", async () => {
@@ -799,6 +760,22 @@ describe("browse UI render (jsdom)", () => {
     assert.equal(main.querySelectorAll('[role="tree"] [tabindex="0"]').length, 1);
   });
 
+  it("ArrowDown skips treeitems inside collapsed hidden groups", async () => {
+    const { main, tree, tick, focusedUid } = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-ONE", "section", 1, "One"), treeRow("SEC-TWO", "section", 0, "Two")], {
+        children: { "SEC-ONE": [treeRow("HID-CH", "requirement", 0, "Hidden child")] },
+      }),
+    );
+    const firstRoot = main.querySelector('[role="treeitem"][aria-level="1"]');
+    firstRoot?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick();
+    firstRoot?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick(0);
+    assert.equal(focusedUid(), "SEC-ONE");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    assert.equal(focusedUid(), "SEC-TWO");
+  });
+
   it("mouse collapse moves roving focus from hidden child to ancestor", async () => {
     const { main, tree, tick, focusedUid } = await mountTreeView(
       treeFetchHandler([treeRow("SEC-P", "section", 1, "P")], {
@@ -817,9 +794,31 @@ describe("browse UI render (jsdom)", () => {
   });
 
   it("requirements tree API 404 does not throw", async () => {
-    const main = document.createElement("main");
-    await renderRequirementsTree(main, { apiFn: mockFetch(() => ({ status: 404 })), projectId: "reqalm" });
+    const { main } = await mountTreeView(() => ({ status: 404 }));
     assert.match(main.textContent ?? "", /don't have access/i);
+  });
+
+  it("empty tree roots show exact empty copy", async () => {
+    const { main } = await mountTreeView(treeFetchHandler([]));
+    assert.equal(main.querySelector(".empty-state")?.textContent, "No requirements in this project tree.");
+  });
+
+  it("mountBrowseView renders requirements tree for tree route", async () => {
+    const main = document.createElement("main");
+    const route = parseAppRoute("/app/projects/reqalm/tree");
+    const roots = [treeRow("SEC-ROOT", "section", 0, "Root section")];
+    const stub = treeFetchHandler(roots);
+    const rootsUrl = requirementsTreeApiPath("reqalm", null);
+    await mountBrowseView(main, route, {
+      apiFn: mockFetch((url) => {
+        assert.equal(url, rootsUrl);
+        return stub(url);
+      }),
+    });
+    assert.ok(main.querySelector('[role="tree"]'));
+    assert.match(main.textContent ?? "", /SEC-ROOT/);
+    assert.match(main.textContent ?? "", /Root section/);
+    assert.equal(fetchCalls.filter((u) => u === rootsUrl).length, 1);
   });
 
   it("releases list paging via mountBrowseView preserves status in API and hrefs", async () => {
@@ -1154,6 +1153,7 @@ describe("app shell", () => {
     const route = parseAppRoute("/app/projects/reqalm/tree");
     renderAppShell("/app/projects/reqalm/tree", route);
     assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm/tree"]'));
+    assert.ok(!document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm"]'));
   });
 
   it("shows Releases nav active on releases routes", () => {
