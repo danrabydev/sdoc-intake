@@ -1457,7 +1457,7 @@ UID: RELEASE-rel-r1-seed-reset
 STATUS: Draft
 TITLE: Release R1 — dev dogfood seed reset (pnpm devenv:seed:reset)
 STATEMENT: >>>
-ReqALM release `R1 — dev dogfood seed reset (pnpm devenv:seed:reset)` (status=planned, planned_on=2026-10-08). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — dev dogfood seed reset (pnpm devenv:seed:reset)` (status=planned, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release

@@ -67,10 +67,14 @@ SEED_RESET_CAPS = [
         "Dev-only dogfood seed reset (pnpm devenv:seed:reset)",
         "Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows "
         "(requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml "
-        "in one transaction, preserving identities, grants, sessions/MFA, OpenBao keys, and append-only audit_events. "
-        "Runs only when the environment positively identifies as local devenv (REQALM_MODE=development, "
-        ".reqalm/devenv.env present, DATABASE_URL on 127.0.0.1:5432). Requires explicit --confirm after a plan. "
-        "Records one business audit event with load counts. Idempotent second run yields identical DB contents.",
+        "in one transaction (any load failure rolls back), preserving identities, grants, local accounts, "
+        "sessions/MFA, OpenBao keys, and append-only audit_events; identities and grants are only inserted when "
+        "missing, never rewritten or re-activated. Runs only when the environment positively identifies as local "
+        "devenv (REQALM_MODE=development, .reqalm/devenv.env present, NODE_ENV not production, and DATABASE_URL "
+        "resolving to 127.0.0.1 or localhost port 5432 including ?host=/?port= overrides); no environment "
+        "variable relaxes these checks. Requires explicit --confirm; --dry-run prints the plan read-only. "
+        "Records one devenv.seed.reset business audit event with wipe/load counts and an unverified CLI actor "
+        "label, attributed to no ReqALM identity. Idempotent second run yields identical DB contents.",
         [("ARCH-DEVENV-SEED", "satisfies"), ("FIX-ALLOW-DEVENV-SEED-IDEMPOTENT", "satisfies")],
         [
             f"{REPO}/apps/reqalm/src/seed/seed-reset.ts",
@@ -144,7 +148,7 @@ def main() -> None:
             id="rel-r1-seed-reset",
             project_id="reqalm",
             name="R1 — dev dogfood seed reset (pnpm devenv:seed:reset)",
-            planned_on="2026-10-08",
+            planned_on="2026-10-07",
             shipped_on=None,
             status="planned",
             delivers=deliver_uids,
