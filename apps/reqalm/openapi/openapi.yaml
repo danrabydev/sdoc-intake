@@ -95,6 +95,56 @@ paths:
           $ref: "#/components/responses/ProblemForbidden"
         "404":
           $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/requirements/tree:
+    get:
+      operationId: listRequirementTree
+      summary: List direct children in the requirement tree (lazy, paged)
+      tags: [requirements]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: parent
+          in: query
+          required: false
+          description: Parent line base_uid; omit for project roots
+          schema:
+            type: string
+            maxLength: 128
+            pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+      responses:
+        "200":
+          description: Paged tree nodes (current version summary + child_count)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataEnvelope"
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "403":
+          $ref: "#/components/responses/ProblemForbidden"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
   /api/v1/projects/{projectId}/grants:
     post:
       operationId: postProjectGrants

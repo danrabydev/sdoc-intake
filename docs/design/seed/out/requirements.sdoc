@@ -856,6 +856,7 @@ edge: ← uses from FIX-DENY-REVOKED
 edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR
 edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
+edge: ← satisfies from CAP-READ-HIERARCHY
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -2716,6 +2717,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with requirements read API PR #24.
 edge: ← satisfies from CAP-BROWSE-UI-REQS
+edge: ← satisfies from CAP-READ-HIERARCHY
 delivered_by_release: R1 — requirements read API
 <<<
 RELATIONS:
@@ -2818,7 +2820,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-RELEASES
-STATUS: Draft
+STATUS: Active
 TITLE: Browse releases UI (read-only)
 STATEMENT: >>>
 Read-only /app browse screens for grant-scoped releases within a project: paged list with status filter (planned | shipped, URL-driven), release detail (notes preserving line breaks and delivered capabilities linking to requirement detail). Uses session/CSRF auth; safe DOM text only. Trace links deferred.
@@ -2830,7 +2832,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until releases browse UI PR merges.
+security.verification_note: Shipped with releases browse UI PR #27 (merge 0d9623815cd17b405c27172f5ffad1e5ae9d1cfb).
 delivered_by_release: R1 — browse releases UI (read-only)
 <<<
 RELATIONS:
@@ -3110,6 +3112,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-TREE
 edge: ← uses from N01
+edge: ← satisfies from CAP-READ-HIERARCHY
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1-core-ALM
@@ -3159,6 +3162,7 @@ priority: 40
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← satisfies from CAP-READ-HIERARCHY
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4026,6 +4030,48 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-READ-HIERARCHY
+STATUS: Draft
+TITLE: Read requirement hierarchy (lazy tree API)
+STATEMENT: >>>
+Grant-scoped requirement hierarchy read API: lazy paged GET /api/v1/projects/:projectId/requirements/tree?parent=<base_uid> returning direct children in dogfood sibling order with uid, title, kind, type, status, and child_count (sections and requirements alike; roots = parent null). Optional parent_uid and ancestors on detail. Parent pointers already live on requirement_lines (001); loader adds sibling_order and rejects cross-project parents. Trace edges and obsolete-line filtering are deferred.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-READ-HIERARCHY
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Planned until hierarchy read API PR merges.
+delivered_by_release: R1 — requirement hierarchy read API
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RL
+- TYPE: Parent
+  VALUE: C06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: C07
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-READ-REQS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-read-hierarchy
   ROLE: Delivers
 
 [[/SECTION]]
@@ -8708,6 +8754,7 @@ edge: ← satisfies from CAP-SVC-IMPLICIT-PUBLIC-EXACT
 edge: ← satisfies from CAP-SVC-NON-API-AUTH-AUDIT
 edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
+edge: ← satisfies from CAP-READ-HIERARCHY
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -9284,6 +9331,7 @@ security.verification_note: Planned until operation-route PR merges.
 edge: ← refines from CAP-SVC-PROJECT-ID-SLUG
 edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
+edge: ← satisfies from CAP-READ-HIERARCHY
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<
 RELATIONS:

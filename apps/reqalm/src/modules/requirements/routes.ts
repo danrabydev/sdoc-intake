@@ -13,13 +13,16 @@ import type { RequestContextDeps } from "../../core/request-context.js";
 import type { PageResult } from "../../core/paging.js";
 import {
   getRequirement,
+  listRequirementTree,
   listRequirementVersions,
   listRequirements,
   type GetRequirementInput,
+  type ListRequirementTreeInput,
   type ListRequirementVersionsInput,
   type RequirementDetailDto,
   type RequirementListFilters,
   type RequirementSummaryDto,
+  type RequirementTreeNodeDto,
   type RequirementVersionDto,
 } from "./requirements.service.js";
 
@@ -63,6 +66,23 @@ const getRequirementOp: OperationDef<GetRequirementInput, RequirementDetailDto> 
   execute: getRequirement,
 };
 
+const treeQuerySchema = pageQuerySchema.extend({
+  parent: requirementIdSchema.optional(),
+});
+
+const listTreeOp: OperationDef<ListRequirementTreeInput, PageResult<RequirementTreeNodeDto>> = {
+  name: "requirements.list_tree",
+  permission: "requirement:read",
+  projectScoped: true,
+  projectIdFromInput: (input) => input.projectId,
+  auditMeta: (input) => ({
+    projectId: input.projectId,
+    targetType: "requirement",
+    targetId: input.parentUid,
+  }),
+  execute: listRequirementTree,
+};
+
 const listVersionsOp: OperationDef<
   ListRequirementVersionsInput,
   PageResult<RequirementVersionDto>
@@ -92,6 +112,21 @@ export function registerRequirementRoutes(app: FastifyInstance, deps: RequestCon
       return ok({ projectId: params.data.projectId, ...query.data });
     },
     schema: { tags: ["requirements"], summary: "List requirements in a project (current version summary)" },
+  });
+
+  defineOperationRoute(app, deps, {
+    method: "get",
+    url: "/api/v1/projects/:projectId/requirements/tree",
+    op: listTreeOp,
+    parseInput: (req) => {
+      const params = parseZodInput(z.object({ projectId: projectIdSchema }), req.params, "params");
+      if (!params.ok) return params;
+      const query = parseZodInput(treeQuerySchema, req.query, "query");
+      if (!query.ok) return query;
+      const { parent, ...page } = query.data;
+      return ok({ projectId: params.data.projectId, parentUid: parent ?? null, ...page });
+    },
+    schema: { tags: ["requirements"], summary: "List direct children in the requirement tree (lazy)" },
   });
 
   defineOperationRoute(app, deps, {

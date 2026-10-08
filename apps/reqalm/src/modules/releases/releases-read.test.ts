@@ -75,12 +75,15 @@ describe("releases read API", () => {
     assert.equal(planned.data.total, 3);
     assert.equal(planned.data.items.length, 3);
     assert.ok(planned.data.items.every((i) => i.status === "planned"));
-    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-browse-ui-releases"));
+    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-read-hierarchy"));
+    assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-browse-ui-releases"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-read-releases"));
     const shipped = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=shipped&limit=100", headers: bearer })
-    ).json() as { data: { total: number; items: Array<{ status: string }> } };
-    assert.equal(shipped.data.total, 17);
+    ).json() as { data: { total: number; items: Array<{ id: string; status: string }> } };
+    assert.equal(shipped.data.total, 18);
+    assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-read-releases"));
+    assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-browse-ui-releases"));
     assert.ok(shipped.data.items.every((i) => i.status === "shipped"));
   });
 
