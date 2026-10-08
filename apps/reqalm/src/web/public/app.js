@@ -46,6 +46,7 @@ function renderShell() {
       el("div", { className: "brand", text: "ReqALM" }),
       el("nav", {}, [
         el("a", { href: "/app", text: "Home" }),
+        el("a", { href: "/app/clients", text: "Clients" }),
         el("a", { href: "/app/requirements", text: "Requirements" }),
         el("a", { href: "/app/releases", text: "Releases" }),
       ]),
@@ -79,6 +80,25 @@ async function loadMe() {
     el("h2", { text: "Signed in" }),
     el("pre", { text: JSON.stringify(me, null, 2) }),
   );
+}
+
+async function renderBrowsePage(kind, id) {
+  renderShell();
+  const main = document.querySelector("main.content");
+  main.querySelector("h1").textContent = kind === "clients" ? "Clients" : "Project";
+  const section = el("section", { id: "browse" });
+  main.append(section);
+  const url =
+    kind === "clients"
+      ? "/api/v1/clients"
+      : `/api/v1/projects/${encodeURIComponent(id)}`;
+  const res = await api(url);
+  if (!res) return;
+  if (res.status === 404) {
+    section.replaceChildren(el("p", { className: "error", text: "Not found." }));
+    return;
+  }
+  section.replaceChildren(el("pre", { text: JSON.stringify((await res.json()).data, null, 2) }));
 }
 
 async function signOut() {
@@ -174,7 +194,10 @@ if (path === "/login" || path.startsWith("/login")) {
 } else if (path.startsWith("/app")) {
   sessionOk().then((ok) => {
     if (!ok) window.location.href = "/login";
-    else renderShell();
+    else if (path === "/app/clients") renderBrowsePage("clients");
+    else if (path.startsWith("/app/projects/")) {
+      renderBrowsePage("project", decodeURIComponent(path.slice("/app/projects/".length).split("/")[0] || ""));
+    } else renderShell();
   });
 } else if (path === "/") {
   sessionOk().then((ok) => {

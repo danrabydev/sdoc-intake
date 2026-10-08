@@ -228,8 +228,9 @@ describe("seed reset", () => {
     await loadDogfoodSeed(pg.pool, config, seed);
 
     await pg.pool.query(
-      `UPDATE requirement_versions SET status = 'active' WHERE uid = 'CAP-DEVENV-SEED-RESET'`,
+      `UPDATE requirement_versions SET status = 'draft' WHERE uid = 'CAP-DEVENV-SEED-RESET'`,
     );
+    await pg.pool.query(`UPDATE releases SET status = 'planned', shipped_on = NULL WHERE id = 'rel-r1-seed-reset'`);
     await pg.pool.query(
       `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)
        VALUES ('FIX-STALE-ROW', 'reqalm', 'SEC-DEVENV', 'requirement', 'stale row')`,
@@ -254,7 +255,7 @@ describe("seed reset", () => {
       `SELECT status FROM requirement_versions WHERE uid = $1`,
       ["CAP-DEVENV-SEED-RESET"],
     );
-    assert.equal(cap.rows[0]?.status, "draft");
+    assert.equal(cap.rows[0]?.status, "active");
 
     const stale = await pg.pool.query(
       `SELECT 1 FROM requirement_lines WHERE base_uid = 'FIX-STALE-ROW'`,
@@ -264,7 +265,7 @@ describe("seed reset", () => {
     const rel = await pg.pool.query(
       `SELECT status FROM releases WHERE id = 'rel-r1-seed-reset'`,
     );
-    assert.equal(rel.rows[0]?.status, "planned");
+    assert.equal(rel.rows[0]?.status, "shipped");
 
     assert.ok(result.auditRequestId);
     await pg.close();

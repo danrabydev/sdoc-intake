@@ -1,6 +1,6 @@
 import { SpanStatusCode, type Context } from "@opentelemetry/api";
 import type { ReadableSpan, Span, SpanProcessor } from "@opentelemetry/sdk-trace-node";
-import { redactInvalidProjectIds } from "../http/project-id.js";
+import { redactInvalidPathParamIds } from "../http/project-id.js";
 import { SAFE_SPAN_ERROR_MESSAGE } from "./trace-context.js";
 
 const URL_ATTRIBUTES = ["url.path", "url.full", "http.target", "http.url"] as const;
@@ -10,7 +10,7 @@ const URL_ATTRIBUTES = ["url.path", "url.full", "http.target", "http.url"] as co
  * handler spans, pg, undici, the OpenBao dependency span) put `error.message` into the status and
  * record the raw exception with its stack; and the http/Fastify spans carry the raw URL. So for
  * every span: an ERROR status keeps its code with a generic description, exception events keep only
- * `exception.type`, and an invalid project id in a URL attribute is redacted.
+ * `exception.type`, and invalid slug path params in URL attributes are redacted.
  */
 export function safeSpanView(span: ReadableSpan): ReadableSpan {
   const status =
@@ -25,7 +25,7 @@ export function safeSpanView(span: ReadableSpan): ReadableSpan {
   const attributes = { ...span.attributes };
   for (const key of URL_ATTRIBUTES) {
     const value = attributes[key];
-    if (typeof value === "string") attributes[key] = redactInvalidProjectIds(value);
+    if (typeof value === "string") attributes[key] = redactInvalidPathParamIds(value);
   }
   return Object.create(span, {
     status: { value: status, enumerable: true },

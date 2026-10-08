@@ -7,6 +7,7 @@ import {
   TEST_AGENT_SECRET,
   type TestApp,
 } from "../test/harness.js";
+import { resetTelemetrySpans } from "../test/otel-testing.js";
 
 let ctx: TestApp;
 
@@ -515,4 +516,74 @@ describe("unknown /api paths", () => {
       headers: { host: "localhost:3000", "x-request-id": rid },
     });
   }
+});
+
+describe("browse clients and projects", () => {
+  before(async () => {
+    await ctx.pool.query(
+      `INSERT INTO clients (id, name) VALUES ('other-family', 'Other') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO projects (id, client_id, name) VALUES ('secret-proj', 'other-family', 'Secret') ON CONFLICT DO NOTHING`,
+    );
+  });
+
+  it("lists grant-scoped clients and projects with paging cap", async () => {
+    const access = await loginToken();
+    const over = await inject({
+      method: "GET",
+      url: "/api/v1/projects?limit=500",
+      headers: { authorization: `Bearer ${access}` },
+    });
+    assert.equal(over.statusCode, 400);
+    const clients = await inject({
+      method: "GET",
+      url: "/api/v1/clients",
+      headers: { authorization: `Bearer ${access}` },
+    });
+    assert.equal(clients.statusCode, 200);
+    assert.deepEqual(
+      ((clients.json() as { data: { items: Array<{ id: string }> } }).data.items).map((c) => c.id),
+      ["reqalm-client"],
+    );
+    const projects = await inject({
+      method: "GET",
+      url: "/api/v1/projects",
+      headers: { authorization: `Bearer ${access}` },
+    });
+    assert.deepEqual(
+      ((projects.json() as { data: { items: Array<{ id: string }> } }).data.items).map((p) => p.id),
+      ["reqalm"],
+    );
+  });
+
+  it("client read and 404 without grant match missing id", async () => {
+    const access = await loginToken();
+    const h = { authorization: `Bearer ${access}` };
+    assert.equal((await inject({ method: "GET", url: "/api/v1/clients/reqalm-client", headers: h })).statusCode, 200);
+    const denied = await inject({ method: "GET", url: "/api/v1/clients/other-family", headers: h });
+    assert.equal(denied.statusCode, 404);
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/clients/no-such", headers: h })).statusCode,
+      404,
+    );
+  });
+
+  it("invalid client id is 400 after auth; audit and logs redact", async () => {
+    resetTelemetrySpans();
+    const access = await loginToken();
+    const logs = await captureAppLogs(async () => {
+      const res = await inject({
+        method: "GET",
+        url: "/api/v1/clients/ZZQMARK",
+        headers: { authorization: `Bearer ${access}`, "x-request-id": "browse-bad-client" },
+      });
+      assert.equal(res.statusCode, 400);
+    });
+    assert.ok(logs.includes("/api/v1/clients/[invalid]"));
+    const row = await ctx.pool.query<{ target_id: string | null }>(
+      `SELECT target_id FROM audit_events WHERE request_id = 'browse-bad-client'`,
+    );
+    assert.equal(row.rows[0]?.target_id, null);
+  });
 });

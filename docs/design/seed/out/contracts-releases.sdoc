@@ -1454,17 +1454,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-seed-reset
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — dev dogfood seed reset (pnpm devenv:seed:reset)
 STATEMENT: >>>
-ReqALM release `R1 — dev dogfood seed reset (pnpm devenv:seed:reset)` (status=planned, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — dev dogfood seed reset (pnpm devenv:seed:reset)` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-seed-reset
 project_id: reqalm
-shipped_on: None
-raw_status: planned
+shipped_on: 2026-10-08
+raw_status: shipped
 delivers: CAP-DEVENV-SEED-RESET
 delivers_count: 1
 <<<
@@ -1473,6 +1473,29 @@ RELATIONS:
   VALUE: SEC-RELEASES-EXPORT
 - TYPE: Parent
   VALUE: CAP-DEVENV-SEED-RESET
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-browse-clients-projects
+STATUS: Draft
+TITLE: Release R1 — browse clients and projects (read-only)
+STATEMENT: >>>
+ReqALM release `R1 — browse clients and projects (read-only)` (status=planned, planned_on=2026-10-08). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-browse-clients-projects
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-BROWSE-CP
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-BROWSE-CP
   ROLE: Delivers
 
 [[/SECTION]]
