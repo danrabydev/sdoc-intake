@@ -37,6 +37,7 @@
     "devenv:agent-token": "node scripts/devenv-agent-token.mjs",
     "devenv:smoke": "node scripts/devenv-smoke.mjs",
     "reqalm:migrate": "pnpm --filter @reqalm/app migrate",
-    "reqalm:seed": "pnpm --filter @reqalm/app seed"
+    "reqalm:seed": "pnpm --filter @reqalm/app seed",
+    "devenv:seed:reset": "pnpm --filter @reqalm/app seed:reset"
   }
 }

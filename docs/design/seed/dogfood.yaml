@@ -1172,6 +1172,15 @@ approval_records:
   notes: Planned for route-hardening PR; approve once merged and verified.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-devenv-seed-reset
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-SEED-RESET
+  status: unapproved
+  by:
+  at:
+  notes: Planned for seed-reset PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3033,6 +3042,11 @@ requirement_lines:
   parent: SEC-API
   kind: capability
   title: Authenticated non-/api routes audited or allowlisted
+- base_uid: CAP-DEVENV-SEED-RESET
+  project_id: reqalm
+  parent: SEC-DEVENV
+  kind: capability
+  title: Dev-only dogfood seed reset (pnpm devenv:seed:reset)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -7634,6 +7648,18 @@ requirement_versions:
     verification_note: Planned until route-hardening PR merges.
   statement_hash: sha256:c47ef0798ee91ded70d31d07f6b4b1313db3da40b616beaefaa89bc2e5566df5
   grooming_state: detailed
+- uid: CAP-DEVENV-SEED-RESET
+  base_uid: CAP-DEVENV-SEED-RESET
+  version_n: 0
+  status: draft
+  statement: Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction, preserving identities, grants, sessions/MFA, OpenBao keys, and append-only audit_events. Refuses production markers and runs only with explicit --confirm after printing a delete/load plan. Records one business audit event with load counts. Idempotent second run yields identical DB contents.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until seed-reset PR merges and is verified locally.
+  statement_hash: sha256:d7718f0ff74d5c3b3af56c7e4f0bd6f1fd59eb6c353b2d48bb838ac92fbb1022
+  grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -8106,6 +8132,15 @@ capability_artifacts:
 - requirement_version_uid: CAP-SVC-NON-API-AUTH-AUDIT
   kind: other
   uri: ../../../apps/reqalm/src/http/route-security.test.ts
+- requirement_version_uid: CAP-DEVENV-SEED-RESET
+  kind: other
+  uri: ../../../apps/reqalm/src/seed/seed-reset.ts
+- requirement_version_uid: CAP-DEVENV-SEED-RESET
+  kind: other
+  uri: ../../../apps/reqalm/src/cli/seed-reset.ts
+- requirement_version_uid: CAP-DEVENV-SEED-RESET
+  kind: other
+  uri: ../../../apps/reqalm/src/seed/seed-reset.test.ts
 edges:
 - from: CAP-SSO
   to: A01
@@ -13698,6 +13733,12 @@ edges:
 - from: CAP-SVC-NON-API-AUTH-AUDIT
   to: ARCH-API-RBAC
   kind: satisfies
+- from: CAP-DEVENV-SEED-RESET
+  to: ARCH-DEVENV-SEED
+  kind: satisfies
+- from: CAP-DEVENV-SEED-RESET
+  to: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -14197,6 +14238,16 @@ releases:
   - CAP-SVC-NON-API-AUTH-AUDIT
   cyber_gate: true
   notes: One PR = one release. @fastify/static 10.1.5 via @fastify/swagger-ui 6.1.1 (no override), project id slug rule (incl. over-long ids; invalid ids redacted in logs and spans), no error text on any exported span, exact METHOD + path implicit public allowlist, authenticated non-/api route guard, and QA tests for the reachedHandler guard and non-web 404. Planned until merged; the next PR marks it shipped at the merge sha.
+- id: rel-r1-seed-reset
+  project_id: reqalm
+  name: R1 — dev dogfood seed reset (pnpm devenv:seed:reset)
+  planned_on: '2026-10-08'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-DEVENV-SEED-RESET
+  cyber_gate: false
+  notes: One PR = one release. Dev-only wipe+reload of project fixture rows from dogfood.yaml without docker compose down -v. Planned until merged; flip to shipped at merge sha.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

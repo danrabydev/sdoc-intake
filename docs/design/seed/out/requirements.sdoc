@@ -12657,6 +12657,7 @@ security.catalog_ref: CM-6
 security.verification_note: FIXTURE / TEST BED for developer environment smoke and prod-disable.
 edge: ← satisfies from CAP-DEVENV-MIGRATE-SEED
 edge: ← satisfies from CAP-DEVENV-SMOKE
+edge: ← satisfies from CAP-DEVENV-SEED-RESET
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14410,6 +14411,7 @@ edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
 edge: ← uses from FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
 edge: ← uses from ARCH-DEVENV-IDENTITY.1
 edge: ← satisfies from CAP-DEVENV-MIGRATE-SEED
+edge: ← satisfies from CAP-DEVENV-SEED-RESET
 delivered_by_release: PR #12 — devenv foundation
 edge: → uses to ARCH-DEVENV-CLONE (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15280,6 +15282,36 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-test-hygiene
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-DEVENV-SEED-RESET
+STATUS: Draft
+TITLE: Dev-only dogfood seed reset (pnpm devenv:seed:reset)
+STATEMENT: >>>
+Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction, preserving identities, grants, sessions/MFA, OpenBao keys, and append-only audit_events. Refuses production markers and runs only with explicit --confirm after printing a delete/load plan. Records one business audit event with load counts. Idempotent second run yields identical DB contents.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-DEVENV-SEED-RESET
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until seed-reset PR merges and is verified locally.
+delivered_by_release: R1 — dev dogfood seed reset (pnpm devenv:seed:reset)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-seed-reset
   ROLE: Delivers
 
 [[/SECTION]]

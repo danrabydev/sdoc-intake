@@ -72,6 +72,15 @@ pnpm reqalm:seed
 
 Re-running seed is idempotent (`FIX-ALLOW-DEVENV-SEED-IDEMPOTENT`).
 
+When you change `docs/design/seed/dogfood.yaml` and an existing dev Postgres volume still has old fixture rows, reset project data from the YAML without wiping auth or volumes:
+
+```sh
+pnpm devenv:seed:reset --dry-run   # plan only
+pnpm devenv:seed:reset --confirm   # wipe + reload (dev-only; refuses production)
+```
+
+This deletes and reloads requirement lines/versions and releases for seeded projects, preserves identities, grants, sessions, OpenBao, and append-only `audit_events`, and writes one audit row for the reset.
+
 ### Smoke test (FIX-ALLOW-DEVENV-SMOKE)
 
 ```sh
