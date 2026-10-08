@@ -7,6 +7,7 @@ import { createTestApp, issueTestAccessToken, type TestApp } from "../test/harne
 import { requestIdFromHeaders } from "../telemetry/request-id.js";
 import { finishedSpans, resetTelemetrySpans } from "../test/otel-testing.js";
 import { defineOperationRoute, parseZodInput, projectIdSchema } from "./define-operation-route.js";
+import { redactInvalidPathParamIds } from "./project-id.js";
 
 let ctx: TestApp;
 let app: FastifyInstance;
@@ -343,6 +344,29 @@ describe("defineOperationRoute registration", () => {
       /listScope: true/,
       () => ok({}),
       "/api/v1/test/clients",
+    );
+  });
+
+  it("redacts invalid requirement id path segments", () => {
+    assert.equal(
+      redactInvalidPathParamIds("/api/v1/projects/reqalm/requirements/!!bad!!"),
+      "/api/v1/projects/reqalm/requirements/[invalid]",
+    );
+  });
+
+  it("throws when listScope is combined with projectScoped", () => {
+    assertRefused(
+      {
+        name: "x.list",
+        permission: "client:list",
+        listScope: true,
+        projectScoped: true,
+        projectIdFromInput: (i: { projectId: string }) => i.projectId,
+        execute: exec,
+      },
+      /listScope requires permission and excludes/,
+      () => ok({ projectId: "reqalm" }),
+      "/api/v1/test/projects/:projectId",
     );
   });
 
