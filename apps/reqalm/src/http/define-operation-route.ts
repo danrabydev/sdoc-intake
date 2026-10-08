@@ -49,6 +49,8 @@ export function parseZodInput<T>(
 }
 
 export const projectIdSchema = z.string().regex(PROJECT_ID_SLUG, "invalid project id");
+export const clientIdSchema = z.string().regex(PROJECT_ID_SLUG, "invalid client id");
+export const clientParamsSchema = z.object({ clientId: clientIdSchema });
 
 /**
  * Project scope of a project-scoped route: the `:projectId` path param, parsed before input validation.
@@ -65,7 +67,7 @@ const PROJECT_ID_PATH_PARAM = /\/:projectId(\/|$)/;
 /**
  * Fail closed at registration: a route must name its operation and its access (permission or
  * authenticated-only). Routes with `:projectId` must bind permission to that project; list routes
- * without it authorize against the union of the caller's grants.
+ * without it require listScope (per-project permission in execute).
  */
 function assertOperationBinding(
   label: string,
@@ -95,6 +97,12 @@ function assertOperationBinding(
   if (permission && !hasProjectPath && op!.projectScoped === true) {
     fail("projectScoped on a route without :projectId");
   }
+  if (permission && !hasProjectPath && op!.listScope !== true) {
+    fail("permission on route without :projectId requires listScope: true");
+  }
+  if (op!.listScope && (!permission || hasProjectPath || op!.projectScoped === true)) {
+    fail("listScope requires permission and excludes :projectId / projectScoped");
+  }
   if (op!.projectScoped && typeof op!.projectIdFromInput !== "function") {
     fail("projectScoped without projectIdFromInput");
   }
@@ -123,6 +131,7 @@ export function defineOperationRoute<TIn, TOut>(
     name: op.name,
     permission: op.permission,
     projectScoped: op.projectScoped,
+    listScope: op.listScope,
   };
   const scopeOf = op.projectScoped ? projectScopeFromPath : () => undefined;
   const reachedHandler = new WeakSet<FastifyRequest>();

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ship rel-r1-seed-reset; add rel-r1-browse-clients-projects. Idempotent."""
+"""Ship rel-r1-seed-reset; add rel-r1-browse-clients-projects."""
 from __future__ import annotations
 
 import hashlib
@@ -60,13 +60,14 @@ def ensure_edge(edges, edge):
 CAP = "CAP-BROWSE-CP"
 STMT = (
     "Grant-scoped read APIs: paged GET /api/v1/clients, /clients/:id, /projects, /clients/:id/projects; "
-    "shared PageQuery (max 100); invalid slug redaction on /clients/ and /projects/ paths; minimal /app browse pages."
+    "shared PageQuery (max 100); listScope routes filter by per-project permission (agent role narrowing); "
+    "invalid slug redaction on /clients/ and /projects/ paths."
 )
 ARTIFACTS = [
     f"{REPO}/apps/reqalm/src/core/paging.ts",
+    f"{REPO}/apps/reqalm/src/rbac/enforce.ts",
     f"{REPO}/apps/reqalm/src/modules/clients/",
     f"{REPO}/apps/reqalm/src/modules/projects/",
-    f"{REPO}/apps/reqalm/src/web/public/app.js",
 ]
 
 
@@ -121,9 +122,18 @@ def main() -> None:
         ),
     )
     edges = data.setdefault("edges", [])
-    for to in ("B07", "B08", "ARCH-CP-HIER", "CAP-SVC-PROJECT-READ", "ARCH-UI"):
+    for to in ("B07", "B08", "ARCH-CP-HIER", "CAP-SVC-PROJECT-READ"):
         ensure_edge(edges, {"from": CAP, "to": to, "kind": "satisfies"})
+    data["edges"] = [
+        e for e in edges if not (e.get("from") == CAP and e.get("to") == "ARCH-UI")
+    ]
     arts = data.setdefault("capability_artifacts", [])
+    data["capability_artifacts"] = [
+        a
+        for a in arts
+        if not (a.get("requirement_version_uid") == CAP and str(a.get("uri", "")).endswith("app.js"))
+    ]
+    arts = data["capability_artifacts"]
     for uri in ARTIFACTS:
         if not any(a.get("requirement_version_uid") == CAP and a.get("uri") == uri for a in arts):
             arts.append({"requirement_version_uid": CAP, "kind": "other", "uri": uri})
@@ -140,7 +150,7 @@ def main() -> None:
             status="planned",
             delivers=[CAP],
             cyber_gate=False,
-            notes="Read-only grant-scoped client/project APIs and minimal /app list pages. Not B01–B06 mutations or ARCH-CP-SCOPE RLS.",
+            notes="Read-only grant-scoped client/project HTTP APIs (no /app browse UI in this release). Not B01–B06 mutations or ARCH-CP-SCOPE RLS.",
         ),
     )
 

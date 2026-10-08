@@ -2625,7 +2625,7 @@ UID: CAP-BROWSE-CP
 STATUS: Draft
 TITLE: Browse clients and projects (read-only)
 STATEMENT: >>>
-Grant-scoped read APIs: paged GET /api/v1/clients, /clients/:id, /projects, /clients/:id/projects; shared PageQuery (max 100); invalid slug redaction on /clients/ and /projects/ paths; minimal /app browse pages.
+Grant-scoped read APIs: paged GET /api/v1/clients, /clients/:id, /projects, /clients/:id/projects; shared PageQuery (max 100); listScope routes filter by per-project permission (agent role narrowing); invalid slug redaction on /clients/ and /projects/ paths.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -2651,9 +2651,6 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: CAP-SVC-PROJECT-READ
-  ROLE: Satisfies
-- TYPE: Parent
-  VALUE: ARCH-UI
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-browse-clients-projects
@@ -8059,7 +8056,6 @@ security.verification_note: Architecture enforces AC-3 via adapters/guards/layer
 edge: ← uses from ARCH-DEPLOY-MINIMAL
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-UI-FRAME
-edge: ← satisfies from CAP-BROWSE-CP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences

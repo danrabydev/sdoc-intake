@@ -337,6 +337,26 @@ describe("defineOperationRoute registration", () => {
     );
   });
 
+  it("throws on a permission without listScope on a route without :projectId", () => {
+    assertRefused(
+      { name: "x.y", permission: "client:list", execute: exec },
+      /listScope: true/,
+      () => ok({}),
+      "/api/v1/test/clients",
+    );
+  });
+
+  it("registers listScope on routes without :projectId", () => {
+    assert.deepEqual(
+      register(
+        { name: "x.list", permission: "client:list", listScope: true, execute: exec },
+        () => ok({}),
+        "/api/v1/test/clients",
+      ),
+      { error: undefined, registered: true },
+    );
+  });
+
   it("throws on a permission on :projectId without project scope", () => {
     assertRefused(
       { name: "x.y", permission: "requirement:read", execute: exec },

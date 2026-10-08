@@ -7684,13 +7684,13 @@ requirement_versions:
   base_uid: CAP-BROWSE-CP
   version_n: 0
   status: draft
-  statement: 'Grant-scoped read APIs: paged GET /api/v1/clients, /clients/:id, /projects, /clients/:id/projects; shared PageQuery (max 100); invalid slug redaction on /clients/ and /projects/ paths; minimal /app browse pages.'
+  statement: 'Grant-scoped read APIs: paged GET /api/v1/clients, /clients/:id, /projects, /clients/:id/projects; shared PageQuery (max 100); listScope routes filter by per-project permission (agent role narrowing); invalid slug redaction on /clients/ and /projects/ paths.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until browse PR merges.
-  statement_hash: sha256:cd4ea863c298d34598bf31bb4ecadf1072d1eaa6db69bb3c7e39edefb33443d7
+  statement_hash: sha256:efdacc1e186a9931a90978fce2038352c21b2def3fbfaddb1c4187b78447a448
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -8187,7 +8187,10 @@ capability_artifacts:
   uri: ../../../apps/reqalm/src/modules/projects/
 - requirement_version_uid: CAP-BROWSE-CP
   kind: other
-  uri: ../../../apps/reqalm/src/web/public/app.js
+  uri: ../../../apps/reqalm/src/rbac/browse-scope.ts
+- requirement_version_uid: CAP-BROWSE-CP
+  kind: other
+  uri: ../../../apps/reqalm/src/rbac/enforce.ts
 edges:
 - from: CAP-SSO
   to: A01
@@ -13798,9 +13801,6 @@ edges:
 - from: CAP-BROWSE-CP
   to: CAP-SVC-PROJECT-READ
   kind: satisfies
-- from: CAP-BROWSE-CP
-  to: ARCH-UI
-  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -14319,7 +14319,7 @@ releases:
   delivers:
   - CAP-BROWSE-CP
   cyber_gate: false
-  notes: Read-only grant-scoped client/project APIs and minimal /app list pages. Not B01–B06 mutations or ARCH-CP-SCOPE RLS.
+  notes: Read-only grant-scoped client/project HTTP APIs (no /app browse UI in this release). Not B01–B06 mutations or ARCH-CP-SCOPE RLS.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

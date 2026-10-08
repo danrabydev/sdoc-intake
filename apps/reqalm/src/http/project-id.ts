@@ -6,24 +6,14 @@
 /** Slug: lowercase alphanumerics and hyphens, starting with an alphanumeric, 1–64 chars. */
 export const SLUG_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
-/** @deprecated use {@link SLUG_ID} — kept for project-scoped routes. */
 export const PROJECT_ID_SLUG = SLUG_ID;
-
-export type PathSegmentRedactionRule = {
-  /** Literal path prefix including trailing slash, e.g. `/projects/`. */
-  prefix: string;
-  valid: (segment: string) => boolean;
-};
+type PathSegmentRedactionRule = { prefix: string; valid: (segment: string) => boolean };
 
 const DEFAULT_SEGMENT_RULES: PathSegmentRedactionRule[] = [
   { prefix: "/projects/", valid: (s) => SLUG_ID.test(s) },
   { prefix: "/clients/", valid: (s) => SLUG_ID.test(s) },
 ];
 
-/**
- * Replace invalid slug segments after configured path prefixes with `[invalid]`.
- * Valid segments are kept unchanged.
- */
 export function redactInvalidPathParamIds(
   url: string,
   rules: PathSegmentRedactionRule[] = DEFAULT_SEGMENT_RULES,
@@ -39,10 +29,6 @@ export function redactInvalidPathParamIds(
   return out;
 }
 
-/**
- * Logs and span attributes never carry a project id that fails the slug rule.
- * @deprecated prefer {@link redactInvalidPathParamIds}
- */
 export function redactInvalidProjectIds(url: string): string {
   return redactInvalidPathParamIds(url);
 }

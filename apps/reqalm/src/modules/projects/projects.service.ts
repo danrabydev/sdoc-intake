@@ -2,7 +2,7 @@ import type pg from "pg";
 import { err, ok, type ServiceResult } from "../../core/service-result.js";
 import type { PageQuery, PageResult } from "../../core/paging.js";
 import type { RequestContext } from "../../core/request-context.js";
-import { grantedClientIds } from "../clients/clients.service.js";
+import { clientIdsForProjects, projectIdsWithPermission } from "../../rbac/enforce.js";
 
 export type ProjectDto = {
   id: string;
@@ -43,7 +43,7 @@ export async function listProjects(
   ctx: RequestContext,
   input: ListProjectsInput,
 ): Promise<ServiceResult<PageResult<ProjectDto>>> {
-  const ids = [...ctx.projectIds];
+  const ids = await projectIdsWithPermission(ctx, "project:list");
   if (ids.length === 0) {
     return ok({ items: [], limit: input.limit, offset: input.offset, total: 0 });
   }
@@ -66,11 +66,11 @@ export async function listClientProjects(
   ctx: RequestContext,
   input: ListClientProjectsInput,
 ): Promise<ServiceResult<PageResult<ProjectDto>>> {
-  const allowedClients = new Set(await grantedClientIds(ctx.pool, ctx.projectIds));
+  const ids = await projectIdsWithPermission(ctx, "project:list");
+  const allowedClients = new Set(await clientIdsForProjects(ctx, ids));
   if (!allowedClients.has(input.clientId)) {
     return err("not_found", "Client not found");
   }
-  const ids = [...ctx.projectIds];
   const count = await ctx.pool.query<{ c: number }>(
     `SELECT count(*)::int AS c FROM projects WHERE client_id = $1 AND id = ANY($2::text[])`,
     [input.clientId, ids],

@@ -22,6 +22,8 @@ export type OperationDef<TIn, TOut> = {
   /** When true, caller must have a live project grant before permission check; else not_found. */
   projectScoped?: boolean;
   projectIdFromInput?: (input: TIn) => string | undefined;
+  /** Cross-project list/read: skip union RBAC gate; filter by per-project permission in execute. */
+  listScope?: true;
   auditMeta?: (input: TIn) => OperationAuditMeta;
   execute: (ctx: RequestContext, input: TIn) => Promise<ServiceResult<TOut>>;
 };
@@ -188,7 +190,7 @@ async function runPipeline<TIn, TOut>(
       }
     }
 
-    if (def.permission) {
+    if (def.permission && !def.listScope) {
       const allowed = await authorize(
         ctx.pool,
         ctx.identityId,

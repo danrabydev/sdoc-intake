@@ -7,7 +7,8 @@ import {
   TEST_AGENT_SECRET,
   type TestApp,
 } from "../test/harness.js";
-import { resetTelemetrySpans } from "../test/otel-testing.js";
+import { finishedSpans, resetTelemetrySpans } from "../test/otel-testing.js";
+import { DEFAULT_PAGE_SIZE } from "../core/paging.js";
 
 let ctx: TestApp;
 
@@ -519,71 +520,114 @@ describe("unknown /api paths", () => {
 });
 
 describe("browse clients and projects", () => {
+  let caseyAccess: string;
+  const bearer = (token: string, extra: Record<string, string> = {}) => ({
+    authorization: `Bearer ${token}`,
+    ...extra,
+  });
+  const listIds = async (url: string, token: string) =>
+    (
+      (await inject({ method: "GET", url, headers: bearer(token) })).json() as {
+        data: { items: Array<{ id: string }> };
+      }
+    ).data.items.map((x) => x.id);
+
   before(async () => {
     await ctx.pool.query(
-      `INSERT INTO clients (id, name) VALUES ('other-family', 'Other') ON CONFLICT DO NOTHING`,
+      `INSERT INTO clients (id, name, notes) VALUES ('other-family', 'Other', 'secret notes') ON CONFLICT DO NOTHING`,
     );
     await ctx.pool.query(
       `INSERT INTO projects (id, client_id, name) VALUES ('secret-proj', 'other-family', 'Secret') ON CONFLICT DO NOTHING`,
     );
-  });
-
-  it("lists grant-scoped clients and projects with paging cap", async () => {
-    const access = await loginToken();
-    const over = await inject({
-      method: "GET",
-      url: "/api/v1/projects?limit=500",
-      headers: { authorization: `Bearer ${access}` },
-    });
-    assert.equal(over.statusCode, 400);
-    const clients = await inject({
-      method: "GET",
-      url: "/api/v1/clients",
-      headers: { authorization: `Bearer ${access}` },
-    });
-    assert.equal(clients.statusCode, 200);
-    assert.deepEqual(
-      ((clients.json() as { data: { items: Array<{ id: string }> } }).data.items).map((c) => c.id),
-      ["reqalm-client"],
+    await ctx.pool.query(
+      `INSERT INTO identities (id, display_name) VALUES ('no-grant-user', 'No Grant') ON CONFLICT DO NOTHING`,
     );
-    const projects = await inject({
-      method: "GET",
-      url: "/api/v1/projects",
-      headers: { authorization: `Bearer ${access}` },
-    });
-    assert.deepEqual(
-      ((projects.json() as { data: { items: Array<{ id: string }> } }).data.items).map((p) => p.id),
-      ["reqalm"],
+    await ctx.pool.query(
+      `INSERT INTO local_credentials (identity_id, username, password_hash, is_dev_seeded)
+       SELECT 'no-grant-user', 'no-grant@dev.local', password_hash, true FROM local_credentials WHERE identity_id = 'casey-reader' LIMIT 1
+       ON CONFLICT (identity_id) DO NOTHING`,
+    );
+    caseyAccess = await loginToken();
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-casey-kc-secret', 'secret-proj', 'casey-reader', 'Key custodian') ON CONFLICT DO NOTHING`,
     );
   });
 
-  it("client read and 404 without grant match missing id", async () => {
-    const access = await loginToken();
-    const h = { authorization: `Bearer ${access}` };
-    assert.equal((await inject({ method: "GET", url: "/api/v1/clients/reqalm-client", headers: h })).statusCode, 200);
-    const denied = await inject({ method: "GET", url: "/api/v1/clients/other-family", headers: h });
-    assert.equal(denied.statusCode, 404);
+  it("lists only projects/clients where the role on that project allows list", async () => {
+    const h = bearer(caseyAccess);
+    assert.deepEqual(await listIds("/api/v1/clients", caseyAccess), ["reqalm-client"]);
+    assert.deepEqual(await listIds("/api/v1/projects", caseyAccess), ["reqalm"]);
+    assert.equal((await inject({ method: "GET", url: "/api/v1/clients/other-family", headers: h })).statusCode, 404);
     assert.equal(
-      (await inject({ method: "GET", url: "/api/v1/clients/no-such", headers: h })).statusCode,
+      (await inject({ method: "GET", url: "/api/v1/clients/other-family/projects", headers: h })).statusCode,
       404,
     );
+    assert.equal((await inject({ method: "GET", url: "/api/v1/projects/secret-proj", headers: h })).statusCode, 403);
   });
 
-  it("invalid client id is 400 after auth; audit and logs redact", async () => {
+  it("zero grants: empty list pages and 404 client detail", async () => {
+    const token = await loginToken("no-grant@dev.local");
+    const h = bearer(token);
+    for (const url of ["/api/v1/clients", "/api/v1/projects"]) {
+      const res = await inject({ method: "GET", url, headers: h });
+      assert.equal(res.statusCode, 200);
+      const page = (res.json() as { data: { items: unknown[]; total: number } }).data;
+      assert.equal(page.total, 0);
+      assert.deepEqual(page.items, []);
+    }
+    assert.equal((await inject({ method: "GET", url: "/api/v1/clients/reqalm-client", headers: h })).statusCode, 404);
+  });
+
+  it("client projects route validates params, paging, and grant filter", async () => {
+    const h = bearer(caseyAccess, { "x-request-id": "browse-cp-list" });
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/clients/ZZQMARK/projects", headers: h })).statusCode,
+      400,
+    );
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/clients/reqalm-client/projects?limit=500", headers: h })).statusCode,
+      400,
+    );
+    const page = (
+      await inject({ method: "GET", url: "/api/v1/clients/reqalm-client/projects", headers: h })
+    ).json() as { data: { items: Array<{ id: string }>; limit: number } };
+    assert.deepEqual(page.data.items.map((p) => p.id), ["reqalm"]);
+    assert.equal(page.data.limit, DEFAULT_PAGE_SIZE);
+    assert.equal((await inject({ method: "GET", url: "/api/v1/projects?limit=500", headers: h })).statusCode, 400);
+  });
+
+  it("invalid client id redacts logs and span url.path", async () => {
     resetTelemetrySpans();
-    const access = await loginToken();
     const logs = await captureAppLogs(async () => {
       const res = await inject({
         method: "GET",
         url: "/api/v1/clients/ZZQMARK",
-        headers: { authorization: `Bearer ${access}`, "x-request-id": "browse-bad-client" },
+        headers: { authorization: `Bearer ${caseyAccess}`, "x-request-id": "browse-bad-client" },
       });
       assert.equal(res.statusCode, 400);
     });
     assert.ok(logs.includes("/api/v1/clients/[invalid]"));
+    assert.ok(
+      finishedSpans().some((s) => s.attributes["url.path"] === "/api/v1/clients/[invalid]"),
+    );
     const row = await ctx.pool.query<{ target_id: string | null }>(
       `SELECT target_id FROM audit_events WHERE request_id = 'browse-bad-client'`,
     );
     assert.equal(row.rows[0]?.target_id, null);
+  });
+
+  it("agent token role narrowing excludes non-listing grants", async () => {
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-agent-kc-secret', 'secret-proj', 'agent-cursor-cloud', 'Key custodian') ON CONFLICT DO NOTHING`,
+    );
+    const token = await agentToken();
+    assert.deepEqual(await listIds("/api/v1/projects", token), ["reqalm"]);
+    assert.deepEqual(await listIds("/api/v1/clients", token), ["reqalm-client"]);
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/projects/secret-proj", headers: bearer(token) })).statusCode,
+      403,
+    );
   });
 });

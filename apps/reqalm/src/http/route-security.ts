@@ -11,6 +11,7 @@ export type OperationRouteRef = {
   name: string;
   permission?: string;
   projectScoped?: boolean;
+  listScope?: boolean;
 };
 
 export type ReqalmRouteConfig = {
