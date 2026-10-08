@@ -4,6 +4,7 @@ import { mapServiceResultToHttp, sendProblem } from "../core/http-envelope.js";
 import { runOperationCall, type OperationDef } from "../core/operation.js";
 import { buildRequestContext, type RequestContextDeps } from "../core/request-context.js";
 import { err, ok, type ServiceResult } from "../core/service-result.js";
+import { PROJECT_ID_SLUG } from "./project-id.js";
 import { type OperationRouteRef, securityFromOperationRef } from "./route-security.js";
 
 /**
@@ -47,10 +48,7 @@ export function parseZodInput<T>(
   });
 }
 
-/** Exact project id: non-empty and never trimmed (a padded id must not resolve to the real project). */
-export const projectIdSchema = z
-  .string()
-  .refine((v) => v.trim() !== "" && v.trim() === v, "invalid project id");
+export const projectIdSchema = z.string().regex(PROJECT_ID_SLUG, "invalid project id");
 
 /**
  * Project scope of a project-scoped route: the `:projectId` path param, parsed before input validation.

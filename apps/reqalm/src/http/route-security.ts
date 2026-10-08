@@ -80,31 +80,40 @@ export function listRoutesForSecurityAudit(app: FastifyInstance): RegisteredRout
 }
 
 /**
- * Exact routes that are public by protocol (probes, OAuth endpoints that authenticate in-band,
- * sign-in) plus Swagger UI and the static web bundle. Anything else, including new routes under
- * /oauth/ or /api/v1/auth/, must declare `config.reqalmSecurity` explicitly.
+ * Exact `METHOD url` pairs that are public by protocol (probes, OAuth endpoints that authenticate
+ * in-band, sign-in). Anything else, including new routes under /oauth/ or /api/v1/auth/, must
+ * declare `config.reqalmSecurity` explicitly. HEAD is checked as GET (Fastify derives HEAD from GET).
  */
-const IMPLICIT_PUBLIC_ROUTES = new Set([
-  "/health",
-  "/ready",
-  "/.well-known/oauth-authorization-server",
-  "/.well-known/oauth-protected-resource/api",
-  "/.well-known/oauth-protected-resource/mcp",
-  "/oauth/jwks",
-  "/oauth/web/start",
-  "/oauth/web/callback",
-  "/oauth/authorize",
-  "/oauth/token",
-  "/oauth/revoke",
-  "/oauth/register",
-  "/api/v1/auth/local/login",
-  "/api/v1/auth/session",
-  "/api/v1/auth/signout",
-  "/*",
+export const IMPLICIT_PUBLIC_ROUTES = new Set([
+  "GET /health",
+  "GET /ready",
+  "GET /.well-known/oauth-authorization-server",
+  "GET /.well-known/oauth-protected-resource/api",
+  "GET /.well-known/oauth-protected-resource/mcp",
+  "GET /oauth/jwks",
+  "GET /oauth/web/start",
+  "GET /oauth/web/callback",
+  "GET /oauth/authorize",
+  "POST /oauth/token",
+  "POST /oauth/revoke",
+  "POST /oauth/register",
+  "POST /api/v1/auth/local/login",
+  "GET /api/v1/auth/session",
+  "POST /api/v1/auth/signout",
+  "GET /*",
 ]);
 
-function isImplicitPublicPath(url: string): boolean {
-  return IMPLICIT_PUBLIC_ROUTES.has(url) || url === "/docs" || url.startsWith("/docs/");
+/** Hand-registered authenticated routes outside `/api/` that do not use defineOperationRoute. */
+export const NON_API_AUTHENTICATED_ALLOWLIST = new Set(["POST /mcp"]);
+
+function isImplicitPublicRoute(method: string, url: string): boolean {
+  const normalized = method === "HEAD" ? "GET" : method.toUpperCase();
+  const key = `${normalized} ${url}`;
+  if (IMPLICIT_PUBLIC_ROUTES.has(key)) return true;
+  if (url === "/docs" || url.startsWith("/docs/")) {
+    return normalized === "GET" || normalized === "HEAD";
+  }
+  return false;
 }
 
 /** Single onRoute hook: implicit public markers for auth/oauth probes, then capture for audit test. */
@@ -113,15 +122,19 @@ export function installRouteCapture(app: FastifyInstance): void {
   (app as unknown as { __reqalmRoutes: RegisteredRouteSecurity[] }).__reqalmRoutes = list;
   app.addHook("onRoute", (routeOptions) => {
     routeOptions.config = routeOptions.config ?? {};
-    if (!routeOptions.config.reqalmSecurity && isImplicitPublicPath(routeOptions.url)) {
-      routeOptions.config.reqalmSecurity = { kind: "public" };
-    }
     const methods = routeOptions.method;
     const methodList = Array.isArray(methods)
       ? methods
       : typeof methods === "string"
         ? methods.split(",")
         : ["GET"];
+    // One config serves every method of the route, so it is public only if each method is.
+    if (
+      !routeOptions.config.reqalmSecurity &&
+      methodList.every((m) => isImplicitPublicRoute(m.trim().toUpperCase(), routeOptions.url))
+    ) {
+      routeOptions.config.reqalmSecurity = { kind: "public" };
+    }
     for (const method of methodList) {
       list.push({
         method: method.trim().toUpperCase(),
@@ -166,6 +179,24 @@ export function assertBusinessApiRoutesCompliant(routes: RegisteredRouteSecurity
         })`,
       );
     }
+  }
+  return violations;
+}
+
+/**
+ * Fail-closed: authenticated routes outside `/api/` must either use defineOperationRoute or appear
+ * on the exact method+path allowlist (today: POST /mcp).
+ */
+export function assertAuthenticatedNonApiRoutesCompliant(routes: RegisteredRouteSecurity[]): string[] {
+  const violations: string[] = [];
+  for (const r of routes) {
+    if (r.url.startsWith("/api/")) continue;
+    if (r.security?.kind !== "authenticated") continue;
+    const method = r.method === "HEAD" ? "GET" : r.method;
+    const label = `${method} ${r.url}`;
+    if (r.operationRoute) continue;
+    if (NON_API_AUTHENTICATED_ALLOWLIST.has(label)) continue;
+    violations.push(`${label}: authenticated route outside /api must use defineOperationRoute or be allowlisted`);
   }
   return violations;
 }

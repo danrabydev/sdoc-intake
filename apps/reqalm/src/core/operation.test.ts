@@ -6,6 +6,9 @@ import type { RequestContext } from "./request-context.js";
 import { createMigratedPglitePool } from "../test/pglite-pool.js";
 import { createTestApp } from "../test/harness.js";
 import { ok } from "./service-result.js";
+import { resetTelemetrySpans, finishedSpans } from "../test/otel-testing.js";
+import { trace } from "@opentelemetry/api";
+import { setSpanError } from "../telemetry/trace-context.js";
 
 function minimalCtx(pool: pg.Pool, requestId = "op-test"): RequestContext {
   return {
@@ -47,6 +50,7 @@ function minimalCtx(pool: pg.Pool, requestId = "op-test"): RequestContext {
 
 describe("runOperation", () => {
   it("audits error when execute throws", async () => {
+    resetTelemetrySpans();
     const fixture = await createMigratedPglitePool();
     const ctx = minimalCtx(fixture.pool);
     await runOperation(
@@ -64,7 +68,25 @@ describe("runOperation", () => {
       ["op-test"],
     );
     assert.equal(r.rows[0]?.outcome, "error");
+    const opSpan = finishedSpans().find((s) => s.name === "operation test.throw");
+    assert.ok(opSpan);
+    assert.equal(opSpan!.status.message, "operation failed");
+    assert.equal(opSpan!.attributes["reqalm.error_kind"], "internal");
+    assert.doesNotMatch(JSON.stringify([opSpan!.status, opSpan!.events, opSpan!.attributes]), /boom/);
     await fixture.close();
+  });
+
+  it("setSpanError itself writes only the generic message and the error kind (before export)", () => {
+    trace.getTracer("op-test").startActiveSpan("raw-span", (span) => {
+      setSpanError(span, "validation");
+      const raw = span as unknown as { status: { message?: string }; attributes: Record<string, unknown>; events: unknown[] };
+      assert.equal(raw.status.message, "operation failed");
+      assert.equal(raw.attributes["reqalm.error_kind"], "validation");
+      assert.deepEqual(JSON.parse(JSON.stringify(raw.events)).map((e: { attributes: unknown }) => e.attributes), [
+        { "exception.type": "validation", "exception.message": "operation failed" },
+      ]);
+      span.end();
+    });
   });
 
   it("project-scoped op without a project id fails closed (not_found, audited deny)", async () => {

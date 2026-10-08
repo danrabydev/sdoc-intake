@@ -19,6 +19,7 @@ import type { SyncHandle } from "../roles/sync-worker.js";
 import { registerProbeRoutes } from "./routes-probes.js";
 import { createBearerGuard, type AuthedRequest } from "./middleware/bearer-auth.js";
 import { installRouteCapture } from "./route-security.js";
+import { redactInvalidProjectIds } from "./project-id.js";
 import { sendProblem } from "../core/http-envelope.js";
 import { registerFeatureModules } from "../modules/register.js";
 import { requestIdFromHeaders } from "../telemetry/request-id.js";
@@ -34,6 +35,8 @@ export type RuntimeState = {
   keyProvider?: KeyProvider;
 };
 
+const MAX_PARAM_LENGTH = 16 * 1024;
+
 export async function buildApiServer(state: RuntimeState) {
   const { config, pool, roles, readiness } = state;
   const app = Fastify({
@@ -43,12 +46,15 @@ export async function buildApiServer(state: RuntimeState) {
       mixin: traceLogFields,
       serializers: {
         req(req) {
-          const url = req.url?.replace(/([?&]code=)[^&]+/gi, "$1[REDACTED]");
+          const url = req.url && redactInvalidProjectIds(req.url.replace(/([?&]code=)[^&]+/gi, "$1[REDACTED]"));
           return { method: req.method, url, host: req.host };
         },
       },
     },
     genReqId: (req) => requestIdFromHeaders(req.headers),
+    // Above Node's 16 KiB request-head limit, so any over-long :projectId still reaches its route and
+    // gets the same 401 / 404 as every other invalid id (the default 100 made it a router 404).
+    routerOptions: { maxParamLength: MAX_PARAM_LENGTH },
     // Trust X-Forwarded-* only from the listed proxies; never blanket trust in production
     // (startup self-check refuses REQALM_TRUST_PROXY=true without REQALM_TRUSTED_PROXIES).
     trustProxy:

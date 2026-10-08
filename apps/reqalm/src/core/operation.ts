@@ -146,7 +146,7 @@ async function runPipeline<TIn, TOut>(
         span.setAttribute("reqalm.error_code", result.error.code);
       }
       if (auditOutcome === "deny" || auditOutcome === "error") {
-        setSpanError(span, result.ok ? auditOutcome : result.error.message);
+        setSpanError(span, result.ok ? auditOutcome : result.error.code);
       } else {
         span.setStatus({ code: SpanStatusCode.OK });
       }
@@ -224,7 +224,7 @@ async function runPipeline<TIn, TOut>(
         { err: e, operation: def.name, request_id: ctx.requestId },
         "operation_failed",
       );
-      setSpanError(span, e instanceof Error ? e.message : "Internal error");
+      setSpanError(span, "internal");
       return finish(err("internal", "Internal error"), "error", "error");
     }
     } finally {

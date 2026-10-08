@@ -1390,17 +1390,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-route-helper
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — defineOperationRoute (single business-route pipeline)
 STATEMENT: >>>
-ReqALM release `R1 — defineOperationRoute (single business-route pipeline)` (status=planned, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — defineOperationRoute (single business-route pipeline)` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-route-helper
 project_id: reqalm
-shipped_on: None
-raw_status: planned
+shipped_on: 2026-10-07
+raw_status: shipped
 delivers: CAP-SVC-OPERATION-ROUTE, CAP-SVC-BUSINESS-ROUTE-AUDIT, CAP-SVC-PROBLEM-JSON
 delivers_count: 3
 <<<
@@ -1415,6 +1415,41 @@ RELATIONS:
   ROLE: Delivers
 - TYPE: Parent
   VALUE: CAP-SVC-PROBLEM-JSON
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-route-hardening
+STATUS: Draft
+TITLE: Release R1 — route helper hardening (Cyber/QA follow-up)
+STATEMENT: >>>
+ReqALM release `R1 — route helper hardening (Cyber/QA follow-up)` (status=planned, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-route-hardening
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-SVC-PROJECT-ID-SLUG, CAP-SVC-STATIC-DEP-PATCH, CAP-OTEL-SPAN-SAFE-ERRORS, CAP-SVC-IMPLICIT-PUBLIC-EXACT, CAP-SVC-NON-API-AUTH-AUDIT
+delivers_count: 5
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-SVC-PROJECT-ID-SLUG
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-SVC-STATIC-DEP-PATCH
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-OTEL-SPAN-SAFE-ERRORS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-SVC-IMPLICIT-PUBLIC-EXACT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-SVC-NON-API-AUTH-AUDIT
   ROLE: Delivers
 
 [[/SECTION]]
