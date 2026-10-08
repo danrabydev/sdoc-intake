@@ -27,6 +27,8 @@ export type RequestContext = {
   agentName: string | null;
   tokenRole: string | null;
   actingFor: string | null;
+  /** Set by the operation pipeline for listScope ops (per-project permission filter). */
+  allowedProjectIds?: readonly string[];
 };
 
 export type RequestContextDeps = {
