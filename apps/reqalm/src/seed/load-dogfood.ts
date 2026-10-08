@@ -27,7 +27,10 @@ export type SeedResult = {
 };
 
 export type LoadDogfoodOptions = {
-  /** Update client/project/identity/grant rows when ids already exist (seed reset). */
+  /**
+   * Update client/project rows when ids already exist (seed reset). Identities, grants and
+   * platform grants stay insert-if-absent: a reset never rewrites or re-activates them.
+   */
   metadataSync?: boolean;
   /** Skip before/after unchanged detection (seed reset always mutates). */
   skipUnchangedCheck?: boolean;
@@ -97,10 +100,10 @@ export async function applyDogfoodSeed(
     await upsertProject(client, p, inserted, syncMeta);
   }
   for (const id of seed.identities) {
-    await upsertIdentity(client, id, inserted, syncMeta);
+    await upsertIdentity(client, id, inserted);
   }
   for (const g of seed.project_grants) {
-    await upsertGrant(client, g, inserted, syncMeta);
+    await upsertGrant(client, g, inserted);
   }
   const lineProject = new Map<string, string>();
   for (const line of seed.requirement_lines ?? []) {
@@ -114,9 +117,11 @@ export async function applyDogfoodSeed(
     await upsertRelease(client, rel, position, inserted);
   }
   for (const g of seed.platform_grants ?? []) {
-    await upsertPlatformGrant(client, g, inserted, syncMeta);
+    await upsertPlatformGrant(client, g, inserted);
   }
 
+  // ARCH-DEVENV-IDENTITY.1: no committed/default dev credential. Use the local .env value, or
+  // generate one at first seed and show it locally (only printed when accounts are created).
   const configuredPassword = config.REQALM_DEV_ACCOUNT_PASSWORD;
   const devPassword = configuredPassword ?? randomBytes(18).toString("base64url");
   inserted.dev_local_accounts = await upsertDevLocalAccounts(
@@ -246,19 +251,9 @@ async function upsertIdentity(
   client: pg.PoolClient,
   row: Record<string, unknown>,
   inserted: Record<string, number>,
-  sync = false,
 ) {
   const r = await client.query(
-    sync
-      ? `
-    INSERT INTO identities (id, external_sub, email, display_name, notes)
-    VALUES ($1, $2, $3, $4, $5)
-    ON CONFLICT (id) DO UPDATE SET
-      external_sub = EXCLUDED.external_sub, email = EXCLUDED.email,
-      display_name = EXCLUDED.display_name, notes = EXCLUDED.notes
-    RETURNING (xmax = 0) AS inserted
-  `
-      : `
+    `
     INSERT INTO identities (id, external_sub, email, display_name, notes)
     VALUES ($1, $2, $3, $4, $5)
     ON CONFLICT (id) DO NOTHING
@@ -272,29 +267,19 @@ async function upsertIdentity(
       row.notes ?? null,
     ],
   );
-  if (sync ? r.rows[0]?.inserted : r.rowCount) inserted.identities++;
+  if (r.rowCount) inserted.identities++;
 }
 
 async function upsertGrant(
   client: pg.PoolClient,
   row: Record<string, unknown>,
   inserted: Record<string, number>,
-  sync = false,
 ) {
   const grantId =
     row.id ??
     `grant-${row.project_id}-${row.identity_id}-${row.role}`.replace(/\s+/g, "-");
   const r = await client.query(
-    sync
-      ? `
-    INSERT INTO project_grants (id, project_id, identity_id, role, status, revoked_at, notes)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
-    ON CONFLICT (id) DO UPDATE SET
-      project_id = EXCLUDED.project_id, identity_id = EXCLUDED.identity_id, role = EXCLUDED.role,
-      status = EXCLUDED.status, revoked_at = EXCLUDED.revoked_at, notes = EXCLUDED.notes
-    RETURNING (xmax = 0) AS inserted
-  `
-      : `
+    `
     INSERT INTO project_grants (id, project_id, identity_id, role, status, revoked_at, notes)
     VALUES ($1, $2, $3, $4, $5, $6, $7)
     ON CONFLICT (id) DO NOTHING
@@ -310,7 +295,7 @@ async function upsertGrant(
       row.notes ?? null,
     ],
   );
-  if (sync ? r.rows[0]?.inserted : r.rowCount) inserted.project_grants++;
+  if (r.rowCount) inserted.project_grants++;
 }
 
 async function upsertLine(
@@ -427,21 +412,12 @@ async function upsertPlatformGrant(
   client: pg.PoolClient,
   row: Record<string, unknown>,
   inserted: Record<string, number>,
-  sync = false,
 ) {
   const id =
     row.id ??
     `platform-${row.identity_id}-${row.role}`.replace(/\s+/g, "-");
   const r = await client.query(
-    sync
-      ? `
-    INSERT INTO platform_grants (id, identity_id, role, notes)
-    VALUES ($1, $2, $3, $4)
-    ON CONFLICT (id) DO UPDATE SET
-      identity_id = EXCLUDED.identity_id, role = EXCLUDED.role, notes = EXCLUDED.notes
-    RETURNING (xmax = 0) AS inserted
-  `
-      : `
+    `
     INSERT INTO platform_grants (id, identity_id, role, notes)
     VALUES ($1, $2, $3, $4)
     ON CONFLICT (id) DO NOTHING
@@ -449,7 +425,7 @@ async function upsertPlatformGrant(
   `,
     [id, row.identity_id, row.role, row.notes ?? null],
   );
-  if (sync ? r.rows[0]?.inserted : r.rowCount) inserted.platform_grants++;
+  if (r.rowCount) inserted.platform_grants++;
 }
 
 async function upsertDevLocalAccounts(
