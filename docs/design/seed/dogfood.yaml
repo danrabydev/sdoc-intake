@@ -1226,6 +1226,15 @@ approval_records:
   notes: Planned for releases read API PR.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-browse-ui-releases
+  subject_kind: CapabilityLine
+  base_uid: CAP-BROWSE-UI-RELEASES
+  status: unapproved
+  by:
+  at:
+  notes: Planned for releases browse UI PR.
+  approved_version_uid:
+  approved_statement_hash:
 - id: ar-read-hierarchy
   subject_kind: CapabilityLine
   base_uid: CAP-READ-HIERARCHY
@@ -3126,6 +3135,11 @@ requirement_lines:
   parent: SEC-CP
   kind: capability
   title: Read releases (list, detail)
+- base_uid: CAP-BROWSE-UI-RELEASES
+  project_id: reqalm
+  parent: SEC-CP
+  kind: capability
+  title: Browse releases UI (read-only)
 - base_uid: CAP-READ-HIERARCHY
   project_id: reqalm
   parent: SEC-RL
@@ -7815,6 +7829,19 @@ requirement_versions:
   statement_hash: sha256:bf683421d344fa20fc22b10545b414ba7611e8aeb2247f05076c81bd93bb3e59
   grooming_state: detailed
   verification_outcome: pass
+- uid: CAP-BROWSE-UI-RELEASES
+  base_uid: CAP-BROWSE-UI-RELEASES
+  version_n: 0
+  status: active
+  statement: 'Read-only /app browse screens for grant-scoped releases within a project: paged list with status filter (planned | shipped, URL-driven), release detail (notes preserving line breaks and delivered capabilities linking to requirement detail). Uses session/CSRF auth; safe DOM text only. Trace links deferred.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: 'Shipped with releases browse UI PR #27 (merge 0d9623815cd17b405c27172f5ffad1e5ae9d1cfb).'
+  statement_hash: sha256:cb0d79c9aff42b7d09cd583358839ac099b21772dc416d93543e0db888fa86a1
+  grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-READ-HIERARCHY
   base_uid: CAP-READ-HIERARCHY
   version_n: 0
@@ -8383,6 +8410,24 @@ capability_artifacts:
 - requirement_version_uid: CAP-READ-RELEASES
   kind: other
   uri: ../../../apps/reqalm/src/modules/releases/
+- requirement_version_uid: CAP-BROWSE-UI-RELEASES
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/app.js
+- requirement_version_uid: CAP-BROWSE-UI-RELEASES
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/browse.js
+- requirement_version_uid: CAP-BROWSE-UI-RELEASES
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/styles.css
+- requirement_version_uid: CAP-BROWSE-UI-RELEASES
+  kind: other
+  uri: ../../../apps/reqalm/src/web/spa-shell-paths.ts
+- requirement_version_uid: CAP-BROWSE-UI-RELEASES
+  kind: other
+  uri: ../../../apps/reqalm/src/web/browse-ui.test.ts
+- requirement_version_uid: CAP-BROWSE-UI-RELEASES
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_browse_ui_releases_release.py
 - requirement_version_uid: CAP-READ-HIERARCHY
   kind: other
   uri: ../../../apps/reqalm/src/db/migrations/008_requirement_hierarchy.sql
@@ -14062,6 +14107,21 @@ edges:
 - from: CAP-READ-RELEASES
   to: CAP-RBAC
   kind: satisfies
+- from: CAP-BROWSE-UI-RELEASES
+  to: C08
+  kind: satisfies
+- from: CAP-BROWSE-UI-RELEASES
+  to: D06
+  kind: satisfies
+- from: CAP-BROWSE-UI-RELEASES
+  to: ARCH-UI
+  kind: satisfies
+- from: CAP-BROWSE-UI-RELEASES
+  to: ARCH-UI-GUARD
+  kind: satisfies
+- from: CAP-BROWSE-UI-RELEASES
+  to: CAP-READ-RELEASES
+  kind: satisfies
 - from: CAP-READ-HIERARCHY
   to: C06
   kind: satisfies
@@ -14639,6 +14699,16 @@ releases:
   - CAP-READ-RELEASES
   cyber_gate: false
   notes: Read-only project-scoped release list/detail HTTP APIs; gate_signoffs not in DB yet.
+- id: rel-r1-browse-ui-releases
+  project_id: reqalm
+  name: R1 — browse releases UI (read-only)
+  planned_on: '2026-10-08'
+  shipped_on: '2026-10-08'
+  status: shipped
+  delivers:
+  - CAP-BROWSE-UI-RELEASES
+  cyber_gate: false
+  notes: Read-only releases list/detail in /app; trace links deferred.
 - id: rel-r1-read-hierarchy
   project_id: reqalm
   name: R1 — requirement hierarchy read API

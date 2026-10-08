@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Add rel-r1-read-hierarchy / CAP-READ-HIERARCHY. Idempotent; parallel-PR safe for browse-ui-releases."""
+"""Add rel-r1-read-hierarchy / CAP-READ-HIERARCHY; ship parallel PR #27 browse-ui-releases. Idempotent."""
 from __future__ import annotations
 
 import hashlib
@@ -14,14 +14,13 @@ DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
 SHIPPED_DATE = "2026-10-08"
 READ_RELEASES_MERGE = "eca9090802c415f78697cc8b9d000f7f7d67a702"
+BROWSE_UI_RELEASES_MERGE = "0d9623815cd17b405c27172f5ffad1e5ae9d1cfb"
 CAP_READ_RELEASES = "CAP-READ-RELEASES"
 REL_READ_RELEASES = "rel-r1-read-releases"
 CAP = "CAP-READ-HIERARCHY"
 REL = "rel-r1-read-hierarchy"
 REL_BROWSE_UI_RELEASES = "rel-r1-browse-ui-releases"
 CAP_BROWSE_UI_RELEASES = "CAP-BROWSE-UI-RELEASES"
-# Set when PR #27 merges (parallel-PR rule); do not guess a sha.
-BROWSE_UI_RELEASES_MERGE: str | None = None
 
 yaml = YAML()
 yaml.preserve_quotes = True
@@ -66,12 +65,12 @@ def ensure_edge(edges, edge):
     return 1
 
 
-def ship_release(data, rel_id: str, merge_sha: str, notes_suffix: str) -> None:
+def ship_release_preserve_notes(data, rel_id: str) -> None:
     rel = find(data.get("releases"), "id", rel_id)
     if rel:
         rel["status"] = "shipped"
-        rel["shipped_on"] = SHIPPED_DATE
-        rel["notes"] = f"Merged to main as {merge_sha} on {SHIPPED_DATE}. {notes_suffix}"
+        if not rel.get("shipped_on"):
+            rel["shipped_on"] = SHIPPED_DATE
 
 
 def activate_capability(data, uid: str, verification_note: str, catalog_ref: str = "AC-3") -> None:
@@ -80,6 +79,32 @@ def activate_capability(data, uid: str, verification_note: str, catalog_ref: str
         ver["status"] = "active"
         ver["verification_outcome"] = "pass"
         ver["security"] = {"catalog_ref": catalog_ref, "verification_note": verification_note}
+
+
+def activate_capability_preserve_catalog(data, uid: str, verification_note: str) -> None:
+    ver = find(data.get("requirement_versions"), "uid", uid)
+    if ver:
+        catalog_ref = (ver.get("security") or {}).get("catalog_ref", "CM-2")
+        activate_capability(data, uid, verification_note, catalog_ref=catalog_ref)
+
+
+def ship_read_releases_pr25(data) -> None:
+    ship_release_preserve_notes(data, REL_READ_RELEASES)
+    activate_capability(
+        data,
+        CAP_READ_RELEASES,
+        f"Shipped with releases read API PR #25 (merge {READ_RELEASES_MERGE}).",
+        catalog_ref="AC-3",
+    )
+
+
+def ship_browse_ui_releases_pr27(data) -> None:
+    ship_release_preserve_notes(data, REL_BROWSE_UI_RELEASES)
+    activate_capability_preserve_catalog(
+        data,
+        CAP_BROWSE_UI_RELEASES,
+        f"Shipped with releases browse UI PR #27 (merge {BROWSE_UI_RELEASES_MERGE}).",
+    )
 
 
 STMT = (
@@ -98,45 +123,12 @@ ARTIFACTS = [
 ]
 
 
-def ship_release_preserve_notes(data, rel_id: str) -> None:
-    rel = find(data.get("releases"), "id", rel_id)
-    if rel:
-        rel["status"] = "shipped"
-        if not rel.get("shipped_on"):
-            rel["shipped_on"] = SHIPPED_DATE
-
-
-def ship_read_releases_pr25(data) -> None:
-    ship_release_preserve_notes(data, REL_READ_RELEASES)
-    activate_capability(
-        data,
-        CAP_READ_RELEASES,
-        f"Shipped with releases read API PR #25 (merge {READ_RELEASES_MERGE}).",
-        catalog_ref="AC-3",
-    )
-
-
 def main() -> None:
     with DOGFOOD.open("r", encoding="utf-8") as f:
         data = yaml.load(f)
 
     ship_read_releases_pr25(data)
-
-    if BROWSE_UI_RELEASES_MERGE:
-        ship_release(
-            data,
-            REL_BROWSE_UI_RELEASES,
-            BROWSE_UI_RELEASES_MERGE,
-            "Read-only releases browse UI in /app.",
-        )
-        activate_capability(
-            data,
-            CAP_BROWSE_UI_RELEASES,
-            f"Shipped with releases browse UI PR merged as {BROWSE_UI_RELEASES_MERGE}.",
-            catalog_ref="CM-2",
-        )
-    else:
-        ship_release_preserve_notes(data, REL_BROWSE_UI_RELEASES)
+    ship_browse_ui_releases_pr27(data)
 
     upsert(
         data.setdefault("requirement_lines", []),

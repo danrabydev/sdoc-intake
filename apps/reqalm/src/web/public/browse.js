@@ -34,6 +34,27 @@ export function appRequirementVersionsHref(projectId, requirementId, offset = 0)
   const base = `${appRequirementHref(projectId, requirementId)}/versions`;
   return offset > 0 ? `${base}?offset=${offset}` : base;
 }
+export function appReleaseHref(projectId, releaseId) {
+  return `/app/projects/${encodeURIComponent(projectId)}/releases/${encodeURIComponent(releaseId)}`;
+}
+export function readReleaseFilters(search) {
+  const raw = new URLSearchParams(search).get("status") || "";
+  const status = raw === "planned" || raw === "shipped" ? raw : "";
+  return { status };
+}
+export function releasesListHref(projectId, { status = "", offset = 0 } = {}) {
+  const base = `/app/projects/${encodeURIComponent(projectId)}/releases`;
+  const p = new URLSearchParams();
+  if (status) p.set("status", status);
+  if (offset > 0) p.set("offset", String(offset));
+  const qs = p.toString();
+  return qs ? `${base}?${qs}` : base;
+}
+function releasesApiPath(projectId, status, offset, limit) {
+  const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  if (status) p.set("status", status);
+  return `/api/v1/projects/${encodeURIComponent(projectId)}/releases?${p}`;
+}
 export function readRequirementsFilters(search) {
   const p = new URLSearchParams(search);
   return { kind: p.get("kind") || "", type: p.get("type") || "", status: p.get("status") || "", q: p.get("q") || "" };
@@ -88,6 +109,19 @@ export function parseAppRoute(pathname) {
     const projectId = decodeRouteSegment(reqList[1]);
     return projectId === null ? { view: "unknown" } : { view: "requirements-list", projectId };
   }
+  const relDetail = path.match(/^\/app\/projects\/([^/]+)\/releases\/([^/]+)$/);
+  if (relDetail) {
+    const projectId = decodeRouteSegment(relDetail[1]);
+    const releaseId = decodeRouteSegment(relDetail[2]);
+    return projectId === null || releaseId === null
+      ? { view: "unknown" }
+      : { view: "release-detail", projectId, releaseId };
+  }
+  const relList = path.match(/^\/app\/projects\/([^/]+)\/releases$/);
+  if (relList) {
+    const projectId = decodeRouteSegment(relList[1]);
+    return projectId === null ? { view: "unknown" } : { view: "releases-list", projectId };
+  }
   const projectMatch = path.match(/^\/app\/projects\/([^/]+)$/);
   if (projectMatch) {
     const projectId = decodeRouteSegment(projectMatch[1]);
@@ -102,11 +136,16 @@ export function navItemsForRoute(route, currentPath) {
     match:
       item.href === "/app/clients"
         ? (p) => p === "/app/clients" || p.startsWith("/app/clients/")
-        : (p) => p === "/app/projects" || (p.startsWith("/app/projects/") && !p.includes("/requirements")),
+        : (p) =>
+            p === "/app/projects" ||
+            (p.startsWith("/app/projects/") && !p.includes("/requirements") && !p.includes("/releases")),
   }));
   if (route.projectId && isValidSlugId(route.projectId)) {
-    const reqBase = `/app/projects/${encodeURIComponent(route.projectId)}/requirements`;
+    const enc = encodeURIComponent(route.projectId);
+    const reqBase = `/app/projects/${enc}/requirements`;
+    const relBase = `/app/projects/${enc}/releases`;
     items.push({ href: reqBase, label: "Requirements", match: (p) => p.startsWith(reqBase) });
+    items.push({ href: relBase, label: "Releases", match: (p) => p.startsWith(relBase) });
   }
   return items.map((item) => ({ ...item, active: item.match(currentPath) }));
 }
@@ -206,10 +245,18 @@ function filterForm(filters, listPath) {
     ["type", "Type"],
     ["status", "Status"],
   ]) {
-    form.append(el("label", {}, [document.createTextNode(`${label} `), el("input", { name, value: filters[name], size: "12" })]));
+    form.append(
+      el("label", {}, [
+        document.createTextNode(`${label} `),
+        el("input", { name, value: filters[name], size: "12", maxlength: "64" }),
+      ]),
+    );
   }
   form.append(
-    el("label", {}, [document.createTextNode("Search "), el("input", { name: "q", value: filters.q, size: "24" })]),
+    el("label", {}, [
+      document.createTextNode("Search "),
+      el("input", { name: "q", value: filters.q, size: "24", maxlength: "200" }),
+    ]),
   );
   form.append(el("button", { type: "submit", text: "Apply" }));
   return form;
@@ -360,8 +407,122 @@ export async function renderProjectDetail(container, { apiFn, projectId }) {
     ]),
     el("section", { className: "stub-section" }, [
       el("h2", { text: "Releases" }),
-      el("p", { className: "muted", text: "Coming next." }),
+      el("p", {}, [el("a", { href: releasesListHref(projectId), text: "Browse releases" })]),
     ]),
+  );
+}
+
+function releaseStatusFilterForm(status, listPath) {
+  const form = el("form", { className: "filter-bar", method: "get", action: listPath });
+  const select = el("select", { name: "status" });
+  for (const [val, label] of [
+    ["", "Any status"],
+    ["planned", "Planned"],
+    ["shipped", "Shipped"],
+  ]) {
+    const opt = el("option", { value: val, text: label });
+    if (val === status) opt.selected = true;
+    select.append(opt);
+  }
+  form.append(el("label", {}, [document.createTextNode("Status "), select]));
+  form.append(el("button", { type: "submit", text: "Apply" }));
+  return form;
+}
+
+function formatDate(val) {
+  return val ? String(val) : "—";
+}
+
+export async function renderReleasesList(container, { apiFn, projectId, filters, offset = 0, limit = 20 }) {
+  if (!isValidSlugId(projectId)) return renderNotFound(container);
+  const listPath = `/app/projects/${encodeURIComponent(projectId)}/releases`;
+  const result = await loadJson(apiFn, releasesApiPath(projectId, filters.status, offset, limit));
+  if (result.kind === "auth") return;
+  if (result.kind !== "ok") return renderNotFound(container);
+  const page = result.data;
+  const pageBase = releasesListHref(projectId, filters);
+  container.replaceChildren(
+    el("nav", { className: "breadcrumb" }, [
+      el("a", { href: appProjectHref(projectId), text: "Project" }),
+      el("span", { text: " / Releases" }),
+    ]),
+    el("h1", { text: "Releases" }),
+    releaseStatusFilterForm(filters.status, listPath),
+  );
+  if (!page.items?.length) {
+    if (isPastEnd(page, offset)) return renderNoMoreResults(container, pageBase);
+    container.append(
+      el("p", {
+        className: "empty-state",
+        text: filters.status ? "No releases match your filter." : "No releases in this project.",
+      }),
+    );
+    return;
+  }
+  container.append(
+    dataTable(
+      ["Name", "ID", "Status", "Planned", "Shipped", "Capabilities"],
+      page.items.map((r) => [
+        el("td", {}, [el("a", { href: appReleaseHref(projectId, r.id), text: r.name })]),
+        el("td", {}, [el("code", { text: r.id })]),
+        el("td", { text: r.status ?? "—" }),
+        el("td", { text: formatDate(r.planned_on) }),
+        el("td", { text: formatDate(r.shipped_on) }),
+        el("td", { text: String(r.delivered_capability_count ?? 0) }),
+      ]),
+    ),
+  );
+  const bar = pagingBar({
+    basePath: pageBase,
+    offset: page.offset ?? offset,
+    limit: page.limit ?? limit,
+    total: page.total ?? 0,
+    pageLink: (off) => releasesListHref(projectId, { ...filters, offset: off }),
+  });
+  if (bar) container.append(bar);
+}
+
+export async function renderReleaseDetail(container, { apiFn, projectId, releaseId, listFilters }) {
+  if (!isValidSlugId(projectId) || !isValidSlugId(releaseId)) return renderNotFound(container);
+  const res = await loadJson(
+    apiFn,
+    `/api/v1/projects/${encodeURIComponent(projectId)}/releases/${encodeURIComponent(releaseId)}`,
+  );
+  if (res.kind === "auth") return;
+  if (res.kind !== "ok") return renderNotFound(container);
+  const rel = res.data;
+  const listHref = releasesListHref(projectId, listFilters ?? {});
+  container.replaceChildren(
+    el("nav", { className: "breadcrumb" }, [
+      el("a", { href: appProjectHref(projectId), text: "Project" }),
+      el("span", { text: " / " }),
+      el("a", { href: listHref, text: "Releases" }),
+      el("span", { text: ` / ${rel.id}` }),
+    ]),
+    el("h1", { text: rel.name || rel.id }),
+    el("p", { className: "muted" }, [
+      el("code", { text: rel.id }),
+      document.createTextNode(` · ${rel.status ?? "—"} · planned ${formatDate(rel.planned_on)} · shipped ${formatDate(rel.shipped_on)}`),
+    ]),
+  );
+  if (rel.notes) {
+    container.append(el("h2", { text: "Notes" }), el("div", { className: "statement-body", text: rel.notes }));
+  }
+  const caps = rel.delivered_capabilities ?? [];
+  container.append(el("h2", { text: "Delivered capabilities" }));
+  if (!caps.length) {
+    container.append(el("p", { className: "muted", text: "No capabilities delivered in this release." }));
+    return;
+  }
+  container.append(
+    dataTable(
+      ["UID", "Title", "Status"],
+      caps.map((c) => [
+        el("td", {}, [el("a", { href: appRequirementHref(projectId, c.uid), text: c.uid })]),
+        el("td", { text: c.title ?? "—" }),
+        el("td", { text: c.status ?? "—" }),
+      ]),
+    ),
   );
 }
 
@@ -502,6 +663,7 @@ export async function mountBrowseView(container, route, deps) {
   const { apiFn, search = "" } = deps;
   const offset = readPageOffset(search);
   const filters = readRequirementsFilters(search);
+  const releaseFilters = readReleaseFilters(search);
   switch (route.view) {
     case "clients-list":
       await renderClientsList(container, { apiFn, offset });
@@ -528,6 +690,17 @@ export async function mountBrowseView(container, route, deps) {
       break;
     case "requirement-versions":
       await renderRequirementVersions(container, { apiFn, projectId: route.projectId, requirementId: route.requirementId, offset });
+      break;
+    case "releases-list":
+      await renderReleasesList(container, { apiFn, projectId: route.projectId, filters: releaseFilters, offset });
+      break;
+    case "release-detail":
+      await renderReleaseDetail(container, {
+        apiFn,
+        projectId: route.projectId,
+        releaseId: route.releaseId,
+        listFilters: releaseFilters,
+      });
       break;
     case "unknown":
       renderNotFound(container);
