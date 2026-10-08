@@ -7469,37 +7469,37 @@ requirement_versions:
   base_uid: CAP-SVC-OPERATION-ROUTE
   version_n: 0
   status: draft
-  statement: 'Business routes under /api/v1 register only via defineOperationRoute: build RequestContext, parse params/query/body to typed input (validation → ServiceResult), runOperation, envelope or RFC 7807 Problem Details (application/problem+json). reqalmSecurity is derived from the operation.'
+  statement: 'Business routes under /api/ register only via defineOperationRoute: build RequestContext, validate params/query/body once in parseInput (Zod; validation → ServiceResult), runOperation, envelope or Problem Details (application/problem+json), including Fastify pre-handler errors and unexpected throws (500 without the error message). reqalmSecurity is derived from the operation; registration throws unless the operation declares a permission bound to a project (projectScoped + projectIdFromInput) or authenticatedOnly.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until operation-route PR merges.
-  statement_hash: sha256:9e43993e2df9e92c040d74dba17f7596bdddee489b9ce872149b9a9a3c5b1240
+  statement_hash: sha256:79680a96d406d42eefe5fbf517cc098775aa4437c4bc817d33dfe8a0b9f43279
   grooming_state: detailed
 - uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
   base_uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
   version_n: 0
   status: draft
-  statement: route-security.test.ts rejects /api/v1 business routes not registered via defineOperationRoute (auth/OAuth-shaped allowlist exempt) and rejects reqalmSecurity markers that disagree with the operation.
+  statement: route-security.test.ts rejects /api/ routes not registered via defineOperationRoute (exact METHOD + path allowlist for auth/OAuth-shaped and dev seed routes), permission markers on any hand-registered route, and reqalmSecurity markers that disagree with the operation.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until operation-route PR merges.
-  statement_hash: sha256:a2e78629794bc8b44777aa1f365c8214235bc5449e689a8341c8dba829ddaf3f
+  statement_hash: sha256:961b22811207a73f9fd9425952cd61805320e7ff68344f374412696762fee9bc
   grooming_state: detailed
 - uid: CAP-SVC-PROBLEM-JSON
   base_uid: CAP-SVC-PROBLEM-JSON
   version_n: 0
   status: draft
-  statement: mapServiceResultToHttp sets Content-Type application/problem+json for non-success ServiceResults.
+  statement: Error responses from operation routes use Content-Type application/problem+json, as documented in the static OpenAPI spec.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until operation-route PR merges.
-  statement_hash: sha256:30d8a63c734b89b7684d3a29d398f55def3a35c2f19531d850c01808a3ce2b24
+  statement_hash: sha256:4b4fcc7a081440dd94a77f8123874c42ed1a3f4fb0ad2fee83a5a8b4648e213e
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -7925,6 +7925,9 @@ capability_artifacts:
 - requirement_version_uid: CAP-SVC-PROBLEM-JSON
   kind: other
   uri: ../../../apps/reqalm/src/core/http-envelope.ts
+- requirement_version_uid: CAP-SVC-PROBLEM-JSON
+  kind: other
+  uri: ../../../apps/reqalm/openapi/openapi.yaml
 edges:
 - from: CAP-SSO
   to: A01
@@ -13477,7 +13480,7 @@ edges:
   kind: satisfies
 - from: CAP-SVC-OPERATION-ROUTE
   to: CAP-SVC-OPERATION-EXECUTOR
-  kind: satisfies
+  kind: uses
 - from: CAP-SVC-BUSINESS-ROUTE-AUDIT
   to: CAP-SVC-ROUTE-REGISTRY
   kind: satisfies
@@ -13948,7 +13951,7 @@ releases:
   project_id: reqalm
   name: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
   planned_on: '2026-10-07'
-  shipped_on: '2026-10-08'
+  shipped_on: '2026-10-07'
   status: shipped
   delivers:
   - CAP-OTEL-SDK-BOOTSTRAP
@@ -13959,11 +13962,11 @@ releases:
   - CAP-OTEL-EXPORT
   - CAP-OTEL-TEST-HARNESS
   cyber_gate: false
-  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/18 merged to main as aa4dc8337df8825eddbc5e04cc698248cde539d4 on 2026-10-08. Verified: in-process tests + typecheck + build.'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/18 merged to main as aa4dc835f68c4b80a0b34f3c0a06dc73768e1109 on 2026-10-07. Verified locally: tests x3, typecheck, build, dev-stack upgrade + smoke, Jaeger span tree. Traces only (not ARCH-OTEL audit-event export).'
 - id: rel-r1-route-helper
   project_id: reqalm
   name: R1 — defineOperationRoute (single business-route pipeline)
-  planned_on: '2026-10-08'
+  planned_on: '2026-10-07'
   shipped_on:
   status: planned
   delivers:
@@ -13971,7 +13974,7 @@ releases:
   - CAP-SVC-BUSINESS-ROUTE-AUDIT
   - CAP-SVC-PROBLEM-JSON
   cyber_gate: false
-  notes: One PR = one release. Unifies /api/v1 business route registration, strengthens fail-closed route audit, Problem Details content type. Does not replace auth/OAuth hand routes or claim full OpenAPI codegen from Zod.
+  notes: One PR = one release. Unifies /api/ business route registration, strengthens fail-closed route audit, Problem Details content type. Planned until merged; the next PR marks it shipped at the merge sha. Does not replace auth/OAuth hand routes or claim OpenAPI generation from Zod.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

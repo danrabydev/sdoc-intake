@@ -15,7 +15,9 @@ from ruamel.yaml.comments import CommentedMap
 SEED = Path(__file__).resolve().parent.parent
 DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
-MERGE_OTEL_TRACING = "aa4dc8337df8825eddbc5e04cc698248cde539d4"
+MERGE_OTEL_TRACING = "aa4dc835f68c4b80a0b34f3c0a06dc73768e1109"
+# Merged 2026-10-07 21:07 EDT (Dan's time zone; 2026-10-08 01:07 UTC).
+SHIPPED_OTEL_TRACING = "2026-10-07"
 
 yaml = YAML()
 yaml.preserve_quotes = True
@@ -75,10 +77,13 @@ ROUTE_HELPER_CAPS = [
     (
         "CAP-SVC-OPERATION-ROUTE",
         "defineOperationRoute — single pipeline for /api/v1 business routes",
-        "Business routes under /api/v1 register only via defineOperationRoute: build RequestContext, "
-        "parse params/query/body to typed input (validation → ServiceResult), runOperation, envelope or "
-        "RFC 7807 Problem Details (application/problem+json). reqalmSecurity is derived from the operation.",
-        ["ARCH-API-LAYERS", "ARCH-API-RBAC", "CAP-SVC-OPERATION-EXECUTOR"],
+        "Business routes under /api/ register only via defineOperationRoute: build RequestContext, "
+        "validate params/query/body once in parseInput (Zod; validation → ServiceResult), runOperation, "
+        "envelope or Problem Details (application/problem+json), including Fastify pre-handler errors and "
+        "unexpected throws (500 without the error message). reqalmSecurity is derived from the operation; "
+        "registration throws unless the operation declares a permission bound to a project "
+        "(projectScoped + projectIdFromInput) or authenticatedOnly.",
+        [("ARCH-API-LAYERS", "satisfies"), ("ARCH-API-RBAC", "satisfies"), ("CAP-SVC-OPERATION-EXECUTOR", "uses")],
         [
             f"{REPO}/apps/reqalm/src/http/define-operation-route.ts",
             f"{REPO}/apps/reqalm/src/modules/projects/routes.ts",
@@ -87,9 +92,10 @@ ROUTE_HELPER_CAPS = [
     (
         "CAP-SVC-BUSINESS-ROUTE-AUDIT",
         "Fail-closed business route registration test",
-        "route-security.test.ts rejects /api/v1 business routes not registered via defineOperationRoute "
-        "(auth/OAuth-shaped allowlist exempt) and rejects reqalmSecurity markers that disagree with the operation.",
-        ["CAP-SVC-ROUTE-REGISTRY", "ARCH-API-RBAC"],
+        "route-security.test.ts rejects /api/ routes not registered via defineOperationRoute (exact METHOD + path "
+        "allowlist for auth/OAuth-shaped and dev seed routes), permission markers on any hand-registered route, "
+        "and reqalmSecurity markers that disagree with the operation.",
+        [("CAP-SVC-ROUTE-REGISTRY", "satisfies"), ("ARCH-API-RBAC", "satisfies")],
         [
             f"{REPO}/apps/reqalm/src/http/route-security.ts",
             f"{REPO}/apps/reqalm/src/http/route-security.test.ts",
@@ -98,9 +104,10 @@ ROUTE_HELPER_CAPS = [
     (
         "CAP-SVC-PROBLEM-JSON",
         "Problem Details content type on service errors",
-        "mapServiceResultToHttp sets Content-Type application/problem+json for non-success ServiceResults.",
-        ["CAP-SVC-RESULT-ENVELOPE"],
-        [f"{REPO}/apps/reqalm/src/core/http-envelope.ts"],
+        "Error responses from operation routes use Content-Type application/problem+json, as documented in "
+        "the static OpenAPI spec.",
+        [("CAP-SVC-RESULT-ENVELOPE", "satisfies")],
+        [f"{REPO}/apps/reqalm/src/core/http-envelope.ts", f"{REPO}/apps/reqalm/openapi/openapi.yaml"],
     ),
 ]
 
@@ -112,10 +119,11 @@ def main() -> None:
     rel_otel = find(data.get("releases"), "id", "rel-r1-otel-tracing")
     if rel_otel:
         rel_otel["status"] = "shipped"
-        rel_otel["shipped_on"] = "2026-10-08"
+        rel_otel["shipped_on"] = SHIPPED_OTEL_TRACING
         rel_otel["notes"] = (
             f"One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/18 merged to main as "
-            f"{MERGE_OTEL_TRACING} on 2026-10-08. Verified: in-process tests + typecheck + build."
+            f"{MERGE_OTEL_TRACING} on {SHIPPED_OTEL_TRACING}. Verified locally: tests x3, typecheck, build, "
+            "dev-stack upgrade + smoke, Jaeger span tree. Traces only (not ARCH-OTEL audit-event export)."
         )
     for cap in OTEL_CAPS:
         ver = find(data.get("requirement_versions"), "uid", cap)
@@ -165,8 +173,8 @@ def main() -> None:
                 approved_statement_hash=None,
             ),
         )
-        for to in satisfies:
-            ensure_edge(edges, {"from": cap_uid, "to": to, "kind": "satisfies"})
+        for to, kind in satisfies:
+            ensure_edge(edges, {"from": cap_uid, "to": to, "kind": kind})
         for uri in artifact_paths:
             if not any(a.get("requirement_version_uid") == cap_uid and a.get("uri") == uri for a in arts):
                 arts.append({"requirement_version_uid": cap_uid, "kind": "other", "uri": uri})
@@ -179,15 +187,15 @@ def main() -> None:
             id="rel-r1-route-helper",
             project_id="reqalm",
             name="R1 — defineOperationRoute (single business-route pipeline)",
-            planned_on="2026-10-08",
+            planned_on="2026-10-07",
             shipped_on=None,
             status="planned",
             delivers=deliver_uids,
             cyber_gate=False,
             notes=(
-                "One PR = one release. Unifies /api/v1 business route registration, strengthens fail-closed "
-                "route audit, Problem Details content type. Does not replace auth/OAuth hand routes or claim "
-                "full OpenAPI codegen from Zod."
+                "One PR = one release. Unifies /api/ business route registration, strengthens fail-closed "
+                "route audit, Problem Details content type. Planned until merged; the next PR marks it shipped "
+                "at the merge sha. Does not replace auth/OAuth hand routes or claim OpenAPI generation from Zod."
             ),
         ),
     )

@@ -8640,7 +8640,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
-edge: ← satisfies from CAP-SVC-OPERATION-ROUTE
+edge: ← uses from CAP-SVC-OPERATION-ROUTE
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -9010,7 +9010,7 @@ UID: CAP-SVC-OPERATION-ROUTE
 STATUS: Draft
 TITLE: defineOperationRoute — single pipeline for /api/v1 business routes
 STATEMENT: >>>
-Business routes under /api/v1 register only via defineOperationRoute: build RequestContext, parse params/query/body to typed input (validation → ServiceResult), runOperation, envelope or RFC 7807 Problem Details (application/problem+json). reqalmSecurity is derived from the operation.
+Business routes under /api/ register only via defineOperationRoute: build RequestContext, validate params/query/body once in parseInput (Zod; validation → ServiceResult), runOperation, envelope or Problem Details (application/problem+json), including Fastify pre-handler errors and unexpected throws (500 without the error message). reqalmSecurity is derived from the operation; registration throws unless the operation declares a permission bound to a project (projectScoped + projectIdFromInput) or authenticatedOnly.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -9033,7 +9033,7 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: CAP-SVC-OPERATION-EXECUTOR
-  ROLE: Satisfies
+  ROLE: Uses
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-helper
   ROLE: Delivers
@@ -9043,7 +9043,7 @@ UID: CAP-SVC-BUSINESS-ROUTE-AUDIT
 STATUS: Draft
 TITLE: Fail-closed business route registration test
 STATEMENT: >>>
-route-security.test.ts rejects /api/v1 business routes not registered via defineOperationRoute (auth/OAuth-shaped allowlist exempt) and rejects reqalmSecurity markers that disagree with the operation.
+route-security.test.ts rejects /api/ routes not registered via defineOperationRoute (exact METHOD + path allowlist for auth/OAuth-shaped and dev seed routes), permission markers on any hand-registered route, and reqalmSecurity markers that disagree with the operation.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -9073,7 +9073,7 @@ UID: CAP-SVC-PROBLEM-JSON
 STATUS: Draft
 TITLE: Problem Details content type on service errors
 STATEMENT: >>>
-mapServiceResultToHttp sets Content-Type application/problem+json for non-success ServiceResults.
+Error responses from operation routes use Content-Type application/problem+json, as documented in the static OpenAPI spec.
 <<<
 COMMENT: >>>
 KIND: capability
