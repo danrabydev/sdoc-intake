@@ -373,6 +373,7 @@ export async function registerAuthRoutes(
           `${body.username}`,
         );
         await releaseLoginAttempt(pool, auth.identityId);
+        reply.header("Cache-Control", "no-store");
         return reply.send({
           status: "mfa_enrollment_required",
           enrollment_ticket: enroll.ticketId,
