@@ -1244,6 +1244,15 @@ approval_records:
   notes: Planned for requirement hierarchy read API PR.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-browse-ui-tree
+  subject_kind: CapabilityLine
+  base_uid: CAP-BROWSE-UI-TREE
+  status: unapproved
+  by:
+  at:
+  notes: Planned for requirements tree browse UI PR.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3145,6 +3154,11 @@ requirement_lines:
   parent: SEC-RL
   kind: capability
   title: Read requirement hierarchy (lazy tree API)
+- base_uid: CAP-BROWSE-UI-TREE
+  project_id: reqalm
+  parent: SEC-RL
+  kind: capability
+  title: Browse requirements tree UI (read-only)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -7845,14 +7859,27 @@ requirement_versions:
 - uid: CAP-READ-HIERARCHY
   base_uid: CAP-READ-HIERARCHY
   version_n: 0
-  status: draft
+  status: active
   statement: 'Grant-scoped requirement hierarchy read API: lazy paged GET /api/v1/projects/:projectId/requirements/tree?parent=<base_uid> returning direct children in dogfood sibling order with uid, title, kind, type, status, and child_count (sections and requirements alike; roots = parent null). Optional parent_uid and ancestors on detail. Parent pointers already live on requirement_lines (001); loader adds sibling_order and rejects cross-project parents. Trace edges and obsolete-line filtering are deferred.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: Planned until hierarchy read API PR merges.
+    verification_note: 'Shipped with requirement hierarchy read API PR #28 (merge ffd1d5c38ffc6f09c13dd877c82bf0d4bd891764).'
   statement_hash: sha256:e1dfc39e9b035a60e6b08db150fe06352753eb2e4ed7cb536c33cc36aa8f31f8
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-BROWSE-UI-TREE
+  base_uid: CAP-BROWSE-UI-TREE
+  version_n: 0
+  status: draft
+  statement: 'Read-only /app requirements tree for a grant-scoped project: lazy-loaded outline at /app/projects/:projectId/tree using GET .../requirements/tree?parent= (roots when omitted). Each node shows kind, uid, title; expanders load children once and cache in memory. Accessible WAI-ARIA tree (roles, aria-expanded/level, keyboard navigation). Requirement detail breadcrumbs from ancestors (sections link to tree). Session/CSRF auth; safe DOM text only.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until requirements tree browse UI PR merges.
+  statement_hash: sha256:e0707d013ea48aa38a7c56c3cf32d3dc7da612d04d1c58c1527bcf82ccccc69f
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -8440,6 +8467,24 @@ capability_artifacts:
 - requirement_version_uid: CAP-READ-HIERARCHY
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_read_hierarchy_release.py
+- requirement_version_uid: CAP-BROWSE-UI-TREE
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/app.js
+- requirement_version_uid: CAP-BROWSE-UI-TREE
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/browse.js
+- requirement_version_uid: CAP-BROWSE-UI-TREE
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/styles.css
+- requirement_version_uid: CAP-BROWSE-UI-TREE
+  kind: other
+  uri: ../../../apps/reqalm/src/web/spa-shell-paths.ts
+- requirement_version_uid: CAP-BROWSE-UI-TREE
+  kind: other
+  uri: ../../../apps/reqalm/src/web/browse-ui.test.ts
+- requirement_version_uid: CAP-BROWSE-UI-TREE
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_browse_ui_tree_release.py
 edges:
 - from: CAP-SSO
   to: A01
@@ -14140,6 +14185,21 @@ edges:
 - from: CAP-READ-HIERARCHY
   to: CAP-RBAC
   kind: satisfies
+- from: CAP-BROWSE-UI-TREE
+  to: C06
+  kind: satisfies
+- from: CAP-BROWSE-UI-TREE
+  to: C07
+  kind: satisfies
+- from: CAP-BROWSE-UI-TREE
+  to: ARCH-UI
+  kind: satisfies
+- from: CAP-BROWSE-UI-TREE
+  to: ARCH-UI-GUARD
+  kind: satisfies
+- from: CAP-BROWSE-UI-TREE
+  to: CAP-READ-HIERARCHY
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -14713,12 +14773,22 @@ releases:
   project_id: reqalm
   name: R1 — requirement hierarchy read API
   planned_on: '2026-10-08'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-08'
+  status: shipped
   delivers:
   - CAP-READ-HIERARCHY
   cyber_gate: false
   notes: Lazy tree read API + loader hierarchy persistence; tree UI deferred.
+- id: rel-r1-browse-ui-tree
+  project_id: reqalm
+  name: R1 — browse requirements tree UI (read-only)
+  planned_on: '2026-10-08'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-BROWSE-UI-TREE
+  cyber_gate: false
+  notes: Lazy tree outline in /app; ancestor breadcrumbs on requirement detail.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

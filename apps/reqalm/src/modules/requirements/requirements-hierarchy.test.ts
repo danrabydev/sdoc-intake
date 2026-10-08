@@ -226,9 +226,9 @@ describe("requirements tree read API", () => {
     ).json() as { data: Record<string, unknown> };
     assert.equal(detail.data.parent_uid, FIX_C1);
     assert.deepEqual(detail.data.ancestors, [
-      { uid: "SEC-DEVENV", title: "Developer environment & deployment topology" },
-      { uid: FIX_PARENT, title: "Hier parent" },
-      { uid: FIX_C1, title: "Child one" },
+      { uid: "SEC-DEVENV", title: "Developer environment & deployment topology", kind: "section" },
+      { uid: FIX_PARENT, title: "Hier parent", kind: "section" },
+      { uid: FIX_C1, title: "Child one", kind: "requirement" },
     ]);
     const detailKeys = Object.keys(detail.data).sort();
     assert.deepEqual(detailKeys, [

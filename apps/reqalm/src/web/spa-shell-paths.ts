@@ -24,4 +24,5 @@ export const WEB_UI_SPA_ENTRY_GET_PATHS = [
   "/app/projects/reqalm/requirements/CAP-READ-REQS/versions",
   "/app/projects/reqalm/releases",
   "/app/projects/reqalm/releases/rel-r1-read-releases",
+  "/app/projects/reqalm/tree",
 ] as const;

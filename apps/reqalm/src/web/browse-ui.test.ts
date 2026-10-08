@@ -10,9 +10,12 @@ import {
   appRequirementHref,
   appRequirementVersionsHref,
   appReleaseHref,
+  appTreeHref,
   requirementsListHref,
+  requirementsTreeApiPath,
   releasesListHref,
   readReleaseFilters,
+  ancestorBrowseHref,
   isValidSlugId,
   isValidRequirementId,
   parseAppRoute,
@@ -29,6 +32,7 @@ import {
   renderRequirementVersions,
   renderReleasesList,
   renderReleaseDetail,
+  renderRequirementsTree,
   renderNotFound,
   mountBrowseView,
   decodeRouteSegment,
@@ -75,6 +79,7 @@ describe("browse routes and helpers", () => {
       projectId: "reqalm",
       releaseId: "rel-r1",
     });
+    assert.deepEqual(parseAppRoute("/app/projects/reqalm/tree"), { view: "requirements-tree", projectId: "reqalm" });
     assert.equal(parseAppRoute("/app/nope").view, "unknown");
     assert.deepEqual(APP_NAV.map((n) => n.label), ["Clients", "Projects"]);
   });
@@ -96,6 +101,11 @@ describe("browse routes and helpers", () => {
     assert.equal(appRequirementVersionsHref("p1", "R1", 20), "/app/projects/p1/requirements/R1/versions?offset=20");
     assert.equal(appReleaseHref("p1", "rel/a"), "/app/projects/p1/releases/rel%2Fa");
     assert.equal(releasesListHref("p1", { status: "planned", offset: 20 }), "/app/projects/p1/releases?status=planned&offset=20");
+    assert.equal(appTreeHref("p1"), "/app/projects/p1/tree");
+    assert.equal(requirementsTreeApiPath("p1", null), "/api/v1/projects/p1/requirements/tree?limit=100&offset=0");
+    assert.equal(requirementsTreeApiPath("p1", "SEC-CP"), "/api/v1/projects/p1/requirements/tree?limit=100&offset=0&parent=SEC-CP");
+    assert.equal(ancestorBrowseHref("p1", { uid: "SEC-1", title: "S", kind: "section" }), "/app/projects/p1/tree");
+    assert.equal(ancestorBrowseHref("p1", { uid: "R1", title: "R", kind: "requirement" }), "/app/projects/p1/requirements/R1");
     assert.deepEqual(readReleaseFilters("?status=shipped"), { status: "shipped" });
     assert.deepEqual(readReleaseFilters("?status=nope"), { status: "" });
     assert.deepEqual(readRequirementsFilters("?kind=k&type=t&status=s&q=find"), {
@@ -110,7 +120,15 @@ describe("browse routes and helpers", () => {
   });
 
   it("pathGetsWebSpaShell table", () => {
-    const yes = ["/", "/login", "/login/x", "/app", "/app/projects/p/requirements", "/app/projects/p/requirements/R/versions"];
+    const yes = [
+      "/",
+      "/login",
+      "/login/x",
+      "/app",
+      "/app/projects/p/requirements",
+      "/app/projects/p/requirements/R/versions",
+      "/app/projects/p/tree",
+    ];
     const no = ["/loginx", "/applesauce", "/.env"];
     for (const p of yes) assert.equal(pathGetsWebSpaShell(p), true, p);
     for (const p of no) assert.equal(pathGetsWebSpaShell(p), false, p);
@@ -229,6 +247,7 @@ describe("browse UI render (jsdom)", () => {
     await renderProjectDetail(main, { apiFn, projectId: "Bad_Slug!" });
     await renderRequirementsList(main, { apiFn, projectId: "bad!", filters: {}, offset: 0 });
     await renderReleasesList(main, { apiFn, projectId: "bad!", filters: { status: "" }, offset: 0 });
+    await renderRequirementsTree(main, { apiFn, projectId: "bad!" });
     assert.equal(fetchCalls.length, 0);
   });
 
@@ -414,9 +433,169 @@ describe("browse UI render (jsdom)", () => {
     });
     await renderProjectDetail(main, { apiFn, projectId: "p1" });
     assert.ok(main.querySelector('a[href="/app/projects/p1/requirements"]'));
+    assert.ok(main.querySelector('a[href="/app/projects/p1/tree"]'));
     assert.ok(main.querySelector('a[href="/app/projects/p1/releases"]'));
     assert.match(main.textContent ?? "", /Browse requirements/);
     assert.match(main.textContent ?? "", /Browse releases/);
+  });
+
+  it("requirements tree loads roots and lazy children once with aria-level", async () => {
+    const main = document.createElement("main");
+    let childFetches = 0;
+    const apiFn = mockFetch((url) => {
+      if (url === "/api/v1/projects/reqalm/requirements/tree?limit=100&offset=0") {
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: [{ uid: "SEC-A", title: "Section A", kind: "section", type: "section", status: "active", child_count: 1 }],
+              limit: 100,
+              offset: 0,
+              total: 1,
+            },
+          },
+        };
+      }
+      if (url === "/api/v1/projects/reqalm/requirements/tree?limit=100&offset=0&parent=SEC-A") {
+        childFetches += 1;
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: [{ uid: "CAP-1", title: "Cap one", kind: "capability", type: "capability", status: "draft", child_count: 0 }],
+              limit: 100,
+              offset: 0,
+              total: 1,
+            },
+          },
+        };
+      }
+      return { status: 404 };
+    });
+    await renderRequirementsTree(main, { apiFn, projectId: "reqalm" });
+    assert.equal(fetchCalls.filter((u) => u.includes("/requirements/tree")).length, 1);
+    const root = main.querySelector('[role="treeitem"][aria-level="1"]');
+    assert.ok(root);
+    assert.equal(root?.getAttribute("aria-expanded"), "false");
+    assert.match(root?.textContent ?? "", /section/);
+    assert.match(root?.textContent ?? "", /SEC-A/);
+    root?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    assert.equal(childFetches, 1);
+    assert.equal(fetchCalls.filter((u) => u.includes("parent=SEC-A")).length, 1);
+    const child = main.querySelector('[role="treeitem"][aria-level="2"]');
+    assert.ok(child);
+    assert.match(child?.textContent ?? "", /capability/);
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-1"]'));
+    root?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    root?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    assert.equal(childFetches, 1);
+  });
+
+  it("tree keyboard navigation moves focus and expands with ArrowRight", async () => {
+    const main = document.createElement("main");
+    const apiFn = mockFetch((url) => {
+      if (url.endsWith("tree?limit=100&offset=0")) {
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: [{ uid: "SEC-1", title: "S1", kind: "section", type: "section", status: "active", child_count: 1 }],
+              total: 1,
+            },
+          },
+        };
+      }
+      if (url.includes("parent=SEC-1")) {
+        return {
+          status: 200,
+          body: { data: { items: [{ uid: "R-1", title: "Req", kind: "requirement", type: "req", status: "active", child_count: 0 }], total: 1 } },
+        };
+      }
+      return { status: 404 };
+    });
+    await renderRequirementsTree(main, { apiFn, projectId: "reqalm" });
+    const tree = main.querySelector('[role="tree"]');
+    const items = () => [...main.querySelectorAll('[role="treeitem"]')];
+    const focused = () => main.querySelector('[role="treeitem"][tabindex="0"]');
+    assert.equal(focused()?.querySelector(".req-tree-uid")?.textContent, "SEC-1");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(items()[0]?.getAttribute("aria-expanded"), "true");
+    assert.equal(items().length, 2);
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    assert.equal(focused()?.querySelector(".req-tree-uid")?.textContent, "R-1");
+    assert.equal(focused()?.getAttribute("aria-level"), "2");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Home", bubbles: true }));
+    assert.equal(focused()?.querySelector(".req-tree-uid")?.textContent, "SEC-1");
+  });
+
+  it("requirement detail breadcrumbs use ancestor order and section vs requirement links", async () => {
+    const main = document.createElement("main");
+    await renderRequirementDetail(main, {
+      apiFn: mockFetch(() => ({
+        status: 200,
+        body: {
+          data: {
+            id: "LEAF",
+            title: "Leaf title",
+            kind: "requirement",
+            type: "requirement",
+            status: "active",
+            version_n: 1,
+            statement: "S",
+            attributes: {},
+            ancestors: [
+              { uid: "SEC-ROOT", title: "Root section", kind: "section" },
+              { uid: "MID", title: "Mid req", kind: "requirement" },
+            ],
+          },
+        },
+      })),
+      projectId: "reqalm",
+      requirementId: "LEAF",
+      listFilters: {},
+    });
+    const links = [...main.querySelectorAll(".breadcrumb a")].map((a) => a.getAttribute("href"));
+    assert.deepEqual(links, ["/app/projects/reqalm", "/app/projects/reqalm/tree", "/app/projects/reqalm/requirements/MID"]);
+    assert.match(main.textContent ?? "", /Root section/);
+    assert.match(main.textContent ?? "", /Mid req/);
+    const crumbText = main.querySelector(".breadcrumb")?.textContent ?? "";
+    assert.match(crumbText, / \/ LEAF$/);
+    assert.ok(!main.querySelector('.breadcrumb a[href*="LEAF"]'));
+
+    const plain = document.createElement("main");
+    await renderRequirementDetail(plain, {
+      apiFn: mockFetch(() => ({
+        status: 200,
+        body: {
+          data: {
+            id: "CAP-1",
+            title: "T",
+            kind: "capability",
+            type: "capability",
+            status: "active",
+            version_n: 0,
+            statement: "S",
+            attributes: {},
+            ancestors: [],
+          },
+        },
+      })),
+      projectId: "reqalm",
+      requirementId: "CAP-1",
+      listFilters: { kind: "cap", type: "", status: "", q: "" },
+    });
+    assert.ok(plain.querySelector('a[href="/app/projects/reqalm/requirements?kind=cap"]'));
+    assert.doesNotMatch(plain.textContent ?? "", /Root section/);
+  });
+
+  it("requirements tree API 404 does not throw", async () => {
+    const main = document.createElement("main");
+    await renderRequirementsTree(main, { apiFn: mockFetch(() => ({ status: 404 })), projectId: "reqalm" });
+    assert.match(main.textContent ?? "", /don't have access/i);
   });
 
   it("releases list paging via mountBrowseView preserves status in API and hrefs", async () => {
@@ -743,8 +922,14 @@ describe("app shell", () => {
     const route = parseAppRoute("/app/projects/reqalm/requirements");
     renderAppShell("/app/projects/reqalm/requirements", route);
     const texts = [...document.querySelectorAll("#top-nav a")].map((a) => a.textContent);
-    assert.deepEqual(texts, ["Clients", "Projects", "Requirements", "Releases"]);
+    assert.deepEqual(texts, ["Clients", "Projects", "Requirements", "Tree", "Releases"]);
     assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm/requirements"]'));
+  });
+
+  it("shows Tree nav active on tree route", () => {
+    const route = parseAppRoute("/app/projects/reqalm/tree");
+    renderAppShell("/app/projects/reqalm/tree", route);
+    assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm/tree"]'));
   });
 
   it("shows Releases nav active on releases routes", () => {
