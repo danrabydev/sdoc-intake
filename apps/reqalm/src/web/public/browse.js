@@ -626,7 +626,9 @@ function treeNodeLabel(node, projectId) {
   if (node.kind === "section") {
     wrap.append(el("span", { text: node.title || "—" }));
   } else {
-    wrap.append(el("a", { href: appRequirementHref(projectId, node.uid), text: node.title || node.uid }));
+    wrap.append(
+      el("a", { href: appRequirementHref(projectId, node.uid), tabindex: "-1", text: node.title || node.uid }),
+    );
   }
   return wrap;
 }
@@ -663,7 +665,7 @@ export async function renderRequirementsTree(container, { apiFn, projectId }) {
   }
 
   function focusItem(item) {
-    for (const n of visibleTreeitems()) n.setAttribute("tabindex", "-1");
+    for (const n of treeEl.querySelectorAll('[role="treeitem"]')) n.setAttribute("tabindex", "-1");
     item.setAttribute("tabindex", "0");
     item.focus();
   }
@@ -673,6 +675,11 @@ export async function renderRequirementsTree(container, { apiFn, projectId }) {
     if (!btn) return;
     btn.textContent = isOpen ? "▾" : "▸";
     btn.setAttribute("aria-label", isOpen ? "Collapse" : "Expand");
+  }
+
+  function refocusCollapsedAncestor(item) {
+    const focused = item.querySelector('[role="treeitem"][tabindex="0"]');
+    if (focused && focused !== item) focusItem(item);
   }
 
   async function mountChildren(group, parentUid, level) {
@@ -718,6 +725,7 @@ export async function renderRequirementsTree(container, { apiFn, projectId }) {
       item.setAttribute("aria-expanded", "false");
       syncExpander(item, false);
       group.hidden = true;
+      refocusCollapsedAncestor(item);
       return;
     }
     item.querySelector(".req-tree-load-error")?.remove();
