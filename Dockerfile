@@ -13,6 +13,14 @@ COPY apps/reqalm/package.json apps/reqalm/package.json
 COPY packages/intake/package.json packages/intake/package.json
 RUN pnpm install --filter @reqalm/app --frozen-lockfile
 
+# Runtime gets production dependencies only: no test (PGlite, pglite-socket) or build (tsx,
+# typescript, esbuild) packages in the image.
+FROM node-base AS app-prod-deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/reqalm/package.json apps/reqalm/package.json
+COPY packages/intake/package.json packages/intake/package.json
+RUN pnpm install --filter @reqalm/app --frozen-lockfile --prod
+
 FROM app-deps AS app-build
 COPY apps/reqalm apps/reqalm
 COPY docs/design/seed docs/design/seed
@@ -24,8 +32,8 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 WORKDIR /repo/apps/reqalm
-COPY --from=app-deps /repo/node_modules /repo/node_modules
-COPY --from=app-deps /repo/apps/reqalm/node_modules ./node_modules
+COPY --from=app-prod-deps /repo/node_modules /repo/node_modules
+COPY --from=app-prod-deps /repo/apps/reqalm/node_modules ./node_modules
 COPY --from=app-build /repo/apps/reqalm/dist ./dist
 COPY --from=app-build /repo/apps/reqalm/openapi ./openapi
 COPY --from=app-build /repo/apps/reqalm/package.json ./package.json
