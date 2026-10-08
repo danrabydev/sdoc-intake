@@ -1,7 +1,7 @@
 import { err, ok, type ServiceResult } from "../../core/service-result.js";
 import type { PageQuery, PageResult } from "../../core/paging.js";
 import type { RequestContext } from "../../core/request-context.js";
-import { clientIdsForProjects, projectIdsWithPermission } from "../../rbac/enforce.js";
+import { clientIdsForProjects } from "../../rbac/enforce.js";
 
 export type ClientDto = {
   id: string;
@@ -17,10 +17,11 @@ export async function listClients(
   ctx: RequestContext,
   input: ListClientsInput,
 ): Promise<ServiceResult<PageResult<ClientDto>>> {
-  const clientIds = await clientIdsForProjects(
-    ctx,
-    await projectIdsWithPermission(ctx, "client:list"),
-  );
+  const allowed = ctx.allowedProjectIds;
+  if (!allowed) {
+    return err("internal", "Internal error");
+  }
+  const clientIds = await clientIdsForProjects(ctx, allowed);
   if (clientIds.length === 0) {
     return ok({ items: [], limit: input.limit, offset: input.offset, total: 0 });
   }
@@ -43,9 +44,11 @@ export async function getClient(
   ctx: RequestContext,
   input: GetClientInput,
 ): Promise<ServiceResult<ClientDto>> {
-  const allowed = new Set(
-    await clientIdsForProjects(ctx, await projectIdsWithPermission(ctx, "client:list")),
-  );
+  const projectIds = ctx.allowedProjectIds;
+  if (!projectIds) {
+    return err("internal", "Internal error");
+  }
+  const allowed = new Set(await clientIdsForProjects(ctx, projectIds));
   if (!allowed.has(input.clientId)) {
     return err("not_found", "Client not found");
   }

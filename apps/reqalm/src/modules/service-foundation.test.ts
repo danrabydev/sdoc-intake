@@ -616,6 +616,36 @@ describe("browse clients and projects", () => {
     assert.deepEqual(page.data.items.map((p) => p.id), ["reqalm"]);
     assert.equal(page.data.limit, 20);
     assert.equal((await inject({ method: "GET", url: "/api/v1/projects?limit=500", headers: h })).statusCode, 400);
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/projects?offset=100001", headers: h })).statusCode,
+      400,
+    );
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/projects?offset=100000&limit=1", headers: h })).statusCode,
+      200,
+    );
+  });
+
+  it("listClientProjects uses allowedProjectIds (Key custodian grant does not unlock client)", async () => {
+    await ctx.pool.query(
+      `INSERT INTO clients (id, name) VALUES ('other-client', 'Other') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO projects (id, client_id, name) VALUES ('secret-oc', 'other-client', 'Secret OC') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-casey-kc-oc', 'secret-oc', 'casey-reader', 'Key custodian') ON CONFLICT DO NOTHING`,
+    );
+    try {
+      const h = bearer(caseyAccess);
+      const res = await inject({ method: "GET", url: "/api/v1/clients/other-client/projects", headers: h });
+      assert.equal(res.statusCode, 404);
+      assert.notEqual((res.json() as { code: string }).code, "validation");
+    } finally {
+      await ctx.pool.query(`DELETE FROM project_grants WHERE id = 'grant-casey-kc-oc'`);
+      await ctx.pool.query(`DELETE FROM projects WHERE id = 'secret-oc'`);
+    }
   });
 
   it("invalid client id redacts logs and span url.path", async () => {
@@ -664,6 +694,12 @@ describe("browse clients and projects", () => {
       (await inject({ method: "GET", url: "/api/v1/clients/reqalm-client", headers: bearer(token) })).statusCode,
       200,
     );
+  });
+
+  after(async () => {
+    await ctx.pool.query(`DELETE FROM project_grants WHERE id IN ('grant-agent-padmin-p2')`);
+    await ctx.pool.query(`DELETE FROM projects WHERE id = 'browse-p2'`);
+    await ctx.pool.query(`DELETE FROM clients WHERE id = 'browse-client-p2'`);
   });
 
   it("agent Reader token excludes project where only non-Reader listing role is granted", async () => {

@@ -854,6 +854,7 @@ edge: ← uses from FIX-DENY-MCP-ESCALATE
 edge: ← uses from FIX-DENY-NO-GRANT
 edge: ← uses from FIX-DENY-REVOKED
 edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR
+edge: ← satisfies from CAP-READ-REQS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -2661,7 +2662,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-CP
-STATUS: Draft
+STATUS: Active
 TITLE: Browse clients and projects UI (read-only)
 STATEMENT: >>>
 Read-only /app browse screens for grant-scoped clients and projects: paged clients list, client detail with projects, all-projects list with client name, and a project header stub (Requirements and Releases sections labelled coming next). Uses existing session/CSRF auth; API data rendered via safe DOM text only.
@@ -2673,7 +2674,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until browse UI PR merges.
+security.verification_note: Shipped with browse UI PR #23.
 delivered_by_release: R1 — browse clients and projects UI (read-only)
 <<<
 RELATIONS:
@@ -2696,6 +2697,45 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-cp
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-READ-REQS
+STATUS: Draft
+TITLE: Read requirements (list, detail, versions)
+STATEMENT: >>>
+Grant-scoped requirements read APIs: paged GET /api/v1/projects/:projectId/requirements with filters (kind, type, status, q) and current-version summaries; GET detail (statement + version attributes); GET version history (newest first). listScope pipeline supplies allowedProjectIds for browse lists; trace edges are not persisted in the seed loader yet (deferred). Invalid requirement id segments redact in logs/spans like client/project slugs.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-READ-REQS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Planned until requirements read PR merges.
+delivered_by_release: R1 — requirements read API
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: C08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: D06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-read-requirements
   ROLE: Delivers
 
 [[/SECTION]]
@@ -3042,6 +3082,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-TREE
 edge: ← uses from N03
+edge: ← satisfies from CAP-READ-REQS
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3343,6 +3384,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-VERSION-UI
+edge: ← satisfies from CAP-READ-REQS
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8538,6 +8580,7 @@ edge: ← satisfies from CAP-SVC-BUSINESS-ROUTE-AUDIT
 edge: ← satisfies from CAP-SVC-PROJECT-ID-SLUG
 edge: ← satisfies from CAP-SVC-IMPLICIT-PUBLIC-EXACT
 edge: ← satisfies from CAP-SVC-NON-API-AUTH-AUDIT
+edge: ← satisfies from CAP-READ-REQS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -9112,6 +9155,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until operation-route PR merges.
 edge: ← refines from CAP-SVC-PROJECT-ID-SLUG
+edge: ← satisfies from CAP-READ-REQS
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<
 RELATIONS:

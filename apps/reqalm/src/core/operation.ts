@@ -1,5 +1,5 @@
 import { trace, SpanStatusCode } from "@opentelemetry/api";
-import { authorize } from "../rbac/enforce.js";
+import { authorize, projectIdsWithPermission } from "../rbac/enforce.js";
 import { writeBusinessAudit } from "../audit/business-audit.js";
 import { logOperation } from "./logging/structured-log.js";
 import type { RequestContext } from "./request-context.js";
@@ -178,6 +178,15 @@ async function runPipeline<TIn, TOut>(
         "deny",
         "deny",
       );
+    }
+
+    if (def.listScope && def.projectScoped) {
+      ctx.logger.error({ operation: def.name, request_id: ctx.requestId }, "operation_list_scope_conflict");
+      return finish(err("internal", "Internal error"), "error", "error");
+    }
+
+    if (def.listScope && def.permission) {
+      ctx.allowedProjectIds = await projectIdsWithPermission(ctx, def.permission);
     }
 
     if (def.projectScoped) {

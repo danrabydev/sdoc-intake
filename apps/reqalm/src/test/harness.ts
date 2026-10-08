@@ -1,4 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { FastifyInstance } from "fastify";
 import { Secret, TOTP } from "otpauth";
 import type pg from "pg";
@@ -13,6 +15,7 @@ import { ProbeCache } from "../readiness/cache.js";
 import { defaultRoleAssets } from "../readiness/report.js";
 import type { ReadinessContext } from "../readiness/report.js";
 import { createMigratedPglitePool } from "./pglite-pool.js";
+import { loadDogfoodSeed, readDogfoodFile } from "../seed/load-dogfood.js";
 
 export const TEST_PASSWORD = "test-harness-password-42";
 export const TEST_AGENT_SECRET = "agent-harness-secret-99";
@@ -37,10 +40,14 @@ export function testConfigEnv(): NodeJS.ProcessEnv {
     REQALM_SESSION_SECRET: "harness-session-secret-min-32-chars!!",
     REQALM_AGENT_CLIENT_SECRET: TEST_AGENT_SECRET,
     REQALM_SEED_ON_START: "false",
+    REQALM_DEV_ACCOUNT_PASSWORD: randomBytes(18).toString("base64url"),
     REQALM_TRUST_PROXY: "true",
     REQALM_TRUSTED_PROXIES: "203.0.113.0/24,198.51.100.0/24",
   };
 }
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
+export const DOGFOOD_SEED_PATH = path.join(repoRoot, "docs/design/seed/dogfood.yaml");
 
 export async function seedAuthUsers(pool: pg.Pool, keyProvider: KeyProvider): Promise<void> {
   await pool.query(
@@ -75,7 +82,7 @@ export async function seedAuthUsers(pool: pg.Pool, keyProvider: KeyProvider): Pr
   await storeMfaSecret(pool, keyProvider, "sam-security", TEST_MFA_SECRET);
 }
 
-export async function createTestApp(options?: { roles?: string }): Promise<TestApp> {
+export async function createTestApp(options?: { roles?: string; dogfood?: boolean }): Promise<TestApp> {
   const pgFixture = await createMigratedPglitePool();
   const { pool } = pgFixture;
   const env = testConfigEnv();
@@ -83,6 +90,10 @@ export async function createTestApp(options?: { roles?: string }): Promise<TestA
   const config = loadConfig(env);
   const keyProvider = createMemoryKeyProvider();
   await seedAuthUsers(pool, keyProvider);
+  if (options?.dogfood) {
+    const seed = await readDogfoodFile(DOGFOOD_SEED_PATH);
+    await loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true });
+  }
 
   const roles = new Set<AppRole>(config.REQALM_ROLES);
   const readiness: ReadinessContext = {
