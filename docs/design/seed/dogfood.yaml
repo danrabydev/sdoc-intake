@@ -7336,13 +7336,13 @@ requirement_versions:
   base_uid: CAP-OTEL-SDK-BOOTSTRAP
   version_n: 0
   status: draft
-  statement: NodeSDK register hook loads before app modules; OTLP export off by default; pg auto-instrumentation in production.
+  statement: Register hook (sdk-trace-node tracer provider, OTLP/HTTP trace exporter only) loads before app modules; off by default with no SDK loaded; http, Fastify, pg and undici instrumentation shared with tests.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until OTel tracing PR merges.
-  statement_hash: sha256:56c3923d9d551c436598a021b85f61f54b0e0160b75f94c60af4f3a7f68a128b
+  statement_hash: sha256:bcad104bdfdbc3be9cd3b5b8710e2bb865d292eb20929bfde5efe3c84bcb41b7
   grooming_state: detailed
 - uid: CAP-OTEL-W3C-CONTEXT
   base_uid: CAP-OTEL-W3C-CONTEXT
@@ -7786,6 +7786,9 @@ capability_artifacts:
 - requirement_version_uid: CAP-OTEL-SDK-BOOTSTRAP
   kind: other
   uri: ../../../apps/reqalm/src/telemetry/instrumentations.ts
+- requirement_version_uid: CAP-OTEL-SDK-BOOTSTRAP
+  kind: other
+  uri: ../../../apps/reqalm/src/telemetry/tracing.ts
 - requirement_version_uid: CAP-OTEL-W3C-CONTEXT
   kind: other
   uri: ../../../apps/reqalm/src/telemetry/request-id.ts
@@ -13838,7 +13841,7 @@ releases:
   - CAP-OTEL-EXPORT
   - CAP-OTEL-TEST-HARNESS
   cyber_gate: false
-  notes: One PR = one release. OTLP trace export (opt-in), W3C traceparent, operation spans, pg + undici auto-instrumentation, OpenBao dependency spans, audit_events.trace_id. Does not claim full ARCH-OTEL OTLP export of security audit events (traces only). Planned until merge.
+  notes: One PR = one release. OTLP trace export (opt-in), W3C traceparent, operation spans, pg + undici auto-instrumentation, OpenBao dependency spans, audit_events.trace_id. Does not claim full ARCH-OTEL OTLP export of security audit events (traces only). Planned until merged; the next PR marks it shipped at the merge sha (same pattern as rel-r1-service-foundation).
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

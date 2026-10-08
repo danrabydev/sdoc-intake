@@ -8815,7 +8815,7 @@ UID: CAP-OTEL-SDK-BOOTSTRAP
 STATUS: Draft
 TITLE: OpenTelemetry SDK bootstrap (HTTP, Fastify, pg, undici)
 STATEMENT: >>>
-NodeSDK register hook loads before app modules; OTLP export off by default; pg auto-instrumentation in production.
+Register hook (sdk-trace-node tracer provider, OTLP/HTTP trace exporter only) loads before app modules; off by default with no SDK loaded; http, Fastify, pg and undici instrumentation shared with tests.
 <<<
 COMMENT: >>>
 KIND: capability

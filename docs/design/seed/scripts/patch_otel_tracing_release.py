@@ -76,12 +76,14 @@ OTEL_CAPS = [
     (
         "CAP-OTEL-SDK-BOOTSTRAP",
         "OpenTelemetry SDK bootstrap (HTTP, Fastify, pg, undici)",
-        "NodeSDK register hook loads before app modules; OTLP export off by default; pg auto-instrumentation in production.",
+        "Register hook (sdk-trace-node tracer provider, OTLP/HTTP trace exporter only) loads before app modules; "
+        "off by default with no SDK loaded; http, Fastify, pg and undici instrumentation shared with tests.",
         ["ARCH-OTEL-TRACE"],
         [
             f"{REPO}/apps/reqalm/src/telemetry/register.ts",
             f"{REPO}/apps/reqalm/src/telemetry/otel-env.ts",
             f"{REPO}/apps/reqalm/src/telemetry/instrumentations.ts",
+            f"{REPO}/apps/reqalm/src/telemetry/tracing.ts",
         ],
     ),
     (
@@ -265,7 +267,8 @@ def main() -> None:
             notes=(
                 "One PR = one release. OTLP trace export (opt-in), W3C traceparent, operation spans, pg + undici "
                 "auto-instrumentation, OpenBao dependency spans, audit_events.trace_id. Does not claim full ARCH-OTEL "
-                "OTLP export of security audit events (traces only). Planned until merge."
+                "OTLP export of security audit events (traces only). Planned until merged; the next PR marks it shipped "
+                "at the merge sha (same pattern as rel-r1-service-foundation)."
             ),
         ),
     )
