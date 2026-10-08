@@ -90,10 +90,10 @@ def activate_capability(data, uid: str, verification_note: str, catalog_ref: str
 STMT = (
     "Grant-scoped requirement hierarchy read API: lazy paged GET "
     "/api/v1/projects/:projectId/requirements/tree?parent=<base_uid> returning direct children in "
-    "dogfood sibling order with uid, title, kind, type, status, and child_count; optional parent_uid "
-    "and ancestors on detail. Loader persists line parent pointers, sibling_order, and dogfood trace "
-    "edges in requirement_trace_edges (not exposed in v1 read). Obsolete-line filtering and mind-map "
-    "layout are deferred."
+    "dogfood sibling order with uid, title, kind, type, status, and child_count (sections and "
+    "requirements alike; roots = parent null). Optional parent_uid and ancestors on detail. "
+    "Parent pointers already live on requirement_lines (001); loader adds sibling_order and rejects "
+    "cross-project parents. Trace edges and obsolete-line filtering are deferred."
 )
 ARTIFACTS = [
     f"{REPO}/apps/reqalm/src/db/migrations/008_requirement_hierarchy.sql",

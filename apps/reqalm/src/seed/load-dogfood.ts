@@ -16,7 +16,6 @@ export type DogfoodSeed = {
   project_grants: Record<string, unknown>[];
   requirement_lines?: Record<string, unknown>[];
   requirement_versions?: Record<string, unknown>[];
-  edges?: Record<string, unknown>[];
   releases?: Record<string, unknown>[];
   platform_grants?: Record<string, unknown>[];
 };
@@ -90,7 +89,6 @@ export async function applyDogfoodSeed(
     project_grants: 0,
     requirement_lines: 0,
     requirement_versions: 0,
-    requirement_trace_edges: 0,
     releases: 0,
     release_delivers: 0,
     dev_local_accounts: 0,
@@ -134,7 +132,6 @@ export async function applyDogfoodSeed(
   for (const ver of seed.requirement_versions ?? []) {
     await upsertVersion(client, ver, lineProject, inserted);
   }
-  await syncTraceEdges(client, seed, lineProject, inserted);
   for (const [position, rel] of (seed.releases ?? []).entries()) {
     await upsertRelease(client, rel, position, inserted);
   }
@@ -195,7 +192,6 @@ export async function countSeedRows(client: pg.PoolClient) {
     "project_grants",
     "requirement_lines",
     "requirement_versions",
-    "requirement_trace_edges",
     "releases",
     "release_delivers",
     "dev_local_accounts",
@@ -352,68 +348,12 @@ async function upsertLine(
     `
     INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title, sibling_order)
     VALUES ($1, $2, $3, $4, $5, $6)
-    ON CONFLICT (project_id, base_uid) DO UPDATE SET
-      parent = EXCLUDED.parent,
-      kind = EXCLUDED.kind,
-      title = EXCLUDED.title,
-      sibling_order = EXCLUDED.sibling_order
-    RETURNING (xmax = 0) AS inserted
+    ON CONFLICT (project_id, base_uid) DO UPDATE SET sibling_order = EXCLUDED.sibling_order
+    RETURNING base_uid
   `,
     [row.base_uid, row.project_id, row.parent ?? null, row.kind, row.title, siblingOrder],
   );
-  if (r.rows[0]?.inserted) inserted.requirement_lines++;
-}
-
-function resolveEdgeBaseUid(
-  endpoint: string,
-  lineProject: Map<string, string>,
-  versionBase: Map<string, string>,
-): string | null {
-  if (lineProject.has(endpoint)) return endpoint;
-  return versionBase.get(endpoint) ?? null;
-}
-
-async function syncTraceEdges(
-  client: pg.PoolClient,
-  seed: DogfoodSeed,
-  lineProject: Map<string, string>,
-  inserted: Record<string, number>,
-): Promise<void> {
-  const versionBase = new Map<string, string>();
-  for (const ver of seed.requirement_versions ?? []) {
-    versionBase.set(String(ver.uid), String(ver.base_uid));
-  }
-  const projectIds = [...new Set(lineProject.values())];
-  if (projectIds.length === 0) return;
-
-  await client.query(`DELETE FROM requirement_trace_edges WHERE project_id = ANY($1::text[])`, [
-    projectIds,
-  ]);
-
-  const seen = new Set<string>();
-  for (const [position, raw] of (seed.edges ?? []).entries()) {
-    const fromRaw = String(raw.from);
-    const toRaw = String(raw.to);
-    const kind = String(raw.kind);
-    const fromBase = resolveEdgeBaseUid(fromRaw, lineProject, versionBase);
-    const toBase = resolveEdgeBaseUid(toRaw, lineProject, versionBase);
-    if (!fromBase || !toBase) continue;
-    const fromProject = lineProject.get(fromBase);
-    const toProject = lineProject.get(toBase);
-    if (!fromProject || fromProject !== toProject) continue;
-    const key = `${fromProject}\0${fromBase}\0${toBase}\0${kind}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    const r = await client.query(
-      `
-      INSERT INTO requirement_trace_edges (project_id, from_base_uid, to_base_uid, kind, position)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING project_id
-    `,
-      [fromProject, fromBase, toBase, kind, position],
-    );
-    if (r.rowCount) inserted.requirement_trace_edges++;
-  }
+  if (r.rowCount) inserted.requirement_lines++;
 }
 
 async function upsertVersion(

@@ -32,7 +32,7 @@ before(async () => {
   await ctx.pool.query(
     `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title, sibling_order)
      VALUES
-       ($1, 'reqalm', NULL, 'section', 'Hier parent', 0),
+       ($1, 'reqalm', 'SEC-DEVENV', 'section', 'Hier parent', 99),
        ($2, 'reqalm', $1, 'requirement', 'Child one', 0),
        ($3, 'reqalm', $1, 'requirement', 'Child two', 1),
        ($4, 'reqalm', $1, 'capability', 'Child three', 2),
@@ -107,6 +107,33 @@ async function agentToken(role?: string): Promise<string> {
 const TREE_NODE_KEYS = ["uid", "title", "kind", "type", "status", "child_count"] as const;
 
 describe("requirements tree read API", () => {
+  it("returns section and requirement nodes; roots have null parent in DB", async () => {
+    const roots = (
+      await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements/tree?limit=100", headers: bearer })
+    ).json() as { data: { items: Array<{ uid: string; kind: string }>; total: number } };
+    assert.equal(roots.data.total, 20);
+    assert.ok(roots.data.items.every((i) => i.kind === "section"));
+    assert.ok(roots.data.items.some((i) => i.uid === "SEC-CP"));
+    const secCpKids = (
+      await inject({
+        method: "GET",
+        url: "/api/v1/projects/reqalm/requirements/tree?parent=SEC-CP&limit=20",
+        headers: bearer,
+      })
+    ).json() as { data: { items: Array<{ uid: string; kind: string }> } };
+    assert.ok(secCpKids.data.items.some((i) => i.uid === "B01" && i.kind === "requirement"));
+    assert.ok(secCpKids.data.items.some((i) => i.kind === "capability"));
+    const reqParent = (
+      await inject({
+        method: "GET",
+        url: "/api/v1/projects/reqalm/requirements/tree?parent=ARCH-CP-HIER&limit=10",
+        headers: bearer,
+      })
+    ).json() as { data: { items: Array<{ kind: string }> } };
+    assert.ok(reqParent.data.items.length > 0);
+    assert.ok(reqParent.data.items.every((i) => i.kind === "requirement"));
+  });
+
   it("returns roots and children in sibling_order with exact DTO keys and child_count", async () => {
     const roots = (
       await inject({
@@ -180,6 +207,7 @@ describe("requirements tree read API", () => {
     ).json() as { data: Record<string, unknown> };
     assert.equal(detail.data.parent_uid, FIX_C1);
     assert.deepEqual(detail.data.ancestors, [
+      { uid: "SEC-DEVENV", title: "Developer environment & deployment topology" },
       { uid: FIX_PARENT, title: "Hier parent" },
       { uid: FIX_C1, title: "Child one" },
     ]);
