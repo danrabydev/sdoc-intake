@@ -798,6 +798,25 @@ describe("browse UI render (jsdom)", () => {
     assert.match(main.textContent ?? "", /don't have access/i);
   });
 
+  it("requirements tree roots auth failure redirects without not-found", async () => {
+    let redirectTo = "";
+    setUnauthorizedRedirect((url) => {
+      redirectTo = url;
+    });
+    const prevFetch = globalThis.fetch;
+    globalThis.fetch = (async () => jsonResponse(401, {})) as unknown as typeof fetch;
+    try {
+      const main = document.createElement("main");
+      await renderRequirementsTree(main, { apiFn: api, projectId: "reqalm" });
+      assert.equal(redirectTo, "/login");
+      assert.doesNotMatch(main.textContent ?? "", /don't have access/i);
+      assert.match(main.textContent ?? "", /Requirements tree/);
+    } finally {
+      globalThis.fetch = prevFetch;
+      clearUnauthorizedRedirect();
+    }
+  });
+
   it("empty tree roots show exact empty copy", async () => {
     const { main } = await mountTreeView(treeFetchHandler([]));
     assert.equal(main.querySelector(".empty-state")?.textContent, "No requirements in this project tree.");
@@ -1152,8 +1171,10 @@ describe("app shell", () => {
   it("shows Tree nav active on tree route", () => {
     const route = parseAppRoute("/app/projects/reqalm/tree");
     renderAppShell("/app/projects/reqalm/tree", route);
-    assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm/tree"]'));
-    assert.ok(!document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm"]'));
+    const activeNav = [...document.querySelectorAll("#top-nav a.nav-active")];
+    assert.equal(activeNav.length, 1);
+    assert.equal(activeNav[0]?.getAttribute("href"), "/app/projects/reqalm/tree");
+    assert.equal(document.querySelector('#top-nav a.nav-active[href="/app/projects"]'), null);
   });
 
   it("shows Releases nav active on releases routes", () => {
