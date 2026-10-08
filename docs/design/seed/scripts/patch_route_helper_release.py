@@ -76,16 +76,21 @@ OTEL_CAPS = [
 ROUTE_HELPER_CAPS = [
     (
         "CAP-SVC-OPERATION-ROUTE",
-        "defineOperationRoute — single pipeline for /api/v1 business routes",
-        "Business routes under /api/ register only via defineOperationRoute: build RequestContext, "
-        "validate params/query/body once in parseInput (Zod; validation → ServiceResult), runOperation, "
-        "envelope or Problem Details (application/problem+json), including Fastify pre-handler errors and "
-        "unexpected throws (500 without the error message). reqalmSecurity is derived from the operation; "
-        "registration throws unless the operation declares a permission bound to a project "
-        "(projectScoped + projectIdFromInput) or authenticatedOnly.",
+        "defineOperationRoute — single pipeline for /api/ business routes",
+        "Business routes under /api/ register only via defineOperationRoute, which runs authenticate, project "
+        "scope, permission, parseInput, execute, append-only audit_events, log, in that order. Project scope "
+        "comes from the :projectId path param, parsed before any input validation; an unparsable id is not_found, "
+        "identical to a missing or ungranted project, and the validated input must name the same project. "
+        "parseInput validates params/query/body once (Zod); validation failures, including unreadable bodies, "
+        "reach only authenticated, in-scope, authorized callers, are audited without input values, and answer "
+        "Problem Details (application/problem+json); unexpected throws are a 500 without the error message. "
+        "reqalmSecurity is derived from the operation; registration throws unless the operation declares a "
+        "permission bound to a project (projectScoped + projectIdFromInput + :projectId path param) or "
+        "authenticatedOnly.",
         [("ARCH-API-LAYERS", "satisfies"), ("ARCH-API-RBAC", "satisfies"), ("CAP-SVC-OPERATION-EXECUTOR", "uses")],
         [
             f"{REPO}/apps/reqalm/src/http/define-operation-route.ts",
+            f"{REPO}/apps/reqalm/src/core/operation.ts",
             f"{REPO}/apps/reqalm/src/modules/projects/routes.ts",
         ],
     ),
@@ -104,10 +109,14 @@ ROUTE_HELPER_CAPS = [
     (
         "CAP-SVC-PROBLEM-JSON",
         "Problem Details content type on service errors",
-        "Error responses from operation routes use Content-Type application/problem+json, as documented in "
-        "the static OpenAPI spec.",
+        "Error responses from operation routes and from unknown /api/ paths are Problem Details with "
+        "Content-Type application/problem+json and the request id, as documented in the static OpenAPI spec.",
         [("CAP-SVC-RESULT-ENVELOPE", "satisfies")],
-        [f"{REPO}/apps/reqalm/src/core/http-envelope.ts", f"{REPO}/apps/reqalm/openapi/openapi.yaml"],
+        [
+            f"{REPO}/apps/reqalm/src/core/http-envelope.ts",
+            f"{REPO}/apps/reqalm/src/http/server.ts",
+            f"{REPO}/apps/reqalm/openapi/openapi.yaml",
+        ],
     ),
 ]
 
@@ -193,8 +202,9 @@ def main() -> None:
             delivers=deliver_uids,
             cyber_gate=False,
             notes=(
-                "One PR = one release. Unifies /api/ business route registration, strengthens fail-closed "
-                "route audit, Problem Details content type. Planned until merged; the next PR marks it shipped "
+                "One PR = one release. Unifies /api/ business route registration (authenticate before "
+                "validation), strengthens fail-closed route audit, Problem Details on every API error including "
+                "unknown /api/ paths. Planned until merged; the next PR marks it shipped "
                 "at the merge sha. Does not replace auth/OAuth hand routes or claim OpenAPI generation from Zod."
             ),
         ),

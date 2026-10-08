@@ -2952,7 +2952,7 @@ requirement_lines:
   project_id: reqalm
   parent: SEC-API
   kind: capability
-  title: defineOperationRoute — single pipeline for /api/v1 business routes
+  title: defineOperationRoute — single pipeline for /api/ business routes
 - base_uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
   project_id: reqalm
   parent: SEC-API
@@ -7469,13 +7469,13 @@ requirement_versions:
   base_uid: CAP-SVC-OPERATION-ROUTE
   version_n: 0
   status: draft
-  statement: 'Business routes under /api/ register only via defineOperationRoute: build RequestContext, validate params/query/body once in parseInput (Zod; validation → ServiceResult), runOperation, envelope or Problem Details (application/problem+json), including Fastify pre-handler errors and unexpected throws (500 without the error message). reqalmSecurity is derived from the operation; registration throws unless the operation declares a permission bound to a project (projectScoped + projectIdFromInput) or authenticatedOnly.'
+  statement: Business routes under /api/ register only via defineOperationRoute, which runs authenticate, project scope, permission, parseInput, execute, append-only audit_events, log, in that order. Project scope comes from the :projectId path param, parsed before any input validation; an unparsable id is not_found, identical to a missing or ungranted project, and the validated input must name the same project. parseInput validates params/query/body once (Zod); validation failures, including unreadable bodies, reach only authenticated, in-scope, authorized callers, are audited without input values, and answer Problem Details (application/problem+json); unexpected throws are a 500 without the error message. reqalmSecurity is derived from the operation; registration throws unless the operation declares a permission bound to a project (projectScoped + projectIdFromInput + :projectId path param) or authenticatedOnly.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until operation-route PR merges.
-  statement_hash: sha256:79680a96d406d42eefe5fbf517cc098775aa4437c4bc817d33dfe8a0b9f43279
+  statement_hash: sha256:cfea228399216c9c627f5b3296f033415d7331c9e6d2960bed38b9856d495b09
   grooming_state: detailed
 - uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
   base_uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
@@ -7493,13 +7493,13 @@ requirement_versions:
   base_uid: CAP-SVC-PROBLEM-JSON
   version_n: 0
   status: draft
-  statement: Error responses from operation routes use Content-Type application/problem+json, as documented in the static OpenAPI spec.
+  statement: Error responses from operation routes and from unknown /api/ paths are Problem Details with Content-Type application/problem+json and the request id, as documented in the static OpenAPI spec.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until operation-route PR merges.
-  statement_hash: sha256:4b4fcc7a081440dd94a77f8123874c42ed1a3f4fb0ad2fee83a5a8b4648e213e
+  statement_hash: sha256:8154779b3d238a22e1275741017a0242fd173a69ba3372f73f726dcf9917c066
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -7915,6 +7915,9 @@ capability_artifacts:
   uri: ../../../apps/reqalm/src/http/define-operation-route.ts
 - requirement_version_uid: CAP-SVC-OPERATION-ROUTE
   kind: other
+  uri: ../../../apps/reqalm/src/core/operation.ts
+- requirement_version_uid: CAP-SVC-OPERATION-ROUTE
+  kind: other
   uri: ../../../apps/reqalm/src/modules/projects/routes.ts
 - requirement_version_uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
   kind: other
@@ -7925,6 +7928,9 @@ capability_artifacts:
 - requirement_version_uid: CAP-SVC-PROBLEM-JSON
   kind: other
   uri: ../../../apps/reqalm/src/core/http-envelope.ts
+- requirement_version_uid: CAP-SVC-PROBLEM-JSON
+  kind: other
+  uri: ../../../apps/reqalm/src/http/server.ts
 - requirement_version_uid: CAP-SVC-PROBLEM-JSON
   kind: other
   uri: ../../../apps/reqalm/openapi/openapi.yaml
@@ -13974,7 +13980,7 @@ releases:
   - CAP-SVC-BUSINESS-ROUTE-AUDIT
   - CAP-SVC-PROBLEM-JSON
   cyber_gate: false
-  notes: One PR = one release. Unifies /api/ business route registration, strengthens fail-closed route audit, Problem Details content type. Planned until merged; the next PR marks it shipped at the merge sha. Does not replace auth/OAuth hand routes or claim OpenAPI generation from Zod.
+  notes: One PR = one release. Unifies /api/ business route registration (authenticate before validation), strengthens fail-closed route audit, Problem Details on every API error including unknown /api/ paths. Planned until merged; the next PR marks it shipped at the merge sha. Does not replace auth/OAuth hand routes or claim OpenAPI generation from Zod.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm
