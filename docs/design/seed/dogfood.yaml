@@ -1100,6 +1100,33 @@ approval_records:
   notes: Planned for OTel tracing PR; approve once merged and verified.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-svc-operation-route
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-OPERATION-ROUTE
+  status: unapproved
+  by:
+  at:
+  notes: Planned for operation-route helper PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-svc-business-route-audit
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  status: unapproved
+  by:
+  at:
+  notes: Planned for operation-route helper PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-svc-problem-json
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-PROBLEM-JSON
+  status: unapproved
+  by:
+  at:
+  notes: Planned for operation-route helper PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -2921,6 +2948,21 @@ requirement_lines:
   parent: SEC-API
   kind: capability
   title: In-process tracing tests (real pg + PGlite socket)
+- base_uid: CAP-SVC-OPERATION-ROUTE
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: defineOperationRoute — single pipeline for /api/v1 business routes
+- base_uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: Fail-closed business route registration test
+- base_uid: CAP-SVC-PROBLEM-JSON
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: Problem Details content type on service errors
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -7335,7 +7377,7 @@ requirement_versions:
 - uid: CAP-OTEL-SDK-BOOTSTRAP
   base_uid: CAP-OTEL-SDK-BOOTSTRAP
   version_n: 0
-  status: draft
+  status: active
   statement: Register hook (sdk-trace-node tracer provider, OTLP/HTTP trace exporter only) loads before app modules; off by default with no SDK loaded; http, Fastify, pg and undici instrumentation shared with tests.
   priority: 10
   iteration: iter-r1
@@ -7344,10 +7386,11 @@ requirement_versions:
     verification_note: Planned until OTel tracing PR merges.
   statement_hash: sha256:bcad104bdfdbc3be9cd3b5b8710e2bb865d292eb20929bfde5efe3c84bcb41b7
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-OTEL-W3C-CONTEXT
   base_uid: CAP-OTEL-W3C-CONTEXT
   version_n: 0
-  status: draft
+  status: active
   statement: Continues traceparent; x-request-id validated (printable, ≤128) else UUID; trace_id on RequestContext and logs.
   priority: 10
   iteration: iter-r1
@@ -7356,10 +7399,11 @@ requirement_versions:
     verification_note: Planned until OTel tracing PR merges.
   statement_hash: sha256:d7ffab98ac20a0ca0574f162064709edbebb67b1aad519b387cc2fb2ad5267a1
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-OTEL-OPERATION-SPANS
   base_uid: CAP-OTEL-OPERATION-SPANS
   version_n: 0
-  status: draft
+  status: active
   statement: Operation span with RBAC/outcome attributes; error status on deny/error; no secrets in attributes.
   priority: 10
   iteration: iter-r1
@@ -7368,10 +7412,11 @@ requirement_versions:
     verification_note: Planned until OTel tracing PR merges.
   statement_hash: sha256:329c87ebfa704caf77bbf0af97a95bc772b85ca6793b1e67d5c41d2d70af9460
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-OTEL-KEY-DEP
   base_uid: CAP-OTEL-KEY-DEP
   version_n: 0
-  status: draft
+  status: active
   statement: KeyProvider calls emit key.* spans (dependency and purpose only; no key material or tokens) without changing the KeyProvider interface; the OpenBao HTTP calls are their undici-instrumented child spans.
   priority: 10
   iteration: iter-r1
@@ -7380,10 +7425,11 @@ requirement_versions:
     verification_note: Planned until OTel tracing PR merges.
   statement_hash: sha256:02819b54f7e6518c03935765a9c584f00485495629b16c83f86e6cece2925703
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-OTEL-AUDIT-TRACE
   base_uid: CAP-OTEL-AUDIT-TRACE
   version_n: 0
-  status: draft
+  status: active
   statement: Migration 007 adds audit_events.trace_id; runOperation writes trace_id on append-only audit rows.
   priority: 10
   iteration: iter-r1
@@ -7392,10 +7438,11 @@ requirement_versions:
     verification_note: Planned until OTel tracing PR merges.
   statement_hash: sha256:688969750b56601b7557f234e33fa1d405cf5462e10d49e7d4dee1d2ddf5a00e
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-OTEL-EXPORT
   base_uid: CAP-OTEL-EXPORT
   version_n: 0
-  status: draft
+  status: active
   statement: OTEL_EXPORTER_OTLP_ENDPOINT / OTEL_SERVICE_NAME; documented local collector binding.
   priority: 10
   iteration: iter-r1
@@ -7404,10 +7451,11 @@ requirement_versions:
     verification_note: Planned until OTel tracing PR merges.
   statement_hash: sha256:44c45e633d5c714bb8421a4dbdafaab32344fd8da321de9322bb55b093813124
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-OTEL-TEST-HARNESS
   base_uid: CAP-OTEL-TEST-HARNESS
   version_n: 0
-  status: draft
+  status: active
   statement: otel-preload starts the test SDK with the production instrumentation list before pg is imported; real pg Pool over PGLiteSocketServer; in-memory exporter assertions.
   priority: 10
   iteration: iter-r1
@@ -7415,6 +7463,43 @@ requirement_versions:
     catalog_ref: CM-2
     verification_note: Planned until OTel tracing PR merges.
   statement_hash: sha256:219e7548856ee534175a05c25c514168f77fc2b060943b0afdca6800e59342b4
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-SVC-OPERATION-ROUTE
+  base_uid: CAP-SVC-OPERATION-ROUTE
+  version_n: 0
+  status: draft
+  statement: 'Business routes under /api/v1 register only via defineOperationRoute: build RequestContext, parse params/query/body to typed input (validation → ServiceResult), runOperation, envelope or RFC 7807 Problem Details (application/problem+json). reqalmSecurity is derived from the operation.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until operation-route PR merges.
+  statement_hash: sha256:9e43993e2df9e92c040d74dba17f7596bdddee489b9ce872149b9a9a3c5b1240
+  grooming_state: detailed
+- uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  base_uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  version_n: 0
+  status: draft
+  statement: route-security.test.ts rejects /api/v1 business routes not registered via defineOperationRoute (auth/OAuth-shaped allowlist exempt) and rejects reqalmSecurity markers that disagree with the operation.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until operation-route PR merges.
+  statement_hash: sha256:a2e78629794bc8b44777aa1f365c8214235bc5449e689a8341c8dba829ddaf3f
+  grooming_state: detailed
+- uid: CAP-SVC-PROBLEM-JSON
+  base_uid: CAP-SVC-PROBLEM-JSON
+  version_n: 0
+  status: draft
+  statement: mapServiceResultToHttp sets Content-Type application/problem+json for non-success ServiceResults.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until operation-route PR merges.
+  statement_hash: sha256:30d8a63c734b89b7684d3a29d398f55def3a35c2f19531d850c01808a3ce2b24
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -7825,6 +7910,21 @@ capability_artifacts:
 - requirement_version_uid: CAP-OTEL-TEST-HARNESS
   kind: other
   uri: ../../../apps/reqalm/src/telemetry/otel-tracing.test.ts
+- requirement_version_uid: CAP-SVC-OPERATION-ROUTE
+  kind: other
+  uri: ../../../apps/reqalm/src/http/define-operation-route.ts
+- requirement_version_uid: CAP-SVC-OPERATION-ROUTE
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/projects/routes.ts
+- requirement_version_uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  kind: other
+  uri: ../../../apps/reqalm/src/http/route-security.ts
+- requirement_version_uid: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  kind: other
+  uri: ../../../apps/reqalm/src/http/route-security.test.ts
+- requirement_version_uid: CAP-SVC-PROBLEM-JSON
+  kind: other
+  uri: ../../../apps/reqalm/src/core/http-envelope.ts
 edges:
 - from: CAP-SSO
   to: A01
@@ -13369,6 +13469,24 @@ edges:
 - from: CAP-OTEL-TEST-HARNESS
   to: ARCH-OTEL-TRACE
   kind: satisfies
+- from: CAP-SVC-OPERATION-ROUTE
+  to: ARCH-API-LAYERS
+  kind: satisfies
+- from: CAP-SVC-OPERATION-ROUTE
+  to: ARCH-API-RBAC
+  kind: satisfies
+- from: CAP-SVC-OPERATION-ROUTE
+  to: CAP-SVC-OPERATION-EXECUTOR
+  kind: satisfies
+- from: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  to: CAP-SVC-ROUTE-REGISTRY
+  kind: satisfies
+- from: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  to: ARCH-API-RBAC
+  kind: satisfies
+- from: CAP-SVC-PROBLEM-JSON
+  to: CAP-SVC-RESULT-ENVELOPE
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -13830,8 +13948,8 @@ releases:
   project_id: reqalm
   name: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
   planned_on: '2026-10-07'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-08'
+  status: shipped
   delivers:
   - CAP-OTEL-SDK-BOOTSTRAP
   - CAP-OTEL-W3C-CONTEXT
@@ -13841,7 +13959,19 @@ releases:
   - CAP-OTEL-EXPORT
   - CAP-OTEL-TEST-HARNESS
   cyber_gate: false
-  notes: One PR = one release. OTLP trace export (opt-in), W3C traceparent, operation spans, pg + undici auto-instrumentation, OpenBao dependency spans, audit_events.trace_id. Does not claim full ARCH-OTEL OTLP export of security audit events (traces only). Planned until merged; the next PR marks it shipped at the merge sha (same pattern as rel-r1-service-foundation).
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/18 merged to main as aa4dc8337df8825eddbc5e04cc698248cde539d4 on 2026-10-08. Verified: in-process tests + typecheck + build.'
+- id: rel-r1-route-helper
+  project_id: reqalm
+  name: R1 — defineOperationRoute (single business-route pipeline)
+  planned_on: '2026-10-08'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-SVC-OPERATION-ROUTE
+  - CAP-SVC-BUSINESS-ROUTE-AUDIT
+  - CAP-SVC-PROBLEM-JSON
+  cyber_gate: false
+  notes: One PR = one release. Unifies /api/v1 business route registration, strengthens fail-closed route audit, Problem Details content type. Does not replace auth/OAuth hand routes or claim full OpenAPI codegen from Zod.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

@@ -1,15 +1,25 @@
 import type { FastifyInstance } from "fastify";
-import { mapServiceResultToHttp } from "../../core/http-envelope.js";
-import { runOperation } from "../../core/operation.js";
-import { buildRequestContext, type RequestContextDeps } from "../../core/request-context.js";
-import { grantManageStub } from "./grants.service.js";
+import { z } from "zod";
+import { defineOperationRoute, parseZodInput } from "../../http/define-operation-route.js";
+import type { OperationDef } from "../../core/operation.js";
+import type { RequestContextDeps } from "../../core/request-context.js";
+import { ok, type ServiceResult } from "../../core/service-result.js";
+import {
+  grantManageStub,
+  type GrantManageDto,
+  type GrantManageInput,
+} from "./grants.service.js";
 
-const grantManageOp = {
+const grantParams = z.object({
+  projectId: z.string().min(1),
+});
+
+const grantManageOp: OperationDef<GrantManageInput, GrantManageDto> = {
   name: "grants.manage",
   permission: "grant:manage",
   projectScoped: true,
-  projectIdFromInput: (input: { projectId: string }) => input.projectId,
-  auditMeta: (input: { projectId: string }) => ({
+  projectIdFromInput: (input) => input.projectId,
+  auditMeta: (input) => ({
     projectId: input.projectId,
     targetType: "project",
     targetId: input.projectId,
@@ -18,25 +28,23 @@ const grantManageOp = {
 };
 
 export function registerGrantRoutes(app: FastifyInstance, deps: RequestContextDeps): void {
-  app.post(
-    "/api/v1/projects/:projectId/grants",
-    {
-      config: { reqalmSecurity: { kind: "permission", permission: "grant:manage" } },
-      schema: {
-        tags: ["grants"],
-        summary: "Manage project grants (stub — authorize only)",
-        params: {
-          type: "object",
-          required: ["projectId"],
-          properties: { projectId: { type: "string" } },
-        },
+  defineOperationRoute(app, deps, {
+    method: "post",
+    url: "/api/v1/projects/:projectId/grants",
+    op: grantManageOp,
+    parseInput: (req): ServiceResult<GrantManageInput> => {
+      const params = parseZodInput(grantParams, req.params, "params");
+      if (!params.ok) return params;
+      return ok(params.data);
+    },
+    schema: {
+      tags: ["grants"],
+      summary: "Manage project grants (stub — authorize only)",
+      params: {
+        type: "object",
+        required: ["projectId"],
+        properties: { projectId: { type: "string" } },
       },
     },
-    async (req, reply) => {
-      const ctx = await buildRequestContext(req, { ...deps, logger: req.log });
-      const projectId = (req.params as { projectId: string }).projectId;
-      const result = await runOperation(ctx, grantManageOp, { projectId });
-      return mapServiceResultToHttp(reply, ctx.requestId, result);
-    },
-  );
+  });
 }

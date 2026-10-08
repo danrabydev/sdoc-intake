@@ -142,6 +142,20 @@ describe("service foundation (projects read)", () => {
     const body = res.json() as { code: string; request_id: string };
     assert.equal(body.code, "unauthenticated");
     assert.ok(body.request_id);
+    assert.match(String(res.headers["content-type"] ?? ""), /application\/problem\+json/);
+  });
+
+  it("returns 400 validation for malformed project id param", async () => {
+    const access = await loginToken();
+    const res = await inject({
+      method: "GET",
+      url: "/api/v1/projects/%20",
+      headers: { authorization: `Bearer ${access}` },
+    });
+    assert.equal(res.statusCode, 400);
+    const body = res.json() as { code: string };
+    assert.equal(body.code, "validation");
+    assert.match(String(res.headers["content-type"] ?? ""), /application\/problem\+json/);
   });
 
   it("returns 404 for project outside grants (no leak)", async () => {

@@ -11,7 +11,6 @@ function minimalCtx(pool: pg.Pool, requestId = "op-test"): RequestContext {
   return {
     requestId,
     traceId: null,
-    spanId: null,
     ip: "127.0.0.1",
     userAgent: null,
     pool,
@@ -40,7 +39,6 @@ function minimalCtx(pool: pg.Pool, requestId = "op-test"): RequestContext {
     projectGrants: [{ project_id: "reqalm", role: "Reader" }],
     projectIds: new Set(["reqalm"]),
     effectiveRoles: ["Reader"],
-    permissions: new Set(["requirement:read"]),
     agentName: null,
     tokenRole: null,
     actingFor: null,

@@ -60,15 +60,6 @@ export function mapServiceResultToHttp<T>(
     request_id: requestId,
     ...(details ? { details } : {}),
   };
-  return reply.code(status).send(body);
+  return reply.code(status).type("application/problem+json").send(body);
 }
 
-export function sendListEnvelope<T>(
-  reply: FastifyReply,
-  requestId: string,
-  data: T[],
-  meta: { total: number; limit?: number; offset?: number },
-): FastifyReply {
-  const body: ApiListEnvelope<T> = { data, request_id: requestId, meta };
-  return reply.code(200).send(body);
-}
