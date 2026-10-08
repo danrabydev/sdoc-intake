@@ -76,7 +76,7 @@ describe("requirements read API", () => {
     ).json() as { data: { items: Array<{ id: string; status: string }> } };
     assert.ok(draft.data.items.length > 0);
     assert.ok(draft.data.items.every((i) => i.status === "draft"));
-    assert.ok(draft.data.items.some((i) => i.id === "CAP-READ-RELEASES"));
+    assert.ok(!draft.data.items.some((i) => i.id === "CAP-READ-RELEASES"));
     const uiActive = (
       await inject({
         method: "GET",

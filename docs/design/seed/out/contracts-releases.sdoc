@@ -1569,17 +1569,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-read-releases
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — releases read API
 STATEMENT: >>>
-ReqALM release `R1 — releases read API` (status=planned, planned_on=2026-10-08). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — releases read API` (status=shipped, planned_on=2026-10-08). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-read-releases
 project_id: reqalm
-shipped_on: None
-raw_status: planned
+shipped_on: 2026-10-08
+raw_status: shipped
 delivers: CAP-READ-RELEASES
 delivers_count: 1
 <<<

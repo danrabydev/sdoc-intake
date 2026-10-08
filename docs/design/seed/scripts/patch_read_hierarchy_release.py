@@ -13,6 +13,9 @@ SEED = Path(__file__).resolve().parent.parent
 DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
 SHIPPED_DATE = "2026-10-08"
+READ_RELEASES_MERGE = "eca9090802c415f78697cc8b9d000f7f7d67a702"
+CAP_READ_RELEASES = "CAP-READ-RELEASES"
+REL_READ_RELEASES = "rel-r1-read-releases"
 CAP = "CAP-READ-HIERARCHY"
 REL = "rel-r1-read-hierarchy"
 REL_BROWSE_UI_RELEASES = "rel-r1-browse-ui-releases"
@@ -103,9 +106,28 @@ ARTIFACTS = [
 ]
 
 
+def ship_read_releases_pr25(data) -> None:
+    rel = find(data.get("releases"), "id", REL_READ_RELEASES)
+    if rel:
+        rel["status"] = "shipped"
+        rel["shipped_on"] = SHIPPED_DATE
+        rel["notes"] = (
+            f"PR #25 merged to main as {READ_RELEASES_MERGE} on {SHIPPED_DATE}; "
+            "verified locally plus QA/Cyber."
+        )
+    activate_capability(
+        data,
+        CAP_READ_RELEASES,
+        "Shipped with releases read API PR #25.",
+        catalog_ref="CM-2",
+    )
+
+
 def main() -> None:
     with DOGFOOD.open("r", encoding="utf-8") as f:
         data = yaml.load(f)
+
+    ship_read_releases_pr25(data)
 
     if BROWSE_UI_RELEASES_MERGE:
         ship_release(

@@ -7805,15 +7805,16 @@ requirement_versions:
 - uid: CAP-READ-RELEASES
   base_uid: CAP-READ-RELEASES
   version_n: 0
-  status: draft
+  status: active
   statement: 'Grant-scoped releases read APIs: paged GET /api/v1/projects/:projectId/releases with optional status (planned | shipped), ordered planned_on desc then id; GET detail with notes and delivered capabilities (capability lines from release_delivers). cyber_gate is stored on the release row but not exposed in v1 read DTOs. gate_signoffs and contract in_scope_of edges from dogfood are not loaded by the seed loader (deferred). Invalid release id segments redact in logs/spans like project slugs.'
   priority: 10
   iteration: iter-r1
   security:
-    catalog_ref: AC-3
-    verification_note: Planned until releases read PR merges.
+    catalog_ref: CM-2
+    verification_note: 'Shipped with releases read API PR #25.'
   statement_hash: sha256:bf683421d344fa20fc22b10545b414ba7611e8aeb2247f05076c81bd93bb3e59
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-READ-HIERARCHY
   base_uid: CAP-READ-HIERARCHY
   version_n: 0
@@ -14632,12 +14633,12 @@ releases:
   project_id: reqalm
   name: R1 — releases read API
   planned_on: '2026-10-08'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-08'
+  status: shipped
   delivers:
   - CAP-READ-RELEASES
   cyber_gate: false
-  notes: Read-only project-scoped release list/detail HTTP APIs; gate_signoffs not in DB yet.
+  notes: 'PR #25 merged to main as eca9090802c415f78697cc8b9d000f7f7d67a702 on 2026-10-08; verified locally plus QA/Cyber.'
 - id: rel-r1-read-hierarchy
   project_id: reqalm
   name: R1 — requirement hierarchy read API
