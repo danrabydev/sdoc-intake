@@ -9,9 +9,13 @@ export const SLUG_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 export const PROJECT_ID_SLUG = SLUG_ID;
 type PathSegmentRedactionRule = { prefix: string; valid: (segment: string) => boolean };
 
+/** Requirement line id (base_uid) in dogfood: alphanumerics plus . _ - */
+export const REQUIREMENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+
 const DEFAULT_SEGMENT_RULES: PathSegmentRedactionRule[] = [
   { prefix: "/projects/", valid: (s) => SLUG_ID.test(s) },
   { prefix: "/clients/", valid: (s) => SLUG_ID.test(s) },
+  { prefix: "/requirements/", valid: (s) => REQUIREMENT_ID.test(s) },
 ];
 
 export function redactInvalidPathParamIds(

@@ -502,6 +502,24 @@ describe("seed reset", () => {
     await pg.close();
   });
 
+  it("does not log a generated dev password when REQALM_DEV_ACCOUNT_PASSWORD is set", async () => {
+    const pg = await createMigratedPglitePool();
+    const { config } = harness();
+    const seed = await readDogfoodFile(dogfoodPath);
+    const lines: string[] = [];
+    const orig = console.log;
+    console.log = (...args: unknown[]) => {
+      lines.push(args.map(String).join(" "));
+    };
+    try {
+      await loadDogfoodSeed(pg.pool, config, seed, { skipUnchangedCheck: true });
+    } finally {
+      console.log = orig;
+      await pg.close();
+    }
+    assert.ok(!lines.some((l) => l.includes("Generated dev-only password")));
+  });
+
   it("loads the full current dogfood.yaml (import-ready)", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();
