@@ -15,6 +15,14 @@ export function isValidSlugId(id) {
   return typeof id === "string" && SLUG_ID.test(id);
 }
 
+export function decodeRouteSegment(segment) {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return null;
+  }
+}
+
 export function appClientHref(clientId) {
   return `/app/clients/${encodeURIComponent(clientId)}`;
 }
@@ -30,14 +38,18 @@ export function parseAppRoute(pathname) {
   }
   const clientMatch = path.match(/^\/app\/clients\/([^/]+)$/);
   if (clientMatch) {
-    return { view: "client-detail", clientId: decodeURIComponent(clientMatch[1]), offset: 0 };
+    const clientId = decodeRouteSegment(clientMatch[1]);
+    if (clientId === null) return { view: "unknown" };
+    return { view: "client-detail", clientId, offset: 0 };
   }
   if (path === "/app/projects") {
     return { view: "projects-list", offset: 0 };
   }
   const projectMatch = path.match(/^\/app\/projects\/([^/]+)$/);
   if (projectMatch) {
-    return { view: "project-detail", projectId: decodeURIComponent(projectMatch[1]) };
+    const projectId = decodeRouteSegment(projectMatch[1]);
+    if (projectId === null) return { view: "unknown" };
+    return { view: "project-detail", projectId };
   }
   if (path.startsWith("/app")) {
     return { view: "unknown" };

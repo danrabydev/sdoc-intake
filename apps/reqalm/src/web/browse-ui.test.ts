@@ -16,6 +16,8 @@ import {
   renderProjectsList,
   renderProjectDetail,
   renderNotFound,
+  mountBrowseView,
+  decodeRouteSegment,
   pageHref,
 } from "./public/browse.js";
 import { api, setUnauthorizedRedirect, clearUnauthorizedRedirect } from "./public/api-client.js";
@@ -119,6 +121,28 @@ describe("browse UI render (jsdom)", () => {
     };
     return fn as unknown as typeof fetch;
   }
+
+  it("shows correct Showing start–end range on a non-first page", async () => {
+    const main = document.createElement("main");
+    const apiFn = mockFetch((url) => {
+      if (url === "/api/v1/clients?limit=20&offset=20") {
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: [{ id: "c21", name: "Client 21", created_at: null, notes: null }],
+              limit: 20,
+              offset: 20,
+              total: 45,
+            },
+          },
+        };
+      }
+      return { status: 404 };
+    });
+    await renderClientsList(main, { apiFn, offset: 20, limit: 20 });
+    assert.match(main.textContent ?? "", /Showing 21–40 of 45/);
+  });
 
   it("renders clients list with exact Next/Previous hrefs", async () => {
     const main = document.createElement("main");
@@ -350,6 +374,18 @@ describe("browse UI render (jsdom)", () => {
     const main = document.createElement("main");
     renderNotFound(main);
     assert.match(main.textContent ?? "", /don't have access/i);
+  });
+
+  it("malformed percent-encoding in route shows not-found without throwing", async () => {
+    assert.equal(decodeRouteSegment("%E0%A4%A"), null);
+    assert.equal(parseAppRoute("/app/clients/%E0%A4%A").view, "unknown");
+    const main = document.createElement("main");
+    const apiFn = mockFetch(() => {
+      throw new Error("should not fetch");
+    });
+    await mountBrowseView(main, parseAppRoute("/app/clients/%E0%A4%A"), { apiFn });
+    assert.match(main.textContent ?? "", /don't have access/i);
+    assert.equal(fetchCalls.length, 0);
   });
 });
 
