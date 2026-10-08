@@ -241,7 +241,7 @@ describe("requirements read API", () => {
     }
   });
 
-  it("agent Reader token denied on detail and versions when only non-Reader grant applies (N08)", async () => {
+  it("agent Reader token denied on list, detail, and versions when only non-Reader grant applies (N08, N10)", async () => {
     await ctx.pool.query(
       `INSERT INTO clients (id, name) VALUES ('browse-client-p2', 'Browse P2') ON CONFLICT DO NOTHING`,
     );
@@ -267,6 +267,7 @@ describe("requirements read API", () => {
     try {
       const narrowed = { authorization: `Bearer ${await agentToken("Reader")}` };
       for (const url of [
+        "/api/v1/projects/browse-p2/requirements?limit=1",
         "/api/v1/projects/browse-p2/requirements/P2-REQ",
         "/api/v1/projects/browse-p2/requirements/P2-REQ/versions",
       ]) {
