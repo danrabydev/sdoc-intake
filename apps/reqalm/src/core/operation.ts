@@ -121,7 +121,6 @@ export async function runOperation<TIn, TOut>(
       logOperation(ctx.logger, {
         requestId: ctx.requestId,
         traceId: ctx.traceId,
-        spanId: ctx.spanId,
         operation: def.name,
         outcome: logOutcome,
         permission: def.permission,
@@ -172,7 +171,7 @@ export async function runOperation<TIn, TOut>(
       return finish(result, auditOutcome, auditOutcome === "allow" ? "allow" : auditOutcome);
     } catch (e) {
       ctx.logger.error(
-        { err: e, operation: def.name, request_id: ctx.requestId, trace_id: ctx.traceId },
+        { err: e, operation: def.name, request_id: ctx.requestId },
         "operation_failed",
       );
       setSpanError(span, e instanceof Error ? e.message : "Internal error");

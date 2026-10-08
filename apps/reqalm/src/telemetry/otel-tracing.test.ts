@@ -3,7 +3,8 @@ import { execFileSync } from "node:child_process";
 import { createServer, type Server } from "node:http";
 import { after, before, beforeEach, describe, it } from "node:test";
 import { SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
-import { bindOperationLogCapture } from "../core/logging/structured-log.js";
+import { runOperation } from "../core/operation.js";
+import { ok } from "../core/service-result.js";
 import { buildRequestContext } from "../core/request-context.js";
 import { createOpenBaoKeyProvider } from "../key/provider.js";
 import { loadConfig } from "../config.js";
@@ -50,16 +51,11 @@ describe("OpenTelemetry tracing", () => {
     ctx = await createTestApp();
   });
 
-  const opLogCapture: import("../core/logging/structured-log.js").OperationLogFields[] = [];
-
   beforeEach(() => {
     resetTelemetrySpans();
-    opLogCapture.length = 0;
-    bindOperationLogCapture(opLogCapture);
   });
 
   after(async () => {
-    bindOperationLogCapture(null);
     await ctx.close();
   });
 
@@ -220,10 +216,33 @@ describe("OpenTelemetry tracing", () => {
       ["audit-trace-req"],
     );
     assert.equal(audit.rows[0]?.trace_id, traceId);
+  });
 
-    const opLog = opLogCapture.find((entry) => entry.operation === "projects.get");
-    assert.ok(opLog?.traceId);
-    assert.equal(opLog.traceId, traceId);
+  it("operation log line is written inside the operation span and carries its trace_id", async () => {
+    // Records what the app logger would emit: the object plus the pino mixin's fields at log time.
+    const lines: Array<{ obj: Record<string, unknown>; mixin: ReturnType<typeof traceLogFields> }> = [];
+    const logger = {
+      info: (obj: Record<string, unknown>) => lines.push({ obj, mixin: traceLogFields() }),
+      error: () => {},
+    } as unknown as import("fastify").FastifyBaseLogger;
+    resetTelemetrySpans();
+    await trace.getTracer("t").startActiveSpan("request", async (reqSpan) => {
+      const rc = await buildRequestContext(
+        { id: "log-trace-req", headers: {}, ip: "127.0.0.1" } as never,
+        { pool: ctx.pool, config: ctx.config, keyProvider: ctx.keyProvider, logger },
+      );
+      await runOperation({ ...rc, logger }, { name: "test.log", execute: async () => ok(1) }, {});
+      reqSpan.end();
+    });
+    const opSpan = operationSpan("test.log");
+    assert.ok(opSpan);
+    const line = lines.find((l) => (l.obj.reqalm as { operation?: string })?.operation === "test.log");
+    assert.ok(line, "operation log line");
+    assert.equal(line!.mixin.trace_id, opSpan!.spanContext().traceId);
+    assert.equal(line!.mixin.span_id, opSpan!.spanContext().spanId);
+    const nested = line!.obj.reqalm as Record<string, unknown>;
+    assert.equal(nested.trace_id, opSpan!.spanContext().traceId);
+    assert.ok(!("span_id" in nested), "no nested duplicate span_id");
   });
 
   it("continues an incoming W3C traceparent", async () => {
