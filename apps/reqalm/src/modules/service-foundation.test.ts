@@ -347,6 +347,13 @@ describe("authenticate → scope → permission → validate", () => {
     for (const [rid, method, url, headers, payload] of [
       ["order-401-blank", "GET", "/api/v1/projects/%20"],
       ["order-401-padded", "GET", "/api/v1/projects/%20reqalm"],
+      ["order-401-ctrl", "GET", "/api/v1/projects/%0areqalm"],
+      ["order-401-nul", "GET", "/api/v1/projects/reqalm%00"],
+      ["order-401-upper", "GET", "/api/v1/projects/Reqalm"],
+      ["order-401-long65", "GET", `/api/v1/projects/${"x".repeat(65)}`],
+      ["order-401-long101", "GET", `/api/v1/projects/${"x".repeat(101)}`],
+      ["order-401-long4k", "GET", `/api/v1/projects/${"x".repeat(4096)}`],
+      ["order-401-long4k-badjson", "POST", `/api/v1/projects/${"x".repeat(4096)}/grants`, badJson, "{"],
       ["order-401-badjson", "POST", "/api/v1/projects/reqalm/grants", badJson, "{"],
       ["order-401-badid-badjson", "POST", "/api/v1/projects/%20/grants", badJson, "{"],
     ] as const) {
@@ -366,12 +373,36 @@ describe("authenticate → scope → permission → validate", () => {
       ["order-404-nogrant-badjson", "/api/v1/projects/secret-proj/grants", { ...auth, ...badJson }, "{"],
       ["order-404-badid", "/api/v1/projects/%20reqalm/grants", auth],
       ["order-404-badid-badjson", "/api/v1/projects/%20/grants", { ...auth, ...badJson }, "{"],
+      ["order-404-ctrl", "/api/v1/projects/%0areqalm/grants", auth],
+      ["order-404-long101", `/api/v1/projects/${"x".repeat(101)}/grants`, auth],
+      ["order-404-long4k", `/api/v1/projects/${"x".repeat(4096)}/grants`, auth],
     ] as const) {
       assert.deepEqual(bareProblem(await call(rid, "POST", url, headers, payload)), missing, rid);
       assert.equal((await auditDetail(rid)).outcome, "deny", rid);
     }
     // The raw (unparsable) id is not written to the audit row.
     assert.equal((await auditDetail("order-404-badid")).project_id, null);
+    assert.equal((await auditDetail("order-404-long4k")).project_id, null);
+  });
+
+  it("an invalid project id never reaches the logs or the audit row raw", async () => {
+    const access = await loginToken();
+    const ids = ["ZZQMARK", "%0azzqmark", "zzqmark_x", `zzqmark${"x".repeat(200)}`];
+    const logs = await captureAppLogs(async () => {
+      for (const [i, id] of ids.entries()) {
+        for (const headers of [{}, { authorization: `Bearer ${access}` }] as Record<string, string>[]) {
+          const res = await call(`raw-id-${i}`, "GET", `/api/v1/projects/${id}`, headers);
+          assert.ok(res.statusCode === 401 || res.statusCode === 404, id);
+        }
+      }
+    });
+    assert.ok(logs.includes("raw-id-3"), "logs were captured");
+    assert.ok(logs.includes("/api/v1/projects/[invalid]"), "request log keeps the redacted path");
+    assert.doesNotMatch(logs, /zzqmark/i);
+    const rows = await ctx.pool.query(
+      `SELECT project_id FROM audit_events WHERE request_id LIKE 'raw-id-%' AND project_id IS NOT NULL`,
+    );
+    assert.equal(rows.rowCount, 0);
   });
 
   it("granted but missing the permission: 403 before the body is validated", async () => {

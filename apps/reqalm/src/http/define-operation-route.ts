@@ -4,6 +4,7 @@ import { mapServiceResultToHttp, sendProblem } from "../core/http-envelope.js";
 import { runOperationCall, type OperationDef } from "../core/operation.js";
 import { buildRequestContext, type RequestContextDeps } from "../core/request-context.js";
 import { err, ok, type ServiceResult } from "../core/service-result.js";
+import { PROJECT_ID_SLUG } from "./project-id.js";
 import { type OperationRouteRef, securityFromOperationRef } from "./route-security.js";
 
 /**
@@ -46,9 +47,6 @@ export function parseZodInput<T>(
     })),
   });
 }
-
-/** DNS-like slug: lowercase alnum with interior hyphens, 1–64 chars (matches persisted project ids). */
-export const PROJECT_ID_SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
 export const projectIdSchema = z.string().regex(PROJECT_ID_SLUG, "invalid project id");
 
