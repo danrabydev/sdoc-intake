@@ -256,6 +256,52 @@ pre {
   overflow: auto;
 }
 
+.statement-body {
+  white-space: pre-wrap;
+  line-height: 1.55;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin: 0.5rem 0 1rem;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: flex-end;
+  margin: 1rem 0;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.filter-bar label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.filter-bar input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.filter-bar button {
+  padding: 0.45rem 0.85rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 @media (max-width: 720px) {
   .shell {
     grid-template-columns: 1fr;

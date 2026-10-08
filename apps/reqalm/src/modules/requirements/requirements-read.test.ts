@@ -68,7 +68,7 @@ describe("requirements read API", () => {
         headers: bearer,
       })
     ).json() as { data: { items: Array<{ kind: string }>; total: number } };
-    assert.equal(cap.data.total, 66);
+    assert.equal(cap.data.total, 67);
     assert.ok(cap.data.items.length > 0);
     assert.ok(cap.data.items.every((i) => i.kind === "capability"));
     const draft = (
@@ -76,7 +76,7 @@ describe("requirements read API", () => {
     ).json() as { data: { items: Array<{ id: string; status: string }> } };
     assert.ok(draft.data.items.length > 0);
     assert.ok(draft.data.items.every((i) => i.status === "draft"));
-    assert.ok(draft.data.items.some((i) => i.id === "CAP-READ-REQS"));
+    assert.ok(draft.data.items.some((i) => i.id === "CAP-BROWSE-UI-REQS"));
     const content = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?type=content&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ type: string; id: string }>; total: number } };

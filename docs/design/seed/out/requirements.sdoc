@@ -2701,7 +2701,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-READ-REQS
-STATUS: Draft
+STATUS: Active
 TITLE: Read requirements (list, detail, versions)
 STATEMENT: >>>
 Grant-scoped requirements read APIs: paged GET /api/v1/projects/:projectId/requirements with filters (kind, type, status, q) and current-version summaries; GET detail (statement + version attributes); GET version history (newest first). listScope pipeline supplies allowedProjectIds for browse lists; trace edges are not persisted in the seed loader yet (deferred). Invalid requirement id segments redact in logs/spans like client/project slugs.
@@ -2712,8 +2712,9 @@ BASE_UID: CAP-READ-REQS
 VERSION_N: 0
 priority: 10
 iteration: iter-r1
-security.catalog_ref: AC-3
-security.verification_note: Planned until requirements read PR merges.
+security.catalog_ref: CM-2
+security.verification_note: Shipped with requirements read API PR #24.
+edge: ← satisfies from CAP-BROWSE-UI-REQS
 delivered_by_release: R1 — requirements read API
 <<<
 RELATIONS:
@@ -2736,6 +2737,45 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-read-requirements
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-BROWSE-UI-REQS
+STATUS: Draft
+TITLE: Browse requirements UI (read-only)
+STATEMENT: >>>
+Read-only /app browse screens for grant-scoped requirements within a project: paged list with kind/type/status filters and q search (URL-driven), requirement detail (statement + attributes), and paged version history (newest first). Uses session/CSRF auth; safe DOM text only. Trace links deferred.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-UI-REQS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until requirements browse UI PR merges.
+delivered_by_release: R1 — browse requirements UI (read-only)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: C08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: D06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-READ-REQS
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-browse-ui-reqs
   ROLE: Delivers
 
 [[/SECTION]]
@@ -3083,6 +3123,7 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-TREE
 edge: ← uses from N03
 edge: ← satisfies from CAP-READ-REQS
+edge: ← satisfies from CAP-BROWSE-UI-REQS
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3385,6 +3426,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-VERSION-UI
 edge: ← satisfies from CAP-READ-REQS
+edge: ← satisfies from CAP-BROWSE-UI-REQS
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8141,6 +8183,7 @@ edge: ← uses from ARCH-DEPLOY-MINIMAL
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-UI-FRAME
 edge: ← satisfies from CAP-BROWSE-UI-CP
+edge: ← satisfies from CAP-BROWSE-UI-REQS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -8193,6 +8236,7 @@ edge: ← uses from ARCH-UI
 edge: ← uses from ARCH-CRED-SESSION
 edge: ← satisfies from CAP-UI-FRAME
 edge: ← satisfies from CAP-BROWSE-UI-CP
+edge: ← satisfies from CAP-BROWSE-UI-REQS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
