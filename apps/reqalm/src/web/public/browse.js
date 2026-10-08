@@ -3,15 +3,24 @@
 export const APP_NAV = [
   { href: "/app/clients", label: "Clients" },
   { href: "/app/projects", label: "Projects" },
-  { href: "/app/requirements", label: "Requirements" },
-  { href: "/app/releases", label: "Releases" },
 ];
 
 /** Slug id — must match apps/reqalm/src/http/project-id.ts SLUG_ID */
 export const SLUG_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
+/** Max slug length (1 starter + 63 tail). */
+export const SLUG_MAX_LENGTH = 64;
+
 export function isValidSlugId(id) {
   return typeof id === "string" && SLUG_ID.test(id);
+}
+
+export function appClientHref(clientId) {
+  return `/app/clients/${encodeURIComponent(clientId)}`;
+}
+
+export function appProjectHref(projectId) {
+  return `/app/projects/${encodeURIComponent(projectId)}`;
 }
 
 export function parseAppRoute(pathname) {
@@ -21,14 +30,14 @@ export function parseAppRoute(pathname) {
   }
   const clientMatch = path.match(/^\/app\/clients\/([^/]+)$/);
   if (clientMatch) {
-    return { view: "client-detail", clientId: clientMatch[1], offset: 0 };
+    return { view: "client-detail", clientId: decodeURIComponent(clientMatch[1]), offset: 0 };
   }
   if (path === "/app/projects") {
     return { view: "projects-list", offset: 0 };
   }
   const projectMatch = path.match(/^\/app\/projects\/([^/]+)$/);
   if (projectMatch) {
-    return { view: "project-detail", projectId: projectMatch[1] };
+    return { view: "project-detail", projectId: decodeURIComponent(projectMatch[1]) };
   }
   if (path.startsWith("/app")) {
     return { view: "unknown" };
@@ -44,9 +53,21 @@ export function readPageOffset(search) {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
-export function pageHref(basePath, offset, limit) {
+export function pageHref(basePath, offset) {
   if (offset <= 0) return basePath;
   return `${basePath}?offset=${offset}`;
+}
+
+/** Paging link offsets — exported for tests (kills off-by-one mutants). */
+export function pagingOffsets(offset, limit, total) {
+  const prevOff = Math.max(0, offset - limit);
+  const nextOff = offset + limit;
+  return {
+    prevOff,
+    nextOff,
+    showPrev: offset > 0,
+    showNext: nextOff < total,
+  };
 }
 
 export function el(tag, props = {}, children = []) {
@@ -78,22 +99,28 @@ export function renderNotFound(container) {
   );
 }
 
+function renderNoMoreResults(container, basePath) {
+  container.append(
+    el("p", { className: "empty-state", text: "No more results." }),
+    el("p", {}, [el("a", { href: pageHref(basePath, 0), text: "Back to first page" })]),
+  );
+}
+
 function pagingBar({ basePath, offset, limit, total }) {
   if (total === 0) return null;
   const start = Math.min(offset + 1, total);
   const end = Math.min(offset + limit, total);
-  const prevOff = Math.max(0, offset - limit);
-  const nextOff = offset + limit;
+  const { prevOff, nextOff, showPrev, showNext } = pagingOffsets(offset, limit, total);
   const wrap = el("div", { className: "pager" });
   wrap.append(
     el("span", { className: "pager-meta", text: `Showing ${start}–${end} of ${total}` }),
   );
   const nav = el("div", { className: "pager-nav" });
-  if (offset > 0) {
-    nav.append(el("a", { href: pageHref(basePath, prevOff, limit), className: "btn-secondary", text: "Previous" }));
+  if (showPrev) {
+    nav.append(el("a", { href: pageHref(basePath, prevOff), className: "btn-secondary", text: "Previous" }));
   }
-  if (nextOff < total) {
-    nav.append(el("a", { href: pageHref(basePath, nextOff, limit), className: "btn-secondary", text: "Next" }));
+  if (showNext) {
+    nav.append(el("a", { href: pageHref(basePath, nextOff), className: "btn-secondary", text: "Next" }));
   }
   if (nav.childNodes.length) wrap.append(nav);
   return wrap;
@@ -125,6 +152,12 @@ export async function loadJson(apiFn, path) {
   return { kind: "ok", data: body.data ?? body };
 }
 
+function isPastEnd(page, offset) {
+  const off = page.offset ?? offset;
+  const total = page.total ?? 0;
+  return total > 0 && off >= total;
+}
+
 export async function renderClientsList(container, { apiFn, offset = 0, limit = 20 }) {
   const path = `/api/v1/clients?limit=${limit}&offset=${offset}`;
   const result = await loadJson(apiFn, path);
@@ -136,13 +169,17 @@ export async function renderClientsList(container, { apiFn, offset = 0, limit = 
   const page = result.data;
   container.replaceChildren(el("h1", { text: "Clients" }));
   if (!page.items?.length) {
+    if (isPastEnd(page, offset)) {
+      renderNoMoreResults(container, "/app/clients");
+      return;
+    }
     container.append(
       el("p", { className: "empty-state", text: "You have no clients you can see." }),
     );
     return;
   }
   const rows = page.items.map((c) => [
-    el("td", {}, [el("a", { href: `/app/clients/${c.id}`, text: c.name })]),
+    el("td", {}, [el("a", { href: appClientHref(c.id), text: c.name })]),
     el("td", {}, [el("code", { text: c.id })]),
   ]);
   container.append(dataTable(["Name", "Slug"], rows));
@@ -167,6 +204,7 @@ export async function renderClientDetail(container, { apiFn, clientId, offset = 
     return;
   }
   const client = clientRes.data;
+  const clientBase = appClientHref(clientId);
   container.replaceChildren(
     el("nav", { className: "breadcrumb" }, [
       el("a", { href: "/app/clients", text: "Clients" }),
@@ -195,18 +233,21 @@ export async function renderClientDetail(container, { apiFn, clientId, offset = 
   }
   const page = projRes.data;
   if (!page.items?.length) {
+    if (isPastEnd(page, offset)) {
+      renderNoMoreResults(container, clientBase);
+      return;
+    }
     container.append(el("p", { className: "muted", text: "No projects in this client." }));
     return;
   }
   const rows = page.items.map((p) => [
-    el("td", { text: p.name }),
+    el("td", {}, [el("a", { href: appProjectHref(p.id), text: p.name })]),
     el("td", {}, [el("code", { text: p.id })]),
     el("td", { text: p.status ?? "—" }),
   ]);
   container.append(dataTable(["Name", "Slug", "Status"], rows));
-  const basePath = `/app/clients/${clientId}`;
   const bar = pagingBar({
-    basePath,
+    basePath: clientBase,
     offset: page.offset ?? offset,
     limit: page.limit ?? limit,
     total: page.total ?? 0,
@@ -235,6 +276,10 @@ export async function renderProjectsList(container, { apiFn, offset = 0, limit =
   const page = projRes.data;
   container.replaceChildren(el("h1", { text: "Projects" }));
   if (!page.items?.length) {
+    if (isPastEnd(page, offset)) {
+      renderNoMoreResults(container, "/app/projects");
+      return;
+    }
     container.append(
       el("p", { className: "empty-state", text: "You have no projects you can see." }),
     );
@@ -243,10 +288,10 @@ export async function renderProjectsList(container, { apiFn, offset = 0, limit =
   const rows = page.items.map((p) => {
     const clientName = names.get(p.client_id) ?? p.client_id;
     const clientCell = names.has(p.client_id)
-      ? el("a", { href: `/app/clients/${p.client_id}`, text: clientName })
+      ? el("a", { href: appClientHref(p.client_id), text: clientName })
       : el("span", { text: clientName });
     return [
-      el("td", {}, [el("a", { href: `/app/projects/${p.id}`, text: p.name })]),
+      el("td", {}, [el("a", { href: appProjectHref(p.id), text: p.name })]),
       el("td", {}, [clientCell]),
       el("td", {}, [el("code", { text: p.id })]),
     ];
@@ -274,8 +319,8 @@ export async function renderProjectDetail(container, { apiFn, projectId }) {
     el("h1", { text: project.name }),
     el("p", { className: "muted" }, [
       document.createTextNode("Client: "),
-      el("a", { href: `/app/clients/${project.client_id}`, text: clientLabel }),
-      document.createTextNode(` · slug `),
+      el("a", { href: appClientHref(project.client_id), text: clientLabel }),
+      document.createTextNode(" · slug "),
       el("code", { text: project.id }),
     ]),
     el("section", { className: "stub-section" }, [

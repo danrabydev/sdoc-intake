@@ -479,11 +479,16 @@ describe("unknown /api paths", () => {
     }
   });
 
-  it("non-API paths still get the web app when the web role is enabled", async () => {
-    for (const url of ["/app/some/page", "/apiary"]) {
+  it("SPA fallback serves index.html only under /app (GET/HEAD)", async () => {
+    for (const url of ["/app/some/page", "/app/clients", "/app/projects/reqalm"]) {
       const res = await call404("GET", url, "unknown-web");
       assert.equal(res.statusCode, 200, url);
       assert.match(String(res.headers["content-type"]), /^text\/html/, url);
+    }
+    for (const url of ["/random-path", "/.env", "/apiary"]) {
+      const res = await call404("GET", url, "unknown-non-spa");
+      assert.equal(res.statusCode, 404, url);
+      assert.deepEqual(res.json(), { error: "not_found" }, url);
     }
   });
 
