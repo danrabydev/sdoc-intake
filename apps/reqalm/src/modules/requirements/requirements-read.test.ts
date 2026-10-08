@@ -62,13 +62,13 @@ async function restoreCaseyGrants(saved: { id: string; role: string }[]): Promis
 describe("requirements read API", () => {
   it("filters type, status, kind, and combined query params", async () => {
     const draft = (
-      await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?status=draft&limit=200", headers: bearer })
+      await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?status=draft&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ id: string; status: string }> } };
     assert.ok(draft.data.items.length > 0);
     assert.ok(draft.data.items.every((i) => i.status === "draft"));
     assert.ok(draft.data.items.some((i) => i.id === "CAP-READ-REQS"));
     const content = (
-      await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?type=content&limit=200", headers: bearer })
+      await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?type=content&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ type: string; id: string }>; total: number } };
     assert.equal(content.data.total, 7);
     assert.ok(content.data.items.some((i) => i.id === "SEC-DEVENV" && i.type === "content"));
@@ -102,7 +102,7 @@ describe("requirements read API", () => {
     ).json() as { data: { total: number } };
     assert.equal(pct.data.total, 0);
     const us = (
-      await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?q=_&limit=200", headers: bearer })
+      await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?q=_&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ title: string; id: string }> } };
     for (const item of us.data.items) {
       assert.match(`${item.id} ${item.title}`, /_/);
@@ -112,6 +112,17 @@ describe("requirements read API", () => {
         .statusCode,
       400,
     );
+    for (const param of ["kind", "type", "status"] as const) {
+      assert.equal(
+        (await inject({
+          method: "GET",
+          url: `/api/v1/projects/reqalm/requirements?${param}=${"x".repeat(65)}`,
+          headers: bearer,
+        })).statusCode,
+        400,
+        param,
+      );
+    }
   });
 
   it("selects newest version for list summary and detail (M15)", async () => {
