@@ -159,6 +159,34 @@ describe("browse UI render (jsdom)", () => {
     assert.match(main.textContent ?? "", /No more results/i);
   });
 
+  it("renders client-detail projects paging with exact hrefs", async () => {
+    const main = document.createElement("main");
+    const apiFn = mockFetch((url) => {
+      if (url === "/api/v1/clients/reqalm-client") {
+        return { status: 200, body: { data: { id: "reqalm-client", name: "ReqALM Client", notes: null, created_at: null } } };
+      }
+      if (url === "/api/v1/clients/reqalm-client/projects?limit=20&offset=20") {
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: [{ id: "p2", client_id: "reqalm-client", name: "P2", status: "draft" }],
+              limit: 20,
+              offset: 20,
+              total: 45,
+            },
+          },
+        };
+      }
+      return { status: 404 };
+    });
+    await renderClientDetail(main, { apiFn, clientId: "reqalm-client", offset: 20, limit: 20 });
+    assert.ok(main.querySelector('a.btn-secondary[href="/app/clients/reqalm-client?offset=40"]'));
+    assert.ok(main.querySelector('a.btn-secondary[href="/app/clients/reqalm-client"]'));
+    assert.match(main.textContent ?? "", /draft/);
+    assert.ok(main.querySelector('a[href="/app/projects/p2"]'));
+  });
+
   it("client detail omits notes and validates slug", async () => {
     const main = document.createElement("main");
     const apiFn = mockFetch((url) => {
@@ -230,6 +258,58 @@ describe("browse UI render (jsdom)", () => {
       offset: 0,
     });
     assert.match(main.textContent ?? "", /No requirements in this project/);
+  });
+
+  it("shows projects list empty state and happy path with client link", async () => {
+    const emptyMain = document.createElement("main");
+    await renderProjectsList(emptyMain, {
+      apiFn: mockFetch((url) => {
+        if (url.startsWith("/api/v1/clients?")) {
+          return { status: 200, body: { data: { items: [], limit: 100, offset: 0, total: 0 } } };
+        }
+        if (url.startsWith("/api/v1/projects?")) {
+          return { status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } };
+        }
+        return { status: 404 };
+      }),
+    });
+    assert.match(emptyMain.textContent ?? "", /no projects you can see/i);
+
+    const main = document.createElement("main");
+    await renderProjectsList(main, {
+      apiFn: mockFetch((url) => {
+        if (url.startsWith("/api/v1/clients?")) {
+          return { status: 200, body: { data: { items: [{ id: "c1", name: "Client One" }], limit: 100, offset: 0, total: 1 } } };
+        }
+        if (url.startsWith("/api/v1/projects?")) {
+          return {
+            status: 200,
+            body: { data: { items: [{ id: "p1", client_id: "c1", name: "Project One", status: null }], limit: 20, offset: 0, total: 1 } },
+          };
+        }
+        return { status: 404 };
+      }),
+    });
+    assert.match(main.textContent ?? "", /Project One/);
+    assert.match(main.textContent ?? "", /Client One/);
+    assert.ok(main.querySelector('a[href="/app/projects/p1"]'));
+    assert.ok(main.querySelector('a[href="/app/clients/c1"]'));
+  });
+
+  it("requirements list past end shows No more results", async () => {
+    const main = document.createElement("main");
+    await renderRequirementsList(main, {
+      apiFn: mockFetch(() => ({
+        status: 200,
+        body: { data: { items: [], limit: 20, offset: 40, total: 25 } },
+      })),
+      projectId: "reqalm",
+      filters: { kind: "", type: "", status: "", q: "" },
+      offset: 40,
+    });
+    assert.match(main.textContent ?? "", /No more results/i);
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements"]'));
+    assert.doesNotMatch(main.textContent ?? "", /don't have access/i);
   });
 
   it("requirements paging preserves filters in hrefs", async () => {
@@ -311,6 +391,34 @@ describe("browse UI render (jsdom)", () => {
     await renderProjectDetail(main, { apiFn, projectId: "p1" });
     assert.ok(main.querySelector('a[href="/app/projects/p1/requirements"]'));
     assert.match(main.textContent ?? "", /Browse requirements/);
+  });
+
+  it("escapes XSS in client names as plain text", async () => {
+    const xss = "<img src=x onerror=alert(1)>";
+    const main = document.createElement("main");
+    await renderClientsList(main, {
+      apiFn: mockFetch(() => ({
+        status: 200,
+        body: { data: { items: [{ id: "xss", name: xss, created_at: null, notes: null }], limit: 20, offset: 0, total: 1 } },
+      })),
+    });
+    assert.ok(!main.querySelector("img"));
+    assert.match(main.textContent ?? "", /onerror=alert\(1\)/);
+    assert.doesNotMatch(main.innerHTML, /<img[^>]*onerror/i);
+  });
+
+  it("browse renders never fetch SPA document paths", async () => {
+    const main = document.createElement("main");
+    await renderRequirementsList(main, {
+      apiFn: mockFetch((url) => {
+        assert.ok(url.startsWith("/api/v1/"), url);
+        return { status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } };
+      }),
+      projectId: "reqalm",
+      filters: {},
+      offset: 0,
+    });
+    assert.ok(fetchCalls.every((u) => u.startsWith("/api/v1/")));
   });
 
   it("malformed route encoding shows not-found without fetch", async () => {
