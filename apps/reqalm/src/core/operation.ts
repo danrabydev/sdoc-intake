@@ -183,17 +183,4 @@ export async function runOperation<TIn, TOut>(
   });
 }
 
-/** Authenticated read with no permission (e.g. /me). */
-export async function runAuthenticated<TOut>(
-  ctx: RequestContext,
-  name: string,
-  execute: (ctx: RequestContext) => Promise<ServiceResult<TOut>>,
-): Promise<ServiceResult<TOut>> {
-  const def: OperationDef<Record<string, never>, TOut> = {
-    name,
-    execute: async (c) => execute(c),
-  };
-  return runOperation(ctx, def, {});
-}
-
 export { ok, err };
