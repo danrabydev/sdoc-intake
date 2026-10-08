@@ -487,6 +487,17 @@ describe("unknown /api paths", () => {
     }
   });
 
+  it("SPA fallback is GET/HEAD only", async () => {
+    const res = await ctx.app.inject({
+      method: "POST",
+      url: "/app/clients",
+      remoteAddress: "203.0.113.50",
+      headers: { host: "localhost:3000", "x-request-id": "spa-post-deny" },
+    });
+    assert.equal(res.statusCode, 404);
+    assert.deepEqual(res.json(), { error: "not_found" });
+  });
+
   it("non-API paths return 404 without the web role (no SPA fallback)", async () => {
     const apiOnly = await createTestApp({ roles: "api,mcp" });
     try {

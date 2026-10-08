@@ -147,6 +147,9 @@ export async function buildApiServer(state: RuntimeState) {
     if (!roles.has("web") || req.url.startsWith("/mcp")) {
       return reply.code(404).send({ error: "not_found" });
     }
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      return reply.code(404).send({ error: "not_found" });
+    }
     return reply.sendFile("index.html");
   });
 
