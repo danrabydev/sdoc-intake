@@ -1,7 +1,8 @@
 import { randomBytes } from "node:crypto";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import type pg from "pg";
 import type { AppConfig } from "../config.js";
-import { isProduction } from "../config.js";
 import { writeBusinessAudit } from "../audit/business-audit.js";
 import {
   applyDogfoodSeed,
@@ -38,10 +39,22 @@ export type SeedResetResult = SeedResult & {
 export type SeedResetOptions = {
   confirm: boolean;
   seedPath: string;
+  repoRoot: string;
   actorIdentityId?: string;
+  /** Defaults to process.env (CLI); tests pass the same env as loadConfig. */
+  env?: NodeJS.ProcessEnv;
   /** @internal test hook — abort after wipe, before reload */
   testAbortAfterWipe?: boolean;
 };
+
+export type SeedResetAllowlistInput = {
+  config: AppConfig;
+  env: NodeJS.ProcessEnv;
+  repoRoot: string;
+};
+
+/** PGlite in-process tests set this alongside REQALM_DEVENV_ENV_FILE (see seed-reset.test.ts). */
+export const SEED_RESET_TEST_HARNESS = "pglite" as const;
 
 const PRESERVED_TABLES = [
   "identities",
@@ -56,18 +69,73 @@ const PRESERVED_TABLES = [
   "data_encryption_keys",
 ] as const;
 
-export function assertSeedResetAllowed(
-  config: AppConfig,
-  env: NodeJS.ProcessEnv = process.env,
-): void {
-  if (isProduction(config)) {
-    throw new SeedResetRefusedError(
-      "Refusing dogfood seed reset: REQALM_MODE=production (dev-only command)",
+function resolveDevenvEnvPath(env: NodeJS.ProcessEnv, repoRoot: string): string {
+  const override = env.REQALM_DEVENV_ENV_FILE?.trim();
+  if (override) return path.resolve(override);
+  return path.join(repoRoot, ".reqalm/devenv.env");
+}
+
+function checkLocalDevDatabaseUrl(
+  databaseUrl: string,
+  env: NodeJS.ProcessEnv,
+): { ok: true } | { ok: false; reason: string } {
+  if (env.REQALM_SEED_RESET_TEST_HARNESS === SEED_RESET_TEST_HARNESS) {
+    return { ok: true };
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(databaseUrl.replace(/^postgres(ql)?:/i, "http:"));
+  } catch {
+    return { ok: false, reason: "DATABASE_URL is not a valid postgres URL" };
+  }
+  const host = parsed.hostname;
+  if (host !== "127.0.0.1" && host !== "localhost") {
+    return {
+      ok: false,
+      reason: `DATABASE_URL must target local dev Postgres at 127.0.0.1 or localhost (got host ${host})`,
+    };
+  }
+  const port = parsed.port || "5432";
+  if (port !== "5432") {
+    return {
+      ok: false,
+      reason: `DATABASE_URL must use local dev Postgres port 5432 (got port ${port})`,
+    };
+  }
+  return { ok: true };
+}
+
+/** Fail-closed: run only when the environment positively matches local devenv markers. */
+export function assertSeedResetAllowed(input: SeedResetAllowlistInput): void {
+  const { config, env, repoRoot } = input;
+  const reasons: string[] = [];
+
+  const mode = env.REQALM_MODE?.trim();
+  if (mode !== "development") {
+    reasons.push(
+      mode
+        ? `REQALM_MODE must be exactly "development" (got "${mode}")`
+        : 'REQALM_MODE is unset (must be exactly "development" for local devenv)',
     );
   }
+
+  const devenvPath = resolveDevenvEnvPath(env, repoRoot);
+  if (!existsSync(devenvPath)) {
+    reasons.push(
+      `missing devenv marker file ${devenvPath} (run pnpm devenv:init, or set REQALM_DEVENV_ENV_FILE)`,
+    );
+  }
+
+  const db = checkLocalDevDatabaseUrl(config.DATABASE_URL, env);
+  if (!db.ok) reasons.push(db.reason);
+
   if (env.NODE_ENV === "production") {
+    reasons.push('NODE_ENV must not be "production" for seed reset');
+  }
+
+  if (reasons.length) {
     throw new SeedResetRefusedError(
-      "Refusing dogfood seed reset: NODE_ENV=production (dev-only command)",
+      "Refusing dogfood seed reset: not a recognized local devenv:\n- " + reasons.join("\n- "),
     );
   }
 }
@@ -154,7 +222,12 @@ export async function resetDogfoodSeed(
   seed: DogfoodSeed,
   options: SeedResetOptions,
 ): Promise<SeedResetResult> {
-  assertSeedResetAllowed(config);
+  const env = options.env ?? process.env;
+  assertSeedResetAllowed({
+    config,
+    env,
+    repoRoot: options.repoRoot,
+  });
   if (!options.confirm) {
     throw new SeedResetRefusedError(
       "Refusing dogfood seed reset without explicit confirmation (pass --confirm)",

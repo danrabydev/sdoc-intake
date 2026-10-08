@@ -79,7 +79,7 @@ pnpm devenv:seed:reset --dry-run   # plan only
 pnpm devenv:seed:reset --confirm   # wipe + reload (dev-only; refuses production)
 ```
 
-This deletes and reloads requirement lines/versions and releases for seeded projects, preserves identities, grants, sessions, OpenBao, and append-only `audit_events`, and writes one audit row for the reset.
+This deletes and reloads requirement lines/versions and releases for seeded projects, preserves identities, grants, sessions, OpenBao, and append-only `audit_events`, and writes one audit row for the reset. It runs only when the environment positively matches local devenv (`REQALM_MODE=development`, `.reqalm/devenv.env` from `pnpm devenv:init`, and `DATABASE_URL` on `127.0.0.1:5432`); anything else is refused.
 
 ### Smoke test (FIX-ALLOW-DEVENV-SMOKE)
 

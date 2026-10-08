@@ -26,7 +26,7 @@ const seedPath = path.isAbsolute(config.REQALM_SEED_PATH)
   : path.resolve(repoRoot, config.REQALM_SEED_PATH);
 
 try {
-  assertSeedResetAllowed(config);
+  assertSeedResetAllowed({ config, env: process.env, repoRoot });
 } catch (err) {
   if (err instanceof SeedResetRefusedError) {
     console.error(err.message);
@@ -68,6 +68,7 @@ try {
   const result = await resetDogfoodSeed(pool, config, seed, {
     confirm: true,
     seedPath,
+    repoRoot,
     actorIdentityId: actor,
   });
   console.log(JSON.stringify({ seedPath, ...result }, null, 2));

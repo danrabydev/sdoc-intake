@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Ship rel-r1-route-helper and add rel-r1-seed-reset (this PR).
+"""Add rel-r1-seed-reset / CAP-DEVENV-SEED-RESET only (this PR).
 
-Idempotent. Does NOT git commit. Run yaml_to_strictdoc.py --validate afterwards.
+Does not ship rel-r1-route-helper (PR #20 owns that). Idempotent. Does NOT git commit.
+Run yaml_to_strictdoc.py --validate afterwards.
 """
 from __future__ import annotations
 
@@ -15,8 +16,6 @@ from ruamel.yaml.comments import CommentedMap
 SEED = Path(__file__).resolve().parent.parent
 DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
-MERGE_ROUTE_HELPER = "ecbd68b"
-SHIPPED_ROUTE_HELPER = "2026-10-08"
 
 yaml = YAML()
 yaml.preserve_quotes = True
@@ -62,12 +61,6 @@ def ensure_edge(edges, edge):
     return 1
 
 
-ROUTE_HELPER_CAPS = [
-    "CAP-SVC-OPERATION-ROUTE",
-    "CAP-SVC-BUSINESS-ROUTE-AUDIT",
-    "CAP-SVC-PROBLEM-JSON",
-]
-
 SEED_RESET_CAPS = [
     (
         "CAP-DEVENV-SEED-RESET",
@@ -75,7 +68,8 @@ SEED_RESET_CAPS = [
         "Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows "
         "(requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml "
         "in one transaction, preserving identities, grants, sessions/MFA, OpenBao keys, and append-only audit_events. "
-        "Refuses production markers and runs only with explicit --confirm after printing a delete/load plan. "
+        "Runs only when the environment positively identifies as local devenv (REQALM_MODE=development, "
+        ".reqalm/devenv.env present, DATABASE_URL on 127.0.0.1:5432). Requires explicit --confirm after a plan. "
         "Records one business audit event with load counts. Idempotent second run yields identical DB contents.",
         [("ARCH-DEVENV-SEED", "satisfies"), ("FIX-ALLOW-DEVENV-SEED-IDEMPOTENT", "satisfies")],
         [
@@ -90,21 +84,6 @@ SEED_RESET_CAPS = [
 def main() -> None:
     with DOGFOOD.open("r", encoding="utf-8") as f:
         data = yaml.load(f)
-
-    rel_rh = find(data.get("releases"), "id", "rel-r1-route-helper")
-    if rel_rh and rel_rh.get("status") != "shipped":
-        rel_rh["status"] = "shipped"
-        rel_rh["shipped_on"] = SHIPPED_ROUTE_HELPER
-        rel_rh["notes"] = (
-            f"One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/19 merged to main as "
-            f"{MERGE_ROUTE_HELPER} on {SHIPPED_ROUTE_HELPER}. Verified locally: tests, typecheck, build; "
-            "defineOperationRoute pipeline + route-security audit."
-        )
-    for cap in ROUTE_HELPER_CAPS:
-        ver = find(data.get("requirement_versions"), "uid", cap)
-        if ver and ver.get("status") == "draft":
-            ver["status"] = "active"
-            ver["verification_outcome"] = "pass"
 
     edges = data.setdefault("edges", [])
     arts = data.setdefault("capability_artifacts", [])
@@ -180,7 +159,7 @@ def main() -> None:
     with DOGFOOD.open("w", encoding="utf-8") as f:
         yaml.dump(data, f)
 
-    print("Patched dogfood.yaml: shipped rel-r1-route-helper, added rel-r1-seed-reset")
+    print("Patched dogfood.yaml: rel-r1-seed-reset / CAP-DEVENV-SEED-RESET only")
 
 
 if __name__ == "__main__":

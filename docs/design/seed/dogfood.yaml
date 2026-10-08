@@ -7652,13 +7652,13 @@ requirement_versions:
   base_uid: CAP-DEVENV-SEED-RESET
   version_n: 0
   status: draft
-  statement: Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction, preserving identities, grants, sessions/MFA, OpenBao keys, and append-only audit_events. Refuses production markers and runs only with explicit --confirm after printing a delete/load plan. Records one business audit event with load counts. Idempotent second run yields identical DB contents.
+  statement: Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction, preserving identities, grants, sessions/MFA, OpenBao keys, and append-only audit_events. Runs only when the environment positively identifies as local devenv (REQALM_MODE=development, .reqalm/devenv.env present, DATABASE_URL on 127.0.0.1:5432). Requires explicit --confirm after a plan. Records one business audit event with load counts. Idempotent second run yields identical DB contents.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until seed-reset PR merges and is verified locally.
-  statement_hash: sha256:d7718f0ff74d5c3b3af56c7e4f0bd6f1fd59eb6c353b2d48bb838ac92fbb1022
+  statement_hash: sha256:f7e23cc457b06b7f32ed52c9b5c0066c01938e61f3589282c62a683e43cb5c62
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO

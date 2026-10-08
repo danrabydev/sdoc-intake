@@ -15289,7 +15289,7 @@ UID: CAP-DEVENV-SEED-RESET
 STATUS: Draft
 TITLE: Dev-only dogfood seed reset (pnpm devenv:seed:reset)
 STATEMENT: >>>
-Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction, preserving identities, grants, sessions/MFA, OpenBao keys, and append-only audit_events. Refuses production markers and runs only with explicit --confirm after printing a delete/load plan. Records one business audit event with load counts. Idempotent second run yields identical DB contents.
+Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction, preserving identities, grants, sessions/MFA, OpenBao keys, and append-only audit_events. Runs only when the environment positively identifies as local devenv (REQALM_MODE=development, .reqalm/devenv.env present, DATABASE_URL on 127.0.0.1:5432). Requires explicit --confirm after a plan. Records one business audit event with load counts. Idempotent second run yields identical DB contents.
 <<<
 COMMENT: >>>
 KIND: capability

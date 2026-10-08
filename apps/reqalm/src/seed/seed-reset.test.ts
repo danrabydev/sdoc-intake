@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
@@ -9,6 +11,7 @@ import {
   assertSeedResetAllowed,
   countDogfoodYamlEntities,
   resetDogfoodSeed,
+  SEED_RESET_TEST_HARNESS,
   SeedResetRefusedError,
   summarizeSeedReset,
 } from "./seed-reset.js";
@@ -29,23 +32,95 @@ async function countAll(pool: pg.Pool) {
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const dogfoodPath = path.join(repoRoot, "docs/design/seed/dogfood.yaml");
 
-function devConfig(extra: Record<string, string> = {}) {
-  return loadConfig({ ...testConfigEnv(), ...extra });
+function writeDevenvMarker(): string {
+  const dir = mkdtempSync(path.join(tmpdir(), "reqalm-devenv-"));
+  const file = path.join(dir, "devenv.env");
+  writeFileSync(file, "# test harness devenv marker\nREQALM_DEVENV_MARKER=1\n");
+  return file;
 }
 
-describe("seed reset", () => {
-  it("refuses outside development mode", () => {
-    const config = devConfig({ REQALM_MODE: "production" });
-    assert.throws(
-      () => assertSeedResetAllowed(config),
-      (err: unknown) =>
-        err instanceof SeedResetRefusedError && /production/.test((err as Error).message),
-    );
+/** Positive local-devenv allowlist for PGlite harness (not a production denylist bypass). */
+function seedResetHarnessEnv(extra: Record<string, string> = {}): NodeJS.ProcessEnv {
+  const devenvFile = writeDevenvMarker();
+  return {
+    ...testConfigEnv(),
+    REQALM_MODE: "development",
+    REQALM_DEVENV_ENV_FILE: devenvFile,
+    REQALM_SEED_RESET_TEST_HARNESS: SEED_RESET_TEST_HARNESS,
+    ...extra,
+  };
+}
+
+function harness(extra: Record<string, string> = {}) {
+  const env = seedResetHarnessEnv(extra);
+  return { env, config: loadConfig(env) };
+}
+
+async function assertResetRefusedLeavesData(
+  resetEnv: NodeJS.ProcessEnv,
+  label: string,
+): Promise<void> {
+  const pg = await createMigratedPglitePool();
+  const config = loadConfig(seedResetHarnessEnv());
+  const seed = await readDogfoodFile(dogfoodPath);
+  await loadDogfoodSeed(pg.pool, config, seed);
+  await pg.pool.query(
+    `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)
+     VALUES ('FIX-GUARD-${label}', 'reqalm', 'SEC-DEVENV', 'requirement', 'guard probe')`,
+  );
+  const before = await countAll(pg.pool);
+
+  await assert.rejects(
+    () =>
+      resetDogfoodSeed(pg.pool, config, seed, {
+        confirm: true,
+        seedPath: dogfoodPath,
+        repoRoot,
+        env: resetEnv,
+      }),
+    SeedResetRefusedError,
+  );
+
+  const after = await countAll(pg.pool);
+  assert.deepEqual(after, before);
+  const probe = await pg.pool.query(
+    `SELECT 1 FROM requirement_lines WHERE base_uid = $1`,
+    [`FIX-GUARD-${label}`],
+  );
+  assert.equal(probe.rowCount, 1);
+  await pg.close();
+}
+
+describe("seed reset allowlist", () => {
+  it("refuses when REQALM_MODE is unset and leaves data untouched", async () => {
+    const base = seedResetHarnessEnv();
+    const { REQALM_MODE: _drop, ...unsetMode } = base;
+    await assertResetRefusedLeavesData(unsetMode, "unset-mode");
   });
 
+  it("refuses when REQALM_MODE is staging and leaves data untouched", async () => {
+    const resetEnv = { ...seedResetHarnessEnv(), REQALM_MODE: "staging" };
+    await assertResetRefusedLeavesData(resetEnv, "staging");
+  });
+
+  it("refuses when devenv marker file is missing and leaves data untouched", async () => {
+    const resetEnv = seedResetHarnessEnv({ REQALM_DEVENV_ENV_FILE: "/nonexistent/devenv.env" });
+    await assertResetRefusedLeavesData(resetEnv, "no-devenv");
+  });
+
+  it("refuses assertSeedResetAllowed when REQALM_MODE is production", () => {
+    const { config, env } = harness({ REQALM_MODE: "production" });
+    assert.throws(
+      () => assertSeedResetAllowed({ config, env, repoRoot }),
+      SeedResetRefusedError,
+    );
+  });
+});
+
+describe("seed reset", () => {
   it("refuses without confirmation", async () => {
     const pg = await createMigratedPglitePool();
-    const config = devConfig();
+    const { config, env } = harness();
     const seed = await readDogfoodFile(dogfoodPath);
     await loadDogfoodSeed(pg.pool, config, seed);
     await assert.rejects(
@@ -53,6 +128,8 @@ describe("seed reset", () => {
         resetDogfoodSeed(pg.pool, config, seed, {
           confirm: false,
           seedPath: dogfoodPath,
+          repoRoot,
+          env,
         }),
       SeedResetRefusedError,
     );
@@ -63,7 +140,7 @@ describe("seed reset", () => {
     const pg = await createMigratedPglitePool();
     const keyProvider = createMemoryKeyProvider();
     await seedAuthUsers(pg.pool, keyProvider);
-    const config = devConfig();
+    const { config, env } = harness();
     const seed = await readDogfoodFile(dogfoodPath);
     await loadDogfoodSeed(pg.pool, config, seed);
 
@@ -79,6 +156,8 @@ describe("seed reset", () => {
     const result = await resetDogfoodSeed(pg.pool, config, seed, {
       confirm: true,
       seedPath: dogfoodPath,
+      repoRoot,
+      env,
       actorIdentityId: "test-operator",
     });
 
@@ -110,11 +189,13 @@ describe("seed reset", () => {
 
   it("is idempotent on a second run", async () => {
     const pg = await createMigratedPglitePool();
-    const config = devConfig();
+    const { config, env } = harness();
     const seed = await readDogfoodFile(dogfoodPath);
     await resetDogfoodSeed(pg.pool, config, seed, {
       confirm: true,
       seedPath: dogfoodPath,
+      repoRoot,
+      env,
     });
     const snap1 = await pg.pool.query(
       `SELECT uid, status, statement FROM requirement_versions ORDER BY uid`,
@@ -122,6 +203,8 @@ describe("seed reset", () => {
     await resetDogfoodSeed(pg.pool, config, seed, {
       confirm: true,
       seedPath: dogfoodPath,
+      repoRoot,
+      env,
     });
     const snap2 = await pg.pool.query(
       `SELECT uid, status, statement FROM requirement_versions ORDER BY uid`,
@@ -134,7 +217,7 @@ describe("seed reset", () => {
     const pg = await createMigratedPglitePool();
     const keyProvider = createMemoryKeyProvider();
     await seedAuthUsers(pg.pool, keyProvider);
-    const config = devConfig();
+    const { config, env } = harness();
     const seed = await readDogfoodFile(dogfoodPath);
     await loadDogfoodSeed(pg.pool, config, seed);
 
@@ -157,6 +240,8 @@ describe("seed reset", () => {
     await resetDogfoodSeed(pg.pool, config, seed, {
       confirm: true,
       seedPath: dogfoodPath,
+      repoRoot,
+      env,
     });
 
     const audit = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
@@ -182,7 +267,7 @@ describe("seed reset", () => {
 
   it("rolls back when reload fails after wipe", async () => {
     const pg = await createMigratedPglitePool();
-    const config = devConfig();
+    const { config, env } = harness();
     const seed = await readDogfoodFile(dogfoodPath);
     await loadDogfoodSeed(pg.pool, config, seed);
     const before = await countAll(pg.pool);
@@ -192,6 +277,8 @@ describe("seed reset", () => {
         resetDogfoodSeed(pg.pool, config, seed, {
           confirm: true,
           seedPath: dogfoodPath,
+          repoRoot,
+          env,
           testAbortAfterWipe: true,
         }),
       /testAbortAfterWipe/,
@@ -204,7 +291,7 @@ describe("seed reset", () => {
 
   it("loads the full current dogfood.yaml (import-ready)", async () => {
     const pg = await createMigratedPglitePool();
-    const config = devConfig();
+    const { config, env } = harness();
     const seed = await readDogfoodFile(dogfoodPath);
     const yamlCounts = countDogfoodYamlEntities(seed);
     assert.ok(yamlCounts.requirement_lines > 300);
@@ -214,6 +301,8 @@ describe("seed reset", () => {
     await resetDogfoodSeed(pg.pool, config, seed, {
       confirm: true,
       seedPath: dogfoodPath,
+      repoRoot,
+      env,
     });
 
     const client = await pg.pool.connect();
