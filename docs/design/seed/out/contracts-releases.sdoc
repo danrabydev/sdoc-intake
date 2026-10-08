@@ -1590,4 +1590,27 @@ RELATIONS:
   VALUE: CAP-READ-RELEASES
   ROLE: Delivers
 
+[REQUIREMENT]
+UID: RELEASE-rel-r1-read-hierarchy
+STATUS: Draft
+TITLE: Release R1 — requirement hierarchy read API
+STATEMENT: >>>
+ReqALM release `R1 — requirement hierarchy read API` (status=planned, planned_on=2026-10-08). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-read-hierarchy
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-READ-HIERARCHY
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-READ-HIERARCHY
+  ROLE: Delivers
+
 [[/SECTION]]

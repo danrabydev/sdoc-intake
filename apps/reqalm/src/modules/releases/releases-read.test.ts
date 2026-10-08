@@ -72,10 +72,11 @@ describe("releases read API", () => {
     const planned = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=planned&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ status: string; id: string }>; total: number } };
-    assert.equal(planned.data.total, 3);
-    assert.equal(planned.data.items.length, 3);
+    assert.equal(planned.data.total, 4);
+    assert.equal(planned.data.items.length, 4);
     assert.ok(planned.data.items.every((i) => i.status === "planned"));
     assert.ok(planned.data.items.some((i) => i.id === "rel-r1-read-releases"));
+    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-read-hierarchy"));
     const shipped = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=shipped&limit=100", headers: bearer })
     ).json() as { data: { total: number; items: Array<{ status: string }> } };

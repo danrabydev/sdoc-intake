@@ -218,6 +218,11 @@ async function wipeProjectSeedData(
     [projectIds],
   );
   deleted.requirement_versions = ver.rowCount ?? 0;
+  const trace = await client.query(
+    "DELETE FROM requirement_trace_edges WHERE project_id = ANY($1::text[])",
+    [projectIds],
+  );
+  deleted.requirement_trace_edges = trace.rowCount ?? 0;
   const lines = await client.query(
     "DELETE FROM requirement_lines WHERE project_id = ANY($1::text[])",
     [projectIds],
