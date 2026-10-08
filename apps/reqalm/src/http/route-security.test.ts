@@ -126,6 +126,21 @@ describe("assertBusinessApiRoutesCompliant (mutation cases)", () => {
     assert.deepEqual(assertAllApiRoutesDeclared(hand("GET", "/admin")), ["GET /admin"]);
   });
 
+  it("the non-API authenticated allowlist is exact on method and path", () => {
+    for (const [method, url] of [
+      ["GET", "/mcp"],
+      ["DELETE", "/mcp"],
+      ["POST", "/mcp/extra"],
+      ["POST", "/mcpx"],
+    ]) {
+      assert.equal(
+        assertAuthenticatedNonApiRoutesCompliant(hand(method, url, { kind: "authenticated" })).length,
+        1,
+        `${method} ${url} must not be exempt`,
+      );
+    }
+  });
+
   it("implicit public routes require matching HTTP method", async () => {
     const app = Fastify();
     installRouteCapture(app);
