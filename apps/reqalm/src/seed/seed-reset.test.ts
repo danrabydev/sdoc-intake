@@ -443,6 +443,11 @@ describe("seed reset", () => {
     const { config, env } = harness();
     const seed = await readDogfoodFile(dogfoodPath);
     await loadDogfoodSeed(pg.pool, config, seed);
+    // Not in the YAML: a committed wipe would remove it, so it proves the rollback (the failure is a JS throw, not SQL).
+    await pg.pool.query(
+      `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)
+       VALUES ('FIX-COUNT-PROBE', 'reqalm', 'SEC-DEVENV', 'requirement', 'count probe')`,
+    );
     const before = await dumpResetTables(pg.pool);
     const auditBefore = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
 
@@ -461,6 +466,8 @@ describe("seed reset", () => {
     );
 
     assert.deepEqual(await dumpResetTables(pg.pool), before);
+    const probe = await pg.pool.query(`SELECT count(*)::int AS c FROM requirement_lines WHERE base_uid = 'FIX-COUNT-PROBE'`);
+    assert.equal(probe.rows[0]?.c, 1, "the non-seed probe row must survive the rolled-back reset");
     const auditAfter = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
     assert.equal(auditAfter.rows[0]?.c, auditBefore.rows[0]?.c);
     await pg.close();
