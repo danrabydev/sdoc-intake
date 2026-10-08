@@ -342,7 +342,7 @@ function assertNoParentCycles(lines: Record<string, unknown>[], lineInProject: S
     const baseUid = String(line.base_uid);
     const seen = new Set<string>();
     let cur = parentOf.get(lineProjectKey(projectId, baseUid)) ?? null;
-    for (let depth = 0; cur && depth < 33; depth++) {
+    while (cur) {
       if (cur === baseUid || seen.has(cur)) {
         throw new SeedValidationError(`requirement line ${baseUid}: parent cycle detected`);
       }
