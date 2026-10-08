@@ -142,6 +142,25 @@ describe("assertBusinessApiRoutesCompliant (mutation cases)", () => {
     await app.close();
   });
 
+  it("a multi-method route is implicitly public only if every method is", async () => {
+    const app = Fastify();
+    installRouteCapture(app);
+    app.route({ method: ["GET", "POST"], url: "/oauth/jwks", handler: async () => ({}) });
+    app.route({ method: ["GET", "HEAD"], url: "/ready", handler: async () => ({}) });
+    app.post("/*", async () => ({}));
+    app.delete("/docs/json", async () => ({}));
+    await app.ready();
+    const kind = (m: string, u: string) =>
+      listRoutesForSecurityAudit(app).find((r) => r.method === m && r.url === u)?.security?.kind;
+    assert.equal(kind("POST", "/oauth/jwks"), undefined);
+    assert.equal(kind("GET", "/oauth/jwks"), undefined);
+    assert.equal(kind("GET", "/ready"), "public");
+    assert.equal(kind("HEAD", "/ready"), "public");
+    assert.equal(kind("POST", "/*"), undefined);
+    assert.equal(kind("DELETE", "/docs/json"), undefined);
+    await app.close();
+  });
+
   it("detects a live hand-registered business route on a throwaway app", async () => {
     const app = Fastify();
     installRouteCapture(app);

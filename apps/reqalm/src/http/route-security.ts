@@ -101,7 +101,6 @@ export const IMPLICIT_PUBLIC_ROUTES = new Set([
   "GET /api/v1/auth/session",
   "POST /api/v1/auth/signout",
   "GET /*",
-  "HEAD /*",
 ]);
 
 /** Hand-registered authenticated routes outside `/api/` that do not use defineOperationRoute. */
@@ -111,7 +110,6 @@ function isImplicitPublicRoute(method: string, url: string): boolean {
   const normalized = method === "HEAD" ? "GET" : method.toUpperCase();
   const key = `${normalized} ${url}`;
   if (IMPLICIT_PUBLIC_ROUTES.has(key)) return true;
-  if (url === "/*" && (normalized === "GET" || normalized === "HEAD")) return true;
   if (url === "/docs" || url.startsWith("/docs/")) {
     return normalized === "GET" || normalized === "HEAD";
   }
@@ -130,12 +128,12 @@ export function installRouteCapture(app: FastifyInstance): void {
       : typeof methods === "string"
         ? methods.split(",")
         : ["GET"];
-    for (const rawMethod of methodList) {
-      const method = rawMethod.trim().toUpperCase();
-      if (!routeOptions.config.reqalmSecurity && isImplicitPublicRoute(method, routeOptions.url)) {
-        routeOptions.config.reqalmSecurity = { kind: "public" };
-        break;
-      }
+    // One config serves every method of the route, so it is public only if each method is.
+    if (
+      !routeOptions.config.reqalmSecurity &&
+      methodList.every((m) => isImplicitPublicRoute(m.trim().toUpperCase(), routeOptions.url))
+    ) {
+      routeOptions.config.reqalmSecurity = { kind: "public" };
     }
     for (const method of methodList) {
       list.push({
