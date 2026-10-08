@@ -185,6 +185,8 @@ describe("seed reset allowlist", () => {
     refused(`${LOCAL_DEV_DATABASE_URL}?host=/var/run/postgresql`);
     refused("postgres://reqalm:x@10.0.0.5:5432/reqalm");
     refused("postgres://reqalm:x@[::1]:5432/reqalm");
+    refused("postgres://reqalm:x@localhost.example.com:5432/reqalm");
+    refused("postgres://reqalm:x@127.0.0.1.nip.io:5432/reqalm");
     refused(undefined);
     refused("");
     for (const ok of [
@@ -428,6 +430,34 @@ describe("seed reset", () => {
         repoRoot,
         env,
       }),
+    );
+
+    assert.deepEqual(await dumpResetTables(pg.pool), before);
+    const auditAfter = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
+    assert.equal(auditAfter.rows[0]?.c, auditBefore.rows[0]?.c);
+    await pg.close();
+  });
+
+  it("rolls back when the reloaded rows do not match the YAML counts", async () => {
+    const pg = await createMigratedPglitePool();
+    const { config, env } = harness();
+    const seed = await readDogfoodFile(dogfoodPath);
+    await loadDogfoodSeed(pg.pool, config, seed);
+    const before = await dumpResetTables(pg.pool);
+    const auditBefore = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
+
+    // A duplicated version loads without error (insert-if-absent) but leaves one row fewer than the YAML lists.
+    const duplicated: DogfoodSeed = structuredClone(seed);
+    duplicated.requirement_versions = [...duplicated.requirement_versions!, duplicated.requirement_versions![0]!];
+    await assert.rejects(
+      () =>
+        resetDogfoodSeed(pg.pool, config, duplicated, {
+          confirm: true,
+          seedPath: dogfoodPath,
+          repoRoot,
+          env,
+        }),
+      /Post-reset row counts mismatch YAML/,
     );
 
     assert.deepEqual(await dumpResetTables(pg.pool), before);
