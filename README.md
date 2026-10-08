@@ -72,14 +72,15 @@ pnpm reqalm:seed
 
 Re-running seed is idempotent (`FIX-ALLOW-DEVENV-SEED-IDEMPOTENT`).
 
-When you change `docs/design/seed/dogfood.yaml` and an existing dev Postgres volume still has old fixture rows, reset project data from the YAML without wiping auth or volumes:
+When you change `docs/design/seed/dogfood.yaml` and an existing dev Postgres volume still has old fixture rows, reset project data from the YAML without wiping auth or volumes. The command runs on the host against `127.0.0.1:5432`, so publish Postgres on the loopback first (the default `docker compose up` keeps it internal):
 
 ```sh
-pnpm devenv:seed:reset --dry-run   # plan only
-pnpm devenv:seed:reset --confirm   # wipe + reload (dev-only; refuses production)
+docker compose -f docker-compose.yml -f docker-compose.hostports.yml up -d --wait peripherals  # 127.0.0.1:5432/8200 only
+pnpm devenv:seed:reset --dry-run   # plan only (read-only)
+pnpm devenv:seed:reset --confirm   # wipe + reload in one transaction (dev-only)
 ```
 
-This deletes and reloads requirement lines/versions and releases for seeded projects, preserves identities, grants, sessions, OpenBao, and append-only `audit_events`, and writes one audit row for the reset. It runs only when the environment positively matches local devenv (`REQALM_MODE=development`, `.reqalm/devenv.env` from `pnpm devenv:init`, and `DATABASE_URL` on `127.0.0.1:5432`); anything else is refused.
+This deletes and reloads requirement lines/versions and releases (with their delivers) for the seeded projects. Identities, grants, local accounts, sessions/MFA, OpenBao and append-only `audit_events` are kept: identities and grants are only inserted when missing, never rewritten or re-activated. One `devenv.seed.reset` row is appended to `audit_events` (`identity_id` is empty because the CLI authenticates no ReqALM identity; `detail.actor` holds the unverified `$USER` or `REQALM_SEED_RESET_ACTOR` label). It runs only when the environment positively matches local devenv: `REQALM_MODE=development`, the `.reqalm/devenv.env` marker from `pnpm devenv:init` (or `REQALM_DEVENV_ENV_FILE`), `NODE_ENV` not `production`, and a `DATABASE_URL` that connects to `127.0.0.1` or `localhost` port `5432` (including any `?host=`/`?port=` override). Anything else, or a missing `--confirm`/`--dry-run`, is refused before connecting.
 
 ### Smoke test (FIX-ALLOW-DEVENV-SMOKE)
 
