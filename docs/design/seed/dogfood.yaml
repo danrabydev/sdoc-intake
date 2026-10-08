@@ -1181,6 +1181,15 @@ approval_records:
   notes: Planned for seed-reset PR; approve once merged and verified.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-browse-cp
+  subject_kind: CapabilityLine
+  base_uid: CAP-BROWSE-CP
+  status: unapproved
+  by:
+  at:
+  notes: Planned for browse-clients-projects PR.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3047,6 +3056,11 @@ requirement_lines:
   parent: SEC-DEVENV
   kind: capability
   title: Dev-only dogfood seed reset (pnpm devenv:seed:reset)
+- base_uid: CAP-BROWSE-CP
+  project_id: reqalm
+  parent: SEC-CP
+  kind: capability
+  title: Browse clients and projects (read-only)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -7656,7 +7670,7 @@ requirement_versions:
 - uid: CAP-DEVENV-SEED-RESET
   base_uid: CAP-DEVENV-SEED-RESET
   version_n: 0
-  status: draft
+  status: active
   statement: Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction (any load failure rolls back), preserving identities, grants, local accounts, sessions/MFA, OpenBao keys, and append-only audit_events; identities and grants are only inserted when missing, never rewritten or re-activated. Runs only when the environment positively identifies as local devenv (REQALM_MODE=development, .reqalm/devenv.env present, NODE_ENV not production, and DATABASE_URL resolving to 127.0.0.1 or localhost port 5432 including ?host=/?port= overrides); no environment variable relaxes these checks. Requires explicit --confirm; --dry-run prints the plan read-only. Records one devenv.seed.reset business audit event with wipe/load counts and an unverified CLI actor label, attributed to no ReqALM identity. Idempotent second run yields identical DB contents.
   priority: 10
   iteration: iter-r1
@@ -7664,6 +7678,19 @@ requirement_versions:
     catalog_ref: CM-2
     verification_note: Planned until seed-reset PR merges and is verified locally.
   statement_hash: sha256:56d8e59efe88a4aecc881ba6fc7c17e85cf526d364ed7dcf533a0d264fd51f3f
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-BROWSE-CP
+  base_uid: CAP-BROWSE-CP
+  version_n: 0
+  status: draft
+  statement: 'Grant-scoped read APIs: paged GET /api/v1/clients, /clients/:id, /projects, /clients/:id/projects; shared PageQuery (max 100); listScope routes filter by per-project permission (agent role narrowing); invalid slug redaction on /clients/ and /projects/ paths.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until browse PR merges.
+  statement_hash: sha256:efdacc1e186a9931a90978fce2038352c21b2def3fbfaddb1c4187b78447a448
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -8149,6 +8176,18 @@ capability_artifacts:
 - requirement_version_uid: CAP-DEVENV-SEED-RESET
   kind: other
   uri: ../../../apps/reqalm/src/cli/seed-reset.test.ts
+- requirement_version_uid: CAP-BROWSE-CP
+  kind: other
+  uri: ../../../apps/reqalm/src/core/paging.ts
+- requirement_version_uid: CAP-BROWSE-CP
+  kind: other
+  uri: ../../../apps/reqalm/src/rbac/enforce.ts
+- requirement_version_uid: CAP-BROWSE-CP
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/clients/
+- requirement_version_uid: CAP-BROWSE-CP
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/projects/
 edges:
 - from: CAP-SSO
   to: A01
@@ -13747,6 +13786,18 @@ edges:
 - from: CAP-DEVENV-SEED-RESET
   to: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
   kind: satisfies
+- from: CAP-BROWSE-CP
+  to: B07
+  kind: satisfies
+- from: CAP-BROWSE-CP
+  to: B08
+  kind: satisfies
+- from: CAP-BROWSE-CP
+  to: ARCH-CP-HIER
+  kind: satisfies
+- from: CAP-BROWSE-CP
+  to: CAP-SVC-PROJECT-READ
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -14250,12 +14301,22 @@ releases:
   project_id: reqalm
   name: R1 — dev dogfood seed reset (pnpm devenv:seed:reset)
   planned_on: '2026-10-07'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-08'
+  status: shipped
   delivers:
   - CAP-DEVENV-SEED-RESET
   cyber_gate: false
-  notes: One PR = one release. Dev-only wipe+reload of project fixture rows from dogfood.yaml without docker compose down -v. Planned until merged; flip to shipped at merge sha.
+  notes: 'PR #21 merged to main as 11499d92c749fed0a69fa40abf76ad3bcce96019 on 2026-10-08.'
+- id: rel-r1-browse-clients-projects
+  project_id: reqalm
+  name: R1 — browse clients and projects (read-only)
+  planned_on: '2026-10-08'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-BROWSE-CP
+  cyber_gate: false
+  notes: Read-only grant-scoped client/project HTTP APIs (no /app browse UI in this release). Not B01–B06 mutations or ARCH-CP-SCOPE RLS.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

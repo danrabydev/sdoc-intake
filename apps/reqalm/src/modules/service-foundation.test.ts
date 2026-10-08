@@ -7,6 +7,7 @@ import {
   TEST_AGENT_SECRET,
   type TestApp,
 } from "../test/harness.js";
+import { finishedSpans, resetTelemetrySpans } from "../test/otel-testing.js";
 
 let ctx: TestApp;
 
@@ -42,18 +43,20 @@ async function loginToken(username = "casey-reader@dev.local"): Promise<string> 
   return issueTestAccessToken(ctx.app, username);
 }
 
-async function agentToken(): Promise<string> {
+async function agentToken(role?: string): Promise<string> {
+  const params = new URLSearchParams({
+    grant_type: "client_credentials",
+    client_id: "reqalm-agent-dev",
+    client_secret: TEST_AGENT_SECRET,
+    agent_name: "cursor-cloud",
+    resource: TEST_API_RESOURCE,
+  });
+  if (role) params.set("role", role);
   const res = await inject({
     method: "POST",
     url: "/oauth/token",
     headers: { "content-type": "application/x-www-form-urlencoded" },
-    payload: new URLSearchParams({
-      grant_type: "client_credentials",
-      client_id: "reqalm-agent-dev",
-      client_secret: TEST_AGENT_SECRET,
-      agent_name: "cursor-cloud",
-      resource: TEST_API_RESOURCE,
-    }).toString(),
+    payload: params.toString(),
   });
   assert.equal(res.statusCode, 200);
   return (res.json() as { access_token: string }).access_token;
@@ -515,4 +518,151 @@ describe("unknown /api paths", () => {
       headers: { host: "localhost:3000", "x-request-id": rid },
     });
   }
+});
+
+describe("browse clients and projects", () => {
+  let caseyAccess: string;
+  const bearer = (token: string, extra: Record<string, string> = {}) => ({
+    authorization: `Bearer ${token}`,
+    ...extra,
+  });
+  const listIds = async (url: string, token: string) =>
+    (
+      (await inject({ method: "GET", url, headers: bearer(token) })).json() as {
+        data: { items: Array<{ id: string }> };
+      }
+    ).data.items.map((x) => x.id);
+
+  before(async () => {
+    await ctx.pool.query(
+      `INSERT INTO clients (id, name, notes) VALUES ('other-family', 'Other', 'secret notes') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO projects (id, client_id, name) VALUES ('secret-proj', 'other-family', 'Secret') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO identities (id, display_name) VALUES ('no-grant-user', 'No Grant') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO local_credentials (identity_id, username, password_hash, is_dev_seeded)
+       SELECT 'no-grant-user', 'no-grant@dev.local', password_hash, true FROM local_credentials WHERE identity_id = 'casey-reader' LIMIT 1
+       ON CONFLICT (identity_id) DO NOTHING`,
+    );
+    caseyAccess = await loginToken();
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-casey-kc-secret', 'secret-proj', 'casey-reader', 'Key custodian') ON CONFLICT DO NOTHING`,
+    );
+  });
+
+  it("lists only projects/clients where the role on that project allows list", async () => {
+    const h = bearer(caseyAccess);
+    assert.deepEqual(await listIds("/api/v1/clients", caseyAccess), ["reqalm-client"]);
+    assert.deepEqual(await listIds("/api/v1/projects", caseyAccess), ["reqalm"]);
+    assert.equal((await inject({ method: "GET", url: "/api/v1/clients/other-family", headers: h })).statusCode, 404);
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/clients/other-family/projects", headers: h })).statusCode,
+      404,
+    );
+    assert.equal((await inject({ method: "GET", url: "/api/v1/projects/secret-proj", headers: h })).statusCode, 403);
+  });
+
+  it("zero grants: empty list pages and 404 client detail", async () => {
+    const token = await loginToken("no-grant@dev.local");
+    const h = bearer(token);
+    for (const url of ["/api/v1/clients", "/api/v1/projects"]) {
+      const res = await inject({ method: "GET", url, headers: h });
+      assert.equal(res.statusCode, 200);
+      const page = (res.json() as { data: { items: unknown[]; total: number } }).data;
+      assert.equal(page.total, 0);
+      assert.deepEqual(page.items, []);
+    }
+    assert.equal((await inject({ method: "GET", url: "/api/v1/clients/reqalm-client", headers: h })).statusCode, 404);
+  });
+
+  it("client projects route validates params, paging, and grant filter", async () => {
+    const h = bearer(caseyAccess, { "x-request-id": "browse-cp-list" });
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/clients/ZZQMARK/projects", headers: h })).statusCode,
+      400,
+    );
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/clients/reqalm-client/projects?limit=500", headers: h })).statusCode,
+      400,
+    );
+    const page = (
+      await inject({ method: "GET", url: "/api/v1/clients/reqalm-client/projects", headers: h })
+    ).json() as { data: { items: Array<{ id: string }>; limit: number } };
+    assert.deepEqual(page.data.items.map((p) => p.id), ["reqalm"]);
+    assert.equal(page.data.limit, 20);
+    assert.equal((await inject({ method: "GET", url: "/api/v1/projects?limit=500", headers: h })).statusCode, 400);
+  });
+
+  it("invalid client id redacts logs and span url.path", async () => {
+    resetTelemetrySpans();
+    const logs = await captureAppLogs(async () => {
+      const res = await inject({
+        method: "GET",
+        url: "/api/v1/clients/ZZQMARK",
+        headers: { authorization: `Bearer ${caseyAccess}`, "x-request-id": "browse-bad-client" },
+      });
+      assert.equal(res.statusCode, 400);
+    });
+    assert.ok(logs.includes("/api/v1/clients/[invalid]"));
+    assert.ok(
+      finishedSpans().some((s) => s.attributes["url.path"] === "/api/v1/clients/[invalid]"),
+    );
+    const row = await ctx.pool.query<{ target_id: string | null }>(
+      `SELECT target_id FROM audit_events WHERE request_id = 'browse-bad-client'`,
+    );
+    assert.equal(row.rows[0]?.target_id, null);
+  });
+
+  it("agent token role narrowing excludes non-listing grants", async () => {
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-agent-kc-secret', 'secret-proj', 'agent-cursor-cloud', 'Key custodian') ON CONFLICT DO NOTHING`,
+    );
+    const token = await agentToken();
+    assert.deepEqual(await listIds("/api/v1/projects", token), ["reqalm"]);
+    assert.deepEqual(await listIds("/api/v1/clients", token), ["reqalm-client"]);
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/projects/secret-proj", headers: bearer(token) })).statusCode,
+      403,
+    );
+  });
+
+  it("agent Reader token lists Project admin grant on reqalm via narrowed authorize", async () => {
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-agent-padmin-reqalm', 'reqalm', 'agent-cursor-cloud', 'Project admin') ON CONFLICT DO NOTHING`,
+    );
+    const token = await agentToken("Reader");
+    assert.deepEqual(await listIds("/api/v1/projects", token), ["reqalm"]);
+    assert.deepEqual(await listIds("/api/v1/clients", token), ["reqalm-client"]);
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/clients/reqalm-client", headers: bearer(token) })).statusCode,
+      200,
+    );
+  });
+
+  it("agent Reader token excludes project where only non-Reader listing role is granted", async () => {
+    await ctx.pool.query(
+      `INSERT INTO clients (id, name) VALUES ('browse-client-p2', 'Browse P2') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO projects (id, client_id, name) VALUES ('browse-p2', 'browse-client-p2', 'Browse P2') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-agent-padmin-p2', 'browse-p2', 'agent-cursor-cloud', 'Project admin') ON CONFLICT DO NOTHING`,
+    );
+    const token = await agentToken("Reader");
+    assert.deepEqual(await listIds("/api/v1/projects", token), ["reqalm"]);
+    assert.deepEqual(await listIds("/api/v1/clients", token), ["reqalm-client"]);
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/clients/browse-client-p2", headers: bearer(token) })).statusCode,
+      404,
+    );
+  });
 });

@@ -2440,6 +2440,7 @@ priority: 25
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: Permission-filtered list; no cross-tenant leakage.
+edge: ← satisfies from CAP-BROWSE-CP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1-core-ALM
@@ -2478,6 +2479,7 @@ priority: 25
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← satisfies from CAP-BROWSE-CP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1-core-ALM
@@ -2533,6 +2535,7 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from ARCH-UI
 edge: ← refines from A03
 edge: ← refines from B04
+edge: ← satisfies from CAP-BROWSE-CP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -2616,6 +2619,42 @@ RELATIONS:
   ROLE: Delivers
 
 [[/SECTION]]
+
+[REQUIREMENT]
+UID: CAP-BROWSE-CP
+STATUS: Draft
+TITLE: Browse clients and projects (read-only)
+STATEMENT: >>>
+Grant-scoped read APIs: paged GET /api/v1/clients, /clients/:id, /projects, /clients/:id/projects; shared PageQuery (max 100); listScope routes filter by per-project permission (agent role narrowing); invalid slug redaction on /clients/ and /projects/ paths.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-CP
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until browse PR merges.
+delivered_by_release: R1 — browse clients and projects (read-only)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: B07
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: B08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CP-HIER
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-PROJECT-READ
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-browse-clients-projects
+  ROLE: Delivers
 
 [[/SECTION]]
 
@@ -8779,6 +8818,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+edge: ← satisfies from CAP-BROWSE-CP
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -15286,7 +15326,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-DEVENV-SEED-RESET
-STATUS: Draft
+STATUS: Active
 TITLE: Dev-only dogfood seed reset (pnpm devenv:seed:reset)
 STATEMENT: >>>
 Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction (any load failure rolls back), preserving identities, grants, local accounts, sessions/MFA, OpenBao keys, and append-only audit_events; identities and grants are only inserted when missing, never rewritten or re-activated. Runs only when the environment positively identifies as local devenv (REQALM_MODE=development, .reqalm/devenv.env present, NODE_ENV not production, and DATABASE_URL resolving to 127.0.0.1 or localhost port 5432 including ?host=/?port= overrides); no environment variable relaxes these checks. Requires explicit --confirm; --dry-run prints the plan read-only. Records one devenv.seed.reset business audit event with wipe/load counts and an unverified CLI actor label, attributed to no ReqALM identity. Idempotent second run yields identical DB contents.

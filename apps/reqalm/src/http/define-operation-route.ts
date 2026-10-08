@@ -49,6 +49,8 @@ export function parseZodInput<T>(
 }
 
 export const projectIdSchema = z.string().regex(PROJECT_ID_SLUG, "invalid project id");
+export const clientIdSchema = z.string().regex(PROJECT_ID_SLUG, "invalid client id");
+export const clientParamsSchema = z.object({ clientId: clientIdSchema });
 
 /**
  * Project scope of a project-scoped route: the `:projectId` path param, parsed before input validation.
@@ -63,9 +65,9 @@ function projectScopeFromPath(req: FastifyRequest): string | undefined {
 const PROJECT_ID_PATH_PARAM = /\/:projectId(\/|$)/;
 
 /**
- * Fail closed at registration: a route must name its operation, its access (permission or explicitly
- * authenticated-only) and, for a permission, the project it is checked against. A permission without a
- * project would be authorized against the union of the caller's grants in every project.
+ * Fail closed at registration: a route must name its operation and its access (permission or
+ * authenticated-only). Routes with `:projectId` must bind permission to that project; list routes
+ * without it require listScope (per-project permission in execute).
  */
 function assertOperationBinding(
   label: string,
@@ -88,13 +90,23 @@ function assertOperationBinding(
     fail("missing permission (or authenticatedOnly: true)");
   }
   if (permission && op!.authenticatedOnly) fail("permission and authenticatedOnly are exclusive");
-  if (permission && op!.projectScoped !== true) {
-    fail("permission without project scope (set projectScoped and projectIdFromInput)");
+  const hasProjectPath = PROJECT_ID_PATH_PARAM.test(url);
+  if (permission && hasProjectPath && op!.projectScoped !== true) {
+    fail("permission on :projectId route requires projectScoped and projectIdFromInput");
+  }
+  if (permission && !hasProjectPath && op!.projectScoped === true) {
+    fail("projectScoped on a route without :projectId");
+  }
+  if (permission && !hasProjectPath && op!.listScope !== true) {
+    fail("permission on route without :projectId requires listScope: true");
+  }
+  if (op!.listScope && (!permission || hasProjectPath || op!.projectScoped === true)) {
+    fail("listScope requires permission and excludes :projectId / projectScoped");
   }
   if (op!.projectScoped && typeof op!.projectIdFromInput !== "function") {
     fail("projectScoped without projectIdFromInput");
   }
-  if (op!.projectScoped && !PROJECT_ID_PATH_PARAM.test(url)) {
+  if (op!.projectScoped && !hasProjectPath) {
     fail("projectScoped route must take the project from a :projectId path param");
   }
 }
@@ -119,6 +131,7 @@ export function defineOperationRoute<TIn, TOut>(
     name: op.name,
     permission: op.permission,
     projectScoped: op.projectScoped,
+    listScope: op.listScope,
   };
   const scopeOf = op.projectScoped ? projectScopeFromPath : () => undefined;
   const reachedHandler = new WeakSet<FastifyRequest>();

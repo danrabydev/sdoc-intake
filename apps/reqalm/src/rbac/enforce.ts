@@ -1,51 +1,40 @@
 import type pg from "pg";
+import type { RequestContext } from "../core/request-context.js";
 import { effectiveRoles } from "./agent-role.js";
 
 /** Minimal v1 role → permission map (aligned to permission-matrix-flat.md). */
+const browseList = ["client:list", "project:list"] as const;
+const withBrowse = (...perms: string[]) => new Set([...perms, ...browseList]);
+
 const ROLE_PERMISSIONS: Record<string, Set<string>> = {
-  Reader: new Set(["requirement:read", "audit:read", "grant:read"]),
-  Author: new Set([
-    "requirement:read",
-    "requirement:write",
-    "audit:read",
-    "grant:read",
-  ]),
-  Developer: new Set([
-    "requirement:read",
-    "workitem:write",
-    "audit:read",
-    "grant:read",
-  ]),
-  Tester: new Set(["requirement:read", "verification:write", "audit:read", "grant:read"]),
-  "Release manager": new Set([
+  Reader: withBrowse("requirement:read", "audit:read", "grant:read"),
+  Author: withBrowse("requirement:read", "requirement:write", "audit:read", "grant:read"),
+  Developer: withBrowse("requirement:read", "workitem:write", "audit:read", "grant:read"),
+  Tester: withBrowse("requirement:read", "verification:write", "audit:read", "grant:read"),
+  "Release manager": withBrowse(
     "requirement:read",
     "release:plan",
     "release:ship",
     "audit:read",
     "grant:read",
-  ]),
-  Security: new Set([
-    "requirement:read",
-    "security:apply",
-    "audit:read",
-    "grant:read",
-  ]),
-  AO: new Set(["requirement:read", "gate:approve", "audit:read", "grant:read"]),
-  Auditor: new Set(["requirement:read", "audit:read", "grant:read"]),
-  "Project admin": new Set([
+  ),
+  Security: withBrowse("requirement:read", "security:apply", "audit:read", "grant:read"),
+  AO: withBrowse("requirement:read", "gate:approve", "audit:read", "grant:read"),
+  Auditor: withBrowse("requirement:read", "audit:read", "grant:read"),
+  "Project admin": withBrowse(
     "requirement:read",
     "requirement:write",
     "grant:manage",
     "audit:read",
     "grant:read",
-  ]),
-  "Client admin": new Set([
+  ),
+  "Client admin": withBrowse(
     "requirement:read",
     "client:manage",
     "grant:manage",
     "audit:read",
     "grant:read",
-  ]),
+  ),
   "Key custodian": new Set(["key:manage", "audit:read"]),
 };
 
@@ -99,4 +88,30 @@ export async function authorize(
   if (roles.length === 0) return false;
   const perms = permissionsForRoles(roles);
   return perms.has(permission);
+}
+
+export async function projectIdsWithPermission(
+  ctx: RequestContext,
+  permission: string,
+): Promise<string[]> {
+  if (!ctx.identityId || !ctx.auth) return [];
+  const allowed: string[] = [];
+  for (const projectId of ctx.projectIds) {
+    if (await authorize(ctx.pool, ctx.identityId, permission, projectId, ctx.auth.accessToken)) {
+      allowed.push(projectId);
+    }
+  }
+  return allowed;
+}
+
+export async function clientIdsForProjects(
+  ctx: RequestContext,
+  projectIds: readonly string[],
+): Promise<string[]> {
+  if (projectIds.length === 0) return [];
+  const res = await ctx.pool.query<{ client_id: string }>(
+    `SELECT DISTINCT client_id FROM projects WHERE id = ANY($1::text[])`,
+    [projectIds],
+  );
+  return res.rows.map((r) => r.client_id);
 }

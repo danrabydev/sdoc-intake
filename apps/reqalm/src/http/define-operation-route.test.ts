@@ -284,10 +284,13 @@ describe("authenticate → project scope → permission → parseInput → execu
 describe("defineOperationRoute registration", () => {
   const exec = async () => ok({});
   const scoped = { projectScoped: true, projectIdFromInput: (i: { projectId: string }) => i.projectId };
-  function register(op: unknown, parseInput: unknown = () => ok({ projectId: "reqalm" })) {
+  function register(
+    op: unknown,
+    parseInput: unknown = () => ok({ projectId: "reqalm" }),
+    url = "/api/v1/test/projects/:projectId/bind",
+  ) {
     const local = Fastify();
     const deps = { pool: ctx.pool, config: ctx.config, keyProvider: ctx.keyProvider, logger: local.log };
-    const url = "/api/v1/test/:projectId/bind";
     let error: unknown;
     try {
       defineOperationRoute(local, deps, { method: "get", url, op: op as never, parseInput: parseInput as never });
@@ -297,8 +300,8 @@ describe("defineOperationRoute registration", () => {
     const registered = local.hasRoute({ method: "GET", url });
     return { error: error instanceof Error ? error.message : undefined, registered };
   }
-  function assertRefused(op: unknown, why: RegExp, parseInput?: unknown) {
-    const r = register(op, parseInput);
+  function assertRefused(op: unknown, why: RegExp, parseInput?: unknown, url?: string) {
+    const r = register(op, parseInput, url);
     assert.match(r.error ?? "(no error)", why);
     assert.equal(r.registered, false, "nothing is registered");
   }
@@ -334,8 +337,33 @@ describe("defineOperationRoute registration", () => {
     );
   });
 
-  it("throws on a permission without project scope (no cross-project authorization)", () => {
-    assertRefused({ name: "x.y", permission: "requirement:read", execute: exec }, /without project scope/);
+  it("throws on a permission without listScope on a route without :projectId", () => {
+    assertRefused(
+      { name: "x.y", permission: "client:list", execute: exec },
+      /listScope: true/,
+      () => ok({}),
+      "/api/v1/test/clients",
+    );
+  });
+
+  it("registers listScope on routes without :projectId", () => {
+    assert.deepEqual(
+      register(
+        { name: "x.list", permission: "client:list", listScope: true, execute: exec },
+        () => ok({}),
+        "/api/v1/test/clients",
+      ),
+      { error: undefined, registered: true },
+    );
+  });
+
+  it("throws on a permission on :projectId without project scope", () => {
+    assertRefused(
+      { name: "x.y", permission: "requirement:read", execute: exec },
+      /:projectId route requires projectScoped/,
+      () => ok({ projectId: "reqalm" }),
+      "/api/v1/test/projects/:projectId",
+    );
   });
 
   it("throws on projectScoped without projectIdFromInput", () => {
@@ -357,7 +385,7 @@ describe("defineOperationRoute registration", () => {
             op: { name: "x.y", permission: "requirement:read", execute: async () => ok({}), ...scoped } as never,
             parseInput: () => ok({ projectId: "reqalm" }),
           }),
-        /:projectId path param/,
+        /:projectId|projectScoped on a route without :projectId/,
         url,
       );
       assert.equal(local.hasRoute({ method: "GET", url }), false);
