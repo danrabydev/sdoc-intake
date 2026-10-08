@@ -363,6 +363,21 @@ describe("OpenTelemetry tracing", () => {
     assert.ok(REDACTED_SERVER_QUERY_PARAMS.includes("code"));
   });
 
+  it("real HTTP: an invalid project id and the error text stay out of exported spans", async () => {
+    const address = ctx.app.server.address();
+    assert.ok(address && typeof address === "object");
+    resetTelemetrySpans();
+    for (const id of ["ZZQMARK", "%0azzqmark", `zzqmark${"x".repeat(200)}`]) {
+      const r: Response = await fetch(`http://127.0.0.1:${address.port}/api/v1/projects/${id}`);
+      assert.equal(r.status, 401);
+    }
+    const appSpans = finishedSpans().filter((s) => s.kind !== SpanKind.CLIENT);
+    const servers = appSpans.filter((s) => s.kind === SpanKind.SERVER);
+    assert.equal(servers.length, 3);
+    for (const s of servers) assert.equal(s.attributes["url.path"], "/api/v1/projects/[invalid]");
+    assert.doesNotMatch(JSON.stringify(appSpans.map((s) => [s.name, s.attributes, s.status, s.events])), /zzqmark/i);
+  });
+
   it("probe routes are not traced", async () => {
     resetTelemetrySpans();
     const address = ctx.app.server.address();

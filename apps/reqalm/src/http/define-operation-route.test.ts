@@ -5,6 +5,7 @@ import { z } from "zod";
 import { ok } from "../core/service-result.js";
 import { createTestApp, issueTestAccessToken, type TestApp } from "../test/harness.js";
 import { requestIdFromHeaders } from "../telemetry/request-id.js";
+import { finishedSpans, resetTelemetrySpans } from "../test/otel-testing.js";
 import { defineOperationRoute, parseZodInput, projectIdSchema } from "./define-operation-route.js";
 
 let ctx: TestApp;
@@ -147,10 +148,16 @@ describe("defineOperationRoute errors are Problem Details", () => {
     } as unknown as TestApp["pool"];
     const deps = { pool: broken, config: ctx.config, keyProvider: ctx.keyProvider, logger: local.log };
     defineOperationRoute(local, deps, { method: "get", url: "/api/v1/test/me", op: echoOp, parseInput: () => ok({}) });
+    resetTelemetrySpans();
     const res = await local.inject({ method: "GET", url: "/api/v1/test/me", headers: { ...bearer, "x-request-id": "ctx-down-1" } });
     const body = assertProblem(res, 500, "internal", "ctx-down-1");
     assert.equal(body.detail, "Internal error");
     assert.doesNotMatch(res.body, /hunter2|ECONNREFUSED/);
+    // The Fastify request/handler spans failed too, but export no error text or stack.
+    const failed = finishedSpans().filter((s) => s.status.code === 2);
+    assert.ok(failed.some((s) => s.name === "request"), "Fastify request span marked failed");
+    for (const s of failed) assert.equal(s.status.message, "operation failed", s.name);
+    assert.doesNotMatch(JSON.stringify(finishedSpans().map((s) => [s.status, s.events, s.attributes])), /hunter2|ECONNREFUSED/);
     await local.close();
   });
 });
