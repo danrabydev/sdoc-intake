@@ -114,6 +114,8 @@ paths:
           description: Parent line base_uid; omit for project roots
           schema:
             type: string
+            maxLength: 128
+            pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
         - name: limit
           in: query
           schema:

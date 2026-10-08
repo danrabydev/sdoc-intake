@@ -118,13 +118,14 @@ async function loadAncestors(
   const res = await ctx.pool.query<{ uid: string; title: string }>(
     `
     WITH RECURSIVE chain AS (
-      SELECT base_uid, parent, title, 0 AS depth
+      SELECT base_uid, parent, title, 0 AS depth, ARRAY[base_uid] AS path
         FROM requirement_lines
        WHERE project_id = $1 AND base_uid = $2
       UNION ALL
-      SELECT p.base_uid, p.parent, p.title, chain.depth + 1
+      SELECT p.base_uid, p.parent, p.title, chain.depth + 1, chain.path || p.base_uid
         FROM requirement_lines p
         JOIN chain ON chain.parent = p.base_uid AND p.project_id = $1
+       WHERE p.base_uid <> ALL (chain.path) AND chain.depth < 32
     )
     SELECT base_uid AS uid, title
       FROM chain

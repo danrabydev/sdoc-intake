@@ -113,9 +113,14 @@ export async function applyDogfoodSeed(
     await upsertGrant(client, g, inserted);
   }
   const lineProject = new Map<string, string>();
+  const lineInProject = new Set<string>();
   for (const line of seed.requirement_lines ?? []) {
-    lineProject.set(String(line.base_uid), String(line.project_id));
+    const baseUid = String(line.base_uid);
+    const projectId = String(line.project_id);
+    lineProject.set(baseUid, projectId);
+    lineInProject.add(`${projectId}\0${baseUid}`);
   }
+  assertNoParentCycles(seed.requirement_lines ?? [], lineInProject);
   const siblingNext = new Map<string, number>();
   const lineRows: { line: Record<string, unknown>; siblingOrder: number }[] = [];
   for (const line of seed.requirement_lines ?? []) {
@@ -123,7 +128,7 @@ export async function applyDogfoodSeed(
     const parentKey = `${projectId}\0${String(line.parent ?? "")}`;
     const siblingOrder = siblingNext.get(parentKey) ?? 0;
     siblingNext.set(parentKey, siblingOrder + 1);
-    assertLineParentInProject(line, lineProject);
+    assertLineParentInProject(line, lineInProject);
     lineRows.push({ line, siblingOrder });
   }
   for (const { line, siblingOrder } of lineRows) {
@@ -317,23 +322,45 @@ async function upsertGrant(
   if (r.rowCount) inserted.project_grants++;
 }
 
-function assertLineParentInProject(
-  row: Record<string, unknown>,
-  lineProject: Map<string, string>,
-): void {
+function lineProjectKey(projectId: string, baseUid: string): string {
+  return `${projectId}\0${baseUid}`;
+}
+
+function assertNoParentCycles(lines: Record<string, unknown>[], lineInProject: Set<string>): void {
+  const parentOf = new Map<string, string | null>();
+  for (const line of lines) {
+    const projectId = String(line.project_id);
+    const baseUid = String(line.base_uid);
+    const parent = line.parent;
+    parentOf.set(
+      lineProjectKey(projectId, baseUid),
+      parent == null || parent === "" ? null : String(parent),
+    );
+  }
+  for (const line of lines) {
+    const projectId = String(line.project_id);
+    const baseUid = String(line.base_uid);
+    const seen = new Set<string>();
+    let cur = parentOf.get(lineProjectKey(projectId, baseUid)) ?? null;
+    for (let depth = 0; cur && depth < 33; depth++) {
+      if (cur === baseUid || seen.has(cur)) {
+        throw new SeedValidationError(`requirement line ${baseUid}: parent cycle detected`);
+      }
+      seen.add(cur);
+      if (!lineInProject.has(lineProjectKey(projectId, cur))) break;
+      cur = parentOf.get(lineProjectKey(projectId, cur)) ?? null;
+    }
+  }
+}
+
+function assertLineParentInProject(row: Record<string, unknown>, lineInProject: Set<string>): void {
   const parent = row.parent;
   if (parent == null || parent === "") return;
   const parentUid = String(parent);
   const projectId = String(row.project_id);
-  const parentProject = lineProject.get(parentUid);
-  if (parentProject === undefined) {
+  if (!lineInProject.has(lineProjectKey(projectId, parentUid))) {
     throw new SeedValidationError(
       `requirement line ${String(row.base_uid)}: parent ${parentUid} is not a line in the seed`,
-    );
-  }
-  if (parentProject !== projectId) {
-    throw new SeedValidationError(
-      `requirement line ${String(row.base_uid)}: parent ${parentUid} belongs to project ${parentProject}, not ${projectId}`,
     );
   }
 }
@@ -349,11 +376,11 @@ async function upsertLine(
     INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title, sibling_order)
     VALUES ($1, $2, $3, $4, $5, $6)
     ON CONFLICT (project_id, base_uid) DO UPDATE SET sibling_order = EXCLUDED.sibling_order
-    RETURNING base_uid
+    RETURNING (xmax = 0) AS inserted
   `,
     [row.base_uid, row.project_id, row.parent ?? null, row.kind, row.title, siblingOrder],
   );
-  if (r.rowCount) inserted.requirement_lines++;
+  if (r.rows[0]?.inserted) inserted.requirement_lines++;
 }
 
 async function upsertVersion(
