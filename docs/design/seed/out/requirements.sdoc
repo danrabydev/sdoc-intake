@@ -2794,8 +2794,8 @@ BASE_UID: CAP-READ-RELEASES
 VERSION_N: 0
 priority: 10
 iteration: iter-r1
-security.catalog_ref: CM-2
-security.verification_note: Shipped with releases read API PR #25.
+security.catalog_ref: AC-3
+security.verification_note: Shipped with releases read API PR #25 (merge eca9090802c415f78697cc8b9d000f7f7d67a702).
 delivered_by_release: R1 — releases read API
 <<<
 RELATIONS:

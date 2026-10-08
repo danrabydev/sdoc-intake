@@ -7810,8 +7810,8 @@ requirement_versions:
   priority: 10
   iteration: iter-r1
   security:
-    catalog_ref: CM-2
-    verification_note: 'Shipped with releases read API PR #25.'
+    catalog_ref: AC-3
+    verification_note: 'Shipped with releases read API PR #25 (merge eca9090802c415f78697cc8b9d000f7f7d67a702).'
   statement_hash: sha256:bf683421d344fa20fc22b10545b414ba7611e8aeb2247f05076c81bd93bb3e59
   grooming_state: detailed
   verification_outcome: pass
@@ -14638,7 +14638,7 @@ releases:
   delivers:
   - CAP-READ-RELEASES
   cyber_gate: false
-  notes: 'PR #25 merged to main as eca9090802c415f78697cc8b9d000f7f7d67a702 on 2026-10-08; verified locally plus QA/Cyber.'
+  notes: Read-only project-scoped release list/detail HTTP APIs; gate_signoffs not in DB yet.
 - id: rel-r1-read-hierarchy
   project_id: reqalm
   name: R1 — requirement hierarchy read API

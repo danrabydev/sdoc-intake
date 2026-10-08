@@ -121,7 +121,7 @@ describe("releases read API", () => {
     assert.equal(data.planned_on, "2026-10-08");
     assert.equal(data.shipped_on, "2026-10-08");
     assert.equal(data.delivered_capability_count, 1);
-    assert.match(String(data.notes), /PR #25 merged to main as eca9090802c415f78697cc8b9d000f7f7d67a702/);
+    assert.match(String(data.notes), /gate_signoffs/);
     assert.deepEqual(data.delivered_capabilities, [
       { uid: "CAP-READ-RELEASES", title: "Read releases (list, detail)", status: "active" },
     ]);

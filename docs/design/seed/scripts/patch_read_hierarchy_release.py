@@ -66,14 +66,6 @@ def ensure_edge(edges, edge):
     return 1
 
 
-def ensure_shipped_preserve_notes(data, rel_id: str) -> None:
-    rel = find(data.get("releases"), "id", rel_id)
-    if rel:
-        rel["status"] = "shipped"
-        if not rel.get("shipped_on"):
-            rel["shipped_on"] = SHIPPED_DATE
-
-
 def ship_release(data, rel_id: str, merge_sha: str, notes_suffix: str) -> None:
     rel = find(data.get("releases"), "id", rel_id)
     if rel:
@@ -106,20 +98,21 @@ ARTIFACTS = [
 ]
 
 
-def ship_read_releases_pr25(data) -> None:
-    rel = find(data.get("releases"), "id", REL_READ_RELEASES)
+def ship_release_preserve_notes(data, rel_id: str) -> None:
+    rel = find(data.get("releases"), "id", rel_id)
     if rel:
         rel["status"] = "shipped"
-        rel["shipped_on"] = SHIPPED_DATE
-        rel["notes"] = (
-            f"PR #25 merged to main as {READ_RELEASES_MERGE} on {SHIPPED_DATE}; "
-            "verified locally plus QA/Cyber."
-        )
+        if not rel.get("shipped_on"):
+            rel["shipped_on"] = SHIPPED_DATE
+
+
+def ship_read_releases_pr25(data) -> None:
+    ship_release_preserve_notes(data, REL_READ_RELEASES)
     activate_capability(
         data,
         CAP_READ_RELEASES,
-        "Shipped with releases read API PR #25.",
-        catalog_ref="CM-2",
+        f"Shipped with releases read API PR #25 (merge {READ_RELEASES_MERGE}).",
+        catalog_ref="AC-3",
     )
 
 
@@ -143,7 +136,7 @@ def main() -> None:
             catalog_ref="CM-2",
         )
     else:
-        ensure_shipped_preserve_notes(data, REL_BROWSE_UI_RELEASES)
+        ship_release_preserve_notes(data, REL_BROWSE_UI_RELEASES)
 
     upsert(
         data.setdefault("requirement_lines", []),
