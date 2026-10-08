@@ -230,3 +230,140 @@ describe("service envelope (/me)", () => {
     assert.equal(body.data.identity_id, "casey-reader");
   });
 });
+
+/** Everything the app logger writes while `fn` runs (pino's destination stream, wrapped). */
+async function captureAppLogs(fn: () => Promise<void>): Promise<string> {
+  const log = ctx.app.log as unknown as Record<symbol, { write: (s: string) => unknown }>;
+  const sym = Object.getOwnPropertySymbols(log).find((s) => s.description === "pino.stream");
+  assert.ok(sym, "pino stream symbol");
+  const stream = log[sym!]!;
+  const original = stream.write;
+  let captured = "";
+  stream.write = function (this: unknown, chunk: string) {
+    captured += chunk;
+    return original.call(this, chunk);
+  };
+  try {
+    await fn();
+  } finally {
+    stream.write = original;
+  }
+  return captured;
+}
+
+async function auditRow(requestId: string) {
+  const r = await ctx.pool.query<{ outcome: string; project_id: string | null; client_id: string | null; operation: string }>(
+    `SELECT outcome, project_id, client_id, operation FROM audit_events WHERE request_id = $1 ORDER BY id`,
+    [requestId],
+  );
+  assert.equal(r.rows.length, 1, `one audit row for ${requestId}`);
+  return r.rows[0]!;
+}
+
+describe("denied calls", () => {
+  it("401/403 are the same Problem Details shape, audited, with no secrets in body or logs", async () => {
+    const access = await loginToken();
+    const fakeBearer = "eyJhbGciOiJub25lIn0.not-a-real-token-SECRET-4711";
+    const cases = [
+      { rid: "deny-401-none", method: "GET", url: "/api/v1/projects/reqalm", headers: {}, status: 401, code: "unauthenticated" },
+      { rid: "deny-401-bad", method: "GET", url: "/api/v1/projects/reqalm", headers: { authorization: `Bearer ${fakeBearer}` }, status: 401, code: "unauthenticated" },
+      { rid: "deny-401-me", method: "GET", url: "/api/v1/me", headers: { authorization: `Bearer ${fakeBearer}` }, status: 401, code: "unauthenticated" },
+      { rid: "deny-403-grants", method: "POST", url: "/api/v1/projects/reqalm/grants", headers: { authorization: `Bearer ${access}` }, status: 403, code: "forbidden" },
+    ];
+    const bodies: string[] = [];
+    const logs = await captureAppLogs(async () => {
+      for (const c of cases) {
+        const res = await ctx.app.inject({
+          method: c.method as "GET",
+          url: c.url,
+          remoteAddress: "203.0.113.50",
+          headers: { host: "localhost:3000", "x-request-id": c.rid, ...c.headers },
+        });
+        assert.equal(res.statusCode, c.status, c.rid);
+        assert.match(String(res.headers["content-type"]), /^application\/problem\+json/, c.rid);
+        const body = res.json() as Record<string, unknown>;
+        assert.deepEqual(Object.keys(body).sort(), ["code", "detail", "request_id", "status", "title", "type"], c.rid);
+        assert.equal(body.status, c.status);
+        assert.equal(body.code, c.code);
+        assert.equal(body.request_id, c.rid);
+        bodies.push(res.body);
+        const row = await auditRow(c.rid);
+        assert.equal(row.outcome, "deny", c.rid);
+      }
+    });
+    assert.ok(logs.includes("deny-403-grants"), "logs were captured");
+    for (const [where, text] of [["body", bodies.join("\n")], ["logs", logs]] as const) {
+      assert.ok(!text.includes(access), `${where}: no access token`);
+      assert.ok(!text.includes(fakeBearer) && !text.includes("SECRET-4711"), `${where}: no presented bearer`);
+      assert.doesNotMatch(text, /Bearer |authorization|cookie|password/i, `${where}: no credential material`);
+    }
+  });
+});
+
+describe("scope comes from the session and grants only", () => {
+  before(async () => {
+    await ctx.pool.query(
+      `INSERT INTO projects (id, client_id, name) VALUES ('other', 'reqalm-client', 'Other') ON CONFLICT DO NOTHING`,
+    );
+  });
+
+  const spoof = {
+    "x-project-id": "reqalm",
+    "x-reqalm-project": "reqalm",
+    "x-client-id": "evil-client",
+    "x-reqalm-client": "evil-client",
+  };
+
+  it("query or headers naming a granted project do not open an ungranted one", async () => {
+    const access = await loginToken();
+    const res = await inject({
+      method: "GET",
+      url: "/api/v1/projects/other?projectId=reqalm&project_id=reqalm&client_id=evil-client",
+      headers: { authorization: `Bearer ${access}`, "x-request-id": "scope-spoof-get", ...spoof },
+    });
+    assert.equal(res.statusCode, 404);
+    const row = await auditRow("scope-spoof-get");
+    assert.equal(row.project_id, "other");
+    assert.equal(row.client_id, "reqalm-web");
+  });
+
+  it("query or headers naming another project do not change a granted read", async () => {
+    const access = await loginToken();
+    const res = await inject({
+      method: "GET",
+      url: "/api/v1/projects/reqalm?projectId=other",
+      headers: { authorization: `Bearer ${access}`, "x-request-id": "scope-spoof-read", "x-project-id": "other" },
+    });
+    assert.equal(res.statusCode, 200);
+    assert.equal((res.json() as { data: { id: string } }).data.id, "reqalm");
+    assert.equal((await auditRow("scope-spoof-read")).project_id, "reqalm");
+  });
+
+  it("a body naming a granted project does not open an ungranted one", async () => {
+    const access = await loginToken();
+    const res = await inject({
+      method: "POST",
+      url: "/api/v1/projects/other/grants",
+      headers: { authorization: `Bearer ${access}`, "content-type": "application/json", "x-request-id": "scope-spoof-body", ...spoof },
+      payload: { projectId: "reqalm", project_id: "reqalm", client_id: "evil-client", role: "Client admin" },
+    });
+    assert.equal(res.statusCode, 404);
+    const row = await auditRow("scope-spoof-body");
+    assert.equal(row.project_id, "other");
+    assert.equal(row.client_id, "reqalm-web");
+  });
+
+  it("client headers do not change who the caller is", async () => {
+    const access = await loginToken();
+    const res = await inject({
+      method: "GET",
+      url: "/api/v1/me?client_id=evil-client",
+      headers: { authorization: `Bearer ${access}`, "x-request-id": "scope-spoof-me", ...spoof },
+    });
+    assert.equal(res.statusCode, 200);
+    const me = (res.json() as { data: { identity_id: string; grants: Array<{ project_id: string }> } }).data;
+    assert.equal(me.identity_id, "casey-reader");
+    assert.deepEqual(me.grants.map((g) => g.project_id), ["reqalm"]);
+    assert.equal((await auditRow("scope-spoof-me")).client_id, "reqalm-web");
+  });
+});
