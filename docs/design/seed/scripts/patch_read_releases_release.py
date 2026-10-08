@@ -73,6 +73,15 @@ def ship_release(data, rel_id: str, merge_sha: str, notes_suffix: str) -> None:
         rel["notes"] = f"Merged to main as {merge_sha} on {SHIPPED_DATE}. {notes_suffix}"
 
 
+def ensure_shipped_preserve_notes(data, rel_id: str) -> None:
+    """Idempotent status/shipped_on only; never rewrite notes (parallel-PR rule for prior merges)."""
+    rel = find(data.get("releases"), "id", rel_id)
+    if rel:
+        rel["status"] = "shipped"
+        if not rel.get("shipped_on"):
+            rel["shipped_on"] = SHIPPED_DATE
+
+
 def activate_capability(data, uid: str, verification_note: str, catalog_ref: str = "AC-3") -> None:
     ver = find(data.get("requirement_versions"), "uid", uid)
     if ver:
@@ -99,12 +108,7 @@ def main() -> None:
     with DOGFOOD.open("r", encoding="utf-8") as f:
         data = yaml.load(f)
 
-    ship_release(
-        data,
-        REL_READ_REQS,
-        READ_REQS_MERGE,
-        "Read-only project-scoped requirement list/detail/versions HTTP APIs.",
-    )
+    ensure_shipped_preserve_notes(data, REL_READ_REQS)
     activate_capability(
         data,
         CAP_READ_REQS,

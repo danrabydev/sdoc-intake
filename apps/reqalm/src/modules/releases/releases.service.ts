@@ -36,7 +36,7 @@ const LIST_ORDER = "r.planned_on DESC NULLS LAST, r.id ASC";
 const CAPABILITY_COUNT_SQL = `
   (SELECT count(*)::int
    FROM release_delivers d
-   JOIN requirement_versions v ON v.uid = d.version_uid
+   JOIN requirement_versions v ON v.uid = d.version_uid AND v.project_id = r.project_id
    JOIN requirement_lines l
      ON l.base_uid = v.base_uid AND l.project_id = v.project_id AND l.kind = 'capability'
    WHERE d.release_id = r.id)`;
@@ -106,9 +106,9 @@ export async function getRelease(
      JOIN requirement_versions v ON v.uid = d.version_uid
      JOIN requirement_lines l
        ON l.base_uid = v.base_uid AND l.project_id = v.project_id AND l.kind = 'capability'
-     WHERE d.release_id = $1
+     WHERE d.release_id = $1 AND v.project_id = $2
      ORDER BY d.position ASC`,
-    [input.releaseId],
+    [input.releaseId, input.projectId],
   );
 
   return ok({

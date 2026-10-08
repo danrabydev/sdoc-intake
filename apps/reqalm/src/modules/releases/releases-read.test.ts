@@ -143,20 +143,23 @@ describe("releases read API", () => {
       `INSERT INTO releases (id, project_id, name, status, position)
        VALUES ('cross-rel', 'cross-proj', 'Cross release', 'planned', 0) ON CONFLICT DO NOTHING`,
     );
-    const list = (
-      await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?limit=100", headers: bearer })
-    ).json() as { data: { items: Array<{ id: string }> } };
-    assert.ok(!list.data.items.some((i) => i.id === "cross-rel"));
-    const nf = async (url: string) => {
-      const res = await inject({ method: "GET", url, headers: bearer });
-      return { status: res.statusCode, code: (res.json() as { code: string }).code };
-    };
-    assert.deepEqual(
-      await nf("/api/v1/projects/reqalm/releases/cross-rel"),
-      await nf("/api/v1/projects/reqalm/releases/no-such-rel"),
-    );
-    await ctx.pool.query(`DELETE FROM releases WHERE id = 'cross-rel'`);
-    await ctx.pool.query(`DELETE FROM projects WHERE id = 'cross-proj'`);
+    try {
+      const list = (
+        await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?limit=100", headers: bearer })
+      ).json() as { data: { items: Array<{ id: string }> } };
+      assert.ok(!list.data.items.some((i) => i.id === "cross-rel"));
+      const nf = async (url: string) => {
+        const res = await inject({ method: "GET", url, headers: bearer });
+        return { status: res.statusCode, code: (res.json() as { code: string }).code };
+      };
+      assert.deepEqual(
+        await nf("/api/v1/projects/reqalm/releases/cross-rel"),
+        await nf("/api/v1/projects/reqalm/releases/no-such-rel"),
+      );
+    } finally {
+      await ctx.pool.query(`DELETE FROM releases WHERE id = 'cross-rel'`);
+      await ctx.pool.query(`DELETE FROM projects WHERE id = 'cross-proj'`);
+    }
   });
 
   it("paging caps: limit 101 and offset 100001 are 400; offset 100000 is OK (list)", async () => {

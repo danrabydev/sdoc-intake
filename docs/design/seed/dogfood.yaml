@@ -14561,7 +14561,7 @@ releases:
   delivers:
   - CAP-READ-REQS
   cyber_gate: false
-  notes: 'Merged to main as 25ed12cbde8dda053d9f3f91e612c9bff1108ae7 on 2026-10-08. Read-only project-scoped requirement list/detail/versions HTTP APIs.'
+  notes: 'PR #24 merged to main as 25ed12cbde8dda053d9f3f91e612c9bff1108ae7 on 2026-10-08. Grant-scoped requirements read APIs (list, detail, versions).'
 - id: rel-r1-browse-ui-reqs
   project_id: reqalm
   name: R1 — browse requirements UI (read-only)
