@@ -9,7 +9,10 @@ import {
   appProjectHref,
   appRequirementHref,
   appRequirementVersionsHref,
+  appReleaseHref,
   requirementsListHref,
+  releasesListHref,
+  readReleaseFilters,
   isValidSlugId,
   isValidRequirementId,
   parseAppRoute,
@@ -24,6 +27,8 @@ import {
   renderRequirementsList,
   renderRequirementDetail,
   renderRequirementVersions,
+  renderReleasesList,
+  renderReleaseDetail,
   renderNotFound,
   mountBrowseView,
   decodeRouteSegment,
@@ -64,6 +69,12 @@ describe("browse routes and helpers", () => {
       projectId: "reqalm",
       requirementId: "R1",
     });
+    assert.deepEqual(parseAppRoute("/app/projects/reqalm/releases"), { view: "releases-list", projectId: "reqalm" });
+    assert.deepEqual(parseAppRoute("/app/projects/reqalm/releases/rel-r1"), {
+      view: "release-detail",
+      projectId: "reqalm",
+      releaseId: "rel-r1",
+    });
     assert.equal(parseAppRoute("/app/nope").view, "unknown");
     assert.deepEqual(APP_NAV.map((n) => n.label), ["Clients", "Projects"]);
   });
@@ -83,6 +94,10 @@ describe("browse routes and helpers", () => {
       "/app/projects/p1/requirements?kind=cap&q=a+b&offset=20",
     );
     assert.equal(appRequirementVersionsHref("p1", "R1", 20), "/app/projects/p1/requirements/R1/versions?offset=20");
+    assert.equal(appReleaseHref("p1", "rel/a"), "/app/projects/p1/releases/rel%2Fa");
+    assert.equal(releasesListHref("p1", { status: "planned", offset: 20 }), "/app/projects/p1/releases?status=planned&offset=20");
+    assert.deepEqual(readReleaseFilters("?status=shipped"), { status: "shipped" });
+    assert.deepEqual(readReleaseFilters("?status=nope"), { status: "" });
     assert.deepEqual(readRequirementsFilters("?kind=k&type=t&status=s&q=find"), {
       kind: "k",
       type: "t",
@@ -132,6 +147,8 @@ describe("browse UI render (jsdom)", () => {
     await renderProjectsList(main, { apiFn });
     assert.match(main.textContent ?? "", /don't have access/i);
     await renderRequirementsList(main, { apiFn, projectId: "reqalm", filters: {}, offset: 0 });
+    assert.match(main.textContent ?? "", /don't have access/i);
+    await renderReleasesList(main, { apiFn, projectId: "reqalm", filters: { status: "" }, offset: 0 });
     assert.match(main.textContent ?? "", /don't have access/i);
   });
 
@@ -211,6 +228,7 @@ describe("browse UI render (jsdom)", () => {
     await renderClientDetail(main, { apiFn, clientId: "INVALID!" });
     await renderProjectDetail(main, { apiFn, projectId: "Bad_Slug!" });
     await renderRequirementsList(main, { apiFn, projectId: "bad!", filters: {}, offset: 0 });
+    await renderReleasesList(main, { apiFn, projectId: "bad!", filters: { status: "" }, offset: 0 });
     assert.equal(fetchCalls.length, 0);
   });
 
@@ -243,6 +261,10 @@ describe("browse UI render (jsdom)", () => {
     assert.equal(form?.getAttribute("action"), "/app/projects/reqalm/requirements");
     assert.equal(form?.querySelector('input[name="kind"]')?.getAttribute("value"), "capability");
     assert.equal(form?.querySelector('input[name="q"]')?.getAttribute("value"), "read");
+    assert.equal(form?.querySelector('input[name="kind"]')?.getAttribute("maxlength"), "64");
+    assert.equal(form?.querySelector('input[name="type"]')?.getAttribute("maxlength"), "64");
+    assert.equal(form?.querySelector('input[name="status"]')?.getAttribute("maxlength"), "64");
+    assert.equal(form?.querySelector('input[name="q"]')?.getAttribute("maxlength"), "200");
     assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-1"]'));
     await renderRequirementsList(main, {
       apiFn: mockFetch(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })),
@@ -314,14 +336,16 @@ describe("browse UI render (jsdom)", () => {
 
   it("requirements paging preserves filters in hrefs", async () => {
     const main = document.createElement("main");
-    const filters = { kind: "cap", type: "", status: "", q: "x" };
+    const filters = { kind: "cap", type: "feature", status: "", q: "x" };
     const apiFn = mockFetch(() => ({
       status: 200,
       body: { data: { items: [{ id: "R1", title: "T", kind: "k", type: "t", status: "draft", version_n: 0, version_id: "R1" }], limit: 20, offset: 20, total: 45 } },
     }));
     await renderRequirementsList(main, { apiFn, projectId: "reqalm", filters, offset: 20 });
     assert.match(main.textContent ?? "", /Showing 21–40 of 45/);
-    assert.ok(main.querySelector('a.btn-secondary[href="/app/projects/reqalm/requirements?kind=cap&q=x&offset=40"]'));
+    assert.ok(
+      main.querySelector('a.btn-secondary[href="/app/projects/reqalm/requirements?kind=cap&type=feature&q=x&offset=40"]'),
+    );
   });
 
   it("requirement detail and versions", async () => {
@@ -390,7 +414,283 @@ describe("browse UI render (jsdom)", () => {
     });
     await renderProjectDetail(main, { apiFn, projectId: "p1" });
     assert.ok(main.querySelector('a[href="/app/projects/p1/requirements"]'));
+    assert.ok(main.querySelector('a[href="/app/projects/p1/releases"]'));
     assert.match(main.textContent ?? "", /Browse requirements/);
+    assert.match(main.textContent ?? "", /Browse releases/);
+  });
+
+  it("releases list paging via mountBrowseView preserves status in API and hrefs", async () => {
+    const main = document.createElement("main");
+    const route = parseAppRoute("/app/projects/reqalm/releases");
+    const apiFn = mockFetch((url) => {
+      const u = new URL(url, "http://localhost");
+      assert.equal(u.pathname, "/api/v1/projects/reqalm/releases");
+      assert.equal(u.searchParams.get("status"), "shipped");
+      assert.equal(u.searchParams.get("offset"), "20");
+      assert.equal(u.searchParams.get("limit"), "20");
+      return {
+        status: 200,
+        body: {
+          data: {
+            items: [
+              {
+                id: "rel-sh",
+                name: "Shipped rel",
+                status: "shipped",
+                planned_on: "2026-01-01",
+                shipped_on: "2026-01-02",
+                delivered_capability_count: 0,
+              },
+            ],
+            limit: 20,
+            offset: 20,
+            total: 45,
+          },
+        },
+      };
+    });
+    await mountBrowseView(main, route, { apiFn, search: "?status=shipped&offset=20" });
+    assert.match(main.textContent ?? "", /Showing 21–40 of 45/);
+    assert.ok(main.querySelector('a.btn-secondary[href="/app/projects/reqalm/releases?status=shipped&offset=40"]'));
+    assert.ok(main.querySelector('a.btn-secondary[href="/app/projects/reqalm/releases?status=shipped"]'));
+  });
+
+  it("releases list via mountBrowseView ignores bogus status (release filters, not requirements)", async () => {
+    const main = document.createElement("main");
+    const route = parseAppRoute("/app/projects/reqalm/releases");
+    const apiFn = mockFetch((url) => {
+      const u = new URL(url, "http://localhost");
+      assert.equal(u.pathname, "/api/v1/projects/reqalm/releases");
+      assert.equal(u.searchParams.has("status"), false);
+      assert.equal(u.searchParams.get("offset"), "0");
+      assert.equal(u.searchParams.get("limit"), "20");
+      return {
+        status: 200,
+        body: {
+          data: {
+            items: [
+              {
+                id: "rel-a",
+                name: "Release A",
+                status: "planned",
+                planned_on: "2026-01-01",
+                shipped_on: null,
+                delivered_capability_count: 0,
+              },
+            ],
+            limit: 20,
+            offset: 0,
+            total: 45,
+          },
+        },
+      };
+    });
+    await mountBrowseView(main, route, { apiFn, search: "?status=bogus" });
+    assert.ok(main.querySelector('a.btn-secondary[href="/app/projects/reqalm/releases?offset=20"]'));
+    for (const a of main.querySelectorAll(".pager-nav a.btn-secondary")) {
+      assert.doesNotMatch(a.getAttribute("href") ?? "", /status=/);
+    }
+  });
+
+  it("releases list table shows exact planned, shipped, and capability cells", async () => {
+    const main = document.createElement("main");
+    await renderReleasesList(main, {
+      apiFn: mockFetch(() => ({
+        status: 200,
+        body: {
+          data: {
+            items: [
+              {
+                id: "rel-row",
+                name: "Row rel",
+                status: "shipped",
+                planned_on: "2026-01-15",
+                shipped_on: "2026-02-20",
+                delivered_capability_count: 2,
+              },
+            ],
+            limit: 20,
+            offset: 0,
+            total: 1,
+          },
+        },
+      })),
+      projectId: "reqalm",
+      filters: { status: "" },
+      offset: 0,
+    });
+    const cells = [...main.querySelectorAll("tbody tr:first-child td")].map((td) => td.textContent);
+    assert.deepEqual(cells, ["Row rel", "rel-row", "shipped", "2026-01-15", "2026-02-20", "2"]);
+  });
+
+  it("releases list passes status filter to API and paging hrefs", async () => {
+    const main = document.createElement("main");
+    const filters = { status: "planned" };
+    const apiFn = mockFetch((url) => {
+      const u = new URL(url, "http://localhost");
+      assert.equal(u.pathname, "/api/v1/projects/reqalm/releases");
+      assert.equal(u.searchParams.get("status"), "planned");
+      assert.equal(u.searchParams.get("limit"), "20");
+      return {
+        status: 200,
+        body: {
+          data: {
+            items: [
+              {
+                id: "rel-a",
+                name: "Release A",
+                status: "planned",
+                planned_on: "2026-10-08",
+                shipped_on: null,
+                delivered_capability_count: 2,
+              },
+            ],
+            limit: 20,
+            offset: 0,
+            total: 1,
+          },
+        },
+      };
+    });
+    await renderReleasesList(main, { apiFn, projectId: "reqalm", filters, offset: 0 });
+    const form = main.querySelector("form.filter-bar");
+    assert.equal(form?.getAttribute("action"), "/app/projects/reqalm/releases");
+    assert.equal(main.querySelector('select[name="status"]')?.value, "planned");
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/releases/rel-a"]'));
+    assert.match(main.textContent ?? "", /Release A/);
+  });
+
+  it("releases list empty, filter miss, and past end", async () => {
+    const main = document.createElement("main");
+    await renderReleasesList(main, {
+      apiFn: mockFetch(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })),
+      projectId: "reqalm",
+      filters: { status: "" },
+      offset: 0,
+    });
+    assert.match(main.textContent ?? "", /No releases in this project/);
+    await renderReleasesList(main, {
+      apiFn: mockFetch(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })),
+      projectId: "reqalm",
+      filters: { status: "shipped" },
+      offset: 0,
+    });
+    assert.match(main.textContent ?? "", /No releases match your filter/);
+    await renderReleasesList(main, {
+      apiFn: mockFetch(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 40, total: 25 } } })),
+      projectId: "reqalm",
+      filters: { status: "" },
+      offset: 40,
+    });
+    assert.match(main.textContent ?? "", /No more results/i);
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/releases"]'));
+  });
+
+  it("release detail notes, capabilities links, and invalid id skips fetch", async () => {
+    const xssName = "<img src=x onerror=alert(1)>";
+    const notes = "Line one\nLine two";
+    const main = document.createElement("main");
+    const apiFn = mockFetch((url) => {
+      if (url === "/api/v1/projects/reqalm/releases/rel-x") {
+        return {
+          status: 200,
+          body: {
+            data: {
+              id: "rel-x",
+              name: xssName,
+              status: "shipped",
+              planned_on: "2026-10-01",
+              shipped_on: "2026-10-02",
+              notes,
+              delivered_capabilities: [
+                { uid: "CAP-ZEBRA", title: "Z cap", status: "active" },
+                { uid: "CAP-ALPHA", title: "A cap", status: "draft" },
+                { uid: "CAP-MID", title: "M cap", status: "shipped" },
+              ],
+            },
+          },
+        };
+      }
+      return { status: 404 };
+    });
+    await renderReleaseDetail(main, {
+      apiFn,
+      projectId: "reqalm",
+      releaseId: "rel-x",
+      listFilters: { status: "shipped" },
+    });
+    assert.ok(!main.querySelector("img"));
+    assert.match(main.textContent ?? "", /onerror=alert\(1\)/);
+    const notesEl = main.querySelector(".statement-body");
+    assert.ok(notesEl);
+    assert.equal(notesEl.textContent, notes);
+    assert.equal(notesEl.childElementCount, 0);
+    assert.equal(notesEl.className, "statement-body");
+    const capUids = [...main.querySelectorAll("table.data-table tbody tr td:first-child a")].map((a) => a.textContent);
+    assert.deepEqual(capUids, ["CAP-ZEBRA", "CAP-ALPHA", "CAP-MID"]);
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-ZEBRA"]'));
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-ALPHA"]'));
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-MID"]'));
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/releases?status=shipped"]'));
+    const badMain = document.createElement("main");
+    fetchCalls.length = 0;
+    await renderReleaseDetail(badMain, { apiFn: mockFetch(() => { throw new Error("no"); }), projectId: "reqalm", releaseId: "BAD!" });
+    assert.equal(fetchCalls.length, 0);
+  });
+
+  it("release detail API 404 renders not-found without throwing", async () => {
+    const main = document.createElement("main");
+    await renderReleaseDetail(main, {
+      apiFn: mockFetch(() => ({ status: 404 })),
+      projectId: "reqalm",
+      releaseId: "rel-missing",
+    });
+    assert.match(main.textContent ?? "", /don't have access/i);
+  });
+
+  it("release detail invalid project slug skips fetch", async () => {
+    const main = document.createElement("main");
+    fetchCalls.length = 0;
+    await renderReleaseDetail(main, {
+      apiFn: mockFetch(() => {
+        throw new Error("should not fetch");
+      }),
+      projectId: "INVALID!",
+      releaseId: "rel-a",
+    });
+    assert.equal(fetchCalls.length, 0);
+    assert.match(main.textContent ?? "", /don't have access/i);
+  });
+
+  it("release detail via mountBrowseView keeps filter breadcrumb and empty capabilities", async () => {
+    const main = document.createElement("main");
+    const route = parseAppRoute("/app/projects/reqalm/releases/rel-empty");
+    await mountBrowseView(main, route, {
+      apiFn: mockFetch((url) => {
+        if (url === "/api/v1/projects/reqalm/releases/rel-empty") {
+          return {
+            status: 200,
+            body: {
+              data: {
+                id: "rel-empty",
+                name: "Empty caps",
+                status: "planned",
+                planned_on: "2026-03-01",
+                shipped_on: null,
+                notes: null,
+                delivered_capabilities: [],
+              },
+            },
+          };
+        }
+        return { status: 404 };
+      }),
+      search: "?status=planned",
+    });
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/releases?status=planned"]'));
+    assert.match(main.textContent ?? "", /No capabilities delivered in this release/);
+    assert.match(main.textContent ?? "", / · planned · /);
+    assert.ok(![...main.querySelectorAll("h2")].some((h) => h.textContent === "Notes"));
   });
 
   it("escapes XSS in client names as plain text", async () => {
@@ -443,8 +743,14 @@ describe("app shell", () => {
     const route = parseAppRoute("/app/projects/reqalm/requirements");
     renderAppShell("/app/projects/reqalm/requirements", route);
     const texts = [...document.querySelectorAll("#top-nav a")].map((a) => a.textContent);
-    assert.deepEqual(texts, ["Clients", "Projects", "Requirements"]);
+    assert.deepEqual(texts, ["Clients", "Projects", "Requirements", "Releases"]);
     assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm/requirements"]'));
+  });
+
+  it("shows Releases nav active on releases routes", () => {
+    const route = parseAppRoute("/app/projects/reqalm/releases/rel-a");
+    renderAppShell("/app/projects/reqalm/releases/rel-a", route);
+    assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm/releases"]'));
   });
 
   it("root redirect targets clients or login", () => {

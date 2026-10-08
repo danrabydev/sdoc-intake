@@ -46,7 +46,7 @@ describe("releases read API: verifier gap tests", () => {
     const page = (await getJson(`${P}?limit=5&offset=5`)).body.data as { items: Array<{ id: string }>; total: number };
     assert.deepEqual(page.items.map((i) => i.id), all.slice(5, 10));
     assert.equal(((await getJson(`${P}?limit=1`)).body.data as { total: number }).total, all.length);
-    assert.equal(((await getJson(`${P}?status=shipped&limit=1`)).body.data as { total: number }).total, 16);
+    assert.equal(((await getJson(`${P}?status=shipped&limit=1`)).body.data as { total: number }).total, 17);
   });
 
   it("unknown release id is 404 not_found (R22)", async () => {
@@ -92,6 +92,29 @@ describe("releases read API: verifier gap tests", () => {
     };
     assert.equal(detail.delivered_capability_count, 3);
     assert.deepEqual(detail.delivered_capabilities.map((c) => c.uid), ["CAP-SSO", "CAP-SCOPED-VIEW", "CAP-RBAC"]);
+  });
+
+  it("delivered capabilities follow release_delivers.position, not uid sort", async () => {
+    await ctx.pool.query(
+      `INSERT INTO releases (id, project_id, name, status, position)
+       VALUES ('order-bed-rel', 'reqalm', 'Order bed', 'planned', 9999) ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(`DELETE FROM release_delivers WHERE release_id = 'order-bed-rel'`);
+    await ctx.pool.query(
+      `INSERT INTO release_delivers (release_id, version_uid, position) VALUES
+       ('order-bed-rel', 'CAP-RBAC', 0),
+       ('order-bed-rel', 'CAP-SSO', 1),
+       ('order-bed-rel', 'CAP-SCOPED-VIEW', 2)`,
+    );
+    try {
+      const detail = (await getJson(`${P}/order-bed-rel`)).body.data as {
+        delivered_capabilities: Array<{ uid: string }>;
+      };
+      assert.deepEqual(detail.delivered_capabilities.map((c) => c.uid), ["CAP-RBAC", "CAP-SSO", "CAP-SCOPED-VIEW"]);
+    } finally {
+      await ctx.pool.query(`DELETE FROM release_delivers WHERE release_id = 'order-bed-rel'`);
+      await ctx.pool.query(`DELETE FROM releases WHERE id = 'order-bed-rel'`);
+    }
   });
 
   it("delivered capabilities ignore version UIDs from other projects", async () => {

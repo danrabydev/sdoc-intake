@@ -75,11 +75,12 @@ describe("releases read API", () => {
     assert.equal(planned.data.total, 3);
     assert.equal(planned.data.items.length, 3);
     assert.ok(planned.data.items.every((i) => i.status === "planned"));
-    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-read-releases"));
+    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-browse-ui-releases"));
+    assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-read-releases"));
     const shipped = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=shipped&limit=100", headers: bearer })
     ).json() as { data: { total: number; items: Array<{ status: string }> } };
-    assert.equal(shipped.data.total, 16);
+    assert.equal(shipped.data.total, 17);
     assert.ok(shipped.data.items.every((i) => i.status === "shipped"));
   });
 
@@ -115,13 +116,13 @@ describe("releases read API", () => {
     assert.equal(data.id, "rel-r1-read-releases");
     assert.equal(data.project_id, "reqalm");
     assert.equal(data.name, "R1 — releases read API");
-    assert.equal(data.status, "planned");
+    assert.equal(data.status, "shipped");
     assert.equal(data.planned_on, "2026-10-08");
-    assert.equal(data.shipped_on, null);
+    assert.equal(data.shipped_on, "2026-10-08");
     assert.equal(data.delivered_capability_count, 1);
     assert.match(String(data.notes), /gate_signoffs/);
     assert.deepEqual(data.delivered_capabilities, [
-      { uid: "CAP-READ-RELEASES", title: "Read releases (list, detail)", status: "draft" },
+      { uid: "CAP-READ-RELEASES", title: "Read releases (list, detail)", status: "active" },
     ]);
     const shipped = (
       await inject({
