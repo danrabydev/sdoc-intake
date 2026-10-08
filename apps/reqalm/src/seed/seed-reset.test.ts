@@ -177,7 +177,6 @@ describe("seed reset", () => {
       `SELECT password_hash FROM local_credentials WHERE identity_id = 'casey-reader'`,
     );
     assert.equal(credBefore.rows[0]?.password_hash, credAfter.rows[0]?.password_hash);
-    assert.ok(TEST_PASSWORD);
     await pg.close();
   });
 
