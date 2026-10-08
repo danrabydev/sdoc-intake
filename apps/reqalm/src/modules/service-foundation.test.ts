@@ -158,6 +158,19 @@ describe("service foundation (projects read)", () => {
     assert.match(String(res.headers["content-type"] ?? ""), /application\/problem\+json/);
   });
 
+  it("rejects a padded project id instead of resolving it to the real project", async () => {
+    const access = await loginToken();
+    for (const id of ["%20reqalm", "reqalm%20", "%09reqalm"]) {
+      const res = await inject({
+        method: "GET",
+        url: `/api/v1/projects/${id}`,
+        headers: { authorization: `Bearer ${access}` },
+      });
+      assert.equal(res.statusCode, 400, id);
+      assert.equal((res.json() as { code: string }).code, "validation");
+    }
+  });
+
   it("returns 404 for project outside grants (no leak)", async () => {
     await ctx.pool.query(
       `INSERT INTO clients (id, name) VALUES ('other-client', 'Other') ON CONFLICT DO NOTHING`,

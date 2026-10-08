@@ -1,19 +1,24 @@
-import type { FastifyInstance, FastifyRequest, RouteShorthandOptions } from "fastify";
+import type { FastifyError, FastifyInstance, FastifyReply, FastifyRequest, RouteOptions } from "fastify";
 import type { ZodType } from "zod";
-import { mapServiceResultToHttp } from "../core/http-envelope.js";
+import { mapServiceResultToHttp, sendProblem } from "../core/http-envelope.js";
 import { runOperation, type OperationDef } from "../core/operation.js";
-import {
-  buildRequestContext,
-  type RequestContextDeps,
-} from "../core/request-context.js";
+import { buildRequestContext, type RequestContextDeps } from "../core/request-context.js";
 import { err, ok, type ServiceResult } from "../core/service-result.js";
-import {
-  type OperationRouteRef,
-  type RouteSecurity,
-  securityFromOperationRef,
-} from "./route-security.js";
+import { type OperationRouteRef, securityFromOperationRef } from "./route-security.js";
 
-export type OperationRouteSchema = NonNullable<RouteShorthandOptions["schema"]>;
+/**
+ * Documentation and serialization only. Request input is validated once, by `parseInput` (Zod), so every
+ * validation failure is a Problem Details response; Fastify's own body/querystring/params/headers
+ * validators are not allowed here.
+ */
+export type OperationRouteSchema = {
+  tags?: string[];
+  summary?: string;
+  description?: string;
+  response?: Record<string, unknown>;
+};
+
+const INPUT_SCHEMA_KEYS = ["body", "querystring", "params", "headers"] as const;
 
 export type DefineOperationRouteOptions<TIn, TOut> = {
   method: "get" | "post" | "put" | "patch" | "delete";
@@ -42,41 +47,21 @@ export function parseZodInput<T>(
   });
 }
 
-function routeConfigForOperation<TIn, TOut>(
-  op: OperationDef<TIn, TOut>,
-): RouteShorthandOptions["config"] {
-  const operationRef: OperationRouteRef = {
-    name: op.name,
-    permission: op.permission,
-    projectScoped: op.projectScoped,
-  };
-  const reqalmSecurity = securityFromOperationRef(operationRef);
-  return {
-    reqalmSecurity,
-    reqalmOperationRoute: true,
-    reqalmOperationRef: operationRef,
-  };
-}
-
-async function handleOperationRoute<TIn, TOut>(
-  req: FastifyRequest,
-  reply: Parameters<typeof mapServiceResultToHttp>[0],
-  deps: RequestContextDeps,
-  op: OperationDef<TIn, TOut>,
-  parseInput: (req: FastifyRequest) => ServiceResult<TIn>,
-): Promise<unknown> {
-  const ctx = await buildRequestContext(req, { ...deps, logger: req.log });
-  const inputResult = parseInput(req);
-  if (!inputResult.ok) {
-    return mapServiceResultToHttp(reply, ctx.requestId, inputResult);
+/** Errors Fastify raises before the handler (body parsing, media type, size) or that escape it. */
+function operationRouteErrorHandler(error: FastifyError, req: FastifyRequest, reply: FastifyReply) {
+  const status = error.statusCode ?? 500;
+  if (status >= 400 && status < 500) {
+    return sendProblem(reply, req.id, status, "validation", "Invalid request", {
+      reason: error.code ?? "bad_request",
+    });
   }
-  const result = await runOperation(ctx, op, inputResult.data);
-  return mapServiceResultToHttp(reply, ctx.requestId, result);
+  req.log.error({ err: error, request_id: req.id }, "operation_route_failed");
+  return sendProblem(reply, req.id, 500, "internal", "Internal error");
 }
 
 /**
- * Register a business route under `/api/v1` (feature modules only).
- * Derives `reqalmSecurity` from the operation and runs the standard context → operation → envelope pipeline.
+ * The only way to register a business route under `/api/` (enforced by route-security.test.ts).
+ * Derives `reqalmSecurity` from the operation and runs context → parseInput → runOperation → envelope.
  */
 export function defineOperationRoute<TIn, TOut>(
   app: FastifyInstance,
@@ -84,42 +69,33 @@ export function defineOperationRoute<TIn, TOut>(
   options: DefineOperationRouteOptions<TIn, TOut>,
 ): void {
   const { method, url, op, parseInput, schema } = options;
-  const routeOptions: RouteShorthandOptions = {
-    config: routeConfigForOperation(op),
-    ...(schema ? { schema } : {}),
-  };
-  const handler = async (req: FastifyRequest, reply: Parameters<typeof mapServiceResultToHttp>[0]) =>
-    handleOperationRoute(req, reply, deps, op, parseInput);
-
-  switch (method) {
-    case "get":
-      app.get(url, routeOptions, handler);
-      break;
-    case "post":
-      app.post(url, routeOptions, handler);
-      break;
-    case "put":
-      app.put(url, routeOptions, handler);
-      break;
-    case "patch":
-      app.patch(url, routeOptions, handler);
-      break;
-    case "delete":
-      app.delete(url, routeOptions, handler);
-      break;
-    default: {
-      const _exhaustive: never = method;
-      throw new Error(`Unsupported HTTP method: ${_exhaustive}`);
-    }
+  const inputKeys = schema ? INPUT_SCHEMA_KEYS.filter((k) => k in schema) : [];
+  if (inputKeys.length > 0) {
+    throw new Error(`${method} ${url}: validate ${inputKeys.join(", ")} in parseInput, not in schema`);
   }
-}
-
-export function securityFromOperation<TIn, TOut>(
-  op: OperationDef<TIn, TOut>,
-): RouteSecurity {
-  return securityFromOperationRef({
+  const operationRef: OperationRouteRef = {
     name: op.name,
     permission: op.permission,
     projectScoped: op.projectScoped,
-  });
+  };
+  const route: RouteOptions = {
+    method: method.toUpperCase() as Uppercase<typeof method>,
+    url,
+    ...(schema ? { schema } : {}),
+    config: {
+      reqalmSecurity: securityFromOperationRef(operationRef),
+      reqalmOperationRoute: true,
+      reqalmOperationRef: operationRef,
+    },
+    errorHandler: operationRouteErrorHandler,
+    handler: async (req, reply) => {
+      const ctx = await buildRequestContext(req, { ...deps, logger: req.log });
+      const input = parseInput(req);
+      if (!input.ok) {
+        return mapServiceResultToHttp(reply, ctx.requestId, input);
+      }
+      return mapServiceResultToHttp(reply, ctx.requestId, await runOperation(ctx, op, input.data));
+    },
+  };
+  app.route(route);
 }

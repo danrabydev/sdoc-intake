@@ -3,7 +3,6 @@ import { z } from "zod";
 import { defineOperationRoute, parseZodInput } from "../../http/define-operation-route.js";
 import type { OperationDef } from "../../core/operation.js";
 import type { RequestContextDeps } from "../../core/request-context.js";
-import { ok, type ServiceResult } from "../../core/service-result.js";
 import {
   grantManageStub,
   type GrantManageDto,
@@ -11,7 +10,8 @@ import {
 } from "./grants.service.js";
 
 const grantParams = z.object({
-  projectId: z.string().min(1),
+  // Exact id: reject blank, never trim (a padded id must not resolve to the real project).
+  projectId: z.string().refine((v) => v.trim() !== "" && v.trim() === v, "invalid project id"),
 });
 
 const grantManageOp: OperationDef<GrantManageInput, GrantManageDto> = {
@@ -32,19 +32,10 @@ export function registerGrantRoutes(app: FastifyInstance, deps: RequestContextDe
     method: "post",
     url: "/api/v1/projects/:projectId/grants",
     op: grantManageOp,
-    parseInput: (req): ServiceResult<GrantManageInput> => {
-      const params = parseZodInput(grantParams, req.params, "params");
-      if (!params.ok) return params;
-      return ok(params.data);
-    },
+    parseInput: (req) => parseZodInput(grantParams, req.params, "params"),
     schema: {
       tags: ["grants"],
       summary: "Manage project grants (stub — authorize only)",
-      params: {
-        type: "object",
-        required: ["projectId"],
-        properties: { projectId: { type: "string" } },
-      },
     },
   });
 }
