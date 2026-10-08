@@ -305,6 +305,32 @@ describe("seed reset", () => {
       `INSERT INTO project_grants (id, project_id, identity_id, role)
        VALUES ('grant-extra', 'reqalm', 'extra-harness-user', 'Reader') ON CONFLICT DO NOTHING`,
     );
+    await pg.pool.query(
+      `INSERT INTO platform_grants (id, identity_id, role) VALUES ('pgrant-extra', 'extra-harness-user', 'PlatformAdmin')`,
+    );
+    // A project the YAML does not list: the wipe is scoped to the YAML projects, so its rows survive.
+    await pg.pool.query(
+      `INSERT INTO projects (id, client_id, name) SELECT 'foreign-proj', client_id, 'Foreign' FROM projects WHERE id = 'reqalm'`,
+    );
+    await pg.pool.query(
+      `INSERT INTO requirement_lines (base_uid, project_id, kind, title) VALUES ('FOREIGN-1', 'foreign-proj', 'requirement', 'foreign line')`,
+    );
+    await pg.pool.query(
+      `INSERT INTO requirement_versions (uid, base_uid, project_id, version_n, status, statement)
+       VALUES ('FOREIGN-1@1', 'FOREIGN-1', 'foreign-proj', 1, 'draft', 'foreign statement')`,
+    );
+    await pg.pool.query(
+      `INSERT INTO releases (id, project_id, name, status) VALUES ('rel-foreign', 'foreign-proj', 'Foreign', 'planned')`,
+    );
+    const foreignRows = async () =>
+      (
+        await pg.pool.query(
+          `SELECT 'line' AS t, base_uid AS id FROM requirement_lines WHERE project_id = 'foreign-proj'
+           UNION ALL SELECT 'version', uid FROM requirement_versions WHERE project_id = 'foreign-proj'
+           UNION ALL SELECT 'release', id FROM releases WHERE project_id = 'foreign-proj' ORDER BY 1, 2`,
+        )
+      ).rows;
+    assert.equal((await foreignRows()).length, 3);
     await writeBusinessAudit(pg.pool, {
       requestId: "pre-reset-audit",
       operation: "test.preserve",
@@ -352,7 +378,7 @@ describe("seed reset", () => {
     const auditRows = async () =>
       (await pg.pool.query(`SELECT * FROM audit_events ORDER BY id`)).rows;
     const keptBefore = await notOwned();
-    for (const t of ["identities", "project_grants", "local_credentials", "web_sessions", "auth_sessions"]) {
+    for (const t of ["identities", "project_grants", "platform_grants", "local_credentials", "web_sessions", "auth_sessions"]) {
       assert.ok((keptBefore[t]?.length ?? 0) > 0, `${t} has rows before the reset`);
     }
     const auditBefore = await auditRows();
@@ -366,6 +392,7 @@ describe("seed reset", () => {
     });
 
     assert.deepEqual(await notOwned(), keptBefore);
+    assert.equal((await foreignRows()).length, 3, "rows of a project not in the YAML survive the reset");
     const auditAfter = await auditRows();
     // audit_events: every earlier row unchanged, exactly one row appended.
     assert.deepEqual(auditAfter.slice(0, -1), auditBefore);

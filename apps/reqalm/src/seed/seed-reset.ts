@@ -265,28 +265,27 @@ export async function resetDogfoodSeed(
 
     const counts = await countSeedRows(client);
     const yamlCounts = countDogfoodYamlEntities(seed);
-    const delivers = await client.query(
+    // Scoped to the YAML projects like the wipe: rows of other projects are neither wiped nor counted.
+    const scoped = await client.query(
       `
-      SELECT count(*)::int AS c FROM release_delivers d
-      JOIN releases r ON r.id = d.release_id
-      WHERE r.project_id = ANY($1::text[])
+      SELECT
+        (SELECT count(*)::int FROM requirement_lines WHERE project_id = ANY($1::text[])) AS requirement_lines,
+        (SELECT count(*)::int FROM requirement_versions WHERE project_id = ANY($1::text[])) AS requirement_versions,
+        (SELECT count(*)::int FROM releases WHERE project_id = ANY($1::text[])) AS releases,
+        (SELECT count(*)::int FROM release_delivers d JOIN releases r ON r.id = d.release_id
+          WHERE r.project_id = ANY($1::text[])) AS release_delivers
     `,
       [projectIds],
     );
-    const releaseDeliversDb = delivers.rows[0]?.c as number;
+    const db = scoped.rows[0] as Record<keyof typeof yamlCounts, number>;
     if (
-      counts.requirement_lines !== yamlCounts.requirement_lines ||
-      counts.requirement_versions !== yamlCounts.requirement_versions ||
-      counts.releases !== yamlCounts.releases ||
-      releaseDeliversDb !== yamlCounts.release_delivers
+      db.requirement_lines !== yamlCounts.requirement_lines ||
+      db.requirement_versions !== yamlCounts.requirement_versions ||
+      db.releases !== yamlCounts.releases ||
+      db.release_delivers !== yamlCounts.release_delivers
     ) {
       throw new Error(
-        `Post-reset row counts mismatch YAML: db=${JSON.stringify({
-          requirement_lines: counts.requirement_lines,
-          requirement_versions: counts.requirement_versions,
-          releases: counts.releases,
-          release_delivers: releaseDeliversDb,
-        })} yaml=${JSON.stringify(yamlCounts)}`,
+        `Post-reset row counts mismatch YAML: db=${JSON.stringify(db)} yaml=${JSON.stringify(yamlCounts)}`,
       );
     }
 
