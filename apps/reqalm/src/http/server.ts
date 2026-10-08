@@ -21,6 +21,7 @@ import { createBearerGuard, type AuthedRequest } from "./middleware/bearer-auth.
 import { installRouteCapture } from "./route-security.js";
 import { redactInvalidPathParamIds } from "./project-id.js";
 import { sendProblem } from "../core/http-envelope.js";
+import { pathGetsWebSpaShell } from "../web/spa-shell-paths.js";
 import { registerFeatureModules } from "../modules/register.js";
 import { requestIdFromHeaders } from "../telemetry/request-id.js";
 import { traceLogFields } from "../telemetry/trace-context.js";
@@ -145,6 +146,13 @@ export async function buildApiServer(state: RuntimeState) {
       return sendProblem(reply, req.id, 404, "not_found", "Not found");
     }
     if (!roles.has("web") || req.url.startsWith("/mcp")) {
+      return reply.code(404).send({ error: "not_found" });
+    }
+    const pathOnly = req.url.split("?")[0]?.split("#")[0] ?? "";
+    if (!pathGetsWebSpaShell(pathOnly)) {
+      return reply.code(404).send({ error: "not_found" });
+    }
+    if (req.method !== "GET" && req.method !== "HEAD") {
       return reply.code(404).send({ error: "not_found" });
     }
     return reply.sendFile("index.html");

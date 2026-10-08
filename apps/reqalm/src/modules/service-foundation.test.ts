@@ -8,6 +8,7 @@ import {
   type TestApp,
 } from "../test/harness.js";
 import { finishedSpans, resetTelemetrySpans } from "../test/otel-testing.js";
+import { WEB_UI_SPA_ENTRY_GET_PATHS } from "../web/spa-shell-paths.js";
 
 let ctx: TestApp;
 
@@ -479,11 +480,30 @@ describe("unknown /api paths", () => {
     }
   });
 
-  it("non-API paths still get the web app when the web role is enabled", async () => {
-    for (const url of ["/app/some/page", "/apiary"]) {
-      const res = await call404("GET", url, "unknown-web");
+  it("SPA fallback serves index.html for each web UI entry path (GET)", async () => {
+    for (const url of WEB_UI_SPA_ENTRY_GET_PATHS) {
+      const res = await call404("GET", url, `spa-entry-${url.replace(/[^a-z0-9]+/gi, "-")}`);
       assert.equal(res.statusCode, 200, url);
       assert.match(String(res.headers["content-type"]), /^text\/html/, url);
+      assert.match(res.body, /<!DOCTYPE html>/i, url);
+    }
+    for (const url of ["/random-path", "/.env", "/apiary"]) {
+      const res = await call404("GET", url, "unknown-non-spa");
+      assert.equal(res.statusCode, 404, url);
+      assert.deepEqual(res.json(), { error: "not_found" }, url);
+    }
+  });
+
+  it("SPA fallback is GET/HEAD only (POST /login and POST /app are not the shell)", async () => {
+    for (const url of ["/app/clients", "/login"]) {
+      const res = await ctx.app.inject({
+        method: "POST",
+        url,
+        remoteAddress: "203.0.113.50",
+        headers: { host: "localhost:3000", "x-request-id": `spa-post-deny-${url}` },
+      });
+      assert.equal(res.statusCode, 404, url);
+      assert.deepEqual(res.json(), { error: "not_found" }, url);
     }
   });
 

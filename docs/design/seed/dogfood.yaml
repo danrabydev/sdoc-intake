@@ -1190,6 +1190,15 @@ approval_records:
   notes: Planned for browse-clients-projects PR.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-browse-ui-cp
+  subject_kind: CapabilityLine
+  base_uid: CAP-BROWSE-UI-CP
+  status: unapproved
+  by:
+  at:
+  notes: Planned for browse UI PR.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3061,6 +3070,11 @@ requirement_lines:
   parent: SEC-CP
   kind: capability
   title: Browse clients and projects (read-only)
+- base_uid: CAP-BROWSE-UI-CP
+  project_id: reqalm
+  parent: SEC-CP
+  kind: capability
+  title: Browse clients and projects UI (read-only)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -7683,14 +7697,27 @@ requirement_versions:
 - uid: CAP-BROWSE-CP
   base_uid: CAP-BROWSE-CP
   version_n: 0
-  status: draft
+  status: active
   statement: 'Grant-scoped read APIs: paged GET /api/v1/clients, /clients/:id, /projects, /clients/:id/projects; shared PageQuery (max 100); listScope routes filter by per-project permission (agent role narrowing); invalid slug redaction on /clients/ and /projects/ paths.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: Planned until browse PR merges.
+    verification_note: 'Shipped with browse-clients-projects PR #22.'
   statement_hash: sha256:efdacc1e186a9931a90978fce2038352c21b2def3fbfaddb1c4187b78447a448
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-BROWSE-UI-CP
+  base_uid: CAP-BROWSE-UI-CP
+  version_n: 0
+  status: draft
+  statement: 'Read-only /app browse screens for grant-scoped clients and projects: paged clients list, client detail with projects, all-projects list with client name, and a project header stub (Requirements and Releases sections labelled coming next). Uses existing session/CSRF auth; API data rendered via safe DOM text only.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until browse UI PR merges.
+  statement_hash: sha256:53cbdcd7737fe55b58ce0a03bbc304894761d65ed64714ed17019d2ef2122fb9
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -8188,6 +8215,24 @@ capability_artifacts:
 - requirement_version_uid: CAP-BROWSE-CP
   kind: other
   uri: ../../../apps/reqalm/src/modules/projects/
+- requirement_version_uid: CAP-BROWSE-UI-CP
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/app.js
+- requirement_version_uid: CAP-BROWSE-UI-CP
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/api-client.js
+- requirement_version_uid: CAP-BROWSE-UI-CP
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/browse.js
+- requirement_version_uid: CAP-BROWSE-UI-CP
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/styles.css
+- requirement_version_uid: CAP-BROWSE-UI-CP
+  kind: other
+  uri: ../../../apps/reqalm/src/web/browse-ui.test.ts
+- requirement_version_uid: CAP-BROWSE-UI-CP
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_browse_ui_cp_release.py
 edges:
 - from: CAP-SSO
   to: A01
@@ -13798,6 +13843,21 @@ edges:
 - from: CAP-BROWSE-CP
   to: CAP-SVC-PROJECT-READ
   kind: satisfies
+- from: CAP-BROWSE-UI-CP
+  to: B07
+  kind: satisfies
+- from: CAP-BROWSE-UI-CP
+  to: B08
+  kind: satisfies
+- from: CAP-BROWSE-UI-CP
+  to: ARCH-UI
+  kind: satisfies
+- from: CAP-BROWSE-UI-CP
+  to: ARCH-UI-GUARD
+  kind: satisfies
+- from: CAP-BROWSE-UI-CP
+  to: CAP-BROWSE-CP
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -14311,12 +14371,22 @@ releases:
   project_id: reqalm
   name: R1 — browse clients and projects (read-only)
   planned_on: '2026-10-08'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-08'
+  status: shipped
   delivers:
   - CAP-BROWSE-CP
   cyber_gate: false
-  notes: Read-only grant-scoped client/project HTTP APIs (no /app browse UI in this release). Not B01–B06 mutations or ARCH-CP-SCOPE RLS.
+  notes: 'PR #22 merged to main as fefe6d4b61633ae4cc15517245d1c7d02498ab54 on 2026-10-08. Grant-scoped read APIs for clients and projects.'
+- id: rel-r1-browse-ui-cp
+  project_id: reqalm
+  name: R1 — browse clients and projects UI (read-only)
+  planned_on: '2026-10-08'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-BROWSE-UI-CP
+  cyber_gate: false
+  notes: Read-only /app clients and projects screens on grant-scoped APIs; project Requirements/Releases panes still to come.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

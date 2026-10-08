@@ -1,10 +1,12 @@
+import {
+  APP_NAV,
+  mountBrowseView,
+  parseAppRoute,
+} from "./browse.js";
+import { api } from "./api-client.js";
+
 const params = new URLSearchParams(window.location.search);
 const path = window.location.pathname;
-
-function csrfToken() {
-  const match = document.cookie.match(/(?:^|; )reqalm_csrf=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
 
 function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);
@@ -18,20 +20,6 @@ function el(tag, props = {}, children = []) {
   return node;
 }
 
-async function api(path, options = {}) {
-  const headers = { ...(options.headers || {}) };
-  const csrf = csrfToken();
-  if (csrf && (options.method === "POST" || options.method === "DELETE")) {
-    headers["X-CSRF-Token"] = csrf;
-  }
-  const res = await fetch(path, { ...options, headers, credentials: "same-origin" });
-  if (res.status === 401) {
-    window.location.href = "/login";
-    return null;
-  }
-  return res;
-}
-
 async function sessionOk() {
   const res = await fetch("/api/v1/auth/session", { credentials: "same-origin" });
   if (!res.ok) return false;
@@ -39,46 +27,40 @@ async function sessionOk() {
   return body.authenticated === true;
 }
 
-function renderShell() {
+const NAV = APP_NAV.map((item) => ({
+  ...item,
+  match:
+    item.href === "/app/clients"
+      ? (p) => p === "/app/clients" || p.startsWith("/app/clients/")
+      : item.href === "/app/projects"
+        ? (p) => p === "/app/projects" || p.startsWith("/app/projects/")
+        : (p) => p.startsWith(item.href),
+}));
+
+function navLink(item, currentPath) {
+  const a = el("a", { href: item.href, text: item.label });
+  if (item.match(currentPath)) a.classList.add("nav-active");
+  return a;
+}
+
+function renderShell(currentPath) {
   document.body.replaceChildren();
+  const content = el("main", { className: "content", id: "app-content" });
   const shell = el("div", { className: "shell" }, [
     el("header", { className: "topbar" }, [
       el("div", { className: "brand", text: "ReqALM" }),
-      el("nav", {}, [
-        el("a", { href: "/app", text: "Home" }),
-        el("a", { href: "/app/requirements", text: "Requirements" }),
-        el("a", { href: "/app/releases", text: "Releases" }),
-      ]),
+      el("nav", { id: "top-nav" }, NAV.map((item) => navLink(item, currentPath))),
       el("button", { id: "signout", type: "button", text: "Sign out" }),
     ]),
     el("aside", { className: "sidebar" }, [
-      el("p", { className: "muted", text: "Client scoped view" }),
-      el("strong", { text: "Acme Clinic" }),
-      el("p", { className: "muted", text: "Project: reqalm" }),
+      el("p", { className: "muted", text: "Grant-scoped browse" }),
+      el("p", { className: "muted", text: "Lists reflect your project roles." }),
     ]),
-    el("main", { className: "content" }, [
-      el("h1", { text: "Foundation shell" }),
-      el("p", {
-        text: "Authenticated UI frame (nav, layout, guards). Feature pages are placeholders in R1.",
-      }),
-      el("section", { id: "me" }),
-    ]),
+    content,
   ]);
   document.body.append(shell);
   document.getElementById("signout").addEventListener("click", signOut);
-  loadMe();
-}
-
-async function loadMe() {
-  const res = await api("/api/v1/me");
-  if (!res) return;
-  const body = await res.json();
-  const me = body.data ?? body;
-  const section = document.getElementById("me");
-  section.replaceChildren(
-    el("h2", { text: "Signed in" }),
-    el("pre", { text: JSON.stringify(me, null, 2) }),
-  );
+  return content;
 }
 
 async function signOut() {
@@ -86,7 +68,7 @@ async function signOut() {
   window.location.href = "/login";
 }
 
-function renderLogin(h, stateParam) {
+function renderLogin(h) {
   document.body.replaceChildren();
   const card = el("div", { className: "auth-card" });
   card.append(el("h1", { text: "Sign in to ReqALM" }));
@@ -164,20 +146,34 @@ function renderLogin(h, stateParam) {
   });
 }
 
+async function bootApp() {
+  const currentPath = window.location.pathname;
+  if (currentPath === "/app" || currentPath === "/app/") {
+    window.location.replace("/app/clients");
+    return;
+  }
+  const content = renderShell(currentPath);
+  const route = parseAppRoute(currentPath);
+  await mountBrowseView(content, route, {
+    apiFn: api,
+    search: window.location.search,
+  });
+}
+
 if (path === "/login" || path.startsWith("/login")) {
   const h = params.get("h");
   if (!h) {
     window.location.href = "/oauth/web/start";
   } else {
-    renderLogin(h, params.get("state"));
+    renderLogin(h);
   }
 } else if (path.startsWith("/app")) {
   sessionOk().then((ok) => {
     if (!ok) window.location.href = "/login";
-    else renderShell();
+    else bootApp();
   });
 } else if (path === "/") {
   sessionOk().then((ok) => {
-    window.location.href = ok ? "/app" : "/login";
+    window.location.href = ok ? "/app/clients" : "/login";
   });
 }

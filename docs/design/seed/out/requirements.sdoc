@@ -2441,6 +2441,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: Permission-filtered list; no cross-tenant leakage.
 edge: ← satisfies from CAP-BROWSE-CP
+edge: ← satisfies from CAP-BROWSE-UI-CP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1-core-ALM
@@ -2480,6 +2481,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-BROWSE-CP
+edge: ← satisfies from CAP-BROWSE-UI-CP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1-core-ALM
@@ -2622,7 +2624,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-CP
-STATUS: Draft
+STATUS: Active
 TITLE: Browse clients and projects (read-only)
 STATEMENT: >>>
 Grant-scoped read APIs: paged GET /api/v1/clients, /clients/:id, /projects, /clients/:id/projects; shared PageQuery (max 100); listScope routes filter by per-project permission (agent role narrowing); invalid slug redaction on /clients/ and /projects/ paths.
@@ -2634,7 +2636,8 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until browse PR merges.
+security.verification_note: Shipped with browse-clients-projects PR #22.
+edge: ← satisfies from CAP-BROWSE-UI-CP
 delivered_by_release: R1 — browse clients and projects (read-only)
 <<<
 RELATIONS:
@@ -2654,6 +2657,45 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-browse-clients-projects
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-BROWSE-UI-CP
+STATUS: Draft
+TITLE: Browse clients and projects UI (read-only)
+STATEMENT: >>>
+Read-only /app browse screens for grant-scoped clients and projects: paged clients list, client detail with projects, all-projects list with client name, and a project header stub (Requirements and Releases sections labelled coming next). Uses existing session/CSRF auth; API data rendered via safe DOM text only.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-UI-CP
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until browse UI PR merges.
+delivered_by_release: R1 — browse clients and projects UI (read-only)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: B07
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: B08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-BROWSE-CP
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-browse-ui-cp
   ROLE: Delivers
 
 [[/SECTION]]
@@ -8056,6 +8098,7 @@ security.verification_note: Architecture enforces AC-3 via adapters/guards/layer
 edge: ← uses from ARCH-DEPLOY-MINIMAL
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-UI-FRAME
+edge: ← satisfies from CAP-BROWSE-UI-CP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -8107,6 +8150,7 @@ security.verification_note: Route guards are AC-3 enforcement in the UI shell.
 edge: ← uses from ARCH-UI
 edge: ← uses from ARCH-CRED-SESSION
 edge: ← satisfies from CAP-UI-FRAME
+edge: ← satisfies from CAP-BROWSE-UI-CP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
