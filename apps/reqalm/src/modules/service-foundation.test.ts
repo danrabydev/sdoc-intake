@@ -424,3 +424,40 @@ describe("authenticate → scope → permission → validate", () => {
     assert.deepEqual(row.detail, { error_code: "validation" });
   });
 });
+
+describe("unknown /api paths", () => {
+  it("answer 404 Problem Details with the request id", async () => {
+    for (const [method, url] of [
+      ["GET", "/api/v1/nope"],
+      ["POST", "/api/v1/projects/reqalm/nope"],
+      ["GET", "/api"],
+      ["DELETE", "/api/v2/anything?x=1"],
+    ] as const) {
+      const rid = `unknown-${method}-${url.length}`;
+      const res = await call404(method, url, rid);
+      assert.equal(res.statusCode, 404, url);
+      assert.match(String(res.headers["content-type"]), /^application\/problem\+json/, url);
+      const body = res.json() as Record<string, unknown>;
+      assert.deepEqual(Object.keys(body).sort(), ["code", "detail", "request_id", "status", "title", "type"], url);
+      assert.equal(body.code, "not_found");
+      assert.equal(body.request_id, rid);
+    }
+  });
+
+  it("non-API paths still get the web app", async () => {
+    for (const url of ["/app/some/page", "/apiary"]) {
+      const res = await call404("GET", url, "unknown-web");
+      assert.equal(res.statusCode, 200, url);
+      assert.match(String(res.headers["content-type"]), /^text\/html/, url);
+    }
+  });
+
+  function call404(method: string, url: string, rid: string) {
+    return ctx.app.inject({
+      method: method as "GET",
+      url,
+      remoteAddress: "203.0.113.50",
+      headers: { host: "localhost:3000", "x-request-id": rid },
+    });
+  }
+});

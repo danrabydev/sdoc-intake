@@ -19,6 +19,7 @@ import type { SyncHandle } from "../roles/sync-worker.js";
 import { registerProbeRoutes } from "./routes-probes.js";
 import { createBearerGuard, type AuthedRequest } from "./middleware/bearer-auth.js";
 import { installRouteCapture } from "./route-security.js";
+import { sendProblem } from "../core/http-envelope.js";
 import { registerFeatureModules } from "../modules/register.js";
 import { requestIdFromHeaders } from "../telemetry/request-id.js";
 import { traceLogFields } from "../telemetry/trace-context.js";
@@ -129,21 +130,19 @@ export async function buildApiServer(state: RuntimeState) {
       root,
       prefix: "/",
     });
-    app.setNotFoundHandler((req, reply) => {
-      if (req.url.startsWith("/api") || req.url.startsWith("/mcp")) {
-        return reply.code(404).send({ error: "not_found" });
-      }
-      if (
-        req.url.startsWith("/login") ||
-        req.url.startsWith("/mfa") ||
-        req.url.startsWith("/consent") ||
-        req.url.startsWith("/app")
-      ) {
-        return reply.sendFile("index.html");
-      }
-      return reply.sendFile("index.html");
-    });
   }
+
+  // Unknown /api paths answer Problem Details like every other API error; the web role serves the SPA
+  // for everything else except /mcp.
+  app.setNotFoundHandler((req, reply) => {
+    if (/^\/api(\/|\?|$)/.test(req.url)) {
+      return sendProblem(reply, req.id, 404, "not_found", "Not found");
+    }
+    if (!roles.has("web") || req.url.startsWith("/mcp")) {
+      return reply.code(404).send({ error: "not_found" });
+    }
+    return reply.sendFile("index.html");
+  });
 
   app.addHook("onClose", async () => {
     app.log.info("HTTP server closing");
