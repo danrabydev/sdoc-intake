@@ -39,6 +39,14 @@ before(async () => {
     `INSERT INTO projects (id, client_id, name) VALUES ('ungranted', 'reqalm-client', 'Ungranted') ON CONFLICT DO NOTHING`,
   );
   app = Fastify({ genReqId: (req) => requestIdFromHeaders(req.headers) });
+  // A 4xx raised after the handler ran (here: once, from onSend) must not run the pipeline again.
+  const failedLate = new WeakSet<object>();
+  app.addHook("onSend", async (req) => {
+    if (req.headers["x-fail-after-handler"] === "1" && !failedLate.has(req)) {
+      failedLate.add(req);
+      throw Object.assign(new Error("late conflict"), { statusCode: 409 });
+    }
+  });
   const deps = { pool: ctx.pool, config: ctx.config, keyProvider: ctx.keyProvider, logger: app.log };
   defineOperationRoute(app, deps, {
     method: "post",
@@ -248,7 +256,20 @@ describe("authenticate → project scope → permission → parseInput → execu
     }
   });
 
-  it("pre-handler body errors run auth before validation (reachedHandler guard)", async () => {
+  it("a 4xx raised after the handler ran is a 500, without running or auditing the operation again", async () => {
+    const executed = seen.execute;
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/test/projects/reqalm/items",
+      headers: { ...bearer, "content-type": "application/json", "x-request-id": "ord-late-4xx", "x-fail-after-handler": "1" },
+      payload: '{"title":"t"}',
+    });
+    assertProblem(res, 500, "internal", "ord-late-4xx");
+    assert.equal(seen.execute, executed + 1);
+    assert.equal((await auditRow("ord-late-4xx")).outcome, "allow");
+  });
+
+  it("pre-handler body errors run auth before validation (no bearer: 401)", async () => {
     const res = await app.inject({
       method: "POST",
       url: "/api/v1/test/projects/reqalm/items",
