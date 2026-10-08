@@ -855,6 +855,7 @@ edge: ← uses from FIX-DENY-NO-GRANT
 edge: ← uses from FIX-DENY-REVOKED
 edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR
 edge: ← satisfies from CAP-READ-REQS
+edge: ← satisfies from CAP-READ-RELEASES
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -2741,7 +2742,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-REQS
-STATUS: Draft
+STATUS: Active
 TITLE: Browse requirements UI (read-only)
 STATEMENT: >>>
 Read-only /app browse screens for grant-scoped requirements within a project: paged list with kind/type/status filters and q search (URL-driven), requirement detail (statement + attributes), and paged version history (newest first). Uses session/CSRF auth; safe DOM text only. Trace links deferred.
@@ -2753,7 +2754,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until requirements browse UI PR merges.
+security.verification_note: Shipped with requirements browse UI PR #26.
 delivered_by_release: R1 — browse requirements UI (read-only)
 <<<
 RELATIONS:
@@ -2776,6 +2777,42 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-reqs
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-READ-RELEASES
+STATUS: Draft
+TITLE: Read releases (list, detail)
+STATEMENT: >>>
+Grant-scoped releases read APIs: paged GET /api/v1/projects/:projectId/releases with optional status (planned | shipped), ordered planned_on desc then id; GET detail with notes and delivered capabilities (capability lines from release_delivers). cyber_gate is stored on the release row but not exposed in v1 read DTOs. gate_signoffs and contract in_scope_of edges from dogfood are not loaded by the seed loader (deferred). Invalid release id segments redact in logs/spans like project slugs.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-READ-RELEASES
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Planned until releases read PR merges.
+delivered_by_release: R1 — releases read API
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: G08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-read-releases
   ROLE: Delivers
 
 [[/SECTION]]
@@ -5265,6 +5302,7 @@ priority: 25
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← satisfies from CAP-READ-RELEASES
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8625,6 +8663,7 @@ edge: ← satisfies from CAP-SVC-PROJECT-ID-SLUG
 edge: ← satisfies from CAP-SVC-IMPLICIT-PUBLIC-EXACT
 edge: ← satisfies from CAP-SVC-NON-API-AUTH-AUDIT
 edge: ← satisfies from CAP-READ-REQS
+edge: ← satisfies from CAP-READ-RELEASES
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -9200,6 +9239,7 @@ security.catalog_ref: CM-2
 security.verification_note: Planned until operation-route PR merges.
 edge: ← refines from CAP-SVC-PROJECT-ID-SLUG
 edge: ← satisfies from CAP-READ-REQS
+edge: ← satisfies from CAP-READ-RELEASES
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<
 RELATIONS:

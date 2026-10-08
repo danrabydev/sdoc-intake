@@ -3,28 +3,30 @@ import type { RequestContext } from "../core/request-context.js";
 import { effectiveRoles } from "./agent-role.js";
 
 /** Minimal v1 role → permission map (aligned to permission-matrix-flat.md). */
-const browseList = ["client:list", "project:list", "requirement:list"] as const;
+const browseList = ["client:list", "project:list", "requirement:list", "release:list"] as const;
 const withBrowse = (...perms: string[]) => new Set([...perms, ...browseList]);
 
 /** Exact role → permission map (tests pin this table). */
 export const ROLE_PERMISSIONS: Record<string, Set<string>> = {
-  Reader: withBrowse("requirement:read", "audit:read", "grant:read"),
-  Author: withBrowse("requirement:read", "requirement:write", "audit:read", "grant:read"),
-  Developer: withBrowse("requirement:read", "workitem:write", "audit:read", "grant:read"),
-  Tester: withBrowse("requirement:read", "verification:write", "audit:read", "grant:read"),
+  Reader: withBrowse("requirement:read", "release:read", "audit:read", "grant:read"),
+  Author: withBrowse("requirement:read", "requirement:write", "release:read", "audit:read", "grant:read"),
+  Developer: withBrowse("requirement:read", "workitem:write", "release:read", "audit:read", "grant:read"),
+  Tester: withBrowse("requirement:read", "verification:write", "release:read", "audit:read", "grant:read"),
   "Release manager": withBrowse(
     "requirement:read",
+    "release:read",
     "release:plan",
     "release:ship",
     "audit:read",
     "grant:read",
   ),
-  Security: withBrowse("requirement:read", "security:apply", "audit:read", "grant:read"),
-  AO: withBrowse("requirement:read", "gate:approve", "audit:read", "grant:read"),
-  Auditor: withBrowse("requirement:read", "audit:read", "grant:read"),
+  Security: withBrowse("requirement:read", "security:apply", "release:read", "audit:read", "grant:read"),
+  AO: withBrowse("requirement:read", "gate:approve", "release:read", "audit:read", "grant:read"),
+  Auditor: withBrowse("requirement:read", "release:read", "audit:read", "grant:read"),
   "Project admin": withBrowse(
     "requirement:read",
     "requirement:write",
+    "release:read",
     "grant:manage",
     "audit:read",
     "grant:read",
@@ -32,6 +34,7 @@ export const ROLE_PERMISSIONS: Record<string, Set<string>> = {
   "Client admin": withBrowse(
     "requirement:read",
     "client:manage",
+    "release:read",
     "grant:manage",
     "audit:read",
     "grant:read",
