@@ -144,6 +144,17 @@ describe("seed reset allowlist", () => {
       seedResetHarnessEnv({ NODE_ENV: "production" }),
       "node-env-prod",
     );
+    for (const NODE_ENV of ["Production", " production "]) {
+      assert.throws(
+        () =>
+          assertSeedResetAllowed({
+            databaseUrl: LOCAL_DEV_DATABASE_URL,
+            env: seedResetHarnessEnv({ NODE_ENV }),
+            repoRoot,
+          }),
+        SeedResetRefusedError,
+      );
+    }
   });
 
   it("refuses a non-local DATABASE_URL host or port and leaves data untouched", async () => {
