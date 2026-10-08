@@ -6,59 +6,74 @@ export type RouteSecurity =
   | { kind: "authenticated" }
   | { kind: "permission"; permission: string };
 
+/** Metadata captured from {@link defineOperationRoute} for audit tests. */
+export type OperationRouteRef = {
+  name: string;
+  permission?: string;
+  projectScoped?: boolean;
+};
+
 export type ReqalmRouteConfig = {
   reqalmSecurity?: RouteSecurity;
+  reqalmOperationRoute?: true;
+  reqalmOperationRef?: OperationRouteRef;
 };
 
 declare module "fastify" {
   interface FastifyContextConfig {
     reqalmSecurity?: RouteSecurity;
+    reqalmOperationRoute?: true;
+    reqalmOperationRef?: OperationRouteRef;
   }
 }
-
-
 
 export type RegisteredRouteSecurity = {
   method: string;
   url: string;
   security: RouteSecurity | undefined;
+  operationRoute?: boolean;
+  operationRef?: OperationRouteRef;
 };
 
-export function collectRouteSecurity(app: FastifyInstance): RegisteredRouteSecurity[] {
-  const out: RegisteredRouteSecurity[] = [];
-  const routes = app.printRoutes({ commonPrefix: false });
-  // printRoutes returns a tree string in Fastify 5 — use route list from internal if needed
-  void routes;
-  // Walk the radix tree via app's internal route store
-  const stack = (app as unknown as { [k: string]: unknown }).routes as
-    | Array<{ method: string; url: string; config?: ReqalmRouteConfig }>
-    | undefined;
-  if (Array.isArray(stack)) {
-    for (const r of stack) {
-      out.push({
-        method: r.method,
-        url: r.url,
-        security: r.config?.reqalmSecurity,
-      });
-    }
-    return out;
+/** Derive the route marker from an operation definition (must match {@link defineOperationRoute}). */
+export function securityFromOperationRef(ref: OperationRouteRef): RouteSecurity {
+  if (ref.permission) {
+    return { kind: "permission", permission: ref.permission };
   }
-  // Fallback: iterate getRoutes if available (Fastify 5)
-  const getRoutes = (app as { getRoutes?: () => Map<string, unknown> }).getRoutes;
-  if (typeof getRoutes === "function") {
-    for (const [key, route] of getRoutes.call(app)) {
-      const r = route as { method: string; url: string; config?: ReqalmRouteConfig };
-      const method = r.method ?? String(key).split(" ")[0];
-      const url = r.url ?? String(key).split(" ").slice(1).join(" ");
-      out.push({ method, url, security: r.config?.reqalmSecurity });
-    }
+  return { kind: "authenticated" };
+}
+
+function securityEqual(a: RouteSecurity | undefined, b: RouteSecurity | undefined): boolean {
+  if (!a || !b) return false;
+  if (a.kind !== b.kind) return false;
+  if (a.kind === "permission" && b.kind === "permission") {
+    return a.permission === b.permission;
   }
-  return out;
+  return true;
+}
+
+/**
+ * Exact `METHOD url` pairs under `/api/` that are not business operations (OAuth-shaped auth endpoints
+ * and the dev seed summary). They stay hand-registered; every other `/api/` route must use
+ * {@link defineOperationRoute}. HEAD is checked as GET (Fastify derives HEAD routes from GET routes).
+ */
+export const API_NON_OPERATION_ROUTES = new Set([
+  "POST /api/v1/auth/local/login",
+  "GET /api/v1/auth/session",
+  "POST /api/v1/auth/signout",
+  "GET /api/v1/auth/upstream/connectors",
+  "GET /api/v1/seed/summary",
+]);
+
+function requiresOperationRoute(r: RegisteredRouteSecurity): boolean {
+  if (r.security?.kind === "permission") return true;
+  if (!r.url.startsWith("/api/")) return false;
+  const method = r.method === "HEAD" ? "GET" : r.method;
+  return !API_NON_OPERATION_ROUTES.has(`${method} ${r.url}`);
 }
 
 /** Every route registered after {@link installRouteCapture}, as captured by its onRoute hook. */
 export function listRoutesForSecurityAudit(app: FastifyInstance): RegisteredRouteSecurity[] {
-  // A missing capture must fail the audit, never yield an empty (passing) list.
   const captured = (app as unknown as { __reqalmRoutes?: RegisteredRouteSecurity[] }).__reqalmRoutes;
   if (!captured) throw new Error("installRouteCapture(app) was not called before routes were registered");
   return captured;
@@ -112,6 +127,8 @@ export function installRouteCapture(app: FastifyInstance): void {
         method: method.trim().toUpperCase(),
         url: routeOptions.url,
         security: routeOptions.config.reqalmSecurity,
+        operationRoute: routeOptions.config.reqalmOperationRoute === true,
+        operationRef: routeOptions.config.reqalmOperationRef,
       });
     }
   });
@@ -125,4 +142,30 @@ export function assertAllApiRoutesDeclared(routes: RegisteredRouteSecurity[]): s
     }
   }
   return missing;
+}
+
+/**
+ * Fail-closed: every `/api/` route outside the exact allowlist, and every route anywhere that carries a
+ * `permission` marker, must come from defineOperationRoute with a marker matching its operation.
+ */
+export function assertBusinessApiRoutesCompliant(routes: RegisteredRouteSecurity[]): string[] {
+  const violations: string[] = [];
+  for (const r of routes) {
+    if (!requiresOperationRoute(r)) continue;
+
+    const label = `${r.method} ${r.url}`;
+    if (!r.operationRoute || !r.operationRef) {
+      violations.push(`${label}: must register via defineOperationRoute`);
+      continue;
+    }
+    const expected = securityFromOperationRef(r.operationRef);
+    if (!securityEqual(r.security, expected)) {
+      violations.push(
+        `${label}: reqalmSecurity disagrees with operation (expected ${expected.kind}${
+          expected.kind === "permission" ? `:${expected.permission}` : ""
+        })`,
+      );
+    }
+  }
+  return violations;
 }

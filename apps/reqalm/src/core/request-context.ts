@@ -5,7 +5,6 @@ import type { ResolvedAuth } from "../auth/request-auth.js";
 import { resolveRequestAuth } from "../auth/request-auth.js";
 import type { KeyProvider } from "../key/provider.js";
 import { effectiveRoles } from "../rbac/agent-role.js";
-import { listActiveRoles, permissionsForRoles } from "../rbac/enforce.js";
 import { activeTraceIds } from "../telemetry/trace-context.js";
 
 export type ProjectGrantRow = { project_id: string; role: string };
@@ -13,7 +12,6 @@ export type ProjectGrantRow = { project_id: string; role: string };
 export type RequestContext = {
   requestId: string;
   traceId: string | null;
-  spanId: string | null;
   ip: string;
   userAgent: string | null;
   pool: pg.Pool;
@@ -26,7 +24,6 @@ export type RequestContext = {
   projectGrants: ProjectGrantRow[];
   projectIds: Set<string>;
   effectiveRoles: string[];
-  permissions: Set<string>;
   agentName: string | null;
   tokenRole: string | null;
   actingFor: string | null;
@@ -68,13 +65,11 @@ export async function buildRequestContext(
         auth?.accessToken,
       )
     : [];
-  const permissions = permissionsForRoles(eff);
   const token = auth?.accessToken;
   const act = token?.act as { sub?: string } | undefined;
   return {
     requestId,
     traceId: trace?.traceId ?? null,
-    spanId: trace?.spanId ?? null,
     ip: req.ip,
     userAgent: typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : null,
     pool: deps.pool,
@@ -87,19 +82,8 @@ export async function buildRequestContext(
     projectGrants,
     projectIds: new Set(projectGrants.map((g) => g.project_id)),
     effectiveRoles: eff,
-    permissions,
     agentName: token ? tokenStringField(token, "agent_name") : null,
     tokenRole: token ? tokenStringField(token, "reqalm_role") : null,
     actingFor: act?.sub ?? null,
   };
-}
-
-/** Recompute roles for a specific project (used by authorize helper). */
-export async function rolesForProject(
-  ctx: RequestContext,
-  projectId: string,
-): Promise<string[]> {
-  if (!ctx.identityId) return [];
-  const roles = await listActiveRoles(ctx.pool, ctx.identityId, projectId);
-  return effectiveRoles(roles, ctx.auth?.accessToken);
 }

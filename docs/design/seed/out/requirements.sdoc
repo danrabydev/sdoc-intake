@@ -8450,6 +8450,8 @@ edge: ← satisfies from CAP-SVC-REQUEST-CONTEXT
 edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR
 edge: ← satisfies from CAP-SVC-ROUTE-REGISTRY
 edge: ← satisfies from CAP-SVC-PROJECT-READ
+edge: ← satisfies from CAP-SVC-OPERATION-ROUTE
+edge: ← satisfies from CAP-SVC-BUSINESS-ROUTE-AUDIT
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -8504,6 +8506,7 @@ edge: ← uses from ARCH-API
 edge: ← satisfies from CAP-SVC-RESULT-ENVELOPE
 edge: ← satisfies from CAP-SVC-REQUEST-CONTEXT
 edge: ← satisfies from CAP-SVC-MODULE-BOOTSTRAP
+edge: ← satisfies from CAP-SVC-OPERATION-ROUTE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
@@ -8576,6 +8579,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+edge: ← satisfies from CAP-SVC-PROBLEM-JSON
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -8636,6 +8640,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+edge: ← uses from CAP-SVC-OPERATION-ROUTE
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -8714,6 +8719,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+edge: ← satisfies from CAP-SVC-BUSINESS-ROUTE-AUDIT
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -8812,7 +8818,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-OTEL-SDK-BOOTSTRAP
-STATUS: Draft
+STATUS: Active
 TITLE: OpenTelemetry SDK bootstrap (HTTP, Fastify, pg, undici)
 STATEMENT: >>>
 Register hook (sdk-trace-node tracer provider, OTLP/HTTP trace exporter only) loads before app modules; off by default with no SDK loaded; http, Fastify, pg and undici instrumentation shared with tests.
@@ -8839,7 +8845,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-OTEL-W3C-CONTEXT
-STATUS: Draft
+STATUS: Active
 TITLE: W3C trace context and validated request id
 STATEMENT: >>>
 Continues traceparent; x-request-id validated (printable, ≤128) else UUID; trace_id on RequestContext and logs.
@@ -8866,7 +8872,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-OTEL-OPERATION-SPANS
-STATUS: Draft
+STATUS: Active
 TITLE: Manual operation spans (runOperation)
 STATEMENT: >>>
 Operation span with RBAC/outcome attributes; error status on deny/error; no secrets in attributes.
@@ -8893,7 +8899,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-OTEL-KEY-DEP
-STATUS: Draft
+STATUS: Active
 TITLE: OpenBao dependency spans (KeyProvider)
 STATEMENT: >>>
 KeyProvider calls emit key.* spans (dependency and purpose only; no key material or tokens) without changing the KeyProvider interface; the OpenBao HTTP calls are their undici-instrumented child spans.
@@ -8920,7 +8926,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-OTEL-AUDIT-TRACE
-STATUS: Draft
+STATUS: Active
 TITLE: Audit trace_id correlation
 STATEMENT: >>>
 Migration 007 adds audit_events.trace_id; runOperation writes trace_id on append-only audit rows.
@@ -8947,7 +8953,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-OTEL-EXPORT
-STATUS: Draft
+STATUS: Active
 TITLE: OTLP trace export (opt-in)
 STATEMENT: >>>
 OTEL_EXPORTER_OTLP_ENDPOINT / OTEL_SERVICE_NAME; documented local collector binding.
@@ -8974,7 +8980,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-OTEL-TEST-HARNESS
-STATUS: Draft
+STATUS: Active
 TITLE: In-process tracing tests (real pg + PGlite socket)
 STATEMENT: >>>
 otel-preload starts the test SDK with the production instrumentation list before pg is imported; real pg Pool over PGLiteSocketServer; in-memory exporter assertions.
@@ -8997,6 +9003,96 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-otel-tracing
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-OPERATION-ROUTE
+STATUS: Draft
+TITLE: defineOperationRoute — single pipeline for /api/ business routes
+STATEMENT: >>>
+Business routes under /api/ register only via defineOperationRoute, which runs authenticate, project scope, permission, parseInput, execute, append-only audit_events, log, in that order. Project scope comes from the :projectId path param, parsed before any input validation; an unparsable id is not_found, identical to a missing or ungranted project, and the validated input must name the same project. parseInput validates params/query/body once (Zod); validation failures, including unreadable bodies, reach only authenticated, in-scope, authorized callers, are audited without input values, and answer Problem Details (application/problem+json); unexpected throws are a 500 without the error message. reqalmSecurity is derived from the operation; registration throws unless the operation declares a permission bound to a project (projectScoped + projectIdFromInput + :projectId path param) or authenticatedOnly.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-OPERATION-ROUTE
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until operation-route PR merges.
+delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-API-LAYERS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-EXECUTOR
+  ROLE: Uses
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-route-helper
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-BUSINESS-ROUTE-AUDIT
+STATUS: Draft
+TITLE: Fail-closed business route registration test
+STATEMENT: >>>
+route-security.test.ts rejects /api/ routes not registered via defineOperationRoute (exact METHOD + path allowlist for auth/OAuth-shaped and dev seed routes), permission markers on any hand-registered route, and reqalmSecurity markers that disagree with the operation.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-BUSINESS-ROUTE-AUDIT
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until operation-route PR merges.
+delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: CAP-SVC-ROUTE-REGISTRY
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-route-helper
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-PROBLEM-JSON
+STATUS: Draft
+TITLE: Problem Details content type on service errors
+STATEMENT: >>>
+Error responses from operation routes and from unknown /api/ paths are Problem Details with Content-Type application/problem+json and the request id, as documented in the static OpenAPI spec.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-PROBLEM-JSON
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until operation-route PR merges.
+delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: CAP-SVC-RESULT-ENVELOPE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-route-helper
   ROLE: Delivers
 
 [[/SECTION]]

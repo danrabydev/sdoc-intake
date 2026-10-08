@@ -127,3 +127,57 @@ export function pkcePair() {
 export function totpNow(secretBase32: string): string {
   return new TOTP({ secret: Secret.fromBase32(secretBase32) }).generate();
 }
+
+/** Access token for a seeded local user, through the real authorize → local login → token flow. */
+export async function issueTestAccessToken(
+  app: FastifyInstance,
+  username = "casey-reader@dev.local",
+): Promise<string> {
+  const inject = (opts: { method: string; url: string; headers?: Record<string, string>; payload?: unknown }) =>
+    app.inject({
+      ...opts,
+      remoteAddress: "203.0.113.50",
+      headers: { host: "localhost:3000", ...opts.headers },
+    } as never);
+  const { verifier, challenge } = pkcePair();
+  const redirectUri = `${TEST_ISSUER}/oauth/callback`;
+  const authz = await inject({
+    method: "GET",
+    url: `/oauth/authorize?${new URLSearchParams({
+      response_type: "code",
+      client_id: "reqalm-web",
+      redirect_uri: redirectUri,
+      scope: "openid profile",
+      state: "s",
+      code_challenge: challenge,
+      code_challenge_method: "S256",
+      resource: TEST_API_RESOURCE,
+    })}`,
+  });
+  const handoff = new URL(String(authz.headers.location ?? ""), TEST_ISSUER).searchParams.get("h");
+  if (!handoff) throw new Error(`authorize: no handoff (${authz.statusCode})`);
+  const login = await inject({
+    method: "POST",
+    url: "/api/v1/auth/local/login",
+    headers: { "content-type": "application/json" },
+    payload: { username, password: TEST_PASSWORD, h: handoff },
+  });
+  if (login.statusCode !== 200) throw new Error(`login ${username}: ${login.statusCode}`);
+  const code = new URL((login.json() as { redirect: string }).redirect, TEST_ISSUER).searchParams.get("code");
+  if (!code) throw new Error("login: no code");
+  const token = await inject({
+    method: "POST",
+    url: "/oauth/token",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    payload: new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      client_id: "reqalm-web",
+      redirect_uri: redirectUri,
+      code_verifier: verifier,
+      resource: TEST_API_RESOURCE,
+    }).toString(),
+  });
+  if (token.statusCode !== 200) throw new Error(`token: ${token.statusCode}`);
+  return (token.json() as { access_token: string }).access_token;
+}

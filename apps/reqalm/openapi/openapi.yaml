@@ -115,10 +115,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DataEnvelope"
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
         "401":
           $ref: "#/components/responses/ProblemUnauthorized"
         "403":
           $ref: "#/components/responses/ProblemForbidden"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
 components:
   securitySchemes:
     bearerAuth:
@@ -126,22 +130,28 @@ components:
       scheme: bearer
       bearerFormat: JWT
   responses:
+    ProblemBadRequest:
+      description: Invalid request input (validation, malformed body, unsupported media type); only after authentication, project scope and permission pass
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
     ProblemUnauthorized:
       description: Missing or invalid credentials
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: "#/components/schemas/ProblemDetails"
     ProblemForbidden:
       description: Insufficient permission
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: "#/components/schemas/ProblemDetails"
     ProblemNotFound:
-      description: Not found
+      description: Not found (a missing project, a project without a grant, and an unparsable project id are identical)
       content:
-        application/json:
+        application/problem+json:
           schema:
             $ref: "#/components/schemas/ProblemDetails"
   schemas:

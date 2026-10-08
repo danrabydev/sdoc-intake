@@ -1,3 +1,4 @@
+import { STATUS_CODES } from "node:http";
 import type { FastifyReply } from "fastify";
 import type { ServiceErrorCode, ServiceResult } from "./service-result.js";
 
@@ -16,12 +17,6 @@ export type ApiDataEnvelope<T> = {
   request_id: string;
 };
 
-export type ApiListEnvelope<T> = {
-  data: T[];
-  request_id: string;
-  meta: { total: number; limit?: number; offset?: number };
-};
-
 const ERROR_STATUS: Record<ServiceErrorCode, number> = {
   not_found: 404,
   forbidden: 403,
@@ -29,15 +24,6 @@ const ERROR_STATUS: Record<ServiceErrorCode, number> = {
   validation: 400,
   conflict: 409,
   internal: 500,
-};
-
-const ERROR_TITLE: Record<ServiceErrorCode, string> = {
-  not_found: "Not Found",
-  forbidden: "Forbidden",
-  unauthenticated: "Unauthorized",
-  validation: "Bad Request",
-  conflict: "Conflict",
-  internal: "Internal Server Error",
 };
 
 export function mapServiceResultToHttp<T>(
@@ -50,25 +36,26 @@ export function mapServiceResultToHttp<T>(
     return reply.code(200).send(body);
   }
   const { code, message, details } = result.error;
-  const status = ERROR_STATUS[code];
+  return sendProblem(reply, requestId, ERROR_STATUS[code], code, message, details);
+}
+
+/** RFC 9457 Problem Details body with `application/problem+json`. */
+export function sendProblem(
+  reply: FastifyReply,
+  requestId: string,
+  status: number,
+  code: ServiceErrorCode,
+  detail: string,
+  details?: Record<string, unknown>,
+): FastifyReply {
   const body: ApiErrorBody = {
     type: `https://reqalm.dev/problems/${code}`,
-    title: ERROR_TITLE[code],
+    title: STATUS_CODES[status] ?? "Error",
     status,
     code,
-    detail: message,
+    detail,
     request_id: requestId,
     ...(details ? { details } : {}),
   };
-  return reply.code(status).send(body);
-}
-
-export function sendListEnvelope<T>(
-  reply: FastifyReply,
-  requestId: string,
-  data: T[],
-  meta: { total: number; limit?: number; offset?: number },
-): FastifyReply {
-  const body: ApiListEnvelope<T> = { data, request_id: requestId, meta };
-  return reply.code(200).send(body);
+  return reply.code(status).type("application/problem+json").send(body);
 }
