@@ -345,6 +345,14 @@ describe("seed reset", () => {
     const detail = row.detail as Record<string, unknown>;
     assert.deepEqual(detail.actor, { kind: "devenv-cli", label: "dan", verified: false });
     assert.deepEqual(detail.loaded, countDogfoodYamlEntities(seed));
+    // Cascade-deleted delivers are counted too (the four reset tables, before the reload).
+    assert.deepEqual(Object.keys(detail.wiped as object).sort(), [
+      "release_delivers",
+      "releases",
+      "requirement_lines",
+      "requirement_versions",
+    ]);
+    assert.equal((detail.wiped as Record<string, number>).release_delivers, countDogfoodYamlEntities(seed).release_delivers);
     const detailText = JSON.stringify(row);
     assert.ok(!detailText.includes("harness"), "no DATABASE_URL credentials in the audit row");
 

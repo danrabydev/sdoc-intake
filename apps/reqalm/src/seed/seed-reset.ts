@@ -62,6 +62,11 @@ const PRESERVED_TABLES = [
   "local_credentials",
   "dev_local_accounts",
   "auth_sessions",
+  "web_sessions",
+  "mfa_totp_replay",
+  "mfa_enrollment_tickets",
+  "oauth_refresh_families",
+  "oauth_refresh_tokens",
   "audit_events",
   "auth_audit_events",
   "signing_keys",
@@ -298,7 +303,7 @@ export async function resetDogfoodSeed(
       targetId: seedPathForAudit(options.seedPath, options.repoRoot),
       detail: {
         actor,
-        wiped,
+        wiped: plan.wipe,
         loaded: yamlCounts,
         schema_version: seed.schema_version,
       },
@@ -351,7 +356,8 @@ export function formatSeedResetPlan(plan: SeedResetPlan): string {
     ...Object.entries(plan.wipe).map(([k, v]) => `    - ${k}: ${v}`),
     "  will LOAD from YAML:",
     ...Object.entries(plan.load).map(([k, v]) => `    - ${k}: ${v}`),
-    "  preserved (not truncated):",
+    "  updated in place from YAML: clients, projects (identities and grants only inserted when missing)",
+    "  preserved (not deleted or rewritten):",
     `    - ${plan.preserved.join(", ")}`,
   ];
   return lines.join("\n");
