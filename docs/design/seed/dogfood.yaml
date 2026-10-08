@@ -1217,6 +1217,15 @@ approval_records:
   notes: Planned for requirements browse UI PR.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-read-releases
+  subject_kind: CapabilityLine
+  base_uid: CAP-READ-RELEASES
+  status: unapproved
+  by:
+  at:
+  notes: Planned for releases read API PR.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3103,6 +3112,11 @@ requirement_lines:
   parent: SEC-CP
   kind: capability
   title: Browse requirements UI (read-only)
+- base_uid: CAP-READ-RELEASES
+  project_id: reqalm
+  parent: SEC-CP
+  kind: capability
+  title: Read releases (list, detail)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -7764,14 +7778,27 @@ requirement_versions:
 - uid: CAP-BROWSE-UI-REQS
   base_uid: CAP-BROWSE-UI-REQS
   version_n: 0
-  status: draft
+  status: active
   statement: 'Read-only /app browse screens for grant-scoped requirements within a project: paged list with kind/type/status filters and q search (URL-driven), requirement detail (statement + attributes), and paged version history (newest first). Uses session/CSRF auth; safe DOM text only. Trace links deferred.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: Planned until requirements browse UI PR merges.
+    verification_note: 'Shipped with requirements browse UI PR #26.'
   statement_hash: sha256:da320f301ec823e5e10ccd0066b9104a486bcc08ed7d7f6abd6708e26a25a169
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-READ-RELEASES
+  base_uid: CAP-READ-RELEASES
+  version_n: 0
+  status: draft
+  statement: 'Grant-scoped releases read APIs: paged GET /api/v1/projects/:projectId/releases with optional status (planned | shipped), ordered planned_on desc then id; GET detail with notes and delivered capabilities (capability lines from release_delivers). cyber_gate is stored on the release row but not exposed in v1 read DTOs. gate_signoffs and contract in_scope_of edges from dogfood are not loaded by the seed loader (deferred). Invalid release id segments redact in logs/spans like project slugs.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-3
+    verification_note: Planned until releases read PR merges.
+  statement_hash: sha256:bf683421d344fa20fc22b10545b414ba7611e8aeb2247f05076c81bd93bb3e59
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -8320,6 +8347,15 @@ capability_artifacts:
 - requirement_version_uid: CAP-BROWSE-UI-REQS
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_browse_ui_reqs_release.py
+- requirement_version_uid: CAP-READ-RELEASES
+  kind: other
+  uri: ../../../apps/reqalm/src/http/project-id.ts
+- requirement_version_uid: CAP-READ-RELEASES
+  kind: other
+  uri: ../../../apps/reqalm/src/rbac/enforce.ts
+- requirement_version_uid: CAP-READ-RELEASES
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/releases/
 edges:
 - from: CAP-SSO
   to: A01
@@ -13975,6 +14011,18 @@ edges:
 - from: CAP-BROWSE-UI-REQS
   to: CAP-READ-REQS
   kind: satisfies
+- from: CAP-READ-RELEASES
+  to: G08
+  kind: satisfies
+- from: CAP-READ-RELEASES
+  to: ARCH-API-RBAC
+  kind: satisfies
+- from: CAP-READ-RELEASES
+  to: CAP-SVC-OPERATION-ROUTE
+  kind: satisfies
+- from: CAP-READ-RELEASES
+  to: CAP-RBAC
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -14513,17 +14561,27 @@ releases:
   delivers:
   - CAP-READ-REQS
   cyber_gate: false
-  notes: 'PR #24 merged to main as 25ed12cbde8dda053d9f3f91e612c9bff1108ae7 on 2026-10-08. Grant-scoped requirements read APIs (list, detail, versions).'
+  notes: 'Merged to main as 25ed12cbde8dda053d9f3f91e612c9bff1108ae7 on 2026-10-08. Read-only project-scoped requirement list/detail/versions HTTP APIs.'
 - id: rel-r1-browse-ui-reqs
   project_id: reqalm
   name: R1 — browse requirements UI (read-only)
   planned_on: '2026-10-08'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-08'
+  status: shipped
   delivers:
   - CAP-BROWSE-UI-REQS
   cyber_gate: false
-  notes: Read-only requirements list/detail/version history in /app; trace links deferred.
+  notes: Merged to main as 7185c9bf0fd59387f874226b918d83b4f0d56c00 on 2026-10-08. Read-only requirements list/detail/version history in /app; trace links deferred.
+- id: rel-r1-read-releases
+  project_id: reqalm
+  name: R1 — releases read API
+  planned_on: '2026-10-08'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-READ-RELEASES
+  cyber_gate: false
+  notes: Read-only project-scoped release list/detail HTTP APIs; gate_signoffs not in DB yet.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm
