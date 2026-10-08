@@ -317,18 +317,43 @@ describe("seed reset", () => {
     await pg.pool.query(
       `UPDATE identities SET display_name = 'Edited at runtime' WHERE id = 'casey-reader'`,
     );
-    const authTables = async () => ({
-      identities: (await pg.pool.query(`SELECT * FROM identities ORDER BY id`)).rows,
-      project_grants: (await pg.pool.query(`SELECT * FROM project_grants ORDER BY id`)).rows,
-      platform_grants: (await pg.pool.query(`SELECT * FROM platform_grants ORDER BY id`)).rows,
-      local_credentials: (await pg.pool.query(`SELECT * FROM local_credentials ORDER BY identity_id`)).rows,
-      dev_local_accounts: (await pg.pool.query(`SELECT * FROM dev_local_accounts ORDER BY identity_id`)).rows,
-      audit_events: (await pg.pool.query(`SELECT * FROM audit_events ORDER BY id`)).rows,
-    });
-    const authBefore = await authTables();
-    const credBefore = await pg.pool.query(
-      `SELECT password_hash FROM local_credentials WHERE identity_id = 'casey-reader'`,
+    await pg.pool.query(
+      `INSERT INTO web_sessions (id, identity_id, refresh_token_ciphertext, csrf_token, absolute_expires_at, idle_expires_at)
+       VALUES ('ws-harness', 'casey-reader', 'ciphertext', 'csrf', now() + interval '1 day', now() + interval '1 hour')`,
     );
+    await pg.pool.query(
+      `INSERT INTO auth_sessions (id, identity_id, absolute_expires_at, idle_expires_at)
+       VALUES ('as-harness', 'casey-reader', now() + interval '1 day', now() + interval '1 hour')`,
+    );
+    // Every table the reset does not own, row for row (clients/projects are synced from the YAML,
+    // seed_meta records the reset, audit_events is checked below).
+    const notOwned = async () => {
+      const owned = new Set([
+        "requirement_lines",
+        "requirement_versions",
+        "releases",
+        "release_delivers",
+        "clients",
+        "projects",
+        "seed_meta",
+        "audit_events",
+      ]);
+      const tables = (
+        await pg.pool.query(`SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY 1`)
+      ).rows
+        .map((r) => String(r.tablename))
+        .filter((t) => !owned.has(t));
+      const rows: Record<string, unknown[]> = {};
+      for (const t of tables) rows[t] = (await pg.pool.query(`SELECT * FROM ${t} x ORDER BY x::text`)).rows;
+      return rows;
+    };
+    const auditRows = async () =>
+      (await pg.pool.query(`SELECT * FROM audit_events ORDER BY id`)).rows;
+    const keptBefore = await notOwned();
+    for (const t of ["identities", "project_grants", "local_credentials", "web_sessions", "auth_sessions"]) {
+      assert.ok((keptBefore[t]?.length ?? 0) > 0, `${t} has rows before the reset`);
+    }
+    const auditBefore = await auditRows();
 
     await resetDogfoodSeed(pg.pool, config, seed, {
       confirm: true,
@@ -338,16 +363,12 @@ describe("seed reset", () => {
       actor: "dan",
     });
 
-    const authAfter = await authTables();
-    assert.deepEqual(authAfter.identities, authBefore.identities);
-    assert.deepEqual(authAfter.project_grants, authBefore.project_grants);
-    assert.deepEqual(authAfter.platform_grants, authBefore.platform_grants);
-    assert.deepEqual(authAfter.local_credentials, authBefore.local_credentials);
-    assert.deepEqual(authAfter.dev_local_accounts, authBefore.dev_local_accounts);
+    assert.deepEqual(await notOwned(), keptBefore);
+    const auditAfter = await auditRows();
     // audit_events: every earlier row unchanged, exactly one row appended.
-    assert.deepEqual(authAfter.audit_events.slice(0, -1), authBefore.audit_events);
-    assert.equal(authAfter.audit_events.length, authBefore.audit_events.length + 1);
-    const row = authAfter.audit_events.at(-1) as Record<string, unknown>;
+    assert.deepEqual(auditAfter.slice(0, -1), auditBefore);
+    assert.equal(auditAfter.length, auditBefore.length + 1);
+    const row = auditAfter.at(-1) as Record<string, unknown>;
     assert.equal(row.operation, "devenv.seed.reset");
     assert.equal(row.outcome, "allow");
     // The CLI authenticates no ReqALM identity: the label never lands in identity_id.
@@ -381,10 +402,6 @@ describe("seed reset", () => {
     assert.equal(extra.rowCount, 1);
     const grant = await pg.pool.query(`SELECT 1 FROM project_grants WHERE id = 'grant-extra'`);
     assert.equal(grant.rowCount, 1);
-    const credAfter = await pg.pool.query(
-      `SELECT password_hash FROM local_credentials WHERE identity_id = 'casey-reader'`,
-    );
-    assert.equal(credBefore.rows[0]?.password_hash, credAfter.rows[0]?.password_hash);
     await pg.close();
   });
 
