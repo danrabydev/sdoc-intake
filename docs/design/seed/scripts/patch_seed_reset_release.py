@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Add rel-r1-seed-reset / CAP-DEVENV-SEED-RESET only (this PR).
+"""Ship rel-r1-route-hardening (PR #20) and add rel-r1-seed-reset / CAP-DEVENV-SEED-RESET (this PR).
 
-Does not ship rel-r1-route-helper (PR #20 owns that). Idempotent. Does NOT git commit.
+Idempotent. Does NOT git commit.
 Run yaml_to_strictdoc.py --validate afterwards.
 """
 from __future__ import annotations
@@ -16,6 +16,9 @@ from ruamel.yaml.comments import CommentedMap
 SEED = Path(__file__).resolve().parent.parent
 DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
+# PR #20 merged 2026-10-08T03:52Z = 2026-10-07 23:52 America/New_York (dates are Dan's time zone).
+SHIPPED_ROUTE_HARDENING = "2026-10-07"
+ROUTE_HARDENING_MERGE_SHA = "22bb19420d9587f7700b6ee9a874fd3fa3e8c83f"
 
 yaml = YAML()
 yaml.preserve_quotes = True
@@ -61,6 +64,14 @@ def ensure_edge(edges, edge):
     return 1
 
 
+ROUTE_HARDENING_CAPS = [
+    "CAP-SVC-PROJECT-ID-SLUG",
+    "CAP-SVC-STATIC-DEP-PATCH",
+    "CAP-OTEL-SPAN-SAFE-ERRORS",
+    "CAP-SVC-IMPLICIT-PUBLIC-EXACT",
+    "CAP-SVC-NON-API-AUTH-AUDIT",
+]
+
 SEED_RESET_CAPS = [
     (
         "CAP-DEVENV-SEED-RESET",
@@ -89,6 +100,21 @@ SEED_RESET_CAPS = [
 def main() -> None:
     with DOGFOOD.open("r", encoding="utf-8") as f:
         data = yaml.load(f)
+
+    rel_hardening = find(data.get("releases"), "id", "rel-r1-route-hardening")
+    if rel_hardening:
+        rel_hardening["status"] = "shipped"
+        rel_hardening["shipped_on"] = SHIPPED_ROUTE_HARDENING
+        rel_hardening["notes"] = (
+            "PR https://github.com/danrabydev/sdoc-intake/pull/20 merged to main as "
+            f"{ROUTE_HARDENING_MERGE_SHA} on {SHIPPED_ROUTE_HARDENING}; verified locally (tests x3, "
+            "78/79 mutations, M4b equivalent); QA and Cyber APPROVE."
+        )
+    for cap in ROUTE_HARDENING_CAPS:
+        ver = find(data.get("requirement_versions"), "uid", cap)
+        if ver and ver.get("status") == "draft":
+            ver["status"] = "active"
+            ver["verification_outcome"] = "pass"
 
     edges = data.setdefault("edges", [])
     arts = data.setdefault("capability_artifacts", [])
@@ -164,7 +190,7 @@ def main() -> None:
     with DOGFOOD.open("w", encoding="utf-8") as f:
         yaml.dump(data, f)
 
-    print("Patched dogfood.yaml: rel-r1-seed-reset / CAP-DEVENV-SEED-RESET only")
+    print("Patched dogfood.yaml: shipped rel-r1-route-hardening, rel-r1-seed-reset / CAP-DEVENV-SEED-RESET")
 
 
 if __name__ == "__main__":

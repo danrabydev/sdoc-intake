@@ -9106,7 +9106,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-PROJECT-ID-SLUG
-STATUS: Draft
+STATUS: Active
 TITLE: Project id path param slug validation
 STATEMENT: >>>
 The :projectId path param must match ^[a-z0-9][a-z0-9-]{0,63}$ before it becomes project scope. An id that does not (padded, control characters, uppercase, over-long at any length) is not_found after authentication, identical to a missing or ungranted project, and an unauthenticated caller gets the same 401 as for a valid id, before any validation detail. An invalid id is never recorded raw: audit_events.project_id is NULL, no reqalm.project_id span attribute is set, and request logs and exported span URL attributes show the segment as [invalid].
@@ -9136,7 +9136,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-STATIC-DEP-PATCH
-STATUS: Draft
+STATUS: Active
 TITLE: Production @fastify/static dependency patch
 STATEMENT: >>>
 apps/reqalm resolves @fastify/static 10.1.5 both directly (^10.1.5) and through @fastify/swagger-ui 6.1.1 (^10.1.0), with no pnpm override, so GHSA-83w8-p2f5-377r and GHSA-8pvw-jcv7-9cmj (and GHSA-pr96-94w5-mx2h, GHSA-x428-ghpx-8j92) are gone from pnpm audit --prod; the web bundle and /docs still serve, and encoded path-traversal requests never return file contents.
@@ -9163,7 +9163,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-OTEL-SPAN-SAFE-ERRORS
-STATUS: Draft
+STATUS: Active
 TITLE: Span errors without raw exception text
 STATEMENT: >>>
 Every exported span (operation, Fastify request and handler, http, pg, undici, OpenBao) reports a failure as ERROR status with the generic message 'operation failed'; exception events keep only exception.type (no message or stack); operation spans add reqalm.error_kind (service error code or internal). Raw exception and database text stays in the server log only.
@@ -9193,7 +9193,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-IMPLICIT-PUBLIC-EXACT
-STATUS: Draft
+STATUS: Active
 TITLE: Implicit public route allowlist is method+path exact
 STATEMENT: >>>
 OAuth, probe, and auth-shaped routes become implicitly public only when METHOD and path match the exact allowlist (HEAD checked as GET; /docs for GET and HEAD only), and a route registered for several methods only if every method matches; any other method or path must declare reqalmSecurity.
@@ -9226,7 +9226,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-NON-API-AUTH-AUDIT
-STATUS: Draft
+STATUS: Active
 TITLE: Authenticated non-/api routes audited or allowlisted
 STATEMENT: >>>
 Hand-registered authenticated routes outside /api/ must use defineOperationRoute or sit on an exact METHOD + path allowlist (today only POST /mcp); route-security.test.ts fails closed otherwise.
