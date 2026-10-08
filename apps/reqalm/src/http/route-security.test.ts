@@ -4,6 +4,7 @@ import Fastify from "fastify";
 import { createTestApp, type TestApp } from "../test/harness.js";
 import {
   assertAllApiRoutesDeclared,
+  assertAuthenticatedNonApiRoutesCompliant,
   assertBusinessApiRoutesCompliant,
   installRouteCapture,
   listRoutesForSecurityAudit,
@@ -43,6 +44,12 @@ describe("route security registration", () => {
       violations,
       [],
       `Business route violations: ${violations.join("; ")}`,
+    );
+    const nonApiAuth = assertAuthenticatedNonApiRoutesCompliant(routes);
+    assert.deepEqual(
+      nonApiAuth,
+      [],
+      `Non-/api authenticated route violations: ${nonApiAuth.join("; ")}`,
     );
     for (const r of routes) {
       if (r.url.startsWith("/api/v1/") && r.url.includes("projects")) {
@@ -111,9 +118,28 @@ describe("assertBusinessApiRoutesCompliant (mutation cases)", () => {
       assertBusinessApiRoutesCompliant(hand("POST", "/admin", { kind: "permission", permission: "grant:manage" })).length,
       1,
     );
-    // Outside /api/, a non-permission route is left to the all-routes declaration check.
-    assert.deepEqual(assertBusinessApiRoutesCompliant(hand("GET", "/admin", { kind: "authenticated" })), []);
+    assert.equal(
+      assertAuthenticatedNonApiRoutesCompliant(hand("GET", "/admin", { kind: "authenticated" })).length,
+      1,
+    );
+    assert.deepEqual(assertAuthenticatedNonApiRoutesCompliant(hand("POST", "/mcp", { kind: "authenticated" })), []);
     assert.deepEqual(assertAllApiRoutesDeclared(hand("GET", "/admin")), ["GET /admin"]);
+  });
+
+  it("implicit public routes require matching HTTP method", async () => {
+    const app = Fastify();
+    installRouteCapture(app);
+    app.get("/health", async () => ({ ok: true }));
+    app.post("/health", async () => ({ ok: false }));
+    app.post("/oauth/token", async () => ({}));
+    app.get("/oauth/token", async () => ({}));
+    await app.ready();
+    const routes = listRoutesForSecurityAudit(app);
+    assert.equal(routes.find((r) => r.method === "GET" && r.url === "/health")?.security?.kind, "public");
+    assert.equal(routes.find((r) => r.method === "POST" && r.url === "/health")?.security?.kind, undefined);
+    assert.equal(routes.find((r) => r.method === "POST" && r.url === "/oauth/token")?.security?.kind, "public");
+    assert.equal(routes.find((r) => r.method === "GET" && r.url === "/oauth/token")?.security?.kind, undefined);
+    await app.close();
   });
 
   it("detects a live hand-registered business route on a throwaway app", async () => {

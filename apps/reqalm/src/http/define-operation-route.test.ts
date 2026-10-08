@@ -232,11 +232,24 @@ describe("authenticate → project scope → permission → parseInput → execu
     assert.equal((await auditRow("ord-misbound")).outcome, "error");
   });
 
-  it("projectIdSchema accepts exact ids only", () => {
-    for (const ok of ["reqalm", "a-b_c.1"]) assert.equal(projectIdSchema.safeParse(ok).success, true, ok);
-    for (const bad of ["", " ", " reqalm", "reqalm ", "\treqalm", 7, undefined]) {
+  it("projectIdSchema accepts slug ids only", () => {
+    for (const id of ["reqalm", "a-b", "secret-proj", "ungranted", "no-such"]) {
+      assert.equal(projectIdSchema.safeParse(id).success, true, id);
+    }
+    for (const bad of ["", " ", " reqalm", "reqalm ", "\treqalm", "A", "a_b", "a.b", "-bad", "x".repeat(65), 7, undefined]) {
       assert.equal(projectIdSchema.safeParse(bad).success, false, String(bad));
     }
+  });
+
+  it("pre-handler body errors run auth before validation (reachedHandler guard)", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/test/projects/reqalm/items",
+      headers: { "content-type": "application/json", "x-request-id": "ord-prehandler-401" },
+      payload: "{",
+    });
+    assertProblem(res, 401, "unauthenticated", "ord-prehandler-401");
+    assert.equal((await auditRow("ord-prehandler-401")).outcome, "deny");
   });
 });
 

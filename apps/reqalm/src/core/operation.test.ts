@@ -6,6 +6,7 @@ import type { RequestContext } from "./request-context.js";
 import { createMigratedPglitePool } from "../test/pglite-pool.js";
 import { createTestApp } from "../test/harness.js";
 import { ok } from "./service-result.js";
+import { resetTelemetrySpans, finishedSpans } from "../test/otel-testing.js";
 
 function minimalCtx(pool: pg.Pool, requestId = "op-test"): RequestContext {
   return {
@@ -47,6 +48,7 @@ function minimalCtx(pool: pg.Pool, requestId = "op-test"): RequestContext {
 
 describe("runOperation", () => {
   it("audits error when execute throws", async () => {
+    resetTelemetrySpans();
     const fixture = await createMigratedPglitePool();
     const ctx = minimalCtx(fixture.pool);
     await runOperation(
@@ -64,6 +66,10 @@ describe("runOperation", () => {
       ["op-test"],
     );
     assert.equal(r.rows[0]?.outcome, "error");
+    const opSpan = finishedSpans().find((s) => s.name === "operation test.throw");
+    assert.ok(opSpan);
+    assert.equal(opSpan!.status.message, "operation failed");
+    assert.doesNotMatch(String(opSpan!.status.message), /boom/);
     await fixture.close();
   });
 

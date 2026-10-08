@@ -10,7 +10,8 @@
   },
   "pnpm": {
     "overrides": {
-      "nf3": "0.3.17"
+      "nf3": "0.3.17",
+      "@fastify/static": "^10.1.2"
     }
   },
   "dependencies": {

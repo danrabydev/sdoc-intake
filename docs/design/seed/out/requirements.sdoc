@@ -7223,6 +7223,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from CAP-AUTH-AUDIT
+edge: ← satisfies from CAP-SVC-NON-API-AUTH-AUDIT
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8317,6 +8318,7 @@ edge: ← uses from ARCH-KEY-LIFECYCLE
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
 edge: ← uses from ARCH-OTEL-TRACE
+edge: ← satisfies from CAP-OTEL-SPAN-SAFE-ERRORS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -8452,6 +8454,7 @@ edge: ← satisfies from CAP-SVC-ROUTE-REGISTRY
 edge: ← satisfies from CAP-SVC-PROJECT-READ
 edge: ← satisfies from CAP-SVC-OPERATION-ROUTE
 edge: ← satisfies from CAP-SVC-BUSINESS-ROUTE-AUDIT
+edge: ← satisfies from CAP-SVC-PROJECT-ID-SLUG
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -8720,6 +8723,8 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
 edge: ← satisfies from CAP-SVC-BUSINESS-ROUTE-AUDIT
+edge: ← refines from CAP-SVC-IMPLICIT-PUBLIC-EXACT
+edge: ← refines from CAP-SVC-NON-API-AUTH-AUDIT
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -8885,6 +8890,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until OTel tracing PR merges.
+edge: ← refines from CAP-OTEL-SPAN-SAFE-ERRORS
 delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
 <<<
 RELATIONS:
@@ -9007,7 +9013,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-OPERATION-ROUTE
-STATUS: Draft
+STATUS: Active
 TITLE: defineOperationRoute — single pipeline for /api/ business routes
 STATEMENT: >>>
 Business routes under /api/ register only via defineOperationRoute, which runs authenticate, project scope, permission, parseInput, execute, append-only audit_events, log, in that order. Project scope comes from the :projectId path param, parsed before any input validation; an unparsable id is not_found, identical to a missing or ungranted project, and the validated input must name the same project. parseInput validates params/query/body once (Zod); validation failures, including unreadable bodies, reach only authenticated, in-scope, authorized callers, are audited without input values, and answer Problem Details (application/problem+json); unexpected throws are a 500 without the error message. reqalmSecurity is derived from the operation; registration throws unless the operation declares a permission bound to a project (projectScoped + projectIdFromInput + :projectId path param) or authenticatedOnly.
@@ -9020,6 +9026,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until operation-route PR merges.
+edge: ← refines from CAP-SVC-PROJECT-ID-SLUG
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<
 RELATIONS:
@@ -9040,7 +9047,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-BUSINESS-ROUTE-AUDIT
-STATUS: Draft
+STATUS: Active
 TITLE: Fail-closed business route registration test
 STATEMENT: >>>
 route-security.test.ts rejects /api/ routes not registered via defineOperationRoute (exact METHOD + path allowlist for auth/OAuth-shaped and dev seed routes), permission markers on any hand-registered route, and reqalmSecurity markers that disagree with the operation.
@@ -9053,6 +9060,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until operation-route PR merges.
+edge: ← refines from CAP-SVC-IMPLICIT-PUBLIC-EXACT
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<
 RELATIONS:
@@ -9070,7 +9078,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-PROBLEM-JSON
-STATUS: Draft
+STATUS: Active
 TITLE: Problem Details content type on service errors
 STATEMENT: >>>
 Error responses from operation routes and from unknown /api/ paths are Problem Details with Content-Type application/problem+json and the request id, as documented in the static OpenAPI spec.
@@ -9093,6 +9101,153 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-helper
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-PROJECT-ID-SLUG
+STATUS: Draft
+TITLE: Project id path param slug validation
+STATEMENT: >>>
+The :projectId path param must match ^[a-z0-9][a-z0-9-]{0,63}$ before project scope, RBAC, audit_events.project_id, structured logs, or reqalm.project_id span attributes; invalid ids are not_found identical to a missing or ungranted project; unauthenticated callers still receive 401 before any validation detail.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-PROJECT-ID-SLUG
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until route-hardening PR merges.
+delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: Refines
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-route-hardening
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-STATIC-DEP-PATCH
+STATUS: Draft
+TITLE: Production @fastify/static dependency patch
+STATEMENT: >>>
+The API web role serves static assets with @fastify/static >= 10.1.2 so known path-traversal and route-guard advisories (GHSA-83w8, GHSA-8pvw) are cleared from pnpm audit --prod on apps/reqalm.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-STATIC-DEP-PATCH
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until route-hardening PR merges.
+delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-MINIMAL
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-route-hardening
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-OTEL-SPAN-SAFE-ERRORS
+STATUS: Draft
+TITLE: Operation span errors without raw exception text
+STATEMENT: >>>
+Operation spans mark deny/error with a generic status message and reqalm.error_kind (error code); raw exception or database detail stays in server logs only.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-OTEL-SPAN-SAFE-ERRORS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until route-hardening PR merges.
+delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: CAP-OTEL-OPERATION-SPANS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-route-hardening
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-IMPLICIT-PUBLIC-EXACT
+STATUS: Draft
+TITLE: Implicit public route allowlist is method+path exact
+STATEMENT: >>>
+OAuth, probe, and auth-shaped routes become public only when METHOD and path match the exact allowlist (same pattern as /api non-operation routes); wrong methods must declare reqalmSecurity.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-IMPLICIT-PUBLIC-EXACT
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until route-hardening PR merges.
+delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: CAP-SVC-ROUTE-REGISTRY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  ROLE: Refines
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-route-hardening
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-NON-API-AUTH-AUDIT
+STATUS: Draft
+TITLE: Authenticated non-/api routes audited or allowlisted
+STATEMENT: >>>
+Hand-registered authenticated routes outside /api/ must use defineOperationRoute or sit on an exact method+path allowlist (POST /mcp); registration tests fail closed otherwise.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-NON-API-AUTH-AUDIT
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until route-hardening PR merges.
+delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: CAP-SVC-ROUTE-REGISTRY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CAP-AUDIT
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-route-hardening
   ROLE: Delivers
 
 [[/SECTION]]
@@ -14606,6 +14761,7 @@ edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
 edge: ← uses from FIX-ALLOW-APP-ROLE-SPLIT
 edge: ← satisfies from CAP-DEVENV-DOCKERFILE-ROLES
+edge: ← satisfies from CAP-SVC-STATIC-DEP-PATCH
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)

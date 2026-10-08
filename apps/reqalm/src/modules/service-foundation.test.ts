@@ -21,6 +21,7 @@ after(async () => {
 type InjectResponse = {
   statusCode: number;
   headers: Record<string, string | string[] | undefined>;
+  body: string;
   json(): unknown;
 };
 
@@ -113,7 +114,7 @@ describe("service foundation (projects read)", () => {
     assert.equal(missing.status, 404);
     assert.match(String(missing.ctype), /^application\/problem\+json/);
     // Blank or padded ids never resolve to the real project and never leak validation details.
-    for (const id of ["%20", "%20reqalm", "reqalm%20", "%09reqalm"]) {
+    for (const id of ["%20", "%20reqalm", "reqalm%20", "%09reqalm", "%0a", "%41"]) {
       assert.deepEqual(strip(await get(id)), missing, id);
     }
   });
@@ -444,12 +445,35 @@ describe("unknown /api paths", () => {
     }
   });
 
-  it("non-API paths still get the web app", async () => {
+  it("non-API paths still get the web app when the web role is enabled", async () => {
     for (const url of ["/app/some/page", "/apiary"]) {
       const res = await call404("GET", url, "unknown-web");
       assert.equal(res.statusCode, 200, url);
       assert.match(String(res.headers["content-type"]), /^text\/html/, url);
     }
+  });
+
+  it("non-API paths return 404 without the web role (no SPA fallback)", async () => {
+    const apiOnly = await createTestApp({ roles: "api,mcp" });
+    try {
+      const res = await apiOnly.app.inject({
+        method: "GET",
+        url: "/app/some/page",
+        remoteAddress: "203.0.113.50",
+        headers: { host: "localhost:3000", "x-request-id": "no-web-spa" },
+      });
+      assert.equal(res.statusCode, 404);
+      assert.deepEqual(res.json(), { error: "not_found" });
+    } finally {
+      await apiOnly.close();
+    }
+  });
+
+  it("serves the web static bundle from the web role", async () => {
+    const res = await inject({ method: "GET", url: "/" });
+    assert.equal(res.statusCode, 200);
+    assert.match(String(res.headers["content-type"]), /^text\/html/);
+    assert.match(res.body, /<!DOCTYPE html>/i);
   });
 
   function call404(method: string, url: string, rid: string) {

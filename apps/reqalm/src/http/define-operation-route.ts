@@ -47,10 +47,10 @@ export function parseZodInput<T>(
   });
 }
 
-/** Exact project id: non-empty and never trimmed (a padded id must not resolve to the real project). */
-export const projectIdSchema = z
-  .string()
-  .refine((v) => v.trim() !== "" && v.trim() === v, "invalid project id");
+/** DNS-like slug: lowercase alnum with interior hyphens, 1–64 chars (matches persisted project ids). */
+export const PROJECT_ID_SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
+
+export const projectIdSchema = z.string().regex(PROJECT_ID_SLUG, "invalid project id");
 
 /**
  * Project scope of a project-scoped route: the `:projectId` path param, parsed before input validation.

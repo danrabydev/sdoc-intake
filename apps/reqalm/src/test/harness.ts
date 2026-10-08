@@ -75,10 +75,12 @@ export async function seedAuthUsers(pool: pg.Pool, keyProvider: KeyProvider): Pr
   await storeMfaSecret(pool, keyProvider, "sam-security", TEST_MFA_SECRET);
 }
 
-export async function createTestApp(): Promise<TestApp> {
+export async function createTestApp(options?: { roles?: string }): Promise<TestApp> {
   const pgFixture = await createMigratedPglitePool();
   const { pool } = pgFixture;
-  const config = loadConfig(testConfigEnv());
+  const env = testConfigEnv();
+  if (options?.roles) env.REQALM_ROLES = options.roles;
+  const config = loadConfig(env);
   const keyProvider = createMemoryKeyProvider();
   await seedAuthUsers(pool, keyProvider);
 
