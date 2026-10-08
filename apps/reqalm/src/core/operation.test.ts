@@ -114,46 +114,52 @@ describe("runOperation", () => {
 
   it("refuses listScope combined with projectScoped in runPipeline", async () => {
     const fixture = await createMigratedPglitePool();
-    const ctx = minimalCtx(fixture.pool, "op-listscope-conflict");
-    const res = await runOperation(
-      ctx,
-      {
-        name: "test.bad_combo",
-        permission: "project:list",
-        listScope: true,
-        projectScoped: true,
-        projectIdFromInput: () => "reqalm",
-        execute: async () => ok("leak"),
-      },
-      { projectId: "reqalm" } as never,
-    );
-    assert.equal(!res.ok && res.error.code, "internal");
-    const r = await fixture.pool.query<{ outcome: string }>(
-      `SELECT outcome FROM audit_events WHERE request_id = 'op-listscope-conflict'`,
-    );
-    assert.equal(r.rows[0]?.outcome, "error");
-    await fixture.close();
+    try {
+      const ctx = minimalCtx(fixture.pool, "op-listscope-conflict");
+      const res = await runOperation(
+        ctx,
+        {
+          name: "test.bad_combo",
+          permission: "project:list",
+          listScope: true,
+          projectScoped: true,
+          projectIdFromInput: () => "reqalm",
+          execute: async () => ok("leak"),
+        },
+        { projectId: "reqalm" } as never,
+      );
+      assert.equal(!res.ok && res.error.code, "internal");
+      const r = await fixture.pool.query<{ outcome: string }>(
+        `SELECT outcome FROM audit_events WHERE request_id = 'op-listscope-conflict'`,
+      );
+      assert.equal(r.rows[0]?.outcome, "error");
+    } finally {
+      await fixture.close();
+    }
   });
 
   it("listScope skips union authorize and filters via allowedProjectIds", async () => {
     const fixture = await createMigratedPglitePool();
-    const ctx = minimalCtx(fixture.pool, "op-listscope-skip");
-    ctx.projectGrants = [{ project_id: "reqalm", role: "Key custodian" }];
-    ctx.effectiveRoles = ["Key custodian"];
-    let captured: readonly string[] | undefined;
-    const listOp: OperationDef<PageQuery, PageResult<{ id: string }>> = {
-      name: "test.listscope",
-      permission: "project:list",
-      listScope: true,
-      execute: async (c, input) => {
-        captured = c.allowedProjectIds;
-        return ok({ items: [], limit: input.limit, offset: input.offset, total: 0 });
-      },
-    };
-    const res = await runOperation(ctx, listOp, { limit: 20, offset: 0 });
-    assert.equal(res.ok, true);
-    assert.deepEqual(captured, []);
-    await fixture.close();
+    try {
+      const ctx = minimalCtx(fixture.pool, "op-listscope-skip");
+      ctx.projectGrants = [{ project_id: "reqalm", role: "Key custodian" }];
+      ctx.effectiveRoles = ["Key custodian"];
+      let captured: readonly string[] | undefined;
+      const listOp: OperationDef<PageQuery, PageResult<{ id: string }>> = {
+        name: "test.listscope",
+        permission: "project:list",
+        listScope: true,
+        execute: async (c, input) => {
+          captured = c.allowedProjectIds;
+          return ok({ items: [], limit: input.limit, offset: input.offset, total: 0 });
+        },
+      };
+      const res = await runOperation(ctx, listOp, { limit: 20, offset: 0 });
+      assert.equal(res.ok, true);
+      assert.deepEqual(captured, []);
+    } finally {
+      await fixture.close();
+    }
   });
 
   it("authorizes with the token-bound agent role, not the identity's wider grants", async () => {

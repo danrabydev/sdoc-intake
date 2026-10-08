@@ -1199,6 +1199,15 @@ approval_records:
   notes: Planned for browse UI PR.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-read-reqs
+  subject_kind: CapabilityLine
+  base_uid: CAP-READ-REQS
+  status: unapproved
+  by:
+  at:
+  notes: Planned for requirements read API PR.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3075,6 +3084,11 @@ requirement_lines:
   parent: SEC-CP
   kind: capability
   title: Browse clients and projects UI (read-only)
+- base_uid: CAP-READ-REQS
+  project_id: reqalm
+  parent: SEC-CP
+  kind: capability
+  title: Read requirements (list, detail, versions)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -7719,6 +7733,18 @@ requirement_versions:
     verification_note: Planned until browse UI PR merges.
   statement_hash: sha256:53cbdcd7737fe55b58ce0a03bbc304894761d65ed64714ed17019d2ef2122fb9
   grooming_state: detailed
+- uid: CAP-READ-REQS
+  base_uid: CAP-READ-REQS
+  version_n: 0
+  status: draft
+  statement: 'Grant-scoped requirements read APIs: paged GET /api/v1/projects/:projectId/requirements with filters (kind, type, status, q) and current-version summaries; GET detail (statement + version attributes); GET version history (newest first). listScope pipeline supplies allowedProjectIds for browse lists; trace edges are not persisted in the seed loader yet (deferred). Invalid requirement id segments redact in logs/spans like client/project slugs.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-3
+    verification_note: Planned until requirements read PR merges.
+  statement_hash: sha256:28fa0084fdc727434ad743dea1b4d089873f9c48ec1035eb584b05a36a071d0b
+  grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -8233,6 +8259,21 @@ capability_artifacts:
 - requirement_version_uid: CAP-BROWSE-UI-CP
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_browse_ui_cp_release.py
+- requirement_version_uid: CAP-READ-REQS
+  kind: other
+  uri: ../../../apps/reqalm/src/core/operation.ts
+- requirement_version_uid: CAP-READ-REQS
+  kind: other
+  uri: ../../../apps/reqalm/src/core/paging.ts
+- requirement_version_uid: CAP-READ-REQS
+  kind: other
+  uri: ../../../apps/reqalm/src/rbac/enforce.ts
+- requirement_version_uid: CAP-READ-REQS
+  kind: other
+  uri: ../../../apps/reqalm/src/http/project-id.ts
+- requirement_version_uid: CAP-READ-REQS
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/requirements/
 edges:
 - from: CAP-SSO
   to: A01
@@ -13858,6 +13899,21 @@ edges:
 - from: CAP-BROWSE-UI-CP
   to: CAP-BROWSE-CP
   kind: satisfies
+- from: CAP-READ-REQS
+  to: C08
+  kind: satisfies
+- from: CAP-READ-REQS
+  to: C06
+  kind: satisfies
+- from: CAP-READ-REQS
+  to: ARCH-API-RBAC
+  kind: satisfies
+- from: CAP-READ-REQS
+  to: CAP-SVC-OPERATION-ROUTE
+  kind: satisfies
+- from: CAP-READ-REQS
+  to: CAP-RBAC
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -14387,6 +14443,16 @@ releases:
   - CAP-BROWSE-UI-CP
   cyber_gate: false
   notes: Read-only /app clients and projects screens on grant-scoped APIs; project Requirements/Releases panes still to come.
+- id: rel-r1-read-requirements
+  project_id: reqalm
+  name: R1 — requirements read API
+  planned_on: '2026-10-08'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-READ-REQS
+  cyber_gate: false
+  notes: Read-only project-scoped requirement list/detail/versions HTTP APIs (no trace edges in DB yet).
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

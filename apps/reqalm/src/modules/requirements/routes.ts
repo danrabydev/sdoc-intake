@@ -31,10 +31,10 @@ const projectRequirementParams = z.object({
 });
 
 const listQuerySchema = pageQuerySchema.extend({
-  kind: z.string().min(1).optional(),
-  type: z.string().min(1).optional(),
-  status: z.string().min(1).optional(),
-  q: z.string().min(1).optional(),
+  kind: z.string().min(1).max(64).optional(),
+  type: z.string().min(1).max(64).optional(),
+  status: z.string().min(1).max(64).optional(),
+  q: z.string().min(1).max(200).optional(),
 });
 
 const listRequirementsOp: OperationDef<RequirementListFilters, PageResult<RequirementSummaryDto>> = {

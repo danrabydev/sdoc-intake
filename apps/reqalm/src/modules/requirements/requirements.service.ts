@@ -18,7 +18,6 @@ export type RequirementSummaryDto = {
   status: string;
   version_id: string;
   version_n: number;
-  updated: null;
 };
 
 export type RequirementDetailDto = RequirementSummaryDto & {
@@ -33,7 +32,6 @@ export type RequirementVersionDto = {
   status: string;
   title: string | null;
   statement: string;
-  updated: null;
 };
 
 export type GetRequirementInput = { projectId: string; requirementId: string };
@@ -76,7 +74,6 @@ function summary(r: Row): RequirementSummaryDto {
     status: r.status,
     version_id: r.uid,
     version_n: r.version_n,
-    updated: null,
   };
 }
 
@@ -161,8 +158,8 @@ export async function listRequirementVersions(
         [input.projectId, input.requirementId],
       )
     ).rows[0]?.c ?? 0;
-  const res = await ctx.pool.query<RequirementVersionDto & { uid: string }>(
-    `SELECT uid AS version_id, version_n, status, title, statement, NULL::text AS updated
+  const res = await ctx.pool.query<RequirementVersionDto>(
+    `SELECT uid AS version_id, version_n, status, title, statement
      FROM requirement_versions WHERE project_id = $1 AND base_uid = $2
      ORDER BY version_n DESC LIMIT $3 OFFSET $4`,
     [input.projectId, input.requirementId, input.limit, input.offset],

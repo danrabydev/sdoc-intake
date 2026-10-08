@@ -18,6 +18,7 @@ const EXPECTED: Record<string, string[]> = {
 
 describe("ROLE_PERMISSIONS table", () => {
   it("pins each role's exact permission set", () => {
+    assert.deepEqual(Object.keys(ROLE_PERMISSIONS).sort(), Object.keys(EXPECTED).sort());
     for (const [role, perms] of Object.entries(EXPECTED)) {
       assert.deepEqual([...(ROLE_PERMISSIONS[role] ?? [])].sort(), [...perms].sort(), role);
     }

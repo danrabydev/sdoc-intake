@@ -620,6 +620,17 @@ describe("browse clients and projects", () => {
       (await inject({ method: "GET", url: "/api/v1/projects?offset=100001", headers: h })).statusCode,
       400,
     );
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/projects?offset=100000&limit=1", headers: h })).statusCode,
+      200,
+    );
+  });
+
+  it("listClientProjects uses allowedProjectIds (Key custodian grant does not unlock client)", async () => {
+    const h = bearer(caseyAccess);
+    const res = await inject({ method: "GET", url: "/api/v1/clients/other-family/projects", headers: h });
+    assert.equal(res.statusCode, 404);
+    assert.notEqual((res.json() as { code: string }).code, "validation");
   });
 
   it("invalid client id redacts logs and span url.path", async () => {
