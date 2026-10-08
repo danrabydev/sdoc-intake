@@ -7,6 +7,7 @@ import { buildMeDto, type MeDto } from "./me.service.js";
 
 const meOp: OperationDef<Record<string, never>, MeDto> = {
   name: "identity.me",
+  authenticatedOnly: true,
   execute: async (ctx) => buildMeDto(ctx),
 };
 

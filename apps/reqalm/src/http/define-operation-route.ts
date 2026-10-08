@@ -60,6 +60,39 @@ function operationRouteErrorHandler(error: FastifyError, req: FastifyRequest, re
 }
 
 /**
+ * Fail closed at registration: a route must name its operation, its access (permission or explicitly
+ * authenticated-only) and, for a permission, the project it is checked against. A permission without a
+ * project would be authorized against the union of the caller's grants in every project.
+ */
+function assertOperationBinding(
+  label: string,
+  op: Partial<Record<keyof OperationDef<unknown, unknown>, unknown>> | undefined,
+  parseInput: unknown,
+): void {
+  const fail = (why: string): never => {
+    throw new Error(`${label}: ${why}`);
+  };
+  if (!op || typeof op.name !== "string" || op.name === "" || typeof op.execute !== "function") {
+    fail("missing operation (name and execute)");
+  }
+  if (typeof parseInput !== "function") fail("missing parseInput");
+  const permission = op!.permission;
+  if (permission !== undefined && (typeof permission !== "string" || permission === "")) {
+    fail("permission must be a non-empty string");
+  }
+  if (!permission && op!.authenticatedOnly !== true) {
+    fail("missing permission (or authenticatedOnly: true)");
+  }
+  if (permission && op!.authenticatedOnly) fail("permission and authenticatedOnly are exclusive");
+  if (permission && op!.projectScoped !== true) {
+    fail("permission without project scope (set projectScoped and projectIdFromInput)");
+  }
+  if (op!.projectScoped && typeof op!.projectIdFromInput !== "function") {
+    fail("projectScoped without projectIdFromInput");
+  }
+}
+
+/**
  * The only way to register a business route under `/api/` (enforced by route-security.test.ts).
  * Derives `reqalmSecurity` from the operation and runs context → parseInput → runOperation → envelope.
  */
@@ -69,6 +102,7 @@ export function defineOperationRoute<TIn, TOut>(
   options: DefineOperationRouteOptions<TIn, TOut>,
 ): void {
   const { method, url, op, parseInput, schema } = options;
+  assertOperationBinding(`${method.toUpperCase()} ${url}`, op, parseInput);
   const inputKeys = schema ? INPUT_SCHEMA_KEYS.filter((k) => k in schema) : [];
   if (inputKeys.length > 0) {
     throw new Error(`${method} ${url}: validate ${inputKeys.join(", ")} in parseInput, not in schema`);

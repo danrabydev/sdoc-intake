@@ -17,6 +17,8 @@ export type OperationDef<TIn, TOut> = {
   name: string;
   /** When set, RBAC must allow this permission (after auth). */
   permission?: string;
+  /** Declares that any authenticated caller may run it (no permission). Routes must say one or the other. */
+  authenticatedOnly?: true;
   /** When true, caller must have a live project grant before permission check; else not_found. */
   projectScoped?: boolean;
   projectIdFromInput?: (input: TIn) => string | undefined;

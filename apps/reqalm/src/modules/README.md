@@ -9,7 +9,7 @@ Each feature lives under `src/modules/<feature>/` with:
 ## Adding a module, operation, and route
 
 1. **Service** — implement `execute(ctx, input)` returning `ServiceResult<T>` in `*.service.ts`.
-2. **Operation** — declare an `OperationDef` with `name`, optional `permission`, optional `projectScoped` / `projectIdFromInput`, and `auditMeta` when audited.
+2. **Operation** — declare an `OperationDef` with `name`, `execute`, and either `permission` (with `projectScoped: true` and `projectIdFromInput`) or `authenticatedOnly: true`; add `auditMeta` when audited. `defineOperationRoute` throws at registration if any of these bindings is missing (a permission without a project would be checked against the caller's grants in every project).
 3. **Route** — in `routes.ts`, call `defineOperationRoute(app, deps, { method, url, op, parseInput, schema? })`:
    - `parseInput` is the only input validation: parse `params` / `query` / `body` with `parseZodInput` (Zod, no transforms on identifiers). Failures are HTTP 400 Problem Details (`application/problem+json`).
    - `schema` is documentation and response serialization only; the helper refuses `params` / `querystring` / `body` / `headers` schemas so there is one validator.

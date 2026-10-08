@@ -12,6 +12,7 @@ let app: FastifyInstance;
 
 const echoOp = {
   name: "test.echo",
+  authenticatedOnly: true as const,
   execute: async () => ok({ echoed: true }),
 };
 
@@ -91,6 +92,80 @@ describe("defineOperationRoute errors are Problem Details", () => {
 });
 
 describe("defineOperationRoute registration", () => {
+  const exec = async () => ok({});
+  const scoped = { projectScoped: true, projectIdFromInput: (i: { projectId: string }) => i.projectId };
+  function register(op: unknown, parseInput: unknown = () => ok({ projectId: "reqalm" })) {
+    const local = Fastify();
+    const deps = { pool: ctx.pool, config: ctx.config, keyProvider: ctx.keyProvider, logger: local.log };
+    const url = "/api/v1/test/bind";
+    let error: unknown;
+    try {
+      defineOperationRoute(local, deps, { method: "get", url, op: op as never, parseInput: parseInput as never });
+    } catch (e) {
+      error = e;
+    }
+    const registered = local.hasRoute({ method: "GET", url });
+    return { error: error instanceof Error ? error.message : undefined, registered };
+  }
+  function assertRefused(op: unknown, why: RegExp, parseInput?: unknown) {
+    const r = register(op, parseInput);
+    assert.match(r.error ?? "(no error)", why);
+    assert.equal(r.registered, false, "nothing is registered");
+  }
+
+  it("throws when the operation is missing", () => {
+    assertRefused(undefined, /missing operation/);
+  });
+
+  it("throws when the operation has no execute", () => {
+    assertRefused({ name: "x.y", authenticatedOnly: true }, /missing operation/);
+  });
+
+  it("throws when parseInput is missing", () => {
+    assertRefused({ name: "x.y", authenticatedOnly: true, execute: exec }, /missing parseInput/, null);
+  });
+
+  it("throws when neither a permission nor authenticatedOnly is declared", () => {
+    assertRefused({ name: "x.y", execute: exec }, /missing permission/);
+  });
+
+  it("throws on an empty permission", () => {
+    assertRefused({ name: "x.y", permission: "", execute: exec, ...scoped }, /missing permission|non-empty/);
+  });
+
+  it("throws on a non-string permission", () => {
+    assertRefused({ name: "x.y", permission: true, execute: exec, ...scoped }, /non-empty string/);
+  });
+
+  it("throws when permission and authenticatedOnly are both set", () => {
+    assertRefused(
+      { name: "x.y", permission: "requirement:read", authenticatedOnly: true, execute: exec, ...scoped },
+      /exclusive/,
+    );
+  });
+
+  it("throws on a permission without project scope (no cross-project authorization)", () => {
+    assertRefused({ name: "x.y", permission: "requirement:read", execute: exec }, /without project scope/);
+  });
+
+  it("throws on projectScoped without projectIdFromInput", () => {
+    assertRefused(
+      { name: "x.y", permission: "requirement:read", projectScoped: true, execute: exec },
+      /projectScoped without projectIdFromInput/,
+    );
+  });
+
+  it("registers a fully bound operation", () => {
+    assert.deepEqual(register({ name: "x.y", permission: "requirement:read", execute: exec, ...scoped }), {
+      error: undefined,
+      registered: true,
+    });
+    assert.deepEqual(register({ name: "x.me", authenticatedOnly: true, execute: exec }), {
+      error: undefined,
+      registered: true,
+    });
+  });
+
   it("refuses Fastify input schemas (validation lives in parseInput only)", () => {
     const local = Fastify();
     const deps = { pool: ctx.pool, config: ctx.config, keyProvider: ctx.keyProvider, logger: local.log };
