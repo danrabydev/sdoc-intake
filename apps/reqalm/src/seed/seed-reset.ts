@@ -4,6 +4,7 @@ import path from "node:path";
 import pg from "pg";
 import type { AppConfig } from "../config.js";
 import { writeBusinessAudit } from "../audit/business-audit.js";
+import { runMigrations } from "../db/migrate.js";
 import {
   applyDogfoodSeed,
   countSeedRows,
@@ -338,6 +339,36 @@ export async function resetDogfoodSeed(
   } finally {
     client.release();
   }
+}
+
+export type SeedResetCommandOptions = Omit<SeedResetOptions, "confirm"> & {
+  /** --dry-run: print the plan only; no migration, no writes. Otherwise migrate, print, reset. */
+  dryRun: boolean;
+  log?: (text: string) => void;
+};
+
+/** The CLI body after its guard: --dry-run stays read-only; --confirm migrates, then resets. */
+export async function runSeedResetCommand(
+  pool: pg.Pool,
+  config: AppConfig,
+  seed: DogfoodSeed,
+  options: SeedResetCommandOptions,
+): Promise<SeedResetResult | undefined> {
+  const { dryRun, log = console.log, ...resetOptions } = options;
+  // The schema is migrated only for a confirmed reset.
+  if (!dryRun) await runMigrations(pool);
+  const client = await pool.connect();
+  let plan: SeedResetPlan;
+  try {
+    plan = await summarizeSeedReset(client, seed, options.seedPath);
+  } finally {
+    client.release();
+  }
+  log(formatSeedResetPlan(plan));
+  if (dryRun) return undefined;
+  const result = await resetDogfoodSeed(pool, config, seed, { ...resetOptions, confirm: true });
+  log(JSON.stringify({ seedPath: options.seedPath, ...result }, null, 2));
+  return result;
 }
 
 /** Repo-relative seed path for the audit row (no host home directory in the trail). */

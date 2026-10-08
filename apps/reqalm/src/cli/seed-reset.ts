@@ -2,14 +2,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "../config.js";
 import { getPool, closePool } from "../db/pool.js";
-import { runMigrations } from "../db/migrate.js";
 import { readDogfoodFile } from "../seed/load-dogfood.js";
 import {
   assertSeedResetAllowed,
-  formatSeedResetPlan,
-  resetDogfoodSeed,
+  runSeedResetCommand,
   SeedResetRefusedError,
-  summarizeSeedReset,
 } from "../seed/seed-reset.js";
 
 const KNOWN_ARGS = new Set(["--confirm", "--dry-run"]);
@@ -51,40 +48,17 @@ const seedPath = path.isAbsolute(config.REQALM_SEED_PATH)
 
 const seed = await readDogfoodFile(seedPath);
 const pool = getPool(config.DATABASE_URL);
-// --dry-run stays read-only; the schema is migrated only for a confirmed reset.
-if (!dryRun) await runMigrations(pool);
-
-const client = await pool.connect();
-let plan;
-try {
-  plan = await summarizeSeedReset(client, seed, seedPath);
-} finally {
-  client.release();
-}
-
-console.log(formatSeedResetPlan(plan));
-
-if (dryRun) {
-  await closePool();
-  process.exit(0);
-}
-
 try {
   const actor =
     process.env.REQALM_SEED_RESET_ACTOR?.trim() || process.env.USER?.trim() || undefined;
-  const result = await resetDogfoodSeed(pool, config, seed, {
-    confirm: true,
-    seedPath,
-    repoRoot,
-    actor,
-  });
-  console.log(JSON.stringify({ seedPath, ...result }, null, 2));
+  await runSeedResetCommand(pool, config, seed, { dryRun, seedPath, repoRoot, actor });
 } catch (err) {
   if (err instanceof SeedResetRefusedError) {
     console.error(err.message);
-    process.exit(1);
+    process.exitCode = 1;
+  } else {
+    throw err;
   }
-  throw err;
 } finally {
   await closePool();
 }

@@ -16,6 +16,7 @@ import {
   assertSeedResetAllowed,
   countDogfoodYamlEntities,
   resetDogfoodSeed,
+  runSeedResetCommand,
   SeedResetRefusedError,
   summarizeSeedReset,
 } from "./seed-reset.js";
@@ -527,6 +528,79 @@ describe("seed reset", () => {
     } finally {
       client.release();
     }
+    await pg.close();
+  });
+});
+
+describe("seed reset command (CLI body after the guard)", () => {
+  it("--dry-run prints the plan and writes nothing, not even pending migrations", async () => {
+    const pg = await createMigratedPglitePool();
+    const { config, env } = harness();
+    const seed = await readDogfoodFile(dogfoodPath);
+    await loadDogfoodSeed(pg.pool, config, seed);
+    await pg.pool.query(
+      `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)
+       VALUES ('FIX-DRYRUN-PROBE', 'reqalm', 'SEC-DEVENV', 'requirement', 'dry-run probe')`,
+    );
+    // Make the newest migration pending: a dry-run must not apply it.
+    const last = await pg.pool.query(`SELECT id FROM schema_migrations ORDER BY id DESC LIMIT 1`);
+    const lastId = String(last.rows[0]?.id);
+    await pg.pool.query(`DELETE FROM schema_migrations WHERE id = $1`, [lastId]);
+    const before = await dumpResetTables(pg.pool);
+    const auditBefore = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
+    const logged: string[] = [];
+
+    const result = await runSeedResetCommand(pg.pool, config, seed, {
+      dryRun: true,
+      seedPath: dogfoodPath,
+      repoRoot,
+      env,
+      log: (text) => logged.push(text),
+    });
+
+    assert.equal(result, undefined);
+    assert.equal(logged.length, 1);
+    assert.match(logged[0]!, /^Dogfood seed reset plan \(dev-only\):/);
+    assert.deepEqual(await dumpResetTables(pg.pool), before);
+    const auditAfter = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
+    assert.equal(auditAfter.rows[0]?.c, auditBefore.rows[0]?.c);
+    const pending = await pg.pool.query(`SELECT 1 FROM schema_migrations WHERE id = $1`, [lastId]);
+    assert.equal(pending.rowCount, 0, "dry-run must not run migrations");
+    await pg.close();
+  });
+
+  it("without --dry-run prints the plan, resets, and appends one audit row", async () => {
+    const pg = await createMigratedPglitePool();
+    const { config, env } = harness();
+    const seed = await readDogfoodFile(dogfoodPath);
+    await loadDogfoodSeed(pg.pool, config, seed);
+    await pg.pool.query(
+      `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)
+       VALUES ('FIX-CONFIRM-PROBE', 'reqalm', 'SEC-DEVENV', 'requirement', 'confirm probe')`,
+    );
+    const auditBefore = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
+    const logged: string[] = [];
+
+    const result = await runSeedResetCommand(pg.pool, config, seed, {
+      dryRun: false,
+      seedPath: dogfoodPath,
+      repoRoot,
+      env,
+      log: (text) => logged.push(text),
+    });
+
+    assert.ok(result?.auditRequestId);
+    assert.equal(logged.length, 2);
+    assert.match(logged[0]!, /^Dogfood seed reset plan/);
+    assert.equal(JSON.parse(logged[1]!).auditRequestId, result.auditRequestId);
+    const probe = await pg.pool.query(`SELECT 1 FROM requirement_lines WHERE base_uid = 'FIX-CONFIRM-PROBE'`);
+    assert.equal(probe.rowCount, 0);
+    const audit = await pg.pool.query(
+      `SELECT operation FROM audit_events WHERE id > (SELECT max(id) FROM audit_events) - 1`,
+    );
+    assert.deepEqual(audit.rows.map((r) => r.operation), ["devenv.seed.reset"]);
+    const auditAfter = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
+    assert.equal(auditAfter.rows[0]?.c, (auditBefore.rows[0]?.c as number) + 1);
     await pg.close();
   });
 });
