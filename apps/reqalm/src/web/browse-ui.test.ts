@@ -419,6 +419,73 @@ describe("browse UI render (jsdom)", () => {
     assert.match(main.textContent ?? "", /Browse releases/);
   });
 
+  it("releases list paging via mountBrowseView preserves status in API and hrefs", async () => {
+    const main = document.createElement("main");
+    const route = parseAppRoute("/app/projects/reqalm/releases");
+    const apiFn = mockFetch((url) => {
+      const u = new URL(url, "http://localhost");
+      assert.equal(u.pathname, "/api/v1/projects/reqalm/releases");
+      assert.equal(u.searchParams.get("status"), "shipped");
+      assert.equal(u.searchParams.get("offset"), "20");
+      assert.equal(u.searchParams.get("limit"), "20");
+      return {
+        status: 200,
+        body: {
+          data: {
+            items: [
+              {
+                id: "rel-sh",
+                name: "Shipped rel",
+                status: "shipped",
+                planned_on: "2026-01-01",
+                shipped_on: "2026-01-02",
+                delivered_capability_count: 0,
+              },
+            ],
+            limit: 20,
+            offset: 20,
+            total: 45,
+          },
+        },
+      };
+    });
+    await mountBrowseView(main, route, { apiFn, search: "?status=shipped&offset=20" });
+    assert.match(main.textContent ?? "", /Showing 21–40 of 45/);
+    assert.ok(main.querySelector('a.btn-secondary[href="/app/projects/reqalm/releases?status=shipped&offset=40"]'));
+    assert.ok(main.querySelector('a.btn-secondary[href="/app/projects/reqalm/releases?status=shipped"]'));
+  });
+
+  it("releases list table shows exact planned, shipped, and capability cells", async () => {
+    const main = document.createElement("main");
+    await renderReleasesList(main, {
+      apiFn: mockFetch(() => ({
+        status: 200,
+        body: {
+          data: {
+            items: [
+              {
+                id: "rel-row",
+                name: "Row rel",
+                status: "shipped",
+                planned_on: "2026-01-15",
+                shipped_on: "2026-02-20",
+                delivered_capability_count: 2,
+              },
+            ],
+            limit: 20,
+            offset: 0,
+            total: 1,
+          },
+        },
+      })),
+      projectId: "reqalm",
+      filters: { status: "" },
+      offset: 0,
+    });
+    const cells = [...main.querySelectorAll("tbody tr:first-child td")].map((td) => td.textContent);
+    assert.deepEqual(cells, ["Row rel", "rel-row", "shipped", "2026-01-15", "2026-02-20", "2"]);
+  });
+
   it("releases list passes status filter to API and paging hrefs", async () => {
     const main = document.createElement("main");
     const filters = { status: "planned" };
@@ -532,6 +599,60 @@ describe("browse UI render (jsdom)", () => {
     fetchCalls.length = 0;
     await renderReleaseDetail(badMain, { apiFn: mockFetch(() => { throw new Error("no"); }), projectId: "reqalm", releaseId: "BAD!" });
     assert.equal(fetchCalls.length, 0);
+  });
+
+  it("release detail API 404 renders not-found without throwing", async () => {
+    const main = document.createElement("main");
+    await renderReleaseDetail(main, {
+      apiFn: mockFetch(() => ({ status: 404 })),
+      projectId: "reqalm",
+      releaseId: "rel-missing",
+    });
+    assert.match(main.textContent ?? "", /don't have access/i);
+  });
+
+  it("release detail invalid project slug skips fetch", async () => {
+    const main = document.createElement("main");
+    fetchCalls.length = 0;
+    await renderReleaseDetail(main, {
+      apiFn: mockFetch(() => {
+        throw new Error("should not fetch");
+      }),
+      projectId: "INVALID!",
+      releaseId: "rel-a",
+    });
+    assert.equal(fetchCalls.length, 0);
+    assert.match(main.textContent ?? "", /don't have access/i);
+  });
+
+  it("release detail via mountBrowseView keeps filter breadcrumb and empty capabilities", async () => {
+    const main = document.createElement("main");
+    const route = parseAppRoute("/app/projects/reqalm/releases/rel-empty");
+    await mountBrowseView(main, route, {
+      apiFn: mockFetch((url) => {
+        if (url === "/api/v1/projects/reqalm/releases/rel-empty") {
+          return {
+            status: 200,
+            body: {
+              data: {
+                id: "rel-empty",
+                name: "Empty caps",
+                status: "planned",
+                planned_on: "2026-03-01",
+                shipped_on: null,
+                notes: null,
+                delivered_capabilities: [],
+              },
+            },
+          };
+        }
+        return { status: 404 };
+      }),
+      search: "?status=planned",
+    });
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/releases?status=planned"]'));
+    assert.match(main.textContent ?? "", /No capabilities delivered in this release/);
+    assert.match(main.textContent ?? "", / · planned · /);
   });
 
   it("escapes XSS in client names as plain text", async () => {
