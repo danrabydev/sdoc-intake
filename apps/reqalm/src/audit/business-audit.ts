@@ -1,5 +1,7 @@
 import type pg from "pg";
 
+type PgQueryable = Pick<pg.Pool, "query">;
+
 export type BusinessAuditInput = {
   requestId: string;
   traceId?: string | null;
@@ -19,7 +21,7 @@ export type BusinessAuditInput = {
 
 /** Business-operation audit (append-only `audit_events`). Auth login/token events stay in `auth_audit_events`. */
 export async function writeBusinessAudit(
-  pool: pg.Pool,
+  pool: PgQueryable,
   input: BusinessAuditInput,
 ): Promise<void> {
   await pool.query(

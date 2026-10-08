@@ -26,6 +26,16 @@ export type SeedResult = {
   unchanged: boolean;
 };
 
+export type LoadDogfoodOptions = {
+  /**
+   * Update client/project rows when ids already exist (seed reset). Identities, grants and
+   * platform grants stay insert-if-absent: a reset never rewrites or re-activates them.
+   */
+  metadataSync?: boolean;
+  /** Skip before/after unchanged detection (seed reset always mutates). */
+  skipUnchangedCheck?: boolean;
+};
+
 export async function readDogfoodFile(seedPath: string): Promise<DogfoodSeed> {
   const abs = path.resolve(seedPath);
   const raw = await readFile(abs, "utf8");
@@ -36,6 +46,7 @@ export async function loadDogfoodSeed(
   pool: pg.Pool,
   config: AppConfig,
   seed: DogfoodSeed,
+  options?: LoadDogfoodOptions,
 ): Promise<SeedResult> {
   if (isProduction(config)) {
     throw new Error(
@@ -44,6 +55,26 @@ export async function loadDogfoodSeed(
   }
 
   const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await applyDogfoodSeed(client, config, seed, options);
+    await client.query("COMMIT");
+    return result;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function applyDogfoodSeed(
+  client: pg.PoolClient,
+  config: AppConfig,
+  seed: DogfoodSeed,
+  options?: LoadDogfoodOptions,
+): Promise<SeedResult> {
+  const syncMeta = options?.metadataSync === true;
   const inserted: Record<string, number> = {
     clients: 0,
     projects: 0,
@@ -58,92 +89,83 @@ export async function loadDogfoodSeed(
     platform_grants: 0,
   };
 
-  try {
-    await client.query("BEGIN");
+  const countBefore = options?.skipUnchangedCheck ? null : await countSeedRows(client);
 
-    const countBefore = await countSeedRows(client);
+  await upsertClient(client, seed.client, inserted, syncMeta);
+  for (const c of seed.clients ?? []) {
+    await upsertClient(client, c, inserted, syncMeta);
+  }
 
-    await upsertClient(client, seed.client, inserted);
-    for (const c of seed.clients ?? []) {
-      await upsertClient(client, c, inserted);
-    }
+  for (const p of seed.projects) {
+    await upsertProject(client, p, inserted, syncMeta);
+  }
+  for (const id of seed.identities) {
+    await upsertIdentity(client, id, inserted);
+  }
+  for (const g of seed.project_grants) {
+    await upsertGrant(client, g, inserted);
+  }
+  const lineProject = new Map<string, string>();
+  for (const line of seed.requirement_lines ?? []) {
+    lineProject.set(String(line.base_uid), String(line.project_id));
+    await upsertLine(client, line, inserted);
+  }
+  for (const ver of seed.requirement_versions ?? []) {
+    await upsertVersion(client, ver, lineProject, inserted);
+  }
+  for (const [position, rel] of (seed.releases ?? []).entries()) {
+    await upsertRelease(client, rel, position, inserted);
+  }
+  for (const g of seed.platform_grants ?? []) {
+    await upsertPlatformGrant(client, g, inserted);
+  }
 
-    for (const p of seed.projects) {
-      await upsertProject(client, p, inserted);
-    }
-    for (const id of seed.identities) {
-      await upsertIdentity(client, id, inserted);
-    }
-    for (const g of seed.project_grants) {
-      await upsertGrant(client, g, inserted);
-    }
-    const lineProject = new Map<string, string>();
-    for (const line of seed.requirement_lines ?? []) {
-      lineProject.set(String(line.base_uid), String(line.project_id));
-      await upsertLine(client, line, inserted);
-    }
-    for (const ver of seed.requirement_versions ?? []) {
-      await upsertVersion(client, ver, lineProject, inserted);
-    }
-    for (const [position, rel] of (seed.releases ?? []).entries()) {
-      await upsertRelease(client, rel, position, inserted);
-    }
-    for (const g of seed.platform_grants ?? []) {
-      await upsertPlatformGrant(client, g, inserted);
-    }
-
-    // ARCH-DEVENV-IDENTITY.1: no committed/default dev credential. Use the local .env value, or
-    // generate one at first seed and show it locally (only printed when accounts are created).
-    const configuredPassword = config.REQALM_DEV_ACCOUNT_PASSWORD;
-    const devPassword = configuredPassword ?? randomBytes(18).toString("base64url");
-    inserted.dev_local_accounts = await upsertDevLocalAccounts(
-      client,
-      seed.identities,
-      devPassword,
+  // ARCH-DEVENV-IDENTITY.1: no committed/default dev credential. Use the local .env value, or
+  // generate one at first seed and show it locally (only printed when accounts are created).
+  const configuredPassword = config.REQALM_DEV_ACCOUNT_PASSWORD;
+  const devPassword = configuredPassword ?? randomBytes(18).toString("base64url");
+  inserted.dev_local_accounts = await upsertDevLocalAccounts(
+    client,
+    seed.identities,
+    devPassword,
+  );
+  if (inserted.dev_local_accounts > 0 && !configuredPassword) {
+    console.log(
+      `[reqalm seed] Created ${inserted.dev_local_accounts} dev local accounts (<identity-id>@dev.local). ` +
+        `Generated dev-only password (shown once; set REQALM_DEV_ACCOUNT_PASSWORD in .env to choose your own): ${devPassword}`,
     );
-    if (inserted.dev_local_accounts > 0 && !configuredPassword) {
-      console.log(
-        `[reqalm seed] Created ${inserted.dev_local_accounts} dev local accounts (<identity-id>@dev.local). ` +
-          `Generated dev-only password (shown once; set REQALM_DEV_ACCOUNT_PASSWORD in .env to choose your own): ${devPassword}`,
-      );
-    }
+  }
 
-    await client.query(
-      `
+  await client.query(
+    `
       INSERT INTO seed_meta (key, value)
       VALUES ('dogfood', $1::jsonb)
       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()
     `,
-      [
-        JSON.stringify({
-          schema_version: seed.schema_version,
-          loaded_at: new Date().toISOString(),
-          counts: await countSeedRows(client),
-        }),
-      ],
-    );
+    [
+      JSON.stringify({
+        schema_version: seed.schema_version,
+        loaded_at: new Date().toISOString(),
+        counts: await countSeedRows(client),
+      }),
+    ],
+  );
 
-    await client.query("COMMIT");
+  const countAfter = await countSeedRows(client);
+  const unchanged =
+    !options?.skipUnchangedCheck &&
+    countBefore !== null &&
+    JSON.stringify(countBefore) === JSON.stringify(countAfter) &&
+    Object.values(inserted).every((n) => n === 0);
 
-    const countAfter = await countSeedRows(client);
-    const unchanged =
-      JSON.stringify(countBefore) === JSON.stringify(countAfter) &&
-      Object.values(inserted).every((n) => n === 0);
-
-    return {
-      inserted,
-      devAccountsCreated: inserted.dev_local_accounts,
-      unchanged,
-    };
-  } catch (err) {
-    await client.query("ROLLBACK");
-    throw err;
-  } finally {
-    client.release();
-  }
+  return {
+    inserted,
+    devAccountsCreated: inserted.dev_local_accounts,
+    unchanged,
+  };
 }
 
-async function countSeedRows(client: pg.PoolClient) {
+export async function countSeedRows(client: pg.PoolClient) {
   const tables = [
     "clients",
     "projects",
@@ -169,9 +191,18 @@ async function upsertClient(
   client: pg.PoolClient,
   row: Record<string, unknown>,
   inserted: Record<string, number>,
+  sync = false,
 ) {
   const r = await client.query(
-    `
+    sync
+      ? `
+    INSERT INTO clients (id, name, created_at, notes)
+    VALUES ($1, $2, $3::timestamptz, $4)
+    ON CONFLICT (id) DO UPDATE SET
+      name = EXCLUDED.name, created_at = EXCLUDED.created_at, notes = EXCLUDED.notes
+    RETURNING (xmax = 0) AS inserted
+  `
+      : `
     INSERT INTO clients (id, name, created_at, notes)
     VALUES ($1, $2, $3::timestamptz, $4)
     ON CONFLICT (id) DO NOTHING
@@ -179,16 +210,26 @@ async function upsertClient(
   `,
     [row.id, row.name, row.created_at ?? null, row.notes ?? null],
   );
-  if (r.rowCount) inserted.clients++;
+  if (sync ? r.rows[0]?.inserted : r.rowCount) inserted.clients++;
 }
 
 async function upsertProject(
   client: pg.PoolClient,
   row: Record<string, unknown>,
   inserted: Record<string, number>,
+  sync = false,
 ) {
   const r = await client.query(
-    `
+    sync
+      ? `
+    INSERT INTO projects (id, client_id, name, status, notes, workflow_profile_id)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT (id) DO UPDATE SET
+      client_id = EXCLUDED.client_id, name = EXCLUDED.name, status = EXCLUDED.status,
+      notes = EXCLUDED.notes, workflow_profile_id = EXCLUDED.workflow_profile_id
+    RETURNING (xmax = 0) AS inserted
+  `
+      : `
     INSERT INTO projects (id, client_id, name, status, notes, workflow_profile_id)
     VALUES ($1, $2, $3, $4, $5, $6)
     ON CONFLICT (id) DO NOTHING
@@ -203,7 +244,7 @@ async function upsertProject(
       row.workflow_profile_id ?? null,
     ],
   );
-  if (r.rowCount) inserted.projects++;
+  if (sync ? r.rows[0]?.inserted : r.rowCount) inserted.projects++;
 }
 
 async function upsertIdentity(

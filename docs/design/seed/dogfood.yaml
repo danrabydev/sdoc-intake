@@ -1172,6 +1172,15 @@ approval_records:
   notes: Planned for route-hardening PR; approve once merged and verified.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-devenv-seed-reset
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-SEED-RESET
+  status: unapproved
+  by:
+  at:
+  notes: Planned for seed-reset PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3033,6 +3042,11 @@ requirement_lines:
   parent: SEC-API
   kind: capability
   title: Authenticated non-/api routes audited or allowlisted
+- base_uid: CAP-DEVENV-SEED-RESET
+  project_id: reqalm
+  parent: SEC-DEVENV
+  kind: capability
+  title: Dev-only dogfood seed reset (pnpm devenv:seed:reset)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -7577,7 +7591,7 @@ requirement_versions:
 - uid: CAP-SVC-PROJECT-ID-SLUG
   base_uid: CAP-SVC-PROJECT-ID-SLUG
   version_n: 0
-  status: draft
+  status: active
   statement: 'The :projectId path param must match ^[a-z0-9][a-z0-9-]{0,63}$ before it becomes project scope. An id that does not (padded, control characters, uppercase, over-long at any length) is not_found after authentication, identical to a missing or ungranted project, and an unauthenticated caller gets the same 401 as for a valid id, before any validation detail. An invalid id is never recorded raw: audit_events.project_id is NULL, no reqalm.project_id span attribute is set, and request logs and exported span URL attributes show the segment as [invalid].'
   priority: 10
   iteration: iter-r1
@@ -7586,10 +7600,11 @@ requirement_versions:
     verification_note: Planned until route-hardening PR merges.
   statement_hash: sha256:c10586bc5e566c655aedf7b0282e251524b8bc2aec3f99d2636610bb088070ae
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-SVC-STATIC-DEP-PATCH
   base_uid: CAP-SVC-STATIC-DEP-PATCH
   version_n: 0
-  status: draft
+  status: active
   statement: apps/reqalm resolves @fastify/static 10.1.5 both directly (^10.1.5) and through @fastify/swagger-ui 6.1.1 (^10.1.0), with no pnpm override, so GHSA-83w8-p2f5-377r and GHSA-8pvw-jcv7-9cmj (and GHSA-pr96-94w5-mx2h, GHSA-x428-ghpx-8j92) are gone from pnpm audit --prod; the web bundle and /docs still serve, and encoded path-traversal requests never return file contents.
   priority: 10
   iteration: iter-r1
@@ -7598,10 +7613,11 @@ requirement_versions:
     verification_note: Planned until route-hardening PR merges.
   statement_hash: sha256:fcf8edc1f030ab9697f6dc66f91b116ade7efd269de7e89bbb1e538b3a038b2f
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-OTEL-SPAN-SAFE-ERRORS
   base_uid: CAP-OTEL-SPAN-SAFE-ERRORS
   version_n: 0
-  status: draft
+  status: active
   statement: Every exported span (operation, Fastify request and handler, http, pg, undici, OpenBao) reports a failure as ERROR status with the generic message 'operation failed'; exception events keep only exception.type (no message or stack); operation spans add reqalm.error_kind (service error code or internal). Raw exception and database text stays in the server log only.
   priority: 10
   iteration: iter-r1
@@ -7610,10 +7626,11 @@ requirement_versions:
     verification_note: Planned until route-hardening PR merges.
   statement_hash: sha256:635744823b336c569e7b8dd84afd57e89243fc9c51df39df6248e0f872d36650
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-SVC-IMPLICIT-PUBLIC-EXACT
   base_uid: CAP-SVC-IMPLICIT-PUBLIC-EXACT
   version_n: 0
-  status: draft
+  status: active
   statement: OAuth, probe, and auth-shaped routes become implicitly public only when METHOD and path match the exact allowlist (HEAD checked as GET; /docs for GET and HEAD only), and a route registered for several methods only if every method matches; any other method or path must declare reqalmSecurity.
   priority: 10
   iteration: iter-r1
@@ -7622,10 +7639,11 @@ requirement_versions:
     verification_note: Planned until route-hardening PR merges.
   statement_hash: sha256:c44932f149bd4d7df49993152598ce35ad77f118eb7b5138ef7ce8b90ae28228
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-SVC-NON-API-AUTH-AUDIT
   base_uid: CAP-SVC-NON-API-AUTH-AUDIT
   version_n: 0
-  status: draft
+  status: active
   statement: Hand-registered authenticated routes outside /api/ must use defineOperationRoute or sit on an exact METHOD + path allowlist (today only POST /mcp); route-security.test.ts fails closed otherwise.
   priority: 10
   iteration: iter-r1
@@ -7633,6 +7651,19 @@ requirement_versions:
     catalog_ref: CM-2
     verification_note: Planned until route-hardening PR merges.
   statement_hash: sha256:c47ef0798ee91ded70d31d07f6b4b1313db3da40b616beaefaa89bc2e5566df5
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-DEVENV-SEED-RESET
+  base_uid: CAP-DEVENV-SEED-RESET
+  version_n: 0
+  status: draft
+  statement: Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction (any load failure rolls back), preserving identities, grants, local accounts, sessions/MFA, OpenBao keys, and append-only audit_events; identities and grants are only inserted when missing, never rewritten or re-activated. Runs only when the environment positively identifies as local devenv (REQALM_MODE=development, .reqalm/devenv.env present, NODE_ENV not production, and DATABASE_URL resolving to 127.0.0.1 or localhost port 5432 including ?host=/?port= overrides); no environment variable relaxes these checks. Requires explicit --confirm; --dry-run prints the plan read-only. Records one devenv.seed.reset business audit event with wipe/load counts and an unverified CLI actor label, attributed to no ReqALM identity. Idempotent second run yields identical DB contents.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until seed-reset PR merges and is verified locally.
+  statement_hash: sha256:56d8e59efe88a4aecc881ba6fc7c17e85cf526d364ed7dcf533a0d264fd51f3f
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -8106,6 +8137,18 @@ capability_artifacts:
 - requirement_version_uid: CAP-SVC-NON-API-AUTH-AUDIT
   kind: other
   uri: ../../../apps/reqalm/src/http/route-security.test.ts
+- requirement_version_uid: CAP-DEVENV-SEED-RESET
+  kind: other
+  uri: ../../../apps/reqalm/src/seed/seed-reset.ts
+- requirement_version_uid: CAP-DEVENV-SEED-RESET
+  kind: other
+  uri: ../../../apps/reqalm/src/cli/seed-reset.ts
+- requirement_version_uid: CAP-DEVENV-SEED-RESET
+  kind: other
+  uri: ../../../apps/reqalm/src/seed/seed-reset.test.ts
+- requirement_version_uid: CAP-DEVENV-SEED-RESET
+  kind: other
+  uri: ../../../apps/reqalm/src/cli/seed-reset.test.ts
 edges:
 - from: CAP-SSO
   to: A01
@@ -13698,6 +13741,12 @@ edges:
 - from: CAP-SVC-NON-API-AUTH-AUDIT
   to: ARCH-API-RBAC
   kind: satisfies
+- from: CAP-DEVENV-SEED-RESET
+  to: ARCH-DEVENV-SEED
+  kind: satisfies
+- from: CAP-DEVENV-SEED-RESET
+  to: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -14187,8 +14236,8 @@ releases:
   project_id: reqalm
   name: R1 — route helper hardening (Cyber/QA follow-up)
   planned_on: '2026-10-07'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-07'
+  status: shipped
   delivers:
   - CAP-SVC-PROJECT-ID-SLUG
   - CAP-SVC-STATIC-DEP-PATCH
@@ -14196,7 +14245,17 @@ releases:
   - CAP-SVC-IMPLICIT-PUBLIC-EXACT
   - CAP-SVC-NON-API-AUTH-AUDIT
   cyber_gate: true
-  notes: One PR = one release. @fastify/static 10.1.5 via @fastify/swagger-ui 6.1.1 (no override), project id slug rule (incl. over-long ids; invalid ids redacted in logs and spans), no error text on any exported span, exact METHOD + path implicit public allowlist, authenticated non-/api route guard, and QA tests for the reachedHandler guard and non-web 404. Planned until merged; the next PR marks it shipped at the merge sha.
+  notes: PR https://github.com/danrabydev/sdoc-intake/pull/20 merged to main as 22bb19420d9587f7700b6ee9a874fd3fa3e8c83f on 2026-10-07; verified locally (tests x3, 78/79 mutations, M4b equivalent); QA and Cyber APPROVE.
+- id: rel-r1-seed-reset
+  project_id: reqalm
+  name: R1 — dev dogfood seed reset (pnpm devenv:seed:reset)
+  planned_on: '2026-10-07'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-DEVENV-SEED-RESET
+  cyber_gate: false
+  notes: One PR = one release. Dev-only wipe+reload of project fixture rows from dogfood.yaml without docker compose down -v. Planned until merged; flip to shipped at merge sha.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm
