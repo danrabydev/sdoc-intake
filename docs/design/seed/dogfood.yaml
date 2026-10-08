@@ -8181,16 +8181,13 @@ capability_artifacts:
   uri: ../../../apps/reqalm/src/core/paging.ts
 - requirement_version_uid: CAP-BROWSE-CP
   kind: other
+  uri: ../../../apps/reqalm/src/rbac/enforce.ts
+- requirement_version_uid: CAP-BROWSE-CP
+  kind: other
   uri: ../../../apps/reqalm/src/modules/clients/
 - requirement_version_uid: CAP-BROWSE-CP
   kind: other
   uri: ../../../apps/reqalm/src/modules/projects/
-- requirement_version_uid: CAP-BROWSE-CP
-  kind: other
-  uri: ../../../apps/reqalm/src/rbac/browse-scope.ts
-- requirement_version_uid: CAP-BROWSE-CP
-  kind: other
-  uri: ../../../apps/reqalm/src/rbac/enforce.ts
 edges:
 - from: CAP-SSO
   to: A01

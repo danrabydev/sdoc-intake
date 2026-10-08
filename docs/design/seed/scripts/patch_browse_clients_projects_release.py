@@ -128,15 +128,11 @@ def main() -> None:
         e for e in edges if not (e.get("from") == CAP and e.get("to") == "ARCH-UI")
     ]
     arts = data.setdefault("capability_artifacts", [])
-    data["capability_artifacts"] = [
-        a
-        for a in arts
-        if not (a.get("requirement_version_uid") == CAP and str(a.get("uri", "")).endswith("app.js"))
-    ]
-    arts = data["capability_artifacts"]
+    data["capability_artifacts"] = [a for a in arts if a.get("requirement_version_uid") != CAP]
     for uri in ARTIFACTS:
-        if not any(a.get("requirement_version_uid") == CAP and a.get("uri") == uri for a in arts):
-            arts.append({"requirement_version_uid": CAP, "kind": "other", "uri": uri})
+        data["capability_artifacts"].append(
+            {"requirement_version_uid": CAP, "kind": "other", "uri": uri},
+        )
 
     upsert(
         data.setdefault("releases", []),
