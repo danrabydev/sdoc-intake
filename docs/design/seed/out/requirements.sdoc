@@ -2781,7 +2781,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-READ-RELEASES
-STATUS: Draft
+STATUS: Active
 TITLE: Read releases (list, detail)
 STATEMENT: >>>
 Grant-scoped releases read APIs: paged GET /api/v1/projects/:projectId/releases with optional status (planned | shipped), ordered planned_on desc then id; GET detail with notes and delivered capabilities (capability lines from release_delivers). cyber_gate is stored on the release row but not exposed in v1 read DTOs. gate_signoffs and contract in_scope_of edges from dogfood are not loaded by the seed loader (deferred). Invalid release id segments redact in logs/spans like project slugs.
@@ -2793,7 +2793,8 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: Planned until releases read PR merges.
+security.verification_note: Shipped with releases read API PR #25 (merge eca9090802c415f78697cc8b9d000f7f7d67a702).
+edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 delivered_by_release: R1 — releases read API
 <<<
 RELATIONS:
@@ -2813,6 +2814,45 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-read-releases
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-BROWSE-UI-RELEASES
+STATUS: Draft
+TITLE: Browse releases UI (read-only)
+STATEMENT: >>>
+Read-only /app browse screens for grant-scoped releases within a project: paged list with status filter (planned | shipped, URL-driven), release detail (notes preserving line breaks and delivered capabilities linking to requirement detail). Uses session/CSRF auth; safe DOM text only. Trace links deferred.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-UI-RELEASES
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until releases browse UI PR merges.
+delivered_by_release: R1 — browse releases UI (read-only)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: C08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: D06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-READ-RELEASES
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-browse-ui-releases
   ROLE: Delivers
 
 [[/SECTION]]
@@ -3161,6 +3201,7 @@ edge: ← satisfies from CAP-TREE
 edge: ← uses from N03
 edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-BROWSE-UI-REQS
+edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3464,6 +3505,7 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-VERSION-UI
 edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-BROWSE-UI-REQS
+edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8222,6 +8264,7 @@ edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-UI-FRAME
 edge: ← satisfies from CAP-BROWSE-UI-CP
 edge: ← satisfies from CAP-BROWSE-UI-REQS
+edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -8275,6 +8318,7 @@ edge: ← uses from ARCH-CRED-SESSION
 edge: ← satisfies from CAP-UI-FRAME
 edge: ← satisfies from CAP-BROWSE-UI-CP
 edge: ← satisfies from CAP-BROWSE-UI-REQS
+edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
