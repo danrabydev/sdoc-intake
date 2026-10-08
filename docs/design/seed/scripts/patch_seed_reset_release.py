@@ -80,6 +80,7 @@ SEED_RESET_CAPS = [
             f"{REPO}/apps/reqalm/src/seed/seed-reset.ts",
             f"{REPO}/apps/reqalm/src/cli/seed-reset.ts",
             f"{REPO}/apps/reqalm/src/seed/seed-reset.test.ts",
+            f"{REPO}/apps/reqalm/src/cli/seed-reset.test.ts",
         ],
     ),
 ]

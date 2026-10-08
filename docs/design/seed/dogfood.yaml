@@ -8141,6 +8141,9 @@ capability_artifacts:
 - requirement_version_uid: CAP-DEVENV-SEED-RESET
   kind: other
   uri: ../../../apps/reqalm/src/seed/seed-reset.test.ts
+- requirement_version_uid: CAP-DEVENV-SEED-RESET
+  kind: other
+  uri: ../../../apps/reqalm/src/cli/seed-reset.test.ts
 edges:
 - from: CAP-SSO
   to: A01
