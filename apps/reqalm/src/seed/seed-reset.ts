@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { existsSync } from "node:fs";
 import path from "node:path";
-import type pg from "pg";
+import pg from "pg";
 import type { AppConfig } from "../config.js";
 import { writeBusinessAudit } from "../audit/business-audit.js";
 import {
@@ -40,21 +40,20 @@ export type SeedResetOptions = {
   confirm: boolean;
   seedPath: string;
   repoRoot: string;
-  actorIdentityId?: string;
+  /**
+   * Unverified operator label (CLI: REQALM_SEED_RESET_ACTOR or $USER). Recorded in the audit
+   * detail only, never as identity_id: the CLI does not authenticate a ReqALM identity.
+   */
+  actor?: string;
   /** Defaults to process.env (CLI); tests pass the same env as loadConfig. */
   env?: NodeJS.ProcessEnv;
-  /** @internal test hook — abort after wipe, before reload */
-  testAbortAfterWipe?: boolean;
 };
 
 export type SeedResetAllowlistInput = {
-  config: AppConfig;
+  databaseUrl: string | undefined;
   env: NodeJS.ProcessEnv;
   repoRoot: string;
 };
-
-/** PGlite in-process tests set this alongside REQALM_DEVENV_ENV_FILE (see seed-reset.test.ts). */
-export const SEED_RESET_TEST_HARNESS = "pglite" as const;
 
 const PRESERVED_TABLES = [
   "identities",
@@ -75,28 +74,33 @@ function resolveDevenvEnvPath(env: NodeJS.ProcessEnv, repoRoot: string): string 
   return path.join(repoRoot, ".reqalm/devenv.env");
 }
 
+/**
+ * Check the host and port node-postgres will actually connect to: `?host=` / `?port=` in the
+ * URL override its authority, so parsing the authority alone is not enough.
+ */
 function checkLocalDevDatabaseUrl(
-  databaseUrl: string,
-  env: NodeJS.ProcessEnv,
+  databaseUrl: string | undefined,
 ): { ok: true } | { ok: false; reason: string } {
-  if (env.REQALM_SEED_RESET_TEST_HARNESS === SEED_RESET_TEST_HARNESS) {
-    return { ok: true };
+  if (!databaseUrl?.trim()) {
+    return { ok: false, reason: "DATABASE_URL is unset" };
   }
-  let parsed: URL;
+  let host: string;
+  let port: number;
   try {
-    parsed = new URL(databaseUrl.replace(/^postgres(ql)?:/i, "http:"));
+    // Parses the connection string only; a Client does not connect until .connect().
+    const target = new pg.Client({ connectionString: databaseUrl });
+    host = String(target.host);
+    port = Number(target.port);
   } catch {
     return { ok: false, reason: "DATABASE_URL is not a valid postgres URL" };
   }
-  const host = parsed.hostname;
   if (host !== "127.0.0.1" && host !== "localhost") {
     return {
       ok: false,
       reason: `DATABASE_URL must target local dev Postgres at 127.0.0.1 or localhost (got host ${host})`,
     };
   }
-  const port = parsed.port || "5432";
-  if (port !== "5432") {
+  if (port !== 5432) {
     return {
       ok: false,
       reason: `DATABASE_URL must use local dev Postgres port 5432 (got port ${port})`,
@@ -107,7 +111,7 @@ function checkLocalDevDatabaseUrl(
 
 /** Fail-closed: run only when the environment positively matches local devenv markers. */
 export function assertSeedResetAllowed(input: SeedResetAllowlistInput): void {
-  const { config, env, repoRoot } = input;
+  const { databaseUrl, env, repoRoot } = input;
   const reasons: string[] = [];
 
   const mode = env.REQALM_MODE?.trim();
@@ -126,10 +130,10 @@ export function assertSeedResetAllowed(input: SeedResetAllowlistInput): void {
     );
   }
 
-  const db = checkLocalDevDatabaseUrl(config.DATABASE_URL, env);
+  const db = checkLocalDevDatabaseUrl(databaseUrl);
   if (!db.ok) reasons.push(db.reason);
 
-  if (env.NODE_ENV === "production") {
+  if (env.NODE_ENV?.trim().toLowerCase() === "production") {
     reasons.push('NODE_ENV must not be "production" for seed reset');
   }
 
@@ -224,7 +228,7 @@ export async function resetDogfoodSeed(
 ): Promise<SeedResetResult> {
   const env = options.env ?? process.env;
   assertSeedResetAllowed({
-    config,
+    databaseUrl: config.DATABASE_URL,
     env,
     repoRoot: options.repoRoot,
   });
@@ -248,10 +252,6 @@ export async function resetDogfoodSeed(
       requirement_versions: wiped.requirement_versions ?? 0,
       requirement_lines: wiped.requirement_lines ?? 0,
     };
-
-    if (options.testAbortAfterWipe) {
-      throw new Error("testAbortAfterWipe");
-    }
 
     const loadResult = await applyDogfoodSeed(client, config, seed, {
       metadataSync: true,
@@ -286,15 +286,18 @@ export async function resetDogfoodSeed(
     }
 
     const auditRequestId = `seed-reset-${randomBytes(8).toString("hex")}`;
+    const actor = { kind: "devenv-cli", label: options.actor ?? null, verified: false };
     await writeBusinessAudit(client, {
       requestId: auditRequestId,
       operation: "devenv.seed.reset",
       outcome: "allow",
-      identityId: options.actorIdentityId ?? "devenv-cli",
+      // No authenticated ReqALM identity runs this CLI; never attribute it to one.
+      identityId: null,
       projectId: projectIds[0] ?? null,
       targetType: "dogfood_seed",
-      targetId: options.seedPath,
+      targetId: seedPathForAudit(options.seedPath, options.repoRoot),
       detail: {
+        actor,
         wiped,
         loaded: yamlCounts,
         schema_version: seed.schema_version,
@@ -310,7 +313,7 @@ export async function resetDogfoodSeed(
       [
         JSON.stringify({
           at: new Date().toISOString(),
-          actor: options.actorIdentityId ?? "devenv-cli",
+          actor,
           request_id: auditRequestId,
           counts,
         }),
@@ -331,6 +334,12 @@ export async function resetDogfoodSeed(
   } finally {
     client.release();
   }
+}
+
+/** Repo-relative seed path for the audit row (no host home directory in the trail). */
+function seedPathForAudit(seedPath: string, repoRoot: string): string {
+  const rel = path.relative(repoRoot, path.resolve(seedPath));
+  return rel && !rel.startsWith("..") && !path.isAbsolute(rel) ? rel : path.basename(seedPath);
 }
 
 export function formatSeedResetPlan(plan: SeedResetPlan): string {

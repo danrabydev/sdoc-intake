@@ -6,12 +6,16 @@ import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { loadConfig } from "../config.js";
 import { writeBusinessAudit } from "../audit/business-audit.js";
-import { readDogfoodFile, loadDogfoodSeed, countSeedRows } from "./load-dogfood.js";
+import {
+  readDogfoodFile,
+  loadDogfoodSeed,
+  countSeedRows,
+  type DogfoodSeed,
+} from "./load-dogfood.js";
 import {
   assertSeedResetAllowed,
   countDogfoodYamlEntities,
   resetDogfoodSeed,
-  SEED_RESET_TEST_HARNESS,
   SeedResetRefusedError,
   summarizeSeedReset,
 } from "./seed-reset.js";
@@ -39,15 +43,29 @@ function writeDevenvMarker(): string {
   return file;
 }
 
-/** Positive local-devenv allowlist for PGlite harness (not a production denylist bypass). */
+/** Local dev Postgres URL as the CLI requires it; the PGlite pool under test never dials it. */
+const LOCAL_DEV_DATABASE_URL = "postgres://reqalm:harness@127.0.0.1:5432/reqalm";
+
+/** Positive local-devenv markers for the PGlite harness: the real guard runs, nothing is bypassed. */
 function seedResetHarnessEnv(extra: Record<string, string> = {}): NodeJS.ProcessEnv {
   const devenvFile = writeDevenvMarker();
   return {
     ...testConfigEnv(),
+    DATABASE_URL: LOCAL_DEV_DATABASE_URL,
     REQALM_MODE: "development",
     REQALM_DEVENV_ENV_FILE: devenvFile,
-    REQALM_SEED_RESET_TEST_HARNESS: SEED_RESET_TEST_HARNESS,
     ...extra,
+  };
+}
+
+/** Ordered contents of every table the reset wipes and reloads. */
+async function dumpResetTables(pool: pg.Pool) {
+  const q = async (sql: string) => (await pool.query(sql)).rows;
+  return {
+    requirement_lines: await q(`SELECT * FROM requirement_lines ORDER BY project_id, base_uid`),
+    requirement_versions: await q(`SELECT * FROM requirement_versions ORDER BY uid`),
+    releases: await q(`SELECT * FROM releases ORDER BY id`),
+    release_delivers: await q(`SELECT * FROM release_delivers ORDER BY release_id, version_uid`),
   };
 }
 
@@ -59,21 +77,26 @@ function harness(extra: Record<string, string> = {}) {
 async function assertResetRefusedLeavesData(
   resetEnv: NodeJS.ProcessEnv,
   label: string,
+  confirm = true,
 ): Promise<void> {
   const pg = await createMigratedPglitePool();
-  const config = loadConfig(seedResetHarnessEnv());
+  const config = loadConfig({
+    ...seedResetHarnessEnv(),
+    DATABASE_URL: resetEnv.DATABASE_URL ?? LOCAL_DEV_DATABASE_URL,
+  });
   const seed = await readDogfoodFile(dogfoodPath);
   await loadDogfoodSeed(pg.pool, config, seed);
   await pg.pool.query(
     `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)
      VALUES ('FIX-GUARD-${label}', 'reqalm', 'SEC-DEVENV', 'requirement', 'guard probe')`,
   );
-  const before = await countAll(pg.pool);
+  const before = await dumpResetTables(pg.pool);
+  const auditBefore = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
 
   await assert.rejects(
     () =>
       resetDogfoodSeed(pg.pool, config, seed, {
-        confirm: true,
+        confirm,
         seedPath: dogfoodPath,
         repoRoot,
         env: resetEnv,
@@ -81,8 +104,9 @@ async function assertResetRefusedLeavesData(
     SeedResetRefusedError,
   );
 
-  const after = await countAll(pg.pool);
-  assert.deepEqual(after, before);
+  assert.deepEqual(await dumpResetTables(pg.pool), before);
+  const auditAfter = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
+  assert.equal(auditAfter.rows[0]?.c, auditBefore.rows[0]?.c);
   const probe = await pg.pool.query(
     `SELECT 1 FROM requirement_lines WHERE base_uid = $1`,
     [`FIX-GUARD-${label}`],
@@ -108,34 +132,79 @@ describe("seed reset allowlist", () => {
     await assertResetRefusedLeavesData(resetEnv, "no-devenv");
   });
 
-  it("refuses assertSeedResetAllowed when REQALM_MODE is production", () => {
-    const { config, env } = harness({ REQALM_MODE: "production" });
-    assert.throws(
-      () => assertSeedResetAllowed({ config, env, repoRoot }),
-      SeedResetRefusedError,
+  it("refuses when REQALM_MODE is production and leaves data untouched", async () => {
+    await assertResetRefusedLeavesData(
+      seedResetHarnessEnv({ REQALM_MODE: "production" }),
+      "prod-mode",
     );
+  });
+
+  it("refuses when NODE_ENV is production and leaves data untouched", async () => {
+    await assertResetRefusedLeavesData(
+      seedResetHarnessEnv({ NODE_ENV: "production" }),
+      "node-env-prod",
+    );
+  });
+
+  it("refuses a non-local DATABASE_URL host or port and leaves data untouched", async () => {
+    await assertResetRefusedLeavesData(
+      seedResetHarnessEnv({ DATABASE_URL: "postgres://reqalm:x@db.example.com:5432/reqalm" }),
+      "remote-host",
+    );
+    await assertResetRefusedLeavesData(
+      seedResetHarnessEnv({ DATABASE_URL: "postgres://reqalm:x@127.0.0.1:5433/reqalm" }),
+      "other-port",
+    );
+  });
+
+  it("refuses without --confirm and leaves data untouched", async () => {
+    await assertResetRefusedLeavesData(seedResetHarnessEnv(), "no-confirm", false);
+  });
+
+  it("checks the host and port pg connects to, not just the URL authority", () => {
+    const env = seedResetHarnessEnv();
+    const refused = (databaseUrl: string | undefined) =>
+      assert.throws(
+        () => assertSeedResetAllowed({ databaseUrl, env, repoRoot }),
+        SeedResetRefusedError,
+        String(databaseUrl),
+      );
+    refused(`${LOCAL_DEV_DATABASE_URL}?host=db.example.com`);
+    refused(`${LOCAL_DEV_DATABASE_URL}?port=6543`);
+    refused(`${LOCAL_DEV_DATABASE_URL}?host=/var/run/postgresql`);
+    refused("postgres://reqalm:x@10.0.0.5:5432/reqalm");
+    refused("postgres://reqalm:x@[::1]:5432/reqalm");
+    refused(undefined);
+    refused("");
+    for (const ok of [
+      LOCAL_DEV_DATABASE_URL,
+      "postgresql://reqalm:x@localhost:5432/reqalm",
+      "postgres://reqalm:x@127.0.0.1/reqalm",
+    ]) {
+      assert.doesNotThrow(() => assertSeedResetAllowed({ databaseUrl: ok, env, repoRoot }), ok);
+    }
+  });
+
+  it("REQALM_SEED_RESET_TEST_HARNESS does not weaken any check", () => {
+    const harnessVar = { REQALM_SEED_RESET_TEST_HARNESS: "pglite" };
+    const cases: Array<[Record<string, string>, string]> = [
+      [{ ...harnessVar, REQALM_MODE: "production" }, LOCAL_DEV_DATABASE_URL],
+      [{ ...harnessVar, NODE_ENV: "production" }, LOCAL_DEV_DATABASE_URL],
+      [{ ...harnessVar, REQALM_DEVENV_ENV_FILE: "/nonexistent/devenv.env" }, LOCAL_DEV_DATABASE_URL],
+      [harnessVar, "postgres://reqalm:x@db.example.com:5432/reqalm"],
+      [harnessVar, "postgres://pglite/test"],
+    ];
+    for (const [extra, databaseUrl] of cases) {
+      assert.throws(
+        () => assertSeedResetAllowed({ databaseUrl, env: seedResetHarnessEnv(extra), repoRoot }),
+        SeedResetRefusedError,
+        JSON.stringify({ extra, databaseUrl }),
+      );
+    }
   });
 });
 
 describe("seed reset", () => {
-  it("refuses without confirmation", async () => {
-    const pg = await createMigratedPglitePool();
-    const { config, env } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
-    await loadDogfoodSeed(pg.pool, config, seed);
-    await assert.rejects(
-      () =>
-        resetDogfoodSeed(pg.pool, config, seed, {
-          confirm: false,
-          seedPath: dogfoodPath,
-          repoRoot,
-          env,
-        }),
-      SeedResetRefusedError,
-    );
-    await pg.close();
-  });
-
   it("reload matches YAML counts and spot-checks after drift", async () => {
     const pg = await createMigratedPglitePool();
     const keyProvider = createMemoryKeyProvider();
@@ -158,7 +227,7 @@ describe("seed reset", () => {
       seedPath: dogfoodPath,
       repoRoot,
       env,
-      actorIdentityId: "test-operator",
+      actor: "test-operator",
     });
 
     const dbCounts = await countAll(pg.pool);
@@ -197,19 +266,14 @@ describe("seed reset", () => {
       repoRoot,
       env,
     });
-    const snap1 = await pg.pool.query(
-      `SELECT uid, status, statement FROM requirement_versions ORDER BY uid`,
-    );
+    const snap1 = await dumpResetTables(pg.pool);
     await resetDogfoodSeed(pg.pool, config, seed, {
       confirm: true,
       seedPath: dogfoodPath,
       repoRoot,
       env,
     });
-    const snap2 = await pg.pool.query(
-      `SELECT uid, status, statement FROM requirement_versions ORDER BY uid`,
-    );
-    assert.deepEqual(snap1.rows, snap2.rows);
+    assert.deepEqual(await dumpResetTables(pg.pool), snap1);
     await pg.close();
   });
 
@@ -233,6 +297,24 @@ describe("seed reset", () => {
       operation: "test.preserve",
       outcome: "allow",
     });
+    // Runtime changes to seeded auth rows (a revoked grant, an edited identity) must survive.
+    const seededGrant = String(seed.project_grants.find((g) => !g.revoked_at)?.id);
+    await pg.pool.query(
+      `UPDATE project_grants SET status = 'revoked', revoked_at = now() WHERE id = $1`,
+      [seededGrant],
+    );
+    await pg.pool.query(
+      `UPDATE identities SET display_name = 'Edited at runtime' WHERE id = 'casey-reader'`,
+    );
+    const authTables = async () => ({
+      identities: (await pg.pool.query(`SELECT * FROM identities ORDER BY id`)).rows,
+      project_grants: (await pg.pool.query(`SELECT * FROM project_grants ORDER BY id`)).rows,
+      platform_grants: (await pg.pool.query(`SELECT * FROM platform_grants ORDER BY id`)).rows,
+      local_credentials: (await pg.pool.query(`SELECT * FROM local_credentials ORDER BY identity_id`)).rows,
+      dev_local_accounts: (await pg.pool.query(`SELECT * FROM dev_local_accounts ORDER BY identity_id`)).rows,
+      audit_events: (await pg.pool.query(`SELECT * FROM audit_events ORDER BY id`)).rows,
+    });
+    const authBefore = await authTables();
     const credBefore = await pg.pool.query(
       `SELECT password_hash FROM local_credentials WHERE identity_id = 'casey-reader'`,
     );
@@ -242,7 +324,29 @@ describe("seed reset", () => {
       seedPath: dogfoodPath,
       repoRoot,
       env,
+      actor: "dan",
     });
+
+    const authAfter = await authTables();
+    assert.deepEqual(authAfter.identities, authBefore.identities);
+    assert.deepEqual(authAfter.project_grants, authBefore.project_grants);
+    assert.deepEqual(authAfter.platform_grants, authBefore.platform_grants);
+    assert.deepEqual(authAfter.local_credentials, authBefore.local_credentials);
+    assert.deepEqual(authAfter.dev_local_accounts, authBefore.dev_local_accounts);
+    // audit_events: every earlier row unchanged, exactly one row appended.
+    assert.deepEqual(authAfter.audit_events.slice(0, -1), authBefore.audit_events);
+    assert.equal(authAfter.audit_events.length, authBefore.audit_events.length + 1);
+    const row = authAfter.audit_events.at(-1) as Record<string, unknown>;
+    assert.equal(row.operation, "devenv.seed.reset");
+    assert.equal(row.outcome, "allow");
+    // The CLI authenticates no ReqALM identity: the label never lands in identity_id.
+    assert.equal(row.identity_id, null);
+    assert.equal(row.target_id, "docs/design/seed/dogfood.yaml");
+    const detail = row.detail as Record<string, unknown>;
+    assert.deepEqual(detail.actor, { kind: "devenv-cli", label: "dan", verified: false });
+    assert.deepEqual(detail.loaded, countDogfoodYamlEntities(seed));
+    const detailText = JSON.stringify(row);
+    assert.ok(!detailText.includes("harness"), "no DATABASE_URL credentials in the audit row");
 
     const audit = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
     assert.ok((audit.rows[0]?.c as number) >= 2);
@@ -265,27 +369,34 @@ describe("seed reset", () => {
     await pg.close();
   });
 
-  it("rolls back when reload fails after wipe", async () => {
+  it("rolls back when the reload fails mid-load (broken record after the wipe)", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();
     const seed = await readDogfoodFile(dogfoodPath);
     await loadDogfoodSeed(pg.pool, config, seed);
-    const before = await countAll(pg.pool);
+    await pg.pool.query(
+      `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)
+       VALUES ('FIX-ROLLBACK-PROBE', 'reqalm', 'SEC-DEVENV', 'requirement', 'rollback probe')`,
+    );
+    const before = await dumpResetTables(pg.pool);
+    const auditBefore = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
 
-    await assert.rejects(
-      () =>
-        resetDogfoodSeed(pg.pool, config, seed, {
-          confirm: true,
-          seedPath: dogfoodPath,
-          repoRoot,
-          env,
-          testAbortAfterWipe: true,
-        }),
-      /testAbortAfterWipe/,
+    // Lines and versions load, then the last release delivers an unknown version (FK violation).
+    const broken: DogfoodSeed = structuredClone(seed);
+    const lastRelease = broken.releases!.at(-1)!;
+    lastRelease.delivers = [...((lastRelease.delivers as string[]) ?? []), "CAP-DOES-NOT-EXIST"];
+    await assert.rejects(() =>
+      resetDogfoodSeed(pg.pool, config, broken, {
+        confirm: true,
+        seedPath: dogfoodPath,
+        repoRoot,
+        env,
+      }),
     );
 
-    const after = await countAll(pg.pool);
-    assert.deepEqual(before, after);
+    assert.deepEqual(await dumpResetTables(pg.pool), before);
+    const auditAfter = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
+    assert.equal(auditAfter.rows[0]?.c, auditBefore.rows[0]?.c);
     await pg.close();
   });
 
