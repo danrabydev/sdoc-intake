@@ -1037,6 +1037,69 @@ approval_records:
   notes: Planned for service-foundation PR; approve as solution once merged and verified.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-otel-sdk-bootstrap
+  subject_kind: CapabilityLine
+  base_uid: CAP-OTEL-SDK-BOOTSTRAP
+  status: unapproved
+  by:
+  at:
+  notes: Planned for OTel tracing PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-otel-w3c-context
+  subject_kind: CapabilityLine
+  base_uid: CAP-OTEL-W3C-CONTEXT
+  status: unapproved
+  by:
+  at:
+  notes: Planned for OTel tracing PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-otel-operation-spans
+  subject_kind: CapabilityLine
+  base_uid: CAP-OTEL-OPERATION-SPANS
+  status: unapproved
+  by:
+  at:
+  notes: Planned for OTel tracing PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-otel-key-dep
+  subject_kind: CapabilityLine
+  base_uid: CAP-OTEL-KEY-DEP
+  status: unapproved
+  by:
+  at:
+  notes: Planned for OTel tracing PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-otel-audit-trace
+  subject_kind: CapabilityLine
+  base_uid: CAP-OTEL-AUDIT-TRACE
+  status: unapproved
+  by:
+  at:
+  notes: Planned for OTel tracing PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-otel-export
+  subject_kind: CapabilityLine
+  base_uid: CAP-OTEL-EXPORT
+  status: unapproved
+  by:
+  at:
+  notes: Planned for OTel tracing PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-otel-test-harness
+  subject_kind: CapabilityLine
+  base_uid: CAP-OTEL-TEST-HARNESS
+  status: unapproved
+  by:
+  at:
+  notes: Planned for OTel tracing PR; approve once merged and verified.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -2818,6 +2881,46 @@ requirement_lines:
   parent: SEC-API
   kind: capability
   title: Reference vertical GET /api/v1/projects/:projectId
+- base_uid: ARCH-OTEL-TRACE
+  project_id: reqalm
+  parent: SEC-API
+  kind: requirement
+  title: Distributed tracing (W3C, operation + dependency spans)
+- base_uid: CAP-OTEL-SDK-BOOTSTRAP
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: OpenTelemetry SDK bootstrap (HTTP, Fastify, pg, undici)
+- base_uid: CAP-OTEL-W3C-CONTEXT
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: W3C trace context and validated request id
+- base_uid: CAP-OTEL-OPERATION-SPANS
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: Manual operation spans (runOperation)
+- base_uid: CAP-OTEL-KEY-DEP
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: OpenBao dependency spans (KeyProvider)
+- base_uid: CAP-OTEL-AUDIT-TRACE
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: Audit trace_id correlation
+- base_uid: CAP-OTEL-EXPORT
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: OTLP trace export (opt-in)
+- base_uid: CAP-OTEL-TEST-HARNESS
+  project_id: reqalm
+  parent: SEC-API
+  kind: capability
+  title: In-process tracing tests (real pg + PGlite socket)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -7116,7 +7219,7 @@ requirement_versions:
 - uid: CAP-SVC-RESULT-ENVELOPE
   base_uid: CAP-SVC-RESULT-ENVELOPE
   version_n: 0
-  status: draft
+  status: active
   statement: Typed ServiceResult (ok/err codes) and mapServiceResultToHttp for data and errors with request_id.
   priority: 10
   iteration: iter-r1
@@ -7125,10 +7228,11 @@ requirement_versions:
     verification_note: Planned until service-foundation PR merges.
   statement_hash: sha256:226b101ddfd8e865f65cb3bd5ad562ba0a203dd497ac9d03d2d47ab8ac6e5640
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-SVC-REQUEST-CONTEXT
   base_uid: CAP-SVC-REQUEST-CONTEXT
   version_n: 0
-  status: draft
+  status: active
   statement: buildRequestContext supplies identity, grants, roles, agent attribution, logger, pool, and request id.
   priority: 10
   iteration: iter-r1
@@ -7137,10 +7241,11 @@ requirement_versions:
     verification_note: Planned until service-foundation PR merges.
   statement_hash: sha256:768fc1a6cb5fe722791590ceefa65c35d22b34895d25804b955b4232114180c8
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-SVC-OPERATION-EXECUTOR
   base_uid: CAP-SVC-OPERATION-EXECUTOR
   version_n: 0
-  status: draft
+  status: active
   statement: runOperation enforces RBAC + project scope, writes audit_events, structured logs, returns ServiceResult.
   priority: 10
   iteration: iter-r1
@@ -7149,10 +7254,11 @@ requirement_versions:
     verification_note: Planned until service-foundation PR merges.
   statement_hash: sha256:4db7c1cb1e0dadd01c4428291c4c8746f6baa8f86364b385d58f0d098fb9982b
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-SVC-AUDIT-APPEND
   base_uid: CAP-SVC-AUDIT-APPEND
   version_n: 0
-  status: draft
+  status: active
   statement: Migration 006 + writeBusinessAudit; auth events remain in auth_audit_events.
   priority: 10
   iteration: iter-r1
@@ -7161,10 +7267,11 @@ requirement_versions:
     verification_note: Planned until service-foundation PR merges.
   statement_hash: sha256:39e5b2a3ad48fea886782e785db28608dd9abc4099c62eb6b7c2013799fd11bd
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-SVC-STRUCTURED-LOG
   base_uid: CAP-SVC-STRUCTURED-LOG
   version_n: 0
-  status: draft
+  status: active
   statement: logOperation + redactForLog; secrets/tokens/password keys redacted in log payloads.
   priority: 10
   iteration: iter-r1
@@ -7173,10 +7280,11 @@ requirement_versions:
     verification_note: Planned until service-foundation PR merges.
   statement_hash: sha256:2fc1ca6a12b8846335a0dc84fdbc4fe356d6b45f0f1710b000ae6869b80a1e37
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-SVC-ROUTE-REGISTRY
   base_uid: CAP-SVC-ROUTE-REGISTRY
   version_n: 0
-  status: draft
+  status: active
   statement: Every /api /oauth /mcp /health /ready route declares public, authenticated, or permission; test enforces.
   priority: 10
   iteration: iter-r1
@@ -7185,10 +7293,11 @@ requirement_versions:
     verification_note: Planned until service-foundation PR merges.
   statement_hash: sha256:0e246e9c7521ba6948753afdf22daef61a78deea25a29ac580de37a68ed27066
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-SVC-MODULE-BOOTSTRAP
   base_uid: CAP-SVC-MODULE-BOOTSTRAP
   version_n: 0
-  status: draft
+  status: active
   statement: src/modules/<feature>/ with service, routes, tests; register.ts entrypoint and README.
   priority: 10
   iteration: iter-r1
@@ -7197,10 +7306,11 @@ requirement_versions:
     verification_note: Planned until service-foundation PR merges.
   statement_hash: sha256:7ada90fc9c630e0d836d2eefe950899572628ca34ba4b95a60b86b44b940897e
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-SVC-PROJECT-READ
   base_uid: CAP-SVC-PROJECT-READ
   version_n: 0
-  status: draft
+  status: active
   statement: Project read gated on requirement:read, project-scoped 404 without grant, enveloped response, audited.
   priority: 10
   iteration: iter-r1
@@ -7208,6 +7318,103 @@ requirement_versions:
     catalog_ref: CM-2
     verification_note: Planned until service-foundation PR merges.
   statement_hash: sha256:1147ac3566673f7eafd71b0f1c2f65cb02e8892f4367327873943d6969af63bc
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: ARCH-OTEL-TRACE
+  base_uid: ARCH-OTEL-TRACE
+  version_n: 0
+  status: draft
+  statement: Distributed tracing spans the HTTP route, service operation (runOperation), and dependencies (PostgreSQL via pg auto-instrumentation, OpenBao/undici fetch). W3C traceparent is continued on ingress. Structured logs and append-only audit_events carry trace_id for correlation. Span attributes never include secrets, tokens, or password material.
+  priority: 22
+  iteration: iter-r1
+  security:
+    catalog_ref: AU-3
+    verification_note: Trace/log/audit correlation; OTLP traces export (not ARCH-OTEL audit-event export).
+  statement_hash: sha256:f7d9e1dd16287cb521c9ab50651ab8c271b4ce346726ceabf2e80ec45ed1b7d3
+  grooming_state: detailed
+- uid: CAP-OTEL-SDK-BOOTSTRAP
+  base_uid: CAP-OTEL-SDK-BOOTSTRAP
+  version_n: 0
+  status: draft
+  statement: Register hook (sdk-trace-node tracer provider, OTLP/HTTP trace exporter only) loads before app modules; off by default with no SDK loaded; http, Fastify, pg and undici instrumentation shared with tests.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until OTel tracing PR merges.
+  statement_hash: sha256:bcad104bdfdbc3be9cd3b5b8710e2bb865d292eb20929bfde5efe3c84bcb41b7
+  grooming_state: detailed
+- uid: CAP-OTEL-W3C-CONTEXT
+  base_uid: CAP-OTEL-W3C-CONTEXT
+  version_n: 0
+  status: draft
+  statement: Continues traceparent; x-request-id validated (printable, ≤128) else UUID; trace_id on RequestContext and logs.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until OTel tracing PR merges.
+  statement_hash: sha256:d7ffab98ac20a0ca0574f162064709edbebb67b1aad519b387cc2fb2ad5267a1
+  grooming_state: detailed
+- uid: CAP-OTEL-OPERATION-SPANS
+  base_uid: CAP-OTEL-OPERATION-SPANS
+  version_n: 0
+  status: draft
+  statement: Operation span with RBAC/outcome attributes; error status on deny/error; no secrets in attributes.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until OTel tracing PR merges.
+  statement_hash: sha256:329c87ebfa704caf77bbf0af97a95bc772b85ca6793b1e67d5c41d2d70af9460
+  grooming_state: detailed
+- uid: CAP-OTEL-KEY-DEP
+  base_uid: CAP-OTEL-KEY-DEP
+  version_n: 0
+  status: draft
+  statement: KeyProvider calls emit key.* spans (dependency and purpose only; no key material or tokens) without changing the KeyProvider interface; the OpenBao HTTP calls are their undici-instrumented child spans.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until OTel tracing PR merges.
+  statement_hash: sha256:02819b54f7e6518c03935765a9c584f00485495629b16c83f86e6cece2925703
+  grooming_state: detailed
+- uid: CAP-OTEL-AUDIT-TRACE
+  base_uid: CAP-OTEL-AUDIT-TRACE
+  version_n: 0
+  status: draft
+  statement: Migration 007 adds audit_events.trace_id; runOperation writes trace_id on append-only audit rows.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until OTel tracing PR merges.
+  statement_hash: sha256:688969750b56601b7557f234e33fa1d405cf5462e10d49e7d4dee1d2ddf5a00e
+  grooming_state: detailed
+- uid: CAP-OTEL-EXPORT
+  base_uid: CAP-OTEL-EXPORT
+  version_n: 0
+  status: draft
+  statement: OTEL_EXPORTER_OTLP_ENDPOINT / OTEL_SERVICE_NAME; documented local collector binding.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until OTel tracing PR merges.
+  statement_hash: sha256:44c45e633d5c714bb8421a4dbdafaab32344fd8da321de9322bb55b093813124
+  grooming_state: detailed
+- uid: CAP-OTEL-TEST-HARNESS
+  base_uid: CAP-OTEL-TEST-HARNESS
+  version_n: 0
+  status: draft
+  statement: otel-preload starts the test SDK with the production instrumentation list before pg is imported; real pg Pool over PGLiteSocketServer; in-memory exporter assertions.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until OTel tracing PR merges.
+  statement_hash: sha256:219e7548856ee534175a05c25c514168f77fc2b060943b0afdca6800e59342b4
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -7570,6 +7777,54 @@ capability_artifacts:
 - requirement_version_uid: CAP-SVC-PROJECT-READ
   kind: other
   uri: ../../../apps/reqalm/src/modules/service-foundation.test.ts
+- requirement_version_uid: CAP-OTEL-SDK-BOOTSTRAP
+  kind: other
+  uri: ../../../apps/reqalm/src/telemetry/register.ts
+- requirement_version_uid: CAP-OTEL-SDK-BOOTSTRAP
+  kind: other
+  uri: ../../../apps/reqalm/src/telemetry/otel-env.ts
+- requirement_version_uid: CAP-OTEL-SDK-BOOTSTRAP
+  kind: other
+  uri: ../../../apps/reqalm/src/telemetry/instrumentations.ts
+- requirement_version_uid: CAP-OTEL-SDK-BOOTSTRAP
+  kind: other
+  uri: ../../../apps/reqalm/src/telemetry/tracing.ts
+- requirement_version_uid: CAP-OTEL-W3C-CONTEXT
+  kind: other
+  uri: ../../../apps/reqalm/src/telemetry/request-id.ts
+- requirement_version_uid: CAP-OTEL-W3C-CONTEXT
+  kind: other
+  uri: ../../../apps/reqalm/src/core/request-context.ts
+- requirement_version_uid: CAP-OTEL-OPERATION-SPANS
+  kind: other
+  uri: ../../../apps/reqalm/src/core/operation.ts
+- requirement_version_uid: CAP-OTEL-KEY-DEP
+  kind: other
+  uri: ../../../apps/reqalm/src/key/provider.ts
+- requirement_version_uid: CAP-OTEL-KEY-DEP
+  kind: other
+  uri: ../../../apps/reqalm/src/telemetry/key-provider-tracing.ts
+- requirement_version_uid: CAP-OTEL-AUDIT-TRACE
+  kind: other
+  uri: ../../../apps/reqalm/src/db/migrations/007_audit_trace_id.sql
+- requirement_version_uid: CAP-OTEL-AUDIT-TRACE
+  kind: other
+  uri: ../../../apps/reqalm/src/audit/business-audit.ts
+- requirement_version_uid: CAP-OTEL-EXPORT
+  kind: other
+  uri: ../../../README.md
+- requirement_version_uid: CAP-OTEL-TEST-HARNESS
+  kind: other
+  uri: ../../../apps/reqalm/src/test/otel-preload.ts
+- requirement_version_uid: CAP-OTEL-TEST-HARNESS
+  kind: other
+  uri: ../../../apps/reqalm/src/test/otel-testing.ts
+- requirement_version_uid: CAP-OTEL-TEST-HARNESS
+  kind: other
+  uri: ../../../apps/reqalm/src/test/pglite-pool.ts
+- requirement_version_uid: CAP-OTEL-TEST-HARNESS
+  kind: other
+  uri: ../../../apps/reqalm/src/telemetry/otel-tracing.test.ts
 edges:
 - from: CAP-SSO
   to: A01
@@ -13090,6 +13345,30 @@ edges:
 - from: CAP-SVC-PROJECT-READ
   to: ARCH-API-RBAC
   kind: satisfies
+- from: ARCH-OTEL-TRACE
+  to: ARCH-OTEL
+  kind: uses
+- from: CAP-OTEL-SDK-BOOTSTRAP
+  to: ARCH-OTEL-TRACE
+  kind: satisfies
+- from: CAP-OTEL-W3C-CONTEXT
+  to: ARCH-OTEL-TRACE
+  kind: satisfies
+- from: CAP-OTEL-OPERATION-SPANS
+  to: ARCH-OTEL-TRACE
+  kind: satisfies
+- from: CAP-OTEL-KEY-DEP
+  to: ARCH-OTEL-TRACE
+  kind: satisfies
+- from: CAP-OTEL-AUDIT-TRACE
+  to: ARCH-OTEL-TRACE
+  kind: satisfies
+- from: CAP-OTEL-EXPORT
+  to: ARCH-OTEL-TRACE
+  kind: satisfies
+- from: CAP-OTEL-TEST-HARNESS
+  to: ARCH-OTEL-TRACE
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -13534,8 +13813,8 @@ releases:
   project_id: reqalm
   name: R1 — API service foundation (context, RBAC ops, audit, envelope)
   planned_on: '2026-10-07'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-07'
+  status: shipped
   delivers:
   - CAP-SVC-RESULT-ENVELOPE
   - CAP-SVC-REQUEST-CONTEXT
@@ -13546,7 +13825,23 @@ releases:
   - CAP-SVC-MODULE-BOOTSTRAP
   - CAP-SVC-PROJECT-READ
   cyber_gate: false
-  notes: 'One PR = one release. Service layer foundation: ServiceResult + HTTP envelope, RequestContext, runOperation with RBAC/project scope, append-only audit_events, structured logging/redaction, fail-closed route registry, modules bootstrap, GET project reference vertical. Planned until merge. RBAC allow/deny for business routes (grants.manage) now lands in audit_events, no longer in auth_audit_events as CAP-AUTH-AUDIT describes. Not claimed: ARCH-OTEL (no OTLP export or tracing; audit_events only covers its AU-9 append-only part), ARCH-CRED-AUDIT (auth events stay in auth_audit_events), CAP-AUDIT (no audit read API), ARCH-CP-SCOPE (scope is grant-based; no client_id predicate or RLS).'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/17 merged to main as 8f06a5887df8825eddbc5e04cc698248cde539d4 on 2026-10-07. Verified: in-process tests + typecheck + build.'
+- id: rel-r1-otel-tracing
+  project_id: reqalm
+  name: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
+  planned_on: '2026-10-07'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-OTEL-SDK-BOOTSTRAP
+  - CAP-OTEL-W3C-CONTEXT
+  - CAP-OTEL-OPERATION-SPANS
+  - CAP-OTEL-KEY-DEP
+  - CAP-OTEL-AUDIT-TRACE
+  - CAP-OTEL-EXPORT
+  - CAP-OTEL-TEST-HARNESS
+  cyber_gate: false
+  notes: One PR = one release. OTLP trace export (opt-in), W3C traceparent, operation spans, pg + undici auto-instrumentation, OpenBao dependency spans, audit_events.trace_id. Does not claim full ARCH-OTEL OTLP export of security audit events (traces only). Planned until merged; the next PR marks it shipped at the merge sha (same pattern as rel-r1-service-foundation).
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

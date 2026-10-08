@@ -8316,6 +8316,7 @@ edge: ← refines from ARCH-CRED-AUDIT
 edge: ← uses from ARCH-KEY-LIFECYCLE
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
+edge: ← uses from ARCH-OTEL-TRACE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -8562,7 +8563,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-RESULT-ENVELOPE
-STATUS: Draft
+STATUS: Active
 TITLE: ServiceResult + HTTP Problem Details envelope
 STATEMENT: >>>
 Typed ServiceResult (ok/err codes) and mapServiceResultToHttp for data and errors with request_id.
@@ -8592,7 +8593,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-REQUEST-CONTEXT
-STATUS: Draft
+STATUS: Active
 TITLE: Per-request RequestContext for services
 STATEMENT: >>>
 buildRequestContext supplies identity, grants, roles, agent attribution, logger, pool, and request id.
@@ -8622,7 +8623,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-OPERATION-EXECUTOR
-STATUS: Draft
+STATUS: Active
 TITLE: Operation executor (authorize → execute → audit → log)
 STATEMENT: >>>
 runOperation enforces RBAC + project scope, writes audit_events, structured logs, returns ServiceResult.
@@ -8652,7 +8653,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-AUDIT-APPEND
-STATUS: Draft
+STATUS: Active
 TITLE: Append-only business audit_events table
 STATEMENT: >>>
 Migration 006 + writeBusinessAudit; auth events remain in auth_audit_events.
@@ -8676,7 +8677,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-STRUCTURED-LOG
-STATUS: Draft
+STATUS: Active
 TITLE: Structured operation logging with redaction
 STATEMENT: >>>
 logOperation + redactForLog; secrets/tokens/password keys redacted in log payloads.
@@ -8700,7 +8701,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-ROUTE-REGISTRY
-STATUS: Draft
+STATUS: Active
 TITLE: Fail-closed API route security registration
 STATEMENT: >>>
 Every /api /oauth /mcp /health /ready route declares public, authenticated, or permission; test enforces.
@@ -8727,7 +8728,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-MODULE-BOOTSTRAP
-STATUS: Draft
+STATUS: Active
 TITLE: Feature module convention + registration
 STATEMENT: >>>
 src/modules/<feature>/ with service, routes, tests; register.ts entrypoint and README.
@@ -8754,7 +8755,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-PROJECT-READ
-STATUS: Draft
+STATUS: Active
 TITLE: Reference vertical GET /api/v1/projects/:projectId
 STATEMENT: >>>
 Project read gated on requirement:read, project-scoped 404 without grant, enveloped response, audited.
@@ -8777,6 +8778,225 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-OTEL-TRACE
+STATUS: Draft
+TITLE: Distributed tracing (W3C, operation + dependency spans)
+STATEMENT: >>>
+Distributed tracing spans the HTTP route, service operation (runOperation), and dependencies (PostgreSQL via pg auto-instrumentation, OpenBao/undici fetch). W3C traceparent is continued on ingress. Structured logs and append-only audit_events carry trace_id for correlation. Span attributes never include secrets, tokens, or password material.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-OTEL-TRACE
+VERSION_N: 0
+priority: 22
+iteration: iter-r1
+security.catalog_ref: AU-3
+security.verification_note: Trace/log/audit correlation; OTLP traces export (not ARCH-OTEL audit-event export).
+edge: ← satisfies from CAP-OTEL-SDK-BOOTSTRAP
+edge: ← satisfies from CAP-OTEL-W3C-CONTEXT
+edge: ← satisfies from CAP-OTEL-OPERATION-SPANS
+edge: ← satisfies from CAP-OTEL-KEY-DEP
+edge: ← satisfies from CAP-OTEL-AUDIT-TRACE
+edge: ← satisfies from CAP-OTEL-EXPORT
+edge: ← satisfies from CAP-OTEL-TEST-HARNESS
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Uses
+
+[REQUIREMENT]
+UID: CAP-OTEL-SDK-BOOTSTRAP
+STATUS: Draft
+TITLE: OpenTelemetry SDK bootstrap (HTTP, Fastify, pg, undici)
+STATEMENT: >>>
+Register hook (sdk-trace-node tracer provider, OTLP/HTTP trace exporter only) loads before app modules; off by default with no SDK loaded; http, Fastify, pg and undici instrumentation shared with tests.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-OTEL-SDK-BOOTSTRAP
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until OTel tracing PR merges.
+delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-OTEL-TRACE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-otel-tracing
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-OTEL-W3C-CONTEXT
+STATUS: Draft
+TITLE: W3C trace context and validated request id
+STATEMENT: >>>
+Continues traceparent; x-request-id validated (printable, ≤128) else UUID; trace_id on RequestContext and logs.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-OTEL-W3C-CONTEXT
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until OTel tracing PR merges.
+delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-OTEL-TRACE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-otel-tracing
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-OTEL-OPERATION-SPANS
+STATUS: Draft
+TITLE: Manual operation spans (runOperation)
+STATEMENT: >>>
+Operation span with RBAC/outcome attributes; error status on deny/error; no secrets in attributes.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-OTEL-OPERATION-SPANS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until OTel tracing PR merges.
+delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-OTEL-TRACE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-otel-tracing
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-OTEL-KEY-DEP
+STATUS: Draft
+TITLE: OpenBao dependency spans (KeyProvider)
+STATEMENT: >>>
+KeyProvider calls emit key.* spans (dependency and purpose only; no key material or tokens) without changing the KeyProvider interface; the OpenBao HTTP calls are their undici-instrumented child spans.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-OTEL-KEY-DEP
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until OTel tracing PR merges.
+delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-OTEL-TRACE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-otel-tracing
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-OTEL-AUDIT-TRACE
+STATUS: Draft
+TITLE: Audit trace_id correlation
+STATEMENT: >>>
+Migration 007 adds audit_events.trace_id; runOperation writes trace_id on append-only audit rows.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-OTEL-AUDIT-TRACE
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until OTel tracing PR merges.
+delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-OTEL-TRACE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-otel-tracing
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-OTEL-EXPORT
+STATUS: Draft
+TITLE: OTLP trace export (opt-in)
+STATEMENT: >>>
+OTEL_EXPORTER_OTLP_ENDPOINT / OTEL_SERVICE_NAME; documented local collector binding.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-OTEL-EXPORT
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until OTel tracing PR merges.
+delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-OTEL-TRACE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-otel-tracing
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-OTEL-TEST-HARNESS
+STATUS: Draft
+TITLE: In-process tracing tests (real pg + PGlite socket)
+STATEMENT: >>>
+otel-preload starts the test SDK with the production instrumentation list before pg is imported; real pg Pool over PGLiteSocketServer; in-memory exporter assertions.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-OTEL-TEST-HARNESS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until OTel tracing PR merges.
+delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-OTEL-TRACE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-otel-tracing
   ROLE: Delivers
 
 [[/SECTION]]

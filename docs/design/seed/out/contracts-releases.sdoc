@@ -1305,17 +1305,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-service-foundation
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — API service foundation (context, RBAC ops, audit, envelope)
 STATEMENT: >>>
-ReqALM release `R1 — API service foundation (context, RBAC ops, audit, envelope)` (status=planned, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — API service foundation (context, RBAC ops, audit, envelope)` (status=shipped, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-service-foundation
 project_id: reqalm
-shipped_on: None
-raw_status: planned
+shipped_on: 2026-10-07
+raw_status: shipped
 delivers: CAP-SVC-RESULT-ENVELOPE, CAP-SVC-REQUEST-CONTEXT, CAP-SVC-OPERATION-EXECUTOR, CAP-SVC-AUDIT-APPEND, CAP-SVC-STRUCTURED-LOG, CAP-SVC-ROUTE-REGISTRY, CAP-SVC-MODULE-BOOTSTRAP, CAP-SVC-PROJECT-READ
 delivers_count: 8
 <<<
@@ -1345,6 +1345,47 @@ RELATIONS:
   ROLE: Delivers
 - TYPE: Parent
   VALUE: CAP-SVC-PROJECT-READ
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-otel-tracing
+STATUS: Draft
+TITLE: Release R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
+STATEMENT: >>>
+ReqALM release `R1 — OpenTelemetry tracing (W3C, operation + dependency spans)` (status=planned, planned_on=2026-10-07). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-otel-tracing
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-OTEL-SDK-BOOTSTRAP, CAP-OTEL-W3C-CONTEXT, CAP-OTEL-OPERATION-SPANS, CAP-OTEL-KEY-DEP, CAP-OTEL-AUDIT-TRACE, CAP-OTEL-EXPORT, CAP-OTEL-TEST-HARNESS
+delivers_count: 7
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-OTEL-SDK-BOOTSTRAP
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-OTEL-W3C-CONTEXT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-OTEL-OPERATION-SPANS
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-OTEL-KEY-DEP
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-OTEL-AUDIT-TRACE
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-OTEL-EXPORT
+  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-OTEL-TEST-HARNESS
   ROLE: Delivers
 
 [[/SECTION]]

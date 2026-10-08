@@ -13,6 +13,14 @@ COPY apps/reqalm/package.json apps/reqalm/package.json
 COPY packages/intake/package.json packages/intake/package.json
 RUN pnpm install --filter @reqalm/app --frozen-lockfile
 
+# Runtime gets production dependencies only: no test (PGlite, pglite-socket) or build (tsx,
+# typescript, esbuild) packages in the image.
+FROM node-base AS app-prod-deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/reqalm/package.json apps/reqalm/package.json
+COPY packages/intake/package.json packages/intake/package.json
+RUN pnpm install --filter @reqalm/app --frozen-lockfile --prod
+
 FROM app-deps AS app-build
 COPY apps/reqalm apps/reqalm
 COPY docs/design/seed docs/design/seed
@@ -24,8 +32,8 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 WORKDIR /repo/apps/reqalm
-COPY --from=app-deps /repo/node_modules /repo/node_modules
-COPY --from=app-deps /repo/apps/reqalm/node_modules ./node_modules
+COPY --from=app-prod-deps /repo/node_modules /repo/node_modules
+COPY --from=app-prod-deps /repo/apps/reqalm/node_modules ./node_modules
 COPY --from=app-build /repo/apps/reqalm/dist ./dist
 COPY --from=app-build /repo/apps/reqalm/openapi ./openapi
 COPY --from=app-build /repo/apps/reqalm/package.json ./package.json
@@ -36,7 +44,7 @@ EXPOSE 3000
 HEALTHCHECK --interval=10s --timeout=5s --retries=12 --start-period=30s \
   CMD curl -sf "http://127.0.0.1:${REQALM_PORT:-3000}/ready" || exit 1
 ENTRYPOINT ["/usr/local/bin/reqalm-entrypoint.sh"]
-CMD ["node", "dist/main.js"]
+CMD ["node", "--import", "./dist/telemetry/register.js", "dist/main.js"]
 
 FROM postgres:16-bookworm AS peripherals
 ARG OPENBAO_VERSION

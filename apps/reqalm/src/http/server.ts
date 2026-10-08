@@ -20,6 +20,8 @@ import { registerProbeRoutes } from "./routes-probes.js";
 import { createBearerGuard, type AuthedRequest } from "./middleware/bearer-auth.js";
 import { installRouteCapture } from "./route-security.js";
 import { registerFeatureModules } from "../modules/register.js";
+import { requestIdFromHeaders } from "../telemetry/request-id.js";
+import { traceLogFields } from "../telemetry/trace-context.js";
 
 export type RuntimeState = {
   config: AppConfig;
@@ -36,6 +38,8 @@ export async function buildApiServer(state: RuntimeState) {
   const app = Fastify({
     logger: {
       level: "info",
+      // trace_id/span_id on every log line while a span is active (no-op when tracing is off).
+      mixin: traceLogFields,
       serializers: {
         req(req) {
           const url = req.url?.replace(/([?&]code=)[^&]+/gi, "$1[REDACTED]");
@@ -43,6 +47,7 @@ export async function buildApiServer(state: RuntimeState) {
         },
       },
     },
+    genReqId: (req) => requestIdFromHeaders(req.headers),
     // Trust X-Forwarded-* only from the listed proxies; never blanket trust in production
     // (startup self-check refuses REQALM_TRUST_PROXY=true without REQALM_TRUSTED_PROXIES).
     trustProxy:

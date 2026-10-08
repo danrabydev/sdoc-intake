@@ -1,5 +1,6 @@
 import type { AppConfig } from "../config.js";
 import { isProduction } from "../config.js";
+import { traceKeyProvider } from "../telemetry/key-provider-tracing.js";
 import { probeOpenBao, TRANSIT_KEK_NAME } from "./openbao.js";
 
 export type KeyProvider = {
@@ -66,7 +67,7 @@ async function transitDecrypt(
 const TRANSIT_DEK_PREFIX = "reqaml-dek-";
 
 export function createOpenBaoKeyProvider(config: AppConfig): KeyProvider {
-  return {
+  const inner: KeyProvider = {
     async ensureReady() {
       const status = await probeOpenBao(config);
       if (!status.ok) {
@@ -96,4 +97,5 @@ export function createOpenBaoKeyProvider(config: AppConfig): KeyProvider {
       return Buffer.from(b64, "base64");
     },
   };
+  return traceKeyProvider(inner);
 }

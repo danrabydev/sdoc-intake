@@ -3,6 +3,7 @@ import { redactForLog } from "./redact.js";
 
 export type OperationLogFields = {
   requestId: string;
+  traceId?: string | null;
   operation: string;
   outcome: "allow" | "deny" | "error";
   permission?: string;
@@ -17,6 +18,7 @@ export function logOperation(logger: FastifyBaseLogger, fields: OperationLogFiel
     {
       reqalm: redactForLog({
         request_id: fields.requestId,
+        trace_id: fields.traceId ?? undefined,
         operation: fields.operation,
         outcome: fields.outcome,
         permission: fields.permission,

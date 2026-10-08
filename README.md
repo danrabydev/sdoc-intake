@@ -89,7 +89,22 @@ pnpm test
 pnpm typecheck
 ```
 
-`pnpm test` runs `@reqalm/app` unit tests plus in-process auth integration tests (PGlite + in-memory KeyProvider fake). Full-stack auth behaviour is still verified with `pnpm devenv:smoke` locally.
+`pnpm test` runs `@reqalm/app` unit tests plus in-process auth integration tests (real `pg` against an ephemeral **PGlite socket** on `127.0.0.1`, plus in-memory KeyProvider). OpenTelemetry is registered via `src/test/otel-preload.ts` before `pg` loads so pg auto-instrumentation matches production. Full-stack auth behaviour is still verified with `pnpm devenv:smoke` locally.
+
+### OpenTelemetry (opt-in)
+
+Tracing is **off by default**. To export OTLP traces locally (e.g. Jaeger all-in-one bound to `127.0.0.1`):
+
+```sh
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318
+export OTEL_SERVICE_NAME=reqalm                                # default: reqalm
+export OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=dev  # optional
+pnpm dev:reqalm
+```
+
+Only traces are exported (OTLP/HTTP); the SDK is the plain tracer provider (`@opentelemetry/sdk-trace-node`) with the http, Fastify, pg and undici instrumentations, no metrics, logs or other exporters. `OTEL_SDK_DISABLED=true` (or `REQALM_OTEL_DISABLE=true`) forces it off; `REQALM_OTEL_ENABLED=true` turns it on without an endpoint (exporter default `http://localhost:4318`).
+
+In Docker, set the same env vars on the **app** service only when you want export, pointing at a collector the container can reach (e.g. `http://jaeger:4318` on the compose network; `127.0.0.1` inside the container is the app itself). With them unset, `dist/telemetry/register.js` (loaded before `main.js`) imports no SDK code and opens no sockets. `/health` and `/ready` are not traced, and the OAuth `code` query parameter is redacted from spans as it is from logs.
 
 ## SDoc Intake editor
 
