@@ -13903,7 +13903,7 @@ edges:
   to: C08
   kind: satisfies
 - from: CAP-READ-REQS
-  to: C06
+  to: D06
   kind: satisfies
 - from: CAP-READ-REQS
   to: ARCH-API-RBAC

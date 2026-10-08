@@ -627,10 +627,25 @@ describe("browse clients and projects", () => {
   });
 
   it("listClientProjects uses allowedProjectIds (Key custodian grant does not unlock client)", async () => {
-    const h = bearer(caseyAccess);
-    const res = await inject({ method: "GET", url: "/api/v1/clients/other-family/projects", headers: h });
-    assert.equal(res.statusCode, 404);
-    assert.notEqual((res.json() as { code: string }).code, "validation");
+    await ctx.pool.query(
+      `INSERT INTO clients (id, name) VALUES ('other-client', 'Other') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO projects (id, client_id, name) VALUES ('secret-oc', 'other-client', 'Secret OC') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-casey-kc-oc', 'secret-oc', 'casey-reader', 'Key custodian') ON CONFLICT DO NOTHING`,
+    );
+    try {
+      const h = bearer(caseyAccess);
+      const res = await inject({ method: "GET", url: "/api/v1/clients/other-client/projects", headers: h });
+      assert.equal(res.statusCode, 404);
+      assert.notEqual((res.json() as { code: string }).code, "validation");
+    } finally {
+      await ctx.pool.query(`DELETE FROM project_grants WHERE id = 'grant-casey-kc-oc'`);
+      await ctx.pool.query(`DELETE FROM projects WHERE id = 'secret-oc'`);
+    }
   });
 
   it("invalid client id redacts logs and span url.path", async () => {

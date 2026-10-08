@@ -53,28 +53,31 @@ describe("runOperation", () => {
   it("audits error when execute throws", async () => {
     resetTelemetrySpans();
     const fixture = await createMigratedPglitePool();
-    const ctx = minimalCtx(fixture.pool);
-    await runOperation(
-      ctx,
-      {
-        name: "test.throw",
-        execute: async () => {
-          throw new Error("boom");
+    try {
+      const ctx = minimalCtx(fixture.pool);
+      await runOperation(
+        ctx,
+        {
+          name: "test.throw",
+          execute: async () => {
+            throw new Error("boom");
+          },
         },
-      },
-      {},
-    );
-    const r = await fixture.pool.query<{ outcome: string }>(
-      `SELECT outcome FROM audit_events WHERE request_id = $1`,
-      ["op-test"],
-    );
-    assert.equal(r.rows[0]?.outcome, "error");
-    const opSpan = finishedSpans().find((s) => s.name === "operation test.throw");
-    assert.ok(opSpan);
-    assert.equal(opSpan!.status.message, "operation failed");
-    assert.equal(opSpan!.attributes["reqalm.error_kind"], "internal");
-    assert.doesNotMatch(JSON.stringify([opSpan!.status, opSpan!.events, opSpan!.attributes]), /boom/);
-    await fixture.close();
+        {},
+      );
+      const r = await fixture.pool.query<{ outcome: string }>(
+        `SELECT outcome FROM audit_events WHERE request_id = $1`,
+        ["op-test"],
+      );
+      assert.equal(r.rows[0]?.outcome, "error");
+      const opSpan = finishedSpans().find((s) => s.name === "operation test.throw");
+      assert.ok(opSpan);
+      assert.equal(opSpan!.status.message, "operation failed");
+      assert.equal(opSpan!.attributes["reqalm.error_kind"], "internal");
+      assert.doesNotMatch(JSON.stringify([opSpan!.status, opSpan!.events, opSpan!.attributes]), /boom/);
+    } finally {
+      await fixture.close();
+    }
   });
 
   it("setSpanError itself writes only the generic message and the error kind (before export)", () => {
@@ -92,24 +95,27 @@ describe("runOperation", () => {
 
   it("project-scoped op without a project id fails closed (not_found, audited deny)", async () => {
     const fixture = await createMigratedPglitePool();
-    const ctx = minimalCtx(fixture.pool, "op-noproj");
-    const res = await runOperation(
-      ctx,
-      {
-        name: "test.noproj",
-        permission: "requirement:read",
-        projectScoped: true,
-        projectIdFromInput: () => undefined,
-        execute: async () => ok("leak"),
-      },
-      {},
-    );
-    assert.equal(!res.ok && res.error.code, "not_found");
-    const r = await fixture.pool.query<{ outcome: string }>(
-      `SELECT outcome FROM audit_events WHERE request_id = 'op-noproj'`,
-    );
-    assert.equal(r.rows[0]?.outcome, "deny");
-    await fixture.close();
+    try {
+      const ctx = minimalCtx(fixture.pool, "op-noproj");
+      const res = await runOperation(
+        ctx,
+        {
+          name: "test.noproj",
+          permission: "requirement:read",
+          projectScoped: true,
+          projectIdFromInput: () => undefined,
+          execute: async () => ok("leak"),
+        },
+        {},
+      );
+      assert.equal(!res.ok && res.error.code, "not_found");
+      const r = await fixture.pool.query<{ outcome: string }>(
+        `SELECT outcome FROM audit_events WHERE request_id = 'op-noproj'`,
+      );
+      assert.equal(r.rows[0]?.outcome, "deny");
+    } finally {
+      await fixture.close();
+    }
   });
 
   it("refuses listScope combined with projectScoped in runPipeline", async () => {

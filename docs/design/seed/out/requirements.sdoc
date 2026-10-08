@@ -2723,7 +2723,7 @@ RELATIONS:
   VALUE: C08
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: C06
+  VALUE: D06
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: ARCH-API-RBAC
@@ -2993,7 +2993,6 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-TREE
 edge: ← uses from N01
-edge: ← satisfies from CAP-READ-REQS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1-core-ALM
@@ -3385,6 +3384,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-VERSION-UI
+edge: ← satisfies from CAP-READ-REQS
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)

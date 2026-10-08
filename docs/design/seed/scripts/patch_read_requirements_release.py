@@ -121,7 +121,7 @@ def main() -> None:
     )
     edges = data.setdefault("edges", [])
     data["edges"] = [e for e in edges if e.get("from") != CAP]
-    for to in ("C08", "C06", "ARCH-API-RBAC", "CAP-SVC-OPERATION-ROUTE", "CAP-RBAC"):
+    for to in ("C08", "D06", "ARCH-API-RBAC", "CAP-SVC-OPERATION-ROUTE", "CAP-RBAC"):
         ensure_edge(data["edges"], {"from": CAP, "to": to, "kind": "satisfies"})
     arts = data.setdefault("capability_artifacts", [])
     data["capability_artifacts"] = [a for a in arts if a.get("requirement_version_uid") != CAP]

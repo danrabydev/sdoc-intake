@@ -61,6 +61,16 @@ async function restoreCaseyGrants(saved: { id: string; role: string }[]): Promis
 
 describe("requirements read API", () => {
   it("filters type, status, kind, and combined query params", async () => {
+    const cap = (
+      await inject({
+        method: "GET",
+        url: "/api/v1/projects/reqalm/requirements?kind=capability&limit=100",
+        headers: bearer,
+      })
+    ).json() as { data: { items: Array<{ kind: string }>; total: number } };
+    assert.equal(cap.data.total, 66);
+    assert.ok(cap.data.items.length > 0);
+    assert.ok(cap.data.items.every((i) => i.kind === "capability"));
     const draft = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?status=draft&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ id: string; status: string }> } };
@@ -126,6 +136,19 @@ describe("requirements read API", () => {
   });
 
   it("selects newest version for list summary and detail (M15)", async () => {
+    const versions = (
+      await inject({
+        method: "GET",
+        url: "/api/v1/projects/reqalm/requirements/FIX-SUCC-2HOP/versions?limit=10",
+        headers: bearer,
+      })
+    ).json() as { data: { items: Array<{ version_n: number }> } };
+    const versionNs = versions.data.items.map((v) => v.version_n);
+    assert.deepEqual(versionNs, [...versionNs].sort((a, b) => b - a));
+    assert.ok(versionNs.length >= 3);
+    for (let i = 1; i < versionNs.length; i++) {
+      assert.ok(versionNs[i - 1]! > versionNs[i]!);
+    }
     const list = (
       await inject({
         method: "GET",
@@ -163,12 +186,20 @@ describe("requirements read API", () => {
       return { status: res.statusCode, code: (res.json() as { code: string }).code };
     };
     assert.deepEqual(
+      await nf("/api/v1/projects/reqalm/requirements/CROSS-ONLY"),
+      await nf("/api/v1/projects/reqalm/requirements/NO-SUCH-REQ"),
+    );
+    assert.deepEqual(
       await nf("/api/v1/projects/reqalm/requirements/CROSS-ONLY/versions"),
       await nf("/api/v1/projects/reqalm/requirements/NO-SUCH-REQ/versions"),
     );
   });
 
-  it("paging caps: list offset boundary, versions limit (M06, M24)", async () => {
+  it("paging caps: list offset boundary, versions limit (M06, M23, M24)", async () => {
+    assert.equal(
+      (await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?limit=500", headers: bearer })).statusCode,
+      400,
+    );
     assert.equal(
       (await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?offset=100000&limit=1", headers: bearer }))
         .statusCode,
@@ -210,7 +241,7 @@ describe("requirements read API", () => {
     }
   });
 
-  it("agent Reader token denied on all routes when only non-Reader grant applies (M22)", async () => {
+  it("agent Reader token denied on detail and versions when only non-Reader grant applies (N08)", async () => {
     await ctx.pool.query(
       `INSERT INTO clients (id, name) VALUES ('browse-client-p2', 'Browse P2') ON CONFLICT DO NOTHING`,
     );
@@ -221,19 +252,36 @@ describe("requirements read API", () => {
       `INSERT INTO project_grants (id, project_id, identity_id, role)
        VALUES ('grant-agent-padmin-p2-req', 'browse-p2', 'agent-cursor-cloud', 'Project admin') ON CONFLICT DO NOTHING`,
     );
+    await ctx.pool.query(
+      `INSERT INTO requirement_lines (base_uid, project_id, kind, title)
+       VALUES ('P2-REQ', 'browse-p2', 'requirement', 'agent narrowing bed') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO requirement_versions (uid, base_uid, project_id, version_n, status, statement)
+       VALUES ('P2-REQ', 'P2-REQ', 'browse-p2', 0, 'active', 'bed') ON CONFLICT DO NOTHING`,
+    );
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-casey-reader-p2-req', 'browse-p2', 'casey-reader', 'Reader') ON CONFLICT DO NOTHING`,
+    );
     try {
-      const token = await agentToken("Reader");
-      const h = { authorization: `Bearer ${token}` };
+      const narrowed = { authorization: `Bearer ${await agentToken("Reader")}` };
       for (const url of [
-        "/api/v1/projects/browse-p2/requirements?limit=1",
-        "/api/v1/projects/browse-p2/requirements/A01",
-        "/api/v1/projects/browse-p2/requirements/A01/versions",
+        "/api/v1/projects/browse-p2/requirements/P2-REQ",
+        "/api/v1/projects/browse-p2/requirements/P2-REQ/versions",
       ]) {
-        const res = await inject({ method: "GET", url, headers: h });
-        assert.ok(res.statusCode === 403 || res.statusCode === 404, `${url} → ${res.statusCode}`);
+        assert.equal((await inject({ method: "GET", url, headers: narrowed })).statusCode, 403, url);
+      }
+      for (const url of [
+        "/api/v1/projects/browse-p2/requirements/P2-REQ",
+        "/api/v1/projects/browse-p2/requirements/P2-REQ/versions",
+      ]) {
+        assert.equal((await inject({ method: "GET", url, headers: bearer })).statusCode, 200, url);
       }
     } finally {
-      await ctx.pool.query(`DELETE FROM project_grants WHERE id = 'grant-agent-padmin-p2-req'`);
+      await ctx.pool.query(`DELETE FROM project_grants WHERE id IN ('grant-agent-padmin-p2-req', 'grant-casey-reader-p2-req')`);
+      await ctx.pool.query(`DELETE FROM requirement_versions WHERE base_uid = 'P2-REQ'`);
+      await ctx.pool.query(`DELETE FROM requirement_lines WHERE base_uid = 'P2-REQ'`);
       await ctx.pool.query(`DELETE FROM projects WHERE id = 'browse-p2'`);
       await ctx.pool.query(`DELETE FROM clients WHERE id = 'browse-client-p2'`);
     }
