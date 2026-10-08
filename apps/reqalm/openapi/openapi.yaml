@@ -89,8 +89,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DataEnvelope"
-        "400":
-          $ref: "#/components/responses/ProblemBadRequest"
         "401":
           $ref: "#/components/responses/ProblemUnauthorized"
         "403":
@@ -133,7 +131,7 @@ components:
       bearerFormat: JWT
   responses:
     ProblemBadRequest:
-      description: Invalid request input (validation, malformed body, unsupported media type)
+      description: Invalid request input (validation, malformed body, unsupported media type); only after authentication, project scope and permission pass
       content:
         application/problem+json:
           schema:
@@ -151,7 +149,7 @@ components:
           schema:
             $ref: "#/components/schemas/ProblemDetails"
     ProblemNotFound:
-      description: Not found
+      description: Not found (a missing project, a project without a grant, and an unparsable project id are identical)
       content:
         application/problem+json:
           schema:

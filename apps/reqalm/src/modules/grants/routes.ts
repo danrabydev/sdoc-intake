@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { defineOperationRoute, parseZodInput } from "../../http/define-operation-route.js";
+import { defineOperationRoute, parseZodInput, projectIdSchema } from "../../http/define-operation-route.js";
 import type { OperationDef } from "../../core/operation.js";
 import type { RequestContextDeps } from "../../core/request-context.js";
 import {
@@ -10,8 +10,7 @@ import {
 } from "./grants.service.js";
 
 const grantParams = z.object({
-  // Exact id: reject blank, never trim (a padded id must not resolve to the real project).
-  projectId: z.string().refine((v) => v.trim() !== "" && v.trim() === v, "invalid project id"),
+  projectId: projectIdSchema,
 });
 
 const grantManageOp: OperationDef<GrantManageInput, GrantManageDto> = {

@@ -86,17 +86,51 @@ function operationSpanAttributes(
   return attrs;
 }
 
+/**
+ * One operation call. `projectId` is the project scope, resolved before any input validation;
+ * `parseInput` runs only after authentication, project scope and permission pass.
+ */
+export type OperationCall<TIn> = {
+  projectId: string | undefined;
+  parseInput: () => ServiceResult<TIn>;
+};
+
+/** Run an operation on already-validated input (non-HTTP callers and tests). */
 export async function runOperation<TIn, TOut>(
   ctx: RequestContext,
   def: OperationDef<TIn, TOut>,
   input: TIn,
 ): Promise<ServiceResult<TOut>> {
+  const meta = def.auditMeta?.(input) ?? {};
+  const projectId = def.projectIdFromInput?.(input) ?? meta.projectId ?? undefined;
+  return runPipeline(ctx, def, projectId, meta, () => ok(input));
+}
+
+/**
+ * Run an operation for a request: authenticate → project scope → permission → validate input → execute,
+ * then append-only audit and log. Every outcome, including a validation failure, is audited.
+ */
+export async function runOperationCall<TIn, TOut>(
+  ctx: RequestContext,
+  def: OperationDef<TIn, TOut>,
+  call: OperationCall<TIn>,
+): Promise<ServiceResult<TOut>> {
+  return runPipeline(ctx, def, call.projectId, {}, call.parseInput);
+}
+
+async function runPipeline<TIn, TOut>(
+  ctx: RequestContext,
+  def: OperationDef<TIn, TOut>,
+  projectId: string | undefined,
+  initialMeta: OperationAuditMeta,
+  parseInput: () => ServiceResult<TIn>,
+): Promise<ServiceResult<TOut>> {
   const tracer = trace.getTracer(OP_TRACER);
   return tracer.startActiveSpan(`operation ${def.name}`, async (span) => {
     try {
     const started = ctx.clock.now();
-    const meta = def.auditMeta?.(input) ?? {};
-    const projectId = def.projectIdFromInput?.(input) ?? meta.projectId ?? undefined;
+    // Before validation only the resolved scope is known; raw input never reaches the audit row.
+    let meta = initialMeta;
 
     for (const [k, v] of Object.entries(operationSpanAttributes(ctx, def as OperationDef<unknown, unknown>, projectId))) {
       span.setAttribute(k, v);
@@ -116,10 +150,13 @@ export async function runOperation<TIn, TOut>(
       } else {
         span.setStatus({ code: SpanStatusCode.OK });
       }
-      await recordAudit(ctx, def as OperationDef<unknown, unknown>, auditOutcome, {
-        ...meta,
-        projectId: projectId ?? meta.projectId,
-      });
+      await recordAudit(
+        ctx,
+        def as OperationDef<unknown, unknown>,
+        auditOutcome,
+        { ...meta, projectId: projectId ?? meta.projectId },
+        result.ok ? undefined : { error_code: result.error.code },
+      );
       logOperation(ctx.logger, {
         requestId: ctx.requestId,
         traceId: ctx.traceId,
@@ -165,6 +202,17 @@ export async function runOperation<TIn, TOut>(
     }
 
     try {
+      const parsed = parseInput();
+      if (!parsed.ok) {
+        return finish({ ok: false, error: parsed.error }, serviceOutcomeToAudit(parsed.error.code), "error");
+      }
+      const input = parsed.data;
+      meta = def.auditMeta?.(input) ?? meta;
+      if (def.projectScoped && def.projectIdFromInput?.(input) !== projectId) {
+        // The validated input names another project than the one scope and RBAC were checked against.
+        ctx.logger.error({ operation: def.name, request_id: ctx.requestId }, "operation_scope_mismatch");
+        return finish(err("internal", "Internal error"), "error", "error");
+      }
       const result = await def.execute(ctx, input);
       if (result.ok) {
         return finish(result, "allow", "allow");

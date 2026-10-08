@@ -2,11 +2,9 @@ import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import {
   createTestApp,
-  pkcePair,
+  issueTestAccessToken,
   TEST_API_RESOURCE,
   TEST_AGENT_SECRET,
-  TEST_ISSUER,
-  TEST_PASSWORD,
   type TestApp,
 } from "../test/harness.js";
 
@@ -40,49 +38,7 @@ async function inject(opts: {
 }
 
 async function loginToken(username = "casey-reader@dev.local"): Promise<string> {
-  const { verifier, challenge } = pkcePair();
-  const redirectUri = `${TEST_ISSUER}/oauth/callback`;
-  const authz = await inject({
-    method: "GET",
-    url: `/oauth/authorize?${new URLSearchParams({
-      response_type: "code",
-      client_id: "reqalm-web",
-      redirect_uri: redirectUri,
-      scope: "openid profile",
-      state: "s",
-      code_challenge: challenge,
-      code_challenge_method: "S256",
-      resource: TEST_API_RESOURCE,
-    })}`,
-  });
-  const loc = String(authz.headers.location ?? "");
-  const handoff = new URL(loc, TEST_ISSUER).searchParams.get("h");
-  assert.ok(handoff);
-  const login = await inject({
-    method: "POST",
-    url: "/api/v1/auth/local/login",
-    headers: { "content-type": "application/json" },
-    payload: { username, password: TEST_PASSWORD, h: handoff },
-  });
-  assert.equal(login.statusCode, 200);
-  const body = login.json() as { redirect: string };
-  const code = new URL(body.redirect, TEST_ISSUER).searchParams.get("code");
-  assert.ok(code);
-  const token = await inject({
-    method: "POST",
-    url: "/oauth/token",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    payload: new URLSearchParams({
-      grant_type: "authorization_code",
-      code,
-      client_id: "reqalm-web",
-      redirect_uri: redirectUri,
-      code_verifier: verifier,
-      resource: TEST_API_RESOURCE,
-    }).toString(),
-  });
-  assert.equal(token.statusCode, 200);
-  return (token.json() as { access_token: string }).access_token;
+  return issueTestAccessToken(ctx.app, username);
 }
 
 async function agentToken(): Promise<string> {
@@ -145,29 +101,20 @@ describe("service foundation (projects read)", () => {
     assert.match(String(res.headers["content-type"] ?? ""), /application\/problem\+json/);
   });
 
-  it("returns 400 validation for malformed project id param", async () => {
+  it("an unparsable project id is 404 after auth, identical to a missing project", async () => {
     const access = await loginToken();
-    const res = await inject({
-      method: "GET",
-      url: "/api/v1/projects/%20",
-      headers: { authorization: `Bearer ${access}` },
-    });
-    assert.equal(res.statusCode, 400);
-    const body = res.json() as { code: string };
-    assert.equal(body.code, "validation");
-    assert.match(String(res.headers["content-type"] ?? ""), /application\/problem\+json/);
-  });
-
-  it("rejects a padded project id instead of resolving it to the real project", async () => {
-    const access = await loginToken();
-    for (const id of ["%20reqalm", "reqalm%20", "%09reqalm"]) {
-      const res = await inject({
-        method: "GET",
-        url: `/api/v1/projects/${id}`,
-        headers: { authorization: `Bearer ${access}` },
-      });
-      assert.equal(res.statusCode, 400, id);
-      assert.equal((res.json() as { code: string }).code, "validation");
+    const get = async (id: string) =>
+      inject({ method: "GET", url: `/api/v1/projects/${id}`, headers: { authorization: `Bearer ${access}` } });
+    const strip = (res: InjectResponse) => {
+      const { request_id: _rid, ...rest } = res.json() as Record<string, unknown>;
+      return { status: res.statusCode, ctype: res.headers["content-type"], body: rest };
+    };
+    const missing = strip(await get("no-such-project"));
+    assert.equal(missing.status, 404);
+    assert.match(String(missing.ctype), /^application\/problem\+json/);
+    // Blank or padded ids never resolve to the real project and never leak validation details.
+    for (const id of ["%20", "%20reqalm", "reqalm%20", "%09reqalm"]) {
+      assert.deepEqual(strip(await get(id)), missing, id);
     }
   });
 
@@ -365,5 +312,115 @@ describe("scope comes from the session and grants only", () => {
     assert.equal(me.identity_id, "casey-reader");
     assert.deepEqual(me.grants.map((g) => g.project_id), ["reqalm"]);
     assert.equal((await auditRow("scope-spoof-me")).client_id, "reqalm-web");
+  });
+});
+
+describe("authenticate → scope → permission → validate", () => {
+  const bareProblem = (res: { statusCode: number; headers: Record<string, unknown>; json(): unknown }) => {
+    assert.match(String(res.headers["content-type"]), /^application\/problem\+json/);
+    const { request_id: _rid, ...rest } = res.json() as Record<string, unknown>;
+    return { status: res.statusCode, body: rest };
+  };
+  async function auditDetail(requestId: string) {
+    const r = await ctx.pool.query<{ outcome: string; project_id: string | null; detail: Record<string, unknown> }>(
+      `SELECT outcome, project_id, detail FROM audit_events WHERE request_id = $1`,
+      [requestId],
+    );
+    assert.equal(r.rows.length, 1, `one audit row for ${requestId}`);
+    return r.rows[0]!;
+  }
+  const call = (rid: string, method: string, url: string, headers: Record<string, string> = {}, payload?: string) =>
+    ctx.app.inject({
+      method: method as "GET",
+      url,
+      remoteAddress: "203.0.113.50",
+      headers: { host: "localhost:3000", "x-request-id": rid, ...headers },
+      ...(payload !== undefined ? { payload } : {}),
+    });
+  const badJson = { "content-type": "application/json" };
+
+  it("unauthenticated: malformed id or body is the same 401 as any unauthenticated call", async () => {
+    const plain = bareProblem(await call("order-401-plain", "GET", "/api/v1/projects/reqalm"));
+    assert.equal(plain.status, 401);
+    assert.equal("details" in plain.body, false);
+    for (const [rid, method, url, headers, payload] of [
+      ["order-401-blank", "GET", "/api/v1/projects/%20"],
+      ["order-401-padded", "GET", "/api/v1/projects/%20reqalm"],
+      ["order-401-badjson", "POST", "/api/v1/projects/reqalm/grants", badJson, "{"],
+      ["order-401-badid-badjson", "POST", "/api/v1/projects/%20/grants", badJson, "{"],
+    ] as const) {
+      assert.deepEqual(bareProblem(await call(rid, method, url, headers, payload)), plain, rid);
+      const row = await auditDetail(rid);
+      assert.equal(row.outcome, "deny", rid);
+      assert.equal(row.detail.error_code, "unauthenticated", rid);
+    }
+  });
+
+  it("authenticated without a grant, or with a malformed id: 404 identical to a missing project", async () => {
+    const access = await loginToken();
+    const auth = { authorization: `Bearer ${access}` };
+    const missing = bareProblem(await call("order-404-missing", "POST", "/api/v1/projects/no-such-project/grants", auth));
+    assert.equal(missing.status, 404);
+    for (const [rid, url, headers, payload] of [
+      ["order-404-nogrant-badjson", "/api/v1/projects/secret-proj/grants", { ...auth, ...badJson }, "{"],
+      ["order-404-badid", "/api/v1/projects/%20reqalm/grants", auth],
+      ["order-404-badid-badjson", "/api/v1/projects/%20/grants", { ...auth, ...badJson }, "{"],
+    ] as const) {
+      assert.deepEqual(bareProblem(await call(rid, "POST", url, headers, payload)), missing, rid);
+      assert.equal((await auditDetail(rid)).outcome, "deny", rid);
+    }
+    // The raw (unparsable) id is not written to the audit row.
+    assert.equal((await auditDetail("order-404-badid")).project_id, null);
+  });
+
+  it("granted but missing the permission: 403 before the body is validated", async () => {
+    const access = await loginToken();
+    const res = await call("order-403-badjson", "POST", "/api/v1/projects/reqalm/grants", {
+      authorization: `Bearer ${access}`,
+      ...badJson,
+    }, "{");
+    assert.equal(bareProblem(res).status, 403);
+    assert.equal((await auditDetail("order-403-badjson")).outcome, "deny");
+  });
+
+  // A caller holding grant:manage on reqalm: token first (Tester, no MFA step), then the Project admin
+  // grant; RBAC is evaluated per request.
+  let adminAccess = "";
+  before(async () => {
+    adminAccess = await loginToken("taylor-tester@dev.local");
+    await ctx.pool.query(
+      `INSERT INTO project_grants (id, project_id, identity_id, role)
+       VALUES ('grant-taylor-admin', 'reqalm', 'taylor-tester', 'Project admin') ON CONFLICT DO NOTHING`,
+    );
+  });
+
+  it("authorized caller: a body or query naming another project does not move the call", async () => {
+    const res = await call(
+      "order-admin-spoof",
+      "POST",
+      "/api/v1/projects/reqalm/grants?projectId=other",
+      { authorization: `Bearer ${adminAccess}`, "content-type": "application/json", "x-project-id": "other" },
+      JSON.stringify({ projectId: "other", project_id: "other" }),
+    );
+    assert.equal(res.statusCode, 200);
+    const row = await auditDetail("order-admin-spoof");
+    assert.equal(row.outcome, "allow");
+    assert.equal(row.project_id, "reqalm");
+  });
+
+  it("authorized caller with an unreadable body: 400 Problem Details with the request id, audited", async () => {
+    const res = await call("order-400-badjson", "POST", "/api/v1/projects/reqalm/grants", {
+      authorization: `Bearer ${adminAccess}`,
+      ...badJson,
+    }, '{"role": "SECRET-RAW-4711"');
+    const problem = bareProblem(res);
+    assert.equal(problem.status, 400);
+    assert.equal(problem.body.code, "validation");
+    assert.equal((res.json() as { request_id: string }).request_id, "order-400-badjson");
+    assert.doesNotMatch(res.body, /SECRET-RAW-4711/);
+    const row = await auditDetail("order-400-badjson");
+    assert.equal(row.outcome, "error");
+    assert.equal(row.project_id, "reqalm");
+    assert.deepEqual(row.detail, { error_code: "validation" });
   });
 });
