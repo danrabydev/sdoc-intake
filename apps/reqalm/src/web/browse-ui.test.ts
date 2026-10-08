@@ -10,9 +10,12 @@ import {
   appRequirementHref,
   appRequirementVersionsHref,
   appReleaseHref,
+  appTreeHref,
   requirementsListHref,
+  requirementsTreeApiPath,
   releasesListHref,
   readReleaseFilters,
+  ancestorBrowseHref,
   isValidSlugId,
   isValidRequirementId,
   parseAppRoute,
@@ -29,6 +32,7 @@ import {
   renderRequirementVersions,
   renderReleasesList,
   renderReleaseDetail,
+  renderRequirementsTree,
   renderNotFound,
   mountBrowseView,
   decodeRouteSegment,
@@ -75,6 +79,7 @@ describe("browse routes and helpers", () => {
       projectId: "reqalm",
       releaseId: "rel-r1",
     });
+    assert.deepEqual(parseAppRoute("/app/projects/reqalm/tree"), { view: "requirements-tree", projectId: "reqalm" });
     assert.equal(parseAppRoute("/app/nope").view, "unknown");
     assert.deepEqual(APP_NAV.map((n) => n.label), ["Clients", "Projects"]);
   });
@@ -96,6 +101,11 @@ describe("browse routes and helpers", () => {
     assert.equal(appRequirementVersionsHref("p1", "R1", 20), "/app/projects/p1/requirements/R1/versions?offset=20");
     assert.equal(appReleaseHref("p1", "rel/a"), "/app/projects/p1/releases/rel%2Fa");
     assert.equal(releasesListHref("p1", { status: "planned", offset: 20 }), "/app/projects/p1/releases?status=planned&offset=20");
+    assert.equal(appTreeHref("p1"), "/app/projects/p1/tree");
+    assert.equal(requirementsTreeApiPath("p1", null), "/api/v1/projects/p1/requirements/tree?limit=100&offset=0");
+    assert.equal(requirementsTreeApiPath("p1", "SEC-CP"), "/api/v1/projects/p1/requirements/tree?limit=100&offset=0&parent=SEC-CP");
+    assert.equal(ancestorBrowseHref("p1", { uid: "SEC-1", title: "S", kind: "section" }), "/app/projects/p1/tree");
+    assert.equal(ancestorBrowseHref("p1", { uid: "R1", title: "R", kind: "requirement" }), "/app/projects/p1/requirements/R1");
     assert.deepEqual(readReleaseFilters("?status=shipped"), { status: "shipped" });
     assert.deepEqual(readReleaseFilters("?status=nope"), { status: "" });
     assert.deepEqual(readRequirementsFilters("?kind=k&type=t&status=s&q=find"), {
@@ -110,7 +120,15 @@ describe("browse routes and helpers", () => {
   });
 
   it("pathGetsWebSpaShell table", () => {
-    const yes = ["/", "/login", "/login/x", "/app", "/app/projects/p/requirements", "/app/projects/p/requirements/R/versions"];
+    const yes = [
+      "/",
+      "/login",
+      "/login/x",
+      "/app",
+      "/app/projects/p/requirements",
+      "/app/projects/p/requirements/R/versions",
+      "/app/projects/p/tree",
+    ];
     const no = ["/loginx", "/applesauce", "/.env"];
     for (const p of yes) assert.equal(pathGetsWebSpaShell(p), true, p);
     for (const p of no) assert.equal(pathGetsWebSpaShell(p), false, p);
@@ -137,6 +155,61 @@ describe("browse UI render (jsdom)", () => {
       const { status, body } = handler(url);
       return jsonResponse(status, body) as Response;
     }) as unknown as typeof fetch;
+  }
+
+  type TreeNodeRow = {
+    uid: string;
+    title: string;
+    kind: string;
+    type: string;
+    status: string;
+    child_count: number;
+  };
+
+  function treeRow(uid: string, kind: string, child_count: number, title = uid): TreeNodeRow {
+    return { uid, title, kind, type: kind, status: "active", child_count };
+  }
+
+  function treeFetchHandler(
+    roots: TreeNodeRow[],
+    opts: {
+      children?: Record<string, TreeNodeRow[]>;
+      parentResponses?: Record<string, (call: number) => { status: number; body?: unknown }>;
+    } = {},
+  ): FetchHandler {
+    const parentCalls: Record<string, number> = {};
+    return (url) => {
+      if (url.includes("/requirements/tree?limit=100&offset=0") && !url.includes("parent=")) {
+        return { status: 200, body: { data: { items: roots, limit: 100, offset: 0, total: roots.length } } };
+      }
+      const parentParam = url.match(/[?&]parent=([^&]+)/)?.[1];
+      const parentUid = parentParam ? decodeURIComponent(parentParam) : null;
+      if (parentUid) {
+        const custom = opts.parentResponses?.[parentUid];
+        if (custom) {
+          parentCalls[parentUid] = (parentCalls[parentUid] ?? 0) + 1;
+          const res = custom(parentCalls[parentUid]);
+          return res.body != null ? { status: res.status, body: res.body } : { status: res.status };
+        }
+        const rows = opts.children?.[parentUid];
+        if (rows) {
+          return { status: 200, body: { data: { items: rows, limit: 100, offset: 0, total: rows.length } } };
+        }
+      }
+      return { status: 404 };
+    };
+  }
+
+  async function mountTreeView(handler: FetchHandler, projectId = "reqalm") {
+    const main = document.createElement("main");
+    await renderRequirementsTree(main, { apiFn: mockFetch(handler), projectId });
+    return {
+      main,
+      tree: main.querySelector('[role="tree"]'),
+      tick: (ms = 30) => new Promise((r) => setTimeout(r, ms)),
+      focused: () => main.querySelector('[role="treeitem"][tabindex="0"]'),
+      focusedUid: () => main.querySelector('[role="treeitem"][tabindex="0"]')?.querySelector(".req-tree-uid")?.textContent,
+    };
   }
 
   it("list views handle API 404 without throwing", async () => {
@@ -229,6 +302,7 @@ describe("browse UI render (jsdom)", () => {
     await renderProjectDetail(main, { apiFn, projectId: "Bad_Slug!" });
     await renderRequirementsList(main, { apiFn, projectId: "bad!", filters: {}, offset: 0 });
     await renderReleasesList(main, { apiFn, projectId: "bad!", filters: { status: "" }, offset: 0 });
+    await renderRequirementsTree(main, { apiFn, projectId: "bad!" });
     assert.equal(fetchCalls.length, 0);
   });
 
@@ -414,9 +488,356 @@ describe("browse UI render (jsdom)", () => {
     });
     await renderProjectDetail(main, { apiFn, projectId: "p1" });
     assert.ok(main.querySelector('a[href="/app/projects/p1/requirements"]'));
+    assert.ok(main.querySelector('a[href="/app/projects/p1/tree"]'));
     assert.ok(main.querySelector('a[href="/app/projects/p1/releases"]'));
     assert.match(main.textContent ?? "", /Browse requirements/);
     assert.match(main.textContent ?? "", /Browse releases/);
+  });
+
+  it("requirements tree loads roots and lazy children once with aria-level", async () => {
+    let childFetches = 0;
+    const stub = treeFetchHandler([treeRow("SEC-A", "section", 1, "Section A")], {
+      children: { "SEC-A": [treeRow("CAP-1", "capability", 0, "Cap one")] },
+    });
+    const { main, tick } = await mountTreeView((url) => {
+      if (url.includes("parent=SEC-A")) childFetches += 1;
+      return stub(url);
+    });
+    const rootsUrl = requirementsTreeApiPath("reqalm", null);
+    assert.equal(fetchCalls.filter((u) => u === rootsUrl).length, 1);
+    const root = main.querySelector('[role="treeitem"][aria-level="1"]');
+    assert.ok(root);
+    assert.equal(root?.getAttribute("aria-expanded"), "false");
+    assert.match(root?.textContent ?? "", /section/);
+    assert.match(root?.textContent ?? "", /SEC-A/);
+    root?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick(0);
+    assert.equal(childFetches, 1);
+    assert.equal(fetchCalls.filter((u) => u.includes("parent=SEC-A")).length, 1);
+    const child = main.querySelector('[role="treeitem"][aria-level="2"]');
+    assert.ok(child);
+    assert.match(child?.textContent ?? "", /capability/);
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-1"]'));
+    root?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick(0);
+    assert.equal(root?.getAttribute("aria-expanded"), "false");
+    const group = root?.querySelector('[role="group"]');
+    assert.equal(group?.hidden, true);
+    assert.ok(group?.closest("[hidden]") ?? group?.hasAttribute("hidden"));
+    root?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick(0);
+    assert.equal(childFetches, 1);
+  });
+
+  it("tree keyboard navigation moves focus and expands with ArrowRight", async () => {
+    const { main, tree, tick, focusedUid } = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-1", "section", 1, "S1")], {
+        children: { "SEC-1": [treeRow("R-1", "requirement", 0, "Req")] },
+      }),
+    );
+    const items = () => [...main.querySelectorAll('[role="treeitem"]')];
+    assert.equal(focusedUid(), "SEC-1");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await tick();
+    assert.equal(items()[0]?.getAttribute("aria-expanded"), "true");
+    assert.equal(items().length, 2);
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    assert.equal(focusedUid(), "R-1");
+    assert.equal(main.querySelector('[role="treeitem"][tabindex="0"]')?.getAttribute("aria-level"), "2");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Home", bubbles: true }));
+    assert.equal(focusedUid(), "SEC-1");
+  });
+
+  it("requirement detail breadcrumbs use ancestor order and section vs requirement links", async () => {
+    const main = document.createElement("main");
+    await renderRequirementDetail(main, {
+      apiFn: mockFetch(() => ({
+        status: 200,
+        body: {
+          data: {
+            id: "LEAF",
+            title: "Leaf title",
+            kind: "requirement",
+            type: "requirement",
+            status: "active",
+            version_n: 1,
+            statement: "S",
+            attributes: {},
+            ancestors: [
+              { uid: "SEC-ROOT", title: "Root section", kind: "section" },
+              { uid: "MID", title: "Mid req", kind: "requirement" },
+            ],
+          },
+        },
+      })),
+      projectId: "reqalm",
+      requirementId: "LEAF",
+      listFilters: {},
+    });
+    const links = [...main.querySelectorAll(".breadcrumb a")].map((a) => a.getAttribute("href"));
+    assert.deepEqual(links, ["/app/projects/reqalm", "/app/projects/reqalm/tree", "/app/projects/reqalm/requirements/MID"]);
+    assert.match(main.textContent ?? "", /Root section/);
+    assert.match(main.textContent ?? "", /Mid req/);
+    const crumbText = main.querySelector(".breadcrumb")?.textContent ?? "";
+    assert.match(crumbText, / \/ LEAF$/);
+    assert.ok(!main.querySelector('.breadcrumb a[href*="LEAF"]'));
+
+    const plain = document.createElement("main");
+    await renderRequirementDetail(plain, {
+      apiFn: mockFetch(() => ({
+        status: 200,
+        body: {
+          data: {
+            id: "CAP-1",
+            title: "T",
+            kind: "capability",
+            type: "capability",
+            status: "active",
+            version_n: 0,
+            statement: "S",
+            attributes: {},
+            ancestors: [],
+          },
+        },
+      })),
+      projectId: "reqalm",
+      requirementId: "CAP-1",
+      listFilters: { kind: "cap", type: "", status: "", q: "" },
+    });
+    assert.ok(plain.querySelector('a[href="/app/projects/reqalm/requirements?kind=cap"]'));
+    assert.doesNotMatch(plain.textContent ?? "", /Root section/);
+  });
+
+  it("leaf treeitems have no expander and no aria-expanded", async () => {
+    const { main } = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-P", "section", 1, "Parent"), treeRow("LEAF-R", "requirement", 0, "Leaf req")]),
+    );
+    const leaf = [...main.querySelectorAll('[role="treeitem"]')].find((n) => n.textContent?.includes("LEAF-R"));
+    assert.ok(leaf);
+    assert.equal(leaf?.querySelector(".req-tree-expander"), null);
+    assert.equal(leaf?.hasAttribute("aria-expanded"), false);
+  });
+
+  it("ArrowLeft collapses expanded nodes and moves from child to parent", async () => {
+    const { main, tree, tick, focusedUid } = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-P", "section", 1, "P")], {
+        children: { "SEC-P": [treeRow("CHILD-R", "requirement", 0, "C")] },
+      }),
+    );
+    const parent = main.querySelector('[role="treeitem"][aria-level="1"]');
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await tick();
+    assert.equal(parent?.getAttribute("aria-expanded"), "true");
+    assert.equal(parent?.querySelector('[role="group"]')?.hasAttribute("hidden"), false);
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+    assert.equal(parent?.getAttribute("aria-expanded"), "false");
+    assert.equal(parent?.querySelector('[role="group"]')?.hidden, true);
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await tick();
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    assert.equal(focusedUid(), "CHILD-R");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+    assert.equal(focusedUid(), "SEC-P");
+  });
+
+  it("ArrowUp and End move focus among visible treeitems by uid", async () => {
+    const { tree, focusedUid } = await mountTreeView(
+      treeFetchHandler([
+        treeRow("SEC-A", "section", 0, "A"),
+        treeRow("SEC-B", "section", 0, "B"),
+        treeRow("SEC-C", "section", 0, "C"),
+      ]),
+    );
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    assert.equal(focusedUid(), "SEC-C");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+    assert.equal(focusedUid(), "SEC-B");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }));
+    assert.equal(focusedUid(), "SEC-A");
+  });
+
+  it("Enter activates the focused requirement link", async () => {
+    const { main, tree } = await mountTreeView(treeFetchHandler([treeRow("REQ-ENTER", "requirement", 0, "Enter me")]));
+    const link = main.querySelector('a[href="/app/projects/reqalm/requirements/REQ-ENTER"]');
+    assert.ok(link);
+    let clicked = false;
+    link?.addEventListener("click", (ev) => {
+      clicked = true;
+      ev.preventDefault();
+    });
+    main.querySelector('[role="treeitem"]')?.setAttribute("tabindex", "0");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    assert.equal(clicked, true);
+  });
+
+  it("expand failure shows alert, resets aria-expanded, and retry succeeds", async () => {
+    let parentCalls = 0;
+    const { main, tick } = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-X", "section", 1, "X")], {
+        parentResponses: {
+          "SEC-X": (n) => {
+            parentCalls = n;
+            if (n === 1) return { status: 500 };
+            return {
+              status: 200,
+              body: { data: { items: [treeRow("OK-CH", "requirement", 0, "Ok")], total: 1 } },
+            };
+          },
+        },
+      }),
+    );
+    const parent = main.querySelector('[role="treeitem"]');
+    parent?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick();
+    assert.equal(parent?.getAttribute("aria-expanded"), "false");
+    assert.match(main.textContent ?? "", /Could not load children/);
+    assert.ok(main.querySelector('[role="alert"]'));
+    parent?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick();
+    assert.equal(parent?.getAttribute("aria-expanded"), "true");
+    assert.equal(parentCalls, 2);
+    assert.ok(main.querySelector('[role="treeitem"][aria-level="2"]'));
+    assert.equal(main.querySelector('[role="alert"]'), null);
+
+    const failTwice = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-F", "section", 1, "F")], {
+        parentResponses: { "SEC-F": () => ({ status: 500 }) },
+      }),
+    );
+    const failParent = failTwice.main.querySelector('[role="treeitem"]');
+    failParent?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await failTwice.tick();
+    failParent?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await failTwice.tick();
+    assert.equal(failTwice.main.querySelectorAll('[role="alert"]').length, 1);
+  });
+
+  it("expander glyph and aria-label reflect expanded state", async () => {
+    const { main, tick } = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-G", "section", 1, "G")], { children: { "SEC-G": [] } }),
+    );
+    const btn = main.querySelector(".req-tree-expander");
+    assert.equal(btn?.textContent, "▸");
+    assert.equal(btn?.getAttribute("aria-label"), "Expand");
+    btn?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick();
+    assert.equal(btn?.textContent, "▾");
+    assert.equal(btn?.getAttribute("aria-label"), "Collapse");
+    btn?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick(0);
+    assert.equal(btn?.textContent, "▸");
+    assert.equal(btn?.getAttribute("aria-label"), "Expand");
+  });
+
+  it("ArrowRight on expanded node focuses first child; roving tabindex on treeitems only", async () => {
+    const { main, tree, tick, focusedUid } = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-R", "section", 1, "R")], {
+        children: { "SEC-R": [treeRow("FIRST-CH", "requirement", 0, "First")] },
+      }),
+    );
+    assert.equal(tree?.getAttribute("tabindex"), "-1");
+    assert.equal(main.querySelectorAll('[role="treeitem"][tabindex="0"]').length, 1);
+    for (const btn of main.querySelectorAll(".req-tree-expander")) {
+      assert.equal(btn.getAttribute("tabindex"), "-1");
+    }
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await tick();
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    assert.equal(focusedUid(), "FIRST-CH");
+    assert.equal(main.querySelectorAll('[role="treeitem"][tabindex="0"]').length, 1);
+  });
+
+  it("expanded tree is one tab stop; requirement links are not tabbable", async () => {
+    const childRows = Array.from({ length: 5 }, (_, i) => treeRow(`REQ-${i}`, "requirement", 0, `Req ${i}`));
+    const { main, tree, tick } = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-IA", "section", 1, "IA")], { children: { "SEC-IA": childRows } }),
+    );
+    assert.equal(tree?.getAttribute("tabindex"), "-1");
+    main.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick();
+    const tabbableInTree = [...main.querySelectorAll('[role="tree"] a[href]')].filter((a) => a.getAttribute("tabindex") !== "-1");
+    assert.equal(tabbableInTree.length, 0);
+    assert.equal(main.querySelectorAll('[role="tree"] [tabindex="0"]').length, 1);
+  });
+
+  it("ArrowDown skips treeitems inside collapsed hidden groups", async () => {
+    const { main, tree, tick, focusedUid } = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-ONE", "section", 1, "One"), treeRow("SEC-TWO", "section", 0, "Two")], {
+        children: { "SEC-ONE": [treeRow("HID-CH", "requirement", 0, "Hidden child")] },
+      }),
+    );
+    const firstRoot = main.querySelector('[role="treeitem"][aria-level="1"]');
+    firstRoot?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick();
+    firstRoot?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick(0);
+    assert.equal(focusedUid(), "SEC-ONE");
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    assert.equal(focusedUid(), "SEC-TWO");
+  });
+
+  it("mouse collapse moves roving focus from hidden child to ancestor", async () => {
+    const { main, tree, tick, focusedUid } = await mountTreeView(
+      treeFetchHandler([treeRow("SEC-P", "section", 1, "P")], {
+        children: { "SEC-P": [treeRow("CHILD-R", "requirement", 0, "C")] },
+      }),
+    );
+    const parent = main.querySelector('[role="treeitem"][aria-level="1"]');
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await tick();
+    tree?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    assert.equal(focusedUid(), "CHILD-R");
+    parent?.querySelector(".req-tree-expander")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tick(0);
+    assert.equal(focusedUid(), "SEC-P");
+    assert.equal(main.querySelectorAll('[role="treeitem"][tabindex="0"]').length, 1);
+  });
+
+  it("requirements tree API 404 does not throw", async () => {
+    const { main } = await mountTreeView(() => ({ status: 404 }));
+    assert.match(main.textContent ?? "", /don't have access/i);
+  });
+
+  it("requirements tree roots auth failure redirects without not-found", async () => {
+    let redirectTo = "";
+    setUnauthorizedRedirect((url) => {
+      redirectTo = url;
+    });
+    const prevFetch = globalThis.fetch;
+    globalThis.fetch = (async () => jsonResponse(401, {})) as unknown as typeof fetch;
+    try {
+      const main = document.createElement("main");
+      await renderRequirementsTree(main, { apiFn: api, projectId: "reqalm" });
+      assert.equal(redirectTo, "/login");
+      assert.doesNotMatch(main.textContent ?? "", /don't have access/i);
+      assert.match(main.textContent ?? "", /Requirements tree/);
+    } finally {
+      globalThis.fetch = prevFetch;
+      clearUnauthorizedRedirect();
+    }
+  });
+
+  it("empty tree roots show exact empty copy", async () => {
+    const { main } = await mountTreeView(treeFetchHandler([]));
+    assert.equal(main.querySelector(".empty-state")?.textContent, "No requirements in this project tree.");
+  });
+
+  it("mountBrowseView renders requirements tree for tree route", async () => {
+    const main = document.createElement("main");
+    const route = parseAppRoute("/app/projects/reqalm/tree");
+    const roots = [treeRow("SEC-ROOT", "section", 0, "Root section")];
+    const stub = treeFetchHandler(roots);
+    const rootsUrl = requirementsTreeApiPath("reqalm", null);
+    await mountBrowseView(main, route, {
+      apiFn: mockFetch((url) => {
+        assert.equal(url, rootsUrl);
+        return stub(url);
+      }),
+    });
+    assert.ok(main.querySelector('[role="tree"]'));
+    assert.match(main.textContent ?? "", /SEC-ROOT/);
+    assert.match(main.textContent ?? "", /Root section/);
+    assert.equal(fetchCalls.filter((u) => u === rootsUrl).length, 1);
   });
 
   it("releases list paging via mountBrowseView preserves status in API and hrefs", async () => {
@@ -743,8 +1164,17 @@ describe("app shell", () => {
     const route = parseAppRoute("/app/projects/reqalm/requirements");
     renderAppShell("/app/projects/reqalm/requirements", route);
     const texts = [...document.querySelectorAll("#top-nav a")].map((a) => a.textContent);
-    assert.deepEqual(texts, ["Clients", "Projects", "Requirements", "Releases"]);
+    assert.deepEqual(texts, ["Clients", "Projects", "Requirements", "Tree", "Releases"]);
     assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm/requirements"]'));
+  });
+
+  it("shows Tree nav active on tree route", () => {
+    const route = parseAppRoute("/app/projects/reqalm/tree");
+    renderAppShell("/app/projects/reqalm/tree", route);
+    const activeNav = [...document.querySelectorAll("#top-nav a.nav-active")];
+    assert.equal(activeNav.length, 1);
+    assert.equal(activeNav[0]?.getAttribute("href"), "/app/projects/reqalm/tree");
+    assert.equal(document.querySelector('#top-nav a.nav-active[href="/app/projects"]'), null);
   });
 
   it("shows Releases nav active on releases routes", () => {

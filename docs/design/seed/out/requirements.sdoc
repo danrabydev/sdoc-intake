@@ -3113,6 +3113,7 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-TREE
 edge: ← uses from N01
 edge: ← satisfies from CAP-READ-HIERARCHY
+edge: ← satisfies from CAP-BROWSE-UI-TREE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1-core-ALM
@@ -4034,7 +4035,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-READ-HIERARCHY
-STATUS: Draft
+STATUS: Active
 TITLE: Read requirement hierarchy (lazy tree API)
 STATEMENT: >>>
 Grant-scoped requirement hierarchy read API: lazy paged GET /api/v1/projects/:projectId/requirements/tree?parent=<base_uid> returning direct children in dogfood sibling order with uid, title, kind, type, status, and child_count (sections and requirements alike; roots = parent null). Optional parent_uid and ancestors on detail. Parent pointers already live on requirement_lines (001); loader adds sibling_order and rejects cross-project parents. Trace edges and obsolete-line filtering are deferred.
@@ -4046,7 +4047,8 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: Planned until hierarchy read API PR merges.
+security.verification_note: Shipped with requirement hierarchy read API PR #28 (merge ffd1d5c38ffc6f09c13dd877c82bf0d4bd891764).
+edge: ← satisfies from CAP-BROWSE-UI-TREE
 delivered_by_release: R1 — requirement hierarchy read API
 <<<
 RELATIONS:
@@ -4072,6 +4074,42 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-read-hierarchy
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-BROWSE-UI-TREE
+STATUS: Draft
+TITLE: Browse requirements tree UI (read-only)
+STATEMENT: >>>
+Read-only /app requirements tree for a grant-scoped project: lazy-loaded outline at /app/projects/:projectId/tree using GET .../requirements/tree?parent= (roots when omitted). Each node shows kind, uid, title; expanders load children once and cache in memory. Accessible WAI-ARIA tree (roles, aria-expanded/level, keyboard navigation). Requirement detail breadcrumbs from ancestors (sections link to tree). Session/CSRF auth; safe DOM text only.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-UI-TREE
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until requirements tree browse UI PR merges.
+delivered_by_release: R1 — browse requirements tree UI (read-only)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RL
+- TYPE: Parent
+  VALUE: C06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-READ-HIERARCHY
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-browse-ui-tree
   ROLE: Delivers
 
 [[/SECTION]]
@@ -8311,6 +8349,7 @@ edge: ← satisfies from CAP-UI-FRAME
 edge: ← satisfies from CAP-BROWSE-UI-CP
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
+edge: ← satisfies from CAP-BROWSE-UI-TREE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -8365,6 +8404,7 @@ edge: ← satisfies from CAP-UI-FRAME
 edge: ← satisfies from CAP-BROWSE-UI-CP
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
+edge: ← satisfies from CAP-BROWSE-UI-TREE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth

@@ -37,6 +37,18 @@ export function appRequirementVersionsHref(projectId, requirementId, offset = 0)
 export function appReleaseHref(projectId, releaseId) {
   return `/app/projects/${encodeURIComponent(projectId)}/releases/${encodeURIComponent(releaseId)}`;
 }
+export function appTreeHref(projectId) {
+  return `/app/projects/${encodeURIComponent(projectId)}/tree`;
+}
+export function requirementsTreeApiPath(projectId, parentUid, limit = 100, offset = 0) {
+  const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  if (parentUid) p.set("parent", parentUid);
+  return `/api/v1/projects/${encodeURIComponent(projectId)}/requirements/tree?${p}`;
+}
+export function ancestorBrowseHref(projectId, ancestor) {
+  if (ancestor.kind === "section") return appTreeHref(projectId);
+  return appRequirementHref(projectId, ancestor.uid);
+}
 export function readReleaseFilters(search) {
   const raw = new URLSearchParams(search).get("status") || "";
   const status = raw === "planned" || raw === "shipped" ? raw : "";
@@ -122,6 +134,11 @@ export function parseAppRoute(pathname) {
     const projectId = decodeRouteSegment(relList[1]);
     return projectId === null ? { view: "unknown" } : { view: "releases-list", projectId };
   }
+  const treeMatch = path.match(/^\/app\/projects\/([^/]+)\/tree$/);
+  if (treeMatch) {
+    const projectId = decodeRouteSegment(treeMatch[1]);
+    return projectId === null ? { view: "unknown" } : { view: "requirements-tree", projectId };
+  }
   const projectMatch = path.match(/^\/app\/projects\/([^/]+)$/);
   if (projectMatch) {
     const projectId = decodeRouteSegment(projectMatch[1]);
@@ -138,13 +155,18 @@ export function navItemsForRoute(route, currentPath) {
         ? (p) => p === "/app/clients" || p.startsWith("/app/clients/")
         : (p) =>
             p === "/app/projects" ||
-            (p.startsWith("/app/projects/") && !p.includes("/requirements") && !p.includes("/releases")),
+            (p.startsWith("/app/projects/") &&
+              !p.includes("/requirements") &&
+              !p.includes("/releases") &&
+              !p.includes("/tree")),
   }));
   if (route.projectId && isValidSlugId(route.projectId)) {
     const enc = encodeURIComponent(route.projectId);
     const reqBase = `/app/projects/${enc}/requirements`;
     const relBase = `/app/projects/${enc}/releases`;
+    const treeBase = `/app/projects/${enc}/tree`;
     items.push({ href: reqBase, label: "Requirements", match: (p) => p.startsWith(reqBase) });
+    items.push({ href: treeBase, label: "Tree", match: (p) => p.startsWith(treeBase) });
     items.push({ href: relBase, label: "Releases", match: (p) => p.startsWith(relBase) });
   }
   return items.map((item) => ({ ...item, active: item.match(currentPath) }));
@@ -403,7 +425,11 @@ export async function renderProjectDetail(container, { apiFn, projectId }) {
     ]),
     el("section", { className: "stub-section" }, [
       el("h2", { text: "Requirements" }),
-      el("p", {}, [el("a", { href: requirementsListHref(projectId), text: "Browse requirements" })]),
+      el("p", {}, [
+        el("a", { href: requirementsListHref(projectId), text: "Browse requirements" }),
+        document.createTextNode(" · "),
+        el("a", { href: appTreeHref(projectId), text: "Requirements tree" }),
+      ]),
     ]),
     el("section", { className: "stub-section" }, [
       el("h2", { text: "Releases" }),
@@ -577,6 +603,232 @@ export async function renderRequirementsList(container, { apiFn, projectId, filt
 
 const ATTR_LABELS = { priority: "Priority", iteration: "Iteration", rbac_op: "RBAC op", grooming_state: "Grooming", mint_kind: "Mint kind" };
 
+export function requirementDetailBreadcrumb(projectId, req, listFilters) {
+  const crumbs = [el("a", { href: appProjectHref(projectId), text: "Project" })];
+  if (req.ancestors?.length) {
+    for (const a of req.ancestors) {
+      crumbs.push(el("span", { text: " / " }));
+      crumbs.push(el("a", { href: ancestorBrowseHref(projectId, a), text: a.title || a.uid }));
+    }
+    crumbs.push(el("span", { text: ` / ${req.id}` }));
+  } else {
+    crumbs.push(el("span", { text: " / " }));
+    crumbs.push(el("a", { href: requirementsListHref(projectId, listFilters ?? {}), text: "Requirements" }));
+    crumbs.push(el("span", { text: ` / ${req.id}` }));
+  }
+  return el("nav", { className: "breadcrumb" }, crumbs);
+}
+
+function treeNodeLabel(node, projectId) {
+  const wrap = el("span", { className: "req-tree-label" });
+  wrap.append(el("span", { className: "req-tree-kind", text: node.kind }), document.createTextNode(" "));
+  wrap.append(el("code", { className: "req-tree-uid", text: node.uid }), document.createTextNode(" "));
+  if (node.kind === "section") {
+    wrap.append(el("span", { text: node.title || "—" }));
+  } else {
+    wrap.append(
+      el("a", { href: appRequirementHref(projectId, node.uid), tabindex: "-1", text: node.title || node.uid }),
+    );
+  }
+  return wrap;
+}
+
+export async function renderRequirementsTree(container, { apiFn, projectId }) {
+  if (!isValidSlugId(projectId)) return renderNotFound(container);
+  const shell = el("div");
+  shell.append(
+    el("nav", { className: "breadcrumb" }, [
+      el("a", { href: appProjectHref(projectId), text: "Project" }),
+      el("span", { text: " / Tree" }),
+    ]),
+    el("h1", { text: "Requirements tree" }),
+  );
+  container.replaceChildren(shell);
+  const treeEl = el("div", { role: "tree", className: "req-tree", tabindex: "-1" });
+  shell.append(treeEl);
+
+  const childCache = new Map();
+  const expanded = new Set();
+
+  async function loadChildren(parentUid) {
+    const key = parentUid ?? "";
+    if (childCache.has(key)) return childCache.get(key);
+    const result = await loadJson(apiFn, requirementsTreeApiPath(projectId, parentUid));
+    if (result.kind !== "ok") throw result;
+    const items = result.data.items ?? [];
+    childCache.set(key, items);
+    return items;
+  }
+
+  function visibleTreeitems() {
+    return [...treeEl.querySelectorAll('[role="treeitem"]')].filter((n) => !n.closest("[hidden]"));
+  }
+
+  function focusItem(item) {
+    for (const n of treeEl.querySelectorAll('[role="treeitem"]')) n.setAttribute("tabindex", "-1");
+    item.setAttribute("tabindex", "0");
+    item.focus();
+  }
+
+  function syncExpander(item, isOpen) {
+    const btn = item.querySelector(".req-tree-expander");
+    if (!btn) return;
+    btn.textContent = isOpen ? "▾" : "▸";
+    btn.setAttribute("aria-label", isOpen ? "Collapse" : "Expand");
+  }
+
+  function refocusCollapsedAncestor(item) {
+    const focused = item.querySelector('[role="treeitem"][tabindex="0"]');
+    if (focused && focused !== item) focusItem(item);
+  }
+
+  async function mountChildren(group, parentUid, level) {
+    group.replaceChildren();
+    const items = await loadChildren(parentUid);
+    for (const node of items) {
+      const item = el("div", {
+        role: "treeitem",
+        "aria-level": String(level),
+        tabindex: "-1",
+        className: "req-tree-item",
+      });
+      const row = el("div", { className: "req-tree-row" });
+      if (node.child_count > 0) {
+        item.setAttribute("aria-expanded", "false");
+        const btn = el("button", {
+          type: "button",
+          className: "req-tree-expander",
+          "aria-label": "Expand",
+          tabindex: "-1",
+          text: "▸",
+        });
+        const groupChild = el("div", { role: "group", className: "req-tree-group", hidden: "" });
+        btn.addEventListener("click", async (ev) => {
+          ev.stopPropagation();
+          await toggle(item, node.uid, groupChild, level + 1);
+        });
+        row.append(btn);
+        item.append(row, groupChild);
+      } else {
+        row.append(el("span", { className: "req-tree-expander-spacer" }));
+        item.append(row);
+      }
+      row.append(treeNodeLabel(node, projectId));
+      group.append(item);
+    }
+  }
+
+  async function toggle(item, uid, group, childLevel) {
+    const open = expanded.has(uid);
+    if (open) {
+      expanded.delete(uid);
+      item.setAttribute("aria-expanded", "false");
+      syncExpander(item, false);
+      group.hidden = true;
+      refocusCollapsedAncestor(item);
+      return;
+    }
+    item.querySelector(".req-tree-load-error")?.remove();
+    expanded.add(uid);
+    item.setAttribute("aria-expanded", "true");
+    syncExpander(item, true);
+    group.hidden = false;
+    if (!group.childNodes.length) {
+      try {
+        await mountChildren(group, uid, childLevel);
+      } catch {
+        expanded.delete(uid);
+        item.setAttribute("aria-expanded", "false");
+        syncExpander(item, false);
+        group.hidden = true;
+        group.replaceChildren();
+        item.append(el("div", { role: "alert", className: "req-tree-load-error", text: "Could not load children" }));
+        return;
+      }
+    }
+  }
+
+  async function expandItem(item) {
+    if (item.getAttribute("aria-expanded") === "true") {
+      const firstChild = item.querySelector('[role="group"] [role="treeitem"]');
+      if (firstChild) focusItem(firstChild);
+      return;
+    }
+    const uid = item.querySelector(".req-tree-uid")?.textContent;
+    const group = item.querySelector('[role="group"]');
+    if (!uid || !group) return;
+    const level = Number.parseInt(item.getAttribute("aria-level") ?? "1", 10);
+    await toggle(item, uid, group, level + 1);
+  }
+
+  function collapseItem(item) {
+    const uid = item.querySelector(".req-tree-uid")?.textContent;
+    if (item.getAttribute("aria-expanded") === "true" && uid) {
+      expanded.delete(uid);
+      item.setAttribute("aria-expanded", "false");
+      syncExpander(item, false);
+      const group = item.querySelector('[role="group"]');
+      if (group) group.hidden = true;
+      return true;
+    }
+    return false;
+  }
+
+  function focusedTreeitem() {
+    const items = visibleTreeitems();
+    return items.find((n) => n.getAttribute("tabindex") === "0") ?? items[0] ?? null;
+  }
+
+  treeEl.addEventListener("keydown", (ev) => {
+    const items = visibleTreeitems();
+    if (!items.length) return;
+    const cur = focusedTreeitem();
+    if (!cur) return;
+    const idx = items.indexOf(cur);
+    if (ev.key === "ArrowDown") {
+      ev.preventDefault();
+      focusItem(items[Math.min(idx + 1, items.length - 1)] ?? cur);
+    } else if (ev.key === "ArrowUp") {
+      ev.preventDefault();
+      focusItem(items[Math.max(idx - 1, 0)] ?? cur);
+    } else if (ev.key === "ArrowRight") {
+      ev.preventDefault();
+      void expandItem(cur).catch(() => {});
+    } else if (ev.key === "ArrowLeft") {
+      ev.preventDefault();
+      if (!collapseItem(cur)) {
+        const parentItem = cur.parentElement?.closest('[role="treeitem"]');
+        if (parentItem) focusItem(parentItem);
+      }
+    } else if (ev.key === "Home") {
+      ev.preventDefault();
+      focusItem(items[0]);
+    } else if (ev.key === "End") {
+      ev.preventDefault();
+      focusItem(items[items.length - 1]);
+    } else if (ev.key === "Enter") {
+      const link = cur.querySelector(".req-tree-label a");
+      if (link) {
+        ev.preventDefault();
+        link.click();
+      }
+    }
+  });
+
+  try {
+    await mountChildren(treeEl, null, 1);
+    const first = treeEl.querySelector('[role="treeitem"]');
+    if (first) {
+      first.setAttribute("tabindex", "0");
+    } else {
+      treeEl.replaceChildren(el("p", { className: "empty-state", text: "No requirements in this project tree." }));
+    }
+  } catch (result) {
+    if (result?.kind === "auth") return;
+    renderNotFound(container);
+  }
+}
+
 export async function renderRequirementDetail(container, { apiFn, projectId, requirementId, listFilters }) {
   if (!isValidSlugId(projectId) || !isValidRequirementId(requirementId)) return renderNotFound(container);
   const res = await loadJson(
@@ -586,14 +838,8 @@ export async function renderRequirementDetail(container, { apiFn, projectId, req
   if (res.kind === "auth") return;
   if (res.kind !== "ok") return renderNotFound(container);
   const req = res.data;
-  const listHref = requirementsListHref(projectId, listFilters ?? {});
   container.replaceChildren(
-    el("nav", { className: "breadcrumb" }, [
-      el("a", { href: appProjectHref(projectId), text: "Project" }),
-      el("span", { text: " / " }),
-      el("a", { href: listHref, text: "Requirements" }),
-      el("span", { text: ` / ${req.id}` }),
-    ]),
+    requirementDetailBreadcrumb(projectId, req, listFilters),
     el("h1", { text: req.title || req.id }),
     el("p", { className: "muted" }, [
       el("code", { text: req.id }),
@@ -693,6 +939,9 @@ export async function mountBrowseView(container, route, deps) {
       break;
     case "releases-list":
       await renderReleasesList(container, { apiFn, projectId: route.projectId, filters: releaseFilters, offset });
+      break;
+    case "requirements-tree":
+      await renderRequirementsTree(container, { apiFn, projectId: route.projectId });
       break;
     case "release-detail":
       await renderReleaseDetail(container, {
