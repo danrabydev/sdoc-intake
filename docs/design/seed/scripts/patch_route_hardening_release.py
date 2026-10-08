@@ -15,7 +15,10 @@ from ruamel.yaml.comments import CommentedMap
 SEED = Path(__file__).resolve().parent.parent
 DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
-SHIPPED_ROUTE_HELPER = "2026-10-08"
+# PR #19 merged 2026-10-08T03:01:22Z = 2026-10-07 23:01 America/New_York (dates are Dan's time zone).
+SHIPPED_ROUTE_HELPER = "2026-10-07"
+ROUTE_HELPER_MERGE_SHA = "ecbd68be93a2103be1a4cd9f5b2289a22f45357e"
+PLANNED_HARDENING = "2026-10-07"
 
 yaml = YAML()
 yaml.preserve_quotes = True
@@ -71,46 +74,63 @@ HARDENING_CAPS = [
     (
         "CAP-SVC-PROJECT-ID-SLUG",
         "Project id path param slug validation",
-        "The :projectId path param must match ^[a-z0-9][a-z0-9-]{0,63}$ before project scope, RBAC, "
-        "audit_events.project_id, structured logs, or reqalm.project_id span attributes; invalid ids are "
-        "not_found identical to a missing or ungranted project; unauthenticated callers still receive 401 "
-        "before any validation detail.",
+        "The :projectId path param must match ^[a-z0-9][a-z0-9-]{0,63}$ before it becomes project scope. "
+        "An id that does not (padded, control characters, uppercase, over-long at any length) is not_found "
+        "after authentication, identical to a missing or ungranted project, and an unauthenticated caller "
+        "gets the same 401 as for a valid id, before any validation detail. An invalid id is never recorded "
+        "raw: audit_events.project_id is NULL, no reqalm.project_id span attribute is set, and request logs "
+        "and exported span URL attributes show the segment as [invalid].",
         [("ARCH-API-RBAC", "satisfies"), ("CAP-SVC-OPERATION-ROUTE", "refines")],
-        [f"{REPO}/apps/reqalm/src/http/define-operation-route.ts"],
+        [
+            f"{REPO}/apps/reqalm/src/http/project-id.ts",
+            f"{REPO}/apps/reqalm/src/http/define-operation-route.ts",
+            f"{REPO}/apps/reqalm/src/http/server.ts",
+        ],
     ),
     (
         "CAP-SVC-STATIC-DEP-PATCH",
         "Production @fastify/static dependency patch",
-        "The API web role serves static assets with @fastify/static >= 10.1.2 so known path-traversal "
-        "and route-guard advisories (GHSA-83w8, GHSA-8pvw) are cleared from pnpm audit --prod on apps/reqalm.",
+        "apps/reqalm resolves @fastify/static 10.1.5 both directly (^10.1.5) and through @fastify/swagger-ui "
+        "6.1.1 (^10.1.0), with no pnpm override, so GHSA-83w8-p2f5-377r and GHSA-8pvw-jcv7-9cmj (and "
+        "GHSA-pr96-94w5-mx2h, GHSA-x428-ghpx-8j92) are gone from pnpm audit --prod; the web bundle and /docs "
+        "still serve, and encoded path-traversal requests never return file contents.",
         [("ARCH-DEPLOY-MINIMAL", "satisfies")],
-        [f"{REPO}/apps/reqalm/package.json", f"{REPO}/apps/reqalm/src/http/server.ts"],
+        [f"{REPO}/apps/reqalm/package.json", f"{REPO}/pnpm-lock.yaml", f"{REPO}/apps/reqalm/src/http/server.ts"],
     ),
     (
         "CAP-OTEL-SPAN-SAFE-ERRORS",
-        "Operation span errors without raw exception text",
-        "Operation spans mark deny/error with a generic status message and reqalm.error_kind (error code); "
-        "raw exception or database detail stays in server logs only.",
-        [("CAP-OTEL-OPERATION-SPANS", "refines"), ("ARCH-OTEL", "satisfies")],
+        "Span errors without raw exception text",
+        "Every exported span (operation, Fastify request and handler, http, pg, undici, OpenBao) reports a "
+        "failure as ERROR status with the generic message 'operation failed'; exception events keep only "
+        "exception.type (no message or stack); operation spans add reqalm.error_kind (service error code or "
+        "internal). Raw exception and database text stays in the server log only.",
+        [("CAP-OTEL-OPERATION-SPANS", "refines"), ("ARCH-OTEL-TRACE", "satisfies")],
         [
             f"{REPO}/apps/reqalm/src/core/operation.ts",
             f"{REPO}/apps/reqalm/src/telemetry/trace-context.ts",
+            f"{REPO}/apps/reqalm/src/telemetry/safe-span-processor.ts",
+            f"{REPO}/apps/reqalm/src/telemetry/tracing.ts",
         ],
     ),
     (
         "CAP-SVC-IMPLICIT-PUBLIC-EXACT",
         "Implicit public route allowlist is method+path exact",
-        "OAuth, probe, and auth-shaped routes become public only when METHOD and path match the exact "
-        "allowlist (same pattern as /api non-operation routes); wrong methods must declare reqalmSecurity.",
-        [("CAP-SVC-ROUTE-REGISTRY", "refines"), ("CAP-SVC-BUSINESS-ROUTE-AUDIT", "refines")],
+        "OAuth, probe, and auth-shaped routes become implicitly public only when METHOD and path match the "
+        "exact allowlist (HEAD checked as GET; /docs for GET and HEAD only), and a route registered for "
+        "several methods only if every method matches; any other method or path must declare reqalmSecurity.",
+        [
+            ("CAP-SVC-ROUTE-REGISTRY", "refines"),
+            ("CAP-SVC-BUSINESS-ROUTE-AUDIT", "refines"),
+            ("ARCH-API-RBAC", "satisfies"),
+        ],
         [f"{REPO}/apps/reqalm/src/http/route-security.ts"],
     ),
     (
         "CAP-SVC-NON-API-AUTH-AUDIT",
         "Authenticated non-/api routes audited or allowlisted",
         "Hand-registered authenticated routes outside /api/ must use defineOperationRoute or sit on an "
-        "exact method+path allowlist (POST /mcp); registration tests fail closed otherwise.",
-        [("CAP-SVC-ROUTE-REGISTRY", "refines"), ("CAP-AUDIT", "satisfies")],
+        "exact METHOD + path allowlist (today only POST /mcp); route-security.test.ts fails closed otherwise.",
+        [("CAP-SVC-ROUTE-REGISTRY", "refines"), ("ARCH-API-RBAC", "satisfies")],
         [f"{REPO}/apps/reqalm/src/http/route-security.ts", f"{REPO}/apps/reqalm/src/http/route-security.test.ts"],
     ),
 ]
@@ -121,12 +141,15 @@ def main() -> None:
         data = yaml.load(f)
 
     rel_helper = find(data.get("releases"), "id", "rel-r1-route-helper")
-    if rel_helper and rel_helper.get("status") != "shipped":
+    if rel_helper:
         rel_helper["status"] = "shipped"
         rel_helper["shipped_on"] = SHIPPED_ROUTE_HELPER
         rel_helper["notes"] = (
             "One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/19 merged to main as "
-            "ecbd68b on 2026-10-08. defineOperationRoute single pipeline for /api/ business routes."
+            f"{ROUTE_HELPER_MERGE_SHA} on {SHIPPED_ROUTE_HELPER}. Verified locally: tests x3, typecheck, "
+            "build, dev-stack upgrade + smoke, live Problem Details probes. defineOperationRoute is the single "
+            "pipeline for /api/ business routes; does not replace auth/OAuth hand routes or claim OpenAPI "
+            "generation from Zod."
         )
     for cap in ROUTE_HELPER_CAPS:
         ver = find(data.get("requirement_versions"), "uid", cap)
@@ -190,15 +213,17 @@ def main() -> None:
             id="rel-r1-route-hardening",
             project_id="reqalm",
             name="R1 — route helper hardening (Cyber/QA follow-up)",
-            planned_on="2026-10-08",
+            planned_on=PLANNED_HARDENING,
             shipped_on=None,
             status="planned",
             delivers=deliver_uids,
             cyber_gate=True,
             notes=(
-                "One PR = one release. @fastify/static >= 10.1.2, project id slug validation, safe OTel span "
-                "errors, exact method+path implicit public allowlist, authenticated non-/api audit guard, "
-                "and QA tests for pre-handler auth and non-web 404. Planned until merged."
+                "One PR = one release. @fastify/static 10.1.5 via @fastify/swagger-ui 6.1.1 (no override), "
+                "project id slug rule (incl. over-long ids; invalid ids redacted in logs and spans), no error "
+                "text on any exported span, exact METHOD + path implicit public allowlist, authenticated "
+                "non-/api route guard, and QA tests for the reachedHandler guard and non-web 404. Planned "
+                "until merged; the next PR marks it shipped at the merge sha."
             ),
         ),
     )
