@@ -455,6 +455,43 @@ describe("browse UI render (jsdom)", () => {
     assert.ok(main.querySelector('a.btn-secondary[href="/app/projects/reqalm/releases?status=shipped"]'));
   });
 
+  it("releases list via mountBrowseView ignores bogus status (release filters, not requirements)", async () => {
+    const main = document.createElement("main");
+    const route = parseAppRoute("/app/projects/reqalm/releases");
+    const apiFn = mockFetch((url) => {
+      const u = new URL(url, "http://localhost");
+      assert.equal(u.pathname, "/api/v1/projects/reqalm/releases");
+      assert.equal(u.searchParams.has("status"), false);
+      assert.equal(u.searchParams.get("offset"), "0");
+      assert.equal(u.searchParams.get("limit"), "20");
+      return {
+        status: 200,
+        body: {
+          data: {
+            items: [
+              {
+                id: "rel-a",
+                name: "Release A",
+                status: "planned",
+                planned_on: "2026-01-01",
+                shipped_on: null,
+                delivered_capability_count: 0,
+              },
+            ],
+            limit: 20,
+            offset: 0,
+            total: 45,
+          },
+        },
+      };
+    });
+    await mountBrowseView(main, route, { apiFn, search: "?status=bogus" });
+    assert.ok(main.querySelector('a.btn-secondary[href="/app/projects/reqalm/releases?offset=20"]'));
+    for (const a of main.querySelectorAll(".pager-nav a.btn-secondary")) {
+      assert.doesNotMatch(a.getAttribute("href") ?? "", /status=/);
+    }
+  });
+
   it("releases list table shows exact planned, shipped, and capability cells", async () => {
     const main = document.createElement("main");
     await renderReleasesList(main, {
@@ -653,6 +690,7 @@ describe("browse UI render (jsdom)", () => {
     assert.ok(main.querySelector('a[href="/app/projects/reqalm/releases?status=planned"]'));
     assert.match(main.textContent ?? "", /No capabilities delivered in this release/);
     assert.match(main.textContent ?? "", / · planned · /);
+    assert.ok(![...main.querySelectorAll("h2")].some((h) => h.textContent === "Notes"));
   });
 
   it("escapes XSS in client names as plain text", async () => {
