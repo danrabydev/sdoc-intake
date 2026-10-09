@@ -1262,6 +1262,15 @@ approval_records:
   notes: Planned for MFA enrollment QR PR.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-relations-api
+  subject_kind: CapabilityLine
+  base_uid: CAP-RELATIONS-API
+  status: unapproved
+  by:
+  at:
+  notes: Planned for requirement relations read API PR.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3173,6 +3182,11 @@ requirement_lines:
   parent: SEC-IA
   kind: capability
   title: MFA enrollment QR code (sign-in UI)
+- base_uid: CAP-RELATIONS-API
+  project_id: reqalm
+  parent: SEC-EDGE
+  kind: capability
+  title: Read requirement relations (trace links API)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -7899,14 +7913,27 @@ requirement_versions:
 - uid: CAP-MFA-QR
   base_uid: CAP-MFA-QR
   version_n: 0
-  status: draft
+  status: active
   statement: 'MFA enrollment on the sign-in card renders a scannable QR code for the otpauth URI locally in the browser (vendored MIT qr-min matrix encoder to SVG; no external QR service or network fetch). Setup key and manual otpauth URI remain visible for copy/paste. Enrollment JSON responses use Cache-Control: no-store; QR markup is removed from the DOM after successful enrollment. Accessible name on the QR image; CSP-safe (same-origin module, DOM-built SVG, no inline handlers).'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: IA-2
-    verification_note: Planned until MFA enrollment QR PR merges.
+    verification_note: 'Shipped with MFA enrollment QR PR #30 (merge c8668b924ba4804e32f4d364aa0d343af60e9f83).'
   statement_hash: sha256:1f58d4c44316d614afed010f3ce6e6d746c2e3fb0f36affd9076d0c16c82edeb
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-RELATIONS-API
+  base_uid: CAP-RELATIONS-API
+  version_n: 0
+  status: draft
+  statement: 'Grant-scoped read-only relations API: GET /api/v1/projects/:projectId/requirements/:id/relations returns incoming and outgoing trace links grouped by kind (conforms_to, uses, satisfies, refines). Each link resolves the peer end with id, title, kind, and type for in-project lines and readable catalog controls in one response; cross-project and unreadable catalog peers return a non-revealing restricted stub. Dogfood seed loader persists trace_edges plus catalog imprint labels for ConformsTo pins.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-3
+    verification_note: Planned until relations read API PR merges.
+  statement_hash: sha256:49308d84d521d418a7cd3be6acd8cef23550d2aef39bc6a21bb3e81276a42264
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -8542,6 +8569,24 @@ capability_artifacts:
 - requirement_version_uid: CAP-MFA-QR
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_mfa_qr_release.py
+- requirement_version_uid: CAP-RELATIONS-API
+  kind: other
+  uri: ../../../apps/reqalm/src/db/migrations/009_trace_edges.sql
+- requirement_version_uid: CAP-RELATIONS-API
+  kind: other
+  uri: ../../../apps/reqalm/src/seed/load-dogfood.ts
+- requirement_version_uid: CAP-RELATIONS-API
+  kind: other
+  uri: ../../../apps/reqalm/src/seed/catalog-labels.ts
+- requirement_version_uid: CAP-RELATIONS-API
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/requirements/requirements-relations.ts
+- requirement_version_uid: CAP-RELATIONS-API
+  kind: other
+  uri: ../../../apps/reqalm/openapi/openapi.yaml
+- requirement_version_uid: CAP-RELATIONS-API
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_relations_api_release.py
 edges:
 - from: CAP-SSO
   to: A01
@@ -14263,6 +14308,21 @@ edges:
 - from: CAP-MFA-QR
   to: ARCH-UI-GUARD
   kind: satisfies
+- from: CAP-RELATIONS-API
+  to: C08
+  kind: satisfies
+- from: CAP-RELATIONS-API
+  to: E06
+  kind: satisfies
+- from: CAP-RELATIONS-API
+  to: ARCH-API-RBAC
+  kind: satisfies
+- from: CAP-RELATIONS-API
+  to: CAP-READ-REQS
+  kind: satisfies
+- from: CAP-RELATIONS-API
+  to: CAP-SVC-OPERATION-ROUTE
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -14856,12 +14916,22 @@ releases:
   project_id: reqalm
   name: R1 — MFA enrollment QR (sign-in UI)
   planned_on: '2026-10-08'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-08'
+  status: shipped
   delivers:
   - CAP-MFA-QR
   cyber_gate: false
-  notes: Client-side QR for otpauth URI on MFA enrollment; setup key fallback retained.
+  notes: 'PR #30 merged to main as c8668b924ba4804e32f4d364aa0d343af60e9f83 on 2026-10-08. MFA enrollment QR on sign-in card (client-side otpauth QR + setup key fallback).'
+- id: rel-r1-relations-api
+  project_id: reqalm
+  name: R1 — requirement relations read API
+  planned_on: '2026-10-09'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-RELATIONS-API
+  cyber_gate: false
+  notes: Read-only relations endpoint + trace_edges seed load; browse UI graph deferred.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

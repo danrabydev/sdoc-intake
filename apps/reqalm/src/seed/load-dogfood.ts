@@ -2,10 +2,16 @@ import { randomBytes } from "node:crypto";
 import { hashPassword } from "../credential/password.js";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 import type pg from "pg";
 import type { AppConfig } from "../config.js";
 import { isProduction } from "../config.js";
+import {
+  upsertCatalogMetadata,
+  type CatalogImprintSeedRow,
+  type CatalogSeedRow,
+} from "./catalog-labels.js";
 
 export type DogfoodSeed = {
   schema_version?: string;
@@ -18,6 +24,9 @@ export type DogfoodSeed = {
   requirement_versions?: Record<string, unknown>[];
   releases?: Record<string, unknown>[];
   platform_grants?: Record<string, unknown>[];
+  edges?: Record<string, unknown>[];
+  catalogs?: CatalogSeedRow[];
+  catalog_imprints?: CatalogImprintSeedRow[];
 };
 
 export class SeedValidationError extends Error {
@@ -94,6 +103,9 @@ export async function applyDogfoodSeed(
     dev_local_accounts: 0,
     local_credentials: 0,
     platform_grants: 0,
+    trace_edges: 0,
+    catalog_defs: 0,
+    catalog_item_labels: 0,
   };
 
   const countBefore = options?.skipUnchangedCheck ? null : await countSeedRows(client);
@@ -142,6 +154,27 @@ export async function applyDogfoodSeed(
   }
   for (const g of seed.platform_grants ?? []) {
     await upsertPlatformGrant(client, g, inserted);
+  }
+
+  const seedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../docs/design/seed");
+  const conformsByImprint = collectConformsTargets(seed.edges ?? []);
+  await upsertCatalogMetadata(
+    client,
+    seedDir,
+    seed.catalogs ?? [],
+    seed.catalog_imprints ?? [],
+    conformsByImprint,
+  );
+  inserted.catalog_defs = (seed.catalogs ?? []).length;
+  const uidProject = new Map(lineProject);
+  for (const ver of seed.requirement_versions ?? []) {
+    const baseUid = String(ver.base_uid);
+    const verProject = (ver.project_id as string | undefined) ?? lineProject.get(baseUid);
+    if (!verProject) throw new SeedValidationError(`version ${ver.uid}: no project_id`);
+    uidProject.set(String(ver.uid), verProject);
+  }
+  for (const e of seed.edges ?? []) {
+    await upsertTraceEdge(client, e, uidProject, inserted);
   }
 
   // ARCH-DEVENV-IDENTITY.1: no committed/default dev credential. Use the local .env value, or
@@ -202,6 +235,9 @@ export async function countSeedRows(client: pg.PoolClient) {
     "dev_local_accounts",
     "local_credentials",
     "platform_grants",
+    "trace_edges",
+    "catalog_defs",
+    "catalog_item_labels",
   ] as const;
   const counts: Record<string, number> = {};
   for (const t of tables) {
@@ -390,10 +426,8 @@ async function upsertVersion(
   inserted: Record<string, number>,
 ) {
   const baseUid = String(row.base_uid);
-  const projectId =
-    (row.project_id as string | undefined) ??
-    lineProject.get(baseUid) ??
-    "reqalm";
+  const projectId = (row.project_id as string | undefined) ?? lineProject.get(baseUid);
+  if (!projectId) throw new SeedValidationError(`version ${row.uid}: no project_id`);
   const r = await client.query(
     `
     INSERT INTO requirement_versions (
@@ -494,6 +528,56 @@ async function upsertPlatformGrant(
     [id, row.identity_id, row.role, row.notes ?? null],
   );
   if (r.rowCount) inserted.platform_grants++;
+}
+
+function collectConformsTargets(edges: Record<string, unknown>[]): Map<string, Set<string>> {
+  const byImprint = new Map<string, Set<string>>();
+  for (const e of edges) {
+    if (String(e.kind) !== "conforms_to") continue;
+    const imprint = String(e.catalog_imprint_id ?? "");
+    if (!imprint) continue;
+    const set = byImprint.get(imprint) ?? new Set<string>();
+    set.add(String(e.to));
+    byImprint.set(imprint, set);
+  }
+  return byImprint;
+}
+
+async function upsertTraceEdge(
+  client: pg.PoolClient,
+  row: Record<string, unknown>,
+  uidProject: Map<string, string>,
+  inserted: Record<string, number>,
+): Promise<void> {
+  const fromUid = String(row.from);
+  const toUid = String(row.to);
+  const fromProject = uidProject.get(fromUid);
+  if (!fromProject) {
+    throw new SeedValidationError(`trace edge from ${fromUid}: no project for endpoint`);
+  }
+  const toProject = uidProject.get(toUid) ?? null;
+  const r = await client.query(
+    `
+    INSERT INTO trace_edges (
+      from_project_id, from_uid, to_project_id, to_uid, kind, catalog_imprint_id, trace_suspect
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    ON CONFLICT (from_project_id, from_uid, to_uid, kind, catalog_imprint_id) DO UPDATE SET
+      to_project_id = EXCLUDED.to_project_id,
+      trace_suspect = EXCLUDED.trace_suspect
+    RETURNING (xmax = 0) AS inserted
+  `,
+    [
+      fromProject,
+      fromUid,
+      toProject,
+      toUid,
+      row.kind,
+      row.catalog_imprint_id ?? "",
+      row.trace_suspect === true,
+    ],
+  );
+  if (r.rows[0]?.inserted) inserted.trace_edges++;
 }
 
 async function upsertDevLocalAccounts(

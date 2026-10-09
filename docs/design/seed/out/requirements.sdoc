@@ -2172,7 +2172,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-MFA-QR
-STATUS: Draft
+STATUS: Active
 TITLE: MFA enrollment QR code (sign-in UI)
 STATEMENT: >>>
 MFA enrollment on the sign-in card renders a scannable QR code for the otpauth URI locally in the browser (vendored MIT qr-min matrix encoder to SVG; no external QR service or network fetch). Setup key and manual otpauth URI remain visible for copy/paste. Enrollment JSON responses use Cache-Control: no-store; QR markup is removed from the DOM after successful enrollment. Accessible name on the QR image; CSP-safe (same-origin module, DOM-built SVG, no inline handlers).
@@ -2184,7 +2184,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
-security.verification_note: Planned until MFA enrollment QR PR merges.
+security.verification_note: Shipped with MFA enrollment QR PR #30 (merge c8668b924ba4804e32f4d364aa0d343af60e9f83).
 delivered_by_release: R1 — MFA enrollment QR (sign-in UI)
 <<<
 RELATIONS:
@@ -2752,6 +2752,7 @@ security.catalog_ref: CM-2
 security.verification_note: Shipped with requirements read API PR #24.
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-READ-HIERARCHY
+edge: ← satisfies from CAP-RELATIONS-API
 delivered_by_release: R1 — requirements read API
 <<<
 RELATIONS:
@@ -3241,6 +3242,7 @@ edge: ← uses from N03
 edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
+edge: ← satisfies from CAP-RELATIONS-API
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4395,6 +4397,7 @@ priority: 35
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← satisfies from CAP-RELATIONS-API
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4457,6 +4460,45 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: CAP-RELATIONS-API
+STATUS: Draft
+TITLE: Read requirement relations (trace links API)
+STATEMENT: >>>
+Grant-scoped read-only relations API: GET /api/v1/projects/:projectId/requirements/:id/relations returns incoming and outgoing trace links grouped by kind (conforms_to, uses, satisfies, refines). Each link resolves the peer end with id, title, kind, and type for in-project lines and readable catalog controls in one response; cross-project and unreadable catalog peers return a non-revealing restricted stub. Dogfood seed loader persists trace_edges plus catalog imprint labels for ConformsTo pins.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-RELATIONS-API
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Planned until relations read API PR merges.
+delivered_by_release: R1 — requirement relations read API
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: C08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: E06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-READ-REQS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-relations-api
+  ROLE: Delivers
 
 [[/SECTION]]
 
@@ -8830,6 +8872,7 @@ edge: ← satisfies from CAP-SVC-NON-API-AUTH-AUDIT
 edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
+edge: ← satisfies from CAP-RELATIONS-API
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -9407,6 +9450,7 @@ edge: ← refines from CAP-SVC-PROJECT-ID-SLUG
 edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
+edge: ← satisfies from CAP-RELATIONS-API
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<
 RELATIONS:

@@ -25,6 +25,11 @@ import {
   type RequirementTreeNodeDto,
   type RequirementVersionDto,
 } from "./requirements.service.js";
+import {
+  getRequirementRelations,
+  type GetRequirementRelationsInput,
+  type RequirementRelationsDto,
+} from "./requirements-relations.js";
 
 export const requirementIdSchema = z.string().regex(REQUIREMENT_ID, "invalid requirement id");
 
@@ -83,6 +88,19 @@ const listTreeOp: OperationDef<ListRequirementTreeInput, PageResult<RequirementT
   execute: listRequirementTree,
 };
 
+const getRelationsOp: OperationDef<GetRequirementRelationsInput, RequirementRelationsDto> = {
+  name: "requirements.get_relations",
+  permission: "requirement:read",
+  projectScoped: true,
+  projectIdFromInput: (input) => input.projectId,
+  auditMeta: (input) => ({
+    projectId: input.projectId,
+    targetType: "requirement",
+    targetId: input.requirementId,
+  }),
+  execute: getRequirementRelations,
+};
+
 const listVersionsOp: OperationDef<
   ListRequirementVersionsInput,
   PageResult<RequirementVersionDto>
@@ -135,6 +153,17 @@ export function registerRequirementRoutes(app: FastifyInstance, deps: RequestCon
     op: getRequirementOp,
     parseInput: (req) => parseZodInput(projectRequirementParams, req.params, "params"),
     schema: { tags: ["requirements"], summary: "Read current version of a requirement" },
+  });
+
+  defineOperationRoute(app, deps, {
+    method: "get",
+    url: "/api/v1/projects/:projectId/requirements/:requirementId/relations",
+    op: getRelationsOp,
+    parseInput: (req) => parseZodInput(projectRequirementParams, req.params, "params"),
+    schema: {
+      tags: ["requirements"],
+      summary: "Read trace relations (incoming/outgoing grouped by kind)",
+    },
   });
 
   defineOperationRoute(app, deps, {
