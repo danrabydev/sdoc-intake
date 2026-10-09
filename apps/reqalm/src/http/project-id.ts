@@ -15,11 +15,23 @@ export const REQUIREMENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 /** Release id in dogfood: slug (same rules as project id). */
 export const RELEASE_ID = SLUG_ID;
 
+/** Catalog def id in dogfood: slug (same rules as project id). */
+export const CATALOG_ID = SLUG_ID;
+
+/** Catalog imprint id: lowercase slug chars plus . @ _ - */
+export const IMPRINT_ID = /^[a-z0-9][a-z0-9.@_-]{0,159}$/;
+
+/** Catalog control id (item uid): same rules as requirement line id. */
+export const CONTROL_ID = REQUIREMENT_ID;
+
 const DEFAULT_SEGMENT_RULES: PathSegmentRedactionRule[] = [
   { prefix: "/projects/", valid: (s) => SLUG_ID.test(s) },
   { prefix: "/clients/", valid: (s) => SLUG_ID.test(s) },
   { prefix: "/requirements/", valid: (s) => REQUIREMENT_ID.test(s) },
   { prefix: "/releases/", valid: (s) => RELEASE_ID.test(s) },
+  { prefix: "/catalogs/", valid: (s) => CATALOG_ID.test(s) },
+  { prefix: "/imprints/", valid: (s) => IMPRINT_ID.test(s) },
+  { prefix: "/controls/", valid: (s) => CONTROL_ID.test(s) },
 ];
 
 export function redactInvalidPathParamIds(

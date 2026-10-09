@@ -25,7 +25,12 @@ function assertCapReadReqsStable(d: RequirementRelationsDto) {
   assert.deepEqual(Object.keys(d.outgoing).sort(), ["satisfies"]);
   assert.deepEqual(Object.keys(d.incoming).sort(), ["satisfies"]);
   assert.deepEqual(peerIds(d.outgoing.satisfies), ["ARCH-API-RBAC", "C08", "CAP-RBAC", "CAP-SVC-OPERATION-ROUTE", "D06"]);
-  assert.deepEqual(peerIds(d.incoming.satisfies), ["CAP-BROWSE-UI-REQS", "CAP-READ-HIERARCHY", "CAP-RELATIONS-API"]);
+  assert.deepEqual(peerIds(d.incoming.satisfies), [
+    "CAP-BROWSE-UI-REQS",
+    "CAP-CATALOGS-API",
+    "CAP-READ-HIERARCHY",
+    "CAP-RELATIONS-API",
+  ]);
   for (const link of Object.values(d.outgoing).flat().concat(Object.values(d.incoming).flat())) {
     assert.ok(!("restricted" in link) && vis(link).relation_kind);
   }
@@ -175,6 +180,7 @@ describe("requirements relations API", () => {
   });
 
   it("private catalog stub, authz, audit", async () => {
+    await q(`INSERT INTO projects (id, client_id, name) VALUES ('rel-cat-p2', 'reqalm-client', 'Rel cat P2') ON CONFLICT DO NOTHING`);
     await q(`INSERT INTO catalog_defs (id, is_standard, project_id) VALUES ('cat-test-private', false, 'rel-cat-p2') ON CONFLICT DO NOTHING; INSERT INTO catalog_imprints (id, catalog_id) VALUES ('imprint-live-cc-PRIVATE', 'cat-test-private') ON CONFLICT DO NOTHING; INSERT INTO catalog_item_labels (catalog_id, item_uid, title) VALUES ('cat-test-private', 'PRIV-CTL-1', 'Secret control title') ON CONFLICT DO NOTHING; INSERT INTO trace_edges (from_project_id, from_uid, to_uid, kind, catalog_imprint_id, trace_suspect) VALUES ('reqalm', 'CAP-READ-REQS', 'PRIV-CTL-1', 'conforms_to', 'imprint-live-cc-PRIVATE', true) ON CONFLICT DO NOTHING`);
     try {
       const raw = await inject(REL("reqalm", "CAP-READ-REQS"));
@@ -189,7 +195,7 @@ describe("requirements relations API", () => {
       assert.equal(vis(conforms.find((l) => !("restricted" in l) && (l as VisibleRelationLink).peer.id === "UNLAB-CTL-1")!).peer.title, null);
     } finally {
       await q(`DELETE FROM trace_edges WHERE from_uid = 'CAP-READ-REQS' AND to_uid IN ('PRIV-CTL-1','UNLAB-CTL-1')`);
-      await q(`DELETE FROM catalog_item_labels WHERE catalog_id = 'cat-test-private'; DELETE FROM catalog_imprints WHERE id = 'imprint-live-cc-PRIVATE'; DELETE FROM catalog_defs WHERE id = 'cat-test-private'`);
+      await q(`DELETE FROM catalog_item_labels WHERE catalog_id = 'cat-test-private'; DELETE FROM catalog_imprints WHERE id = 'imprint-live-cc-PRIVATE'; DELETE FROM catalog_defs WHERE id = 'cat-test-private'; DELETE FROM projects WHERE id = 'rel-cat-p2'`);
     }
     await q(`INSERT INTO identities (id, display_name) VALUES ('no-grant-user', 'No Grant') ON CONFLICT DO NOTHING; INSERT INTO local_credentials (identity_id, username, password_hash, is_dev_seeded) SELECT 'no-grant-user', 'no-grant@dev.local', password_hash, true FROM local_credentials WHERE identity_id = 'casey-reader' LIMIT 1 ON CONFLICT (identity_id) DO UPDATE SET username = EXCLUDED.username, password_hash = EXCLUDED.password_hash`);
     assert.equal((await inject(REL("reqalm", "A01"), { authorization: `Bearer ${await issueTestAccessToken(ctx.app, "no-grant@dev.local")}` })).statusCode, 404);

@@ -46,7 +46,7 @@ describe("releases read API: verifier gap tests", () => {
     const page = (await getJson(`${P}?limit=5&offset=5`)).body.data as { items: Array<{ id: string }>; total: number };
     assert.deepEqual(page.items.map((i) => i.id), all.slice(5, 10));
     assert.equal(((await getJson(`${P}?limit=1`)).body.data as { total: number }).total, all.length);
-    assert.equal(((await getJson(`${P}?status=shipped&limit=1`)).body.data as { total: number }).total, 22);
+    assert.equal(((await getJson(`${P}?status=shipped&limit=1`)).body.data as { total: number }).total, 23);
   });
 
   it("unknown release id is 404 not_found (R22)", async () => {
