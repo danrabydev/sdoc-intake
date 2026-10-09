@@ -2,7 +2,7 @@ import { err, ok, type ServiceResult } from "../../core/service-result.js";
 import type { RequestContext } from "../../core/request-context.js";
 import { projectIdsWithPermission } from "../../rbac/enforce.js";
 
-export type RelationPeerDto = { id: string; title: string; kind: string; type: string };
+export type RelationPeerDto = { id: string; title: string | null; kind: string; type: string };
 export type VisibleRelationLink = {
   relation_kind: string;
   direction: "incoming" | "outgoing";
@@ -150,12 +150,13 @@ function dedupeEdges(
   for (const e of rows) {
     const out = touchUids.includes(e.from_uid);
     const inn = touchUids.includes(e.to_uid);
+    const sus = e.trace_suspect ? "1" : "0";
     if (out && family(e.from_uid)) {
-      const key = `o\0${e.kind}\0${e.to_uid}\0${e.catalog_imprint_id}`;
+      const key = `o\0${e.kind}\0${e.to_uid}\0${e.catalog_imprint_id}\0${sus}`;
       const cur = kept.get(key);
       if (!cur || rank(e.from_uid) > rank(cur.from_uid)) kept.set(key, e);
     } else if (inn && family(e.to_uid)) {
-      const key = `i\0${e.kind}\0${e.from_uid}\0${e.catalog_imprint_id}`;
+      const key = `i\0${e.kind}\0${e.from_uid}\0${e.catalog_imprint_id}\0${sus}`;
       const cur = kept.get(key);
       if (!cur || rank(e.to_uid) > rank(cur.to_uid)) kept.set(key, e);
     } else passthrough.push(e);
@@ -190,7 +191,9 @@ function buildLink(
   if (peerProject) {
     if (!allowed.has(peerProject)) return stub();
     const line = linePeers.get(`${peerProject}\0${peerVersionId}`);
-    if (!line) return stub();
+    if (!line) {
+      return visible({ id: peerVersionId, title: null, kind: "requirement", type: "requirement" });
+    }
     return visible({
       id: line.base_uid,
       title: line.line_title,
@@ -205,8 +208,7 @@ function buildLink(
     meta &&
     (meta.is_standard ? allowed.has(anchorProject) : meta.project_id != null && allowed.has(meta.project_id));
   if (!catalogId || !canRead) return stub();
-  const title = catalogLabels.get(`${catalogId}\0${peerVersionId}`);
-  if (!title) return stub();
+  const title = catalogLabels.get(`${catalogId}\0${peerVersionId}`) ?? null;
   return visible({ id: peerVersionId, title, kind: "control", type: "catalog_control" }, edge.catalog_imprint_id);
 }
 
@@ -275,7 +277,7 @@ async function loadLinePeers(ctx: RequestContext, keys: string[]): Promise<Map<s
         AND (l.base_uid = p.lookup_uid OR EXISTS (
           SELECT 1 FROM requirement_versions rv
            WHERE rv.project_id = p.project_id AND rv.uid = p.lookup_uid AND rv.base_uid = l.base_uid))
-       JOIN LATERAL (
+       LEFT JOIN LATERAL (
          SELECT mint_kind, title FROM requirement_versions
           WHERE project_id = l.project_id AND base_uid = l.base_uid
           ORDER BY version_n DESC LIMIT 1

@@ -169,10 +169,9 @@ export async function applyDogfoodSeed(
   const uidProject = new Map(lineProject);
   for (const ver of seed.requirement_versions ?? []) {
     const baseUid = String(ver.base_uid);
-    uidProject.set(
-      String(ver.uid),
-      String(ver.project_id ?? lineProject.get(baseUid) ?? "reqalm"),
-    );
+    const verProject = (ver.project_id as string | undefined) ?? lineProject.get(baseUid);
+    if (!verProject) throw new SeedValidationError(`version ${ver.uid}: no project_id`);
+    uidProject.set(String(ver.uid), verProject);
   }
   for (const e of seed.edges ?? []) {
     await upsertTraceEdge(client, e, uidProject, inserted);
@@ -427,10 +426,8 @@ async function upsertVersion(
   inserted: Record<string, number>,
 ) {
   const baseUid = String(row.base_uid);
-  const projectId =
-    (row.project_id as string | undefined) ??
-    lineProject.get(baseUid) ??
-    "reqalm";
+  const projectId = (row.project_id as string | undefined) ?? lineProject.get(baseUid);
+  if (!projectId) throw new SeedValidationError(`version ${row.uid}: no project_id`);
   const r = await client.query(
     `
     INSERT INTO requirement_versions (
