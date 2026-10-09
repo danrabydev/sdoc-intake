@@ -57,6 +57,15 @@ CONTRACT_IDS_V34 = (
     "contract-platform-baseline",
 )
 
+CONTRACT_V0_TO_ACTIVE_TIP = (
+    "ARCH-CP-HIER",
+    "ARCH-VER",
+    "ARCH-API",
+    "ARCH-OTEL",
+)
+
+OUTBOUND_PIN_KINDS = ("satisfies", "refines", "uses", "conforms_to")
+
 yaml = YAML()
 yaml.preserve_quotes = True
 yaml.width = 1200
@@ -209,12 +218,17 @@ def mint_pin_successor(data: dict, base_uid: str) -> str:
     tip["status"] = "superseded"
     data.setdefault("requirement_versions", []).append(new_ver)
     edges = data.setdefault("edges", [])
-    ensure_edge(edges, {"from": new_uid, "to": uid, "kind": "refines"})
     for e in list(edges):
-        if e.get("from") != uid or e.get("kind") != "conforms_to":
+        if e.get("from") != uid or e.get("kind") not in OUTBOUND_PIN_KINDS:
             continue
-        copied = mk_edge(new_uid, e["to"], "conforms_to", e.get("catalog_imprint_id"))
+        copied = mk_edge(new_uid, e["to"], e["kind"], e.get("catalog_imprint_id"))
         ensure_edge(edges, copied)
+    edges[:] = [
+        e
+        for e in edges
+        if not (e.get("from") == uid and e.get("kind") in OUTBOUND_PIN_KINDS)
+    ]
+    ensure_edge(edges, mk_edge(new_uid, uid, "refines"))
     report["pin_mints"].append({"base_uid": base_uid, "uid": new_uid, "supersedes": uid})
     PIN_TIP[base_uid] = new_uid
     return new_uid
@@ -239,12 +253,11 @@ def resolve_edit_uid(
         report["skipped"].append((from_uid, row.get("control"), "no active tip"))
         return None
     uid = tip["uid"]
+    base_uid = tip["base_uid"]
+    if uid in delivered:
+        return mint_pin_successor(data, base_uid)
     apply = row.get("apply") or ""
-    need_pin = "shipped+locked" in apply
-    if need_pin and is_version_locked(uid, tip, delivered, in_contract):
-        base_uid = tip["base_uid"]
-        if tip.get("mint_kind") == "pin" and tip.get("status") == "active":
-            return uid
+    if "shipped+locked" in apply and is_version_locked(uid, tip, delivered, in_contract):
         return mint_pin_successor(data, base_uid)
     return uid
 
@@ -288,6 +301,21 @@ def apply_move_links(data: dict, mapping: dict, delivered: set[str], in_contract
             continue  # handled in apply_v222518 (avoid .1/.2 ping-pong)
         if old_uid in SKIP_LINK_UIDS:
             continue
+        if ctrl_old == "AU-2/AU-3/AU-12" and mv.get("from_uid_new") == "(inherit from ARCH-OTEL)":
+            changed = False
+            for c in ("AU-2", "AU-3", "AU-12"):
+                frm = resolve_edit_uid(
+                    data,
+                    old_uid,
+                    {"apply": mv.get("apply", ""), "control": c},
+                    delivered,
+                    in_contract,
+                )
+                if frm and remove_conforms(edges, frm, c, NIST):
+                    changed = True
+            if changed:
+                report["moves_applied"] += 1
+            continue
         if new_uid and str(new_uid).startswith("("):
             continue
         if ctrl_new and str(ctrl_new).startswith("("):
@@ -299,24 +327,6 @@ def apply_move_links(data: dict, mapping: dict, delivered: set[str], in_contract
                 if changed:
                     report["moves_applied"] += 1
             continue
-        if ctrl_old == "AU-2/AU-3/AU-12":
-            targets = mv.get("from_uid_new")
-            if targets == "(inherit from ARCH-OTEL)":
-                changed = False
-                for c in ("AU-2", "AU-3", "AU-12"):
-                    for imp in (NIST,):
-                        frm = resolve_edit_uid(
-                            data,
-                            old_uid,
-                            {"apply": mv.get("apply", ""), "control": c},
-                            delivered,
-                            in_contract,
-                        )
-                        if frm and remove_conforms(edges, frm, c, imp):
-                            changed = True
-                if changed:
-                    report["moves_applied"] += 1
-                continue
         frm_old = resolve_edit_uid(
             data, old_uid, {"apply": mv.get("apply", ""), "control": ctrl_old}, delivered, in_contract
         )
@@ -371,25 +381,46 @@ def apply_v222518(data: dict, mapping: dict, delivered: set[str], in_contract: s
             report["adds_applied"] += 1
 
 
+def active_tip_uid(data: dict, base_uid: str) -> str | None:
+    if base_uid in PIN_TIP:
+        return PIN_TIP[base_uid]
+    tip = active_tip(data, base_uid)
+    return tip["uid"] if tip else None
+
+
+def strip_satisfies_from_base_to(edges, base_uid: str, to_uid: str) -> None:
+    prefix = base_uid.split(".")[0]
+    edges[:] = [
+        e
+        for e in edges
+        if not (
+            e.get("kind") == "satisfies"
+            and e.get("to") == to_uid
+            and (e.get("from") == base_uid or (e.get("from") or "").split(".")[0] == prefix)
+        )
+    ]
+
+
 def apply_trace_recommendations(data: dict) -> None:
     edges = data.setdefault("edges", [])
     pairs = [
         ("CAP-SSO.1", "ARCH-AUTH-FEDERATION"),
         ("CAP-SVC-AUDIT-APPEND", "ARCH-WRITE-UOW-AUDIT"),
         ("CAP-SVC-STRUCTURED-LOG", "ARCH-CRED-AUDIT"),
-        ("ARCH-SEC-TLS", "ARCH-SEC-HEADERS"),
         ("CAP-MFA-QR", "ARCH-SUPPLY-VENDORED"),
         ("CAP-SVC-STATIC-DEP-PATCH", "ARCH-SUPPLY-DEP-SCAN"),
     ]
-    for frm, to in pairs:
+    for frm_base, to in pairs:
+        frm = active_tip_uid(data, frm_base) or frm_base
         ensure_edge(edges, mk_edge(frm, to, "satisfies"))
+    rbac_tip = active_tip_uid(data, "ARCH-API-RBAC") or "ARCH-API-RBAC.1"
     for cap in SATISFIES_RETARGET_CAPS:
-        remove_edge_satisfies(edges, cap, "ARCH-API-RBAC")
-        ensure_edge(edges, mk_edge(cap, "ARCH-API-RBAC.1", "satisfies"))
-    parent_caps = ("A05", "A06", "A07", "A08", "A09", "A10", "A11")
-    for frm in parent_caps:
-        remove_edge_satisfies(edges, frm, "CAP-RBAC")
-        ensure_edge(edges, mk_edge(frm, "CAP-RBAC.1", "satisfies"))
+        frm = active_tip_uid(data, cap)
+        if not frm:
+            continue
+        strip_satisfies_from_base_to(edges, cap, "ARCH-API-RBAC")
+        strip_satisfies_from_base_to(edges, cap, "ARCH-API-RBAC.1")
+        ensure_edge(edges, mk_edge(frm, rbac_tip, "satisfies"))
 
 
 def remove_edge_satisfies(edges, frm, to):
@@ -427,6 +458,7 @@ def add_new_requirements(data: dict, mapping: dict) -> None:
             grooming_state="detailed",
         )
         if base == "ARCH-SUPPLY-VENDORED":
+            ver["status"] = "active"
             ver["verification_outcome"] = "pass"
             ver["security"]["verification_note"] = (
                 "Cyber control mapping 2026-10-09; verified by existing vendor hash test on main "
@@ -448,8 +480,12 @@ def upsert_line(data, item):
 
 
 def upsert_version(data, item):
-    if find(data.get("requirement_versions"), "uid", item["uid"]) is None:
+    cur = find(data.get("requirement_versions"), "uid", item["uid"])
+    if cur is None:
         data.setdefault("requirement_versions", []).append(item)
+        return
+    for k, v in item.items():
+        cur[k] = deepcopy(v) if isinstance(v, (dict, list)) else v
 
 
 def patch_a02_a03_v222550(data: dict) -> None:
@@ -472,14 +508,34 @@ def patch_arch_sec_headers_partial(data: dict) -> None:
         vn["verification_note"] = (vn.get("verification_note") or "").rstrip() + extra
 
 
+def resolve_contract_scope_uid(data: dict, uid: str) -> str:
+    uid = V0_TO_V1_CONTRACT.get(uid, uid)
+    base = uid.split(".")[0]
+    tip_uid = active_tip_uid(data, base)
+    if tip_uid and uid == base and tip_uid != base:
+        return tip_uid
+    if base in CONTRACT_V0_TO_ACTIVE_TIP and tip_uid:
+        if uid == base or uid in (base, f"{base}.0"):
+            return tip_uid
+    if tip_uid and uid != tip_uid:
+        ver = find(data.get("requirement_versions"), "uid", uid)
+        if ver and ver.get("status") == "superseded":
+            return tip_uid
+    return uid
+
+
 def update_contracts_v34(data: dict) -> None:
     for cid in CONTRACT_IDS_V34:
         c = find(data.get("contracts"), "id", cid)
         if not c:
             continue
+        seen = set()
         scope = []
         for u in c.get("in_scope_of") or []:
-            scope.append(V0_TO_V1_CONTRACT.get(u, u))
+            resolved = resolve_contract_scope_uid(data, u)
+            if resolved not in seen:
+                seen.add(resolved)
+                scope.append(resolved)
         c["in_scope_of"] = scope
 
 
@@ -553,11 +609,20 @@ def count_conforms(data) -> int:
     return sum(1 for e in data.get("edges") or [] if e.get("kind") == "conforms_to")
 
 
+def count_edges_by_kind(data) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for e in data.get("edges") or []:
+        k = e.get("kind") or "?"
+        counts[k] = counts.get(k, 0) + 1
+    return counts
+
+
 def main() -> None:
     with MAPPING.open(encoding="utf-8") as f:
         mapping = pyyaml.safe_load(f)
     with DOGFOOD.open(encoding="utf-8") as f:
         data = yaml.load(f)
+    report["edges_before"] = count_edges_by_kind(data)
     report["conforms_to_before"] = count_conforms(data)
     delivered, in_contract = build_lock_sets(data)
 
@@ -572,6 +637,7 @@ def main() -> None:
     update_contracts_v34(data)
     add_planned_release(data)
 
+    report["edges_after"] = count_edges_by_kind(data)
     report["conforms_to_after"] = count_conforms(data)
 
     with DOGFOOD.open("w", encoding="utf-8") as f:

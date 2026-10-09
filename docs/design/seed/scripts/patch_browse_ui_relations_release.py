@@ -190,9 +190,14 @@ def add_browse_ui_relations(data) -> None:
         ),
     )
     edges = data.setdefault("edges", [])
-    data["edges"] = [e for e in edges if e.get("from") != CAP_UI]
-    for to in ("C08", "D06", "ARCH-UI", "ARCH-UI-GUARD", "CAP-RELATIONS-API", "CAP-BROWSE-UI-REQS"):
-        ensure_edge(data["edges"], {"from": CAP_UI, "to": to, "kind": "satisfies"})
+    targets = ("C08", "D06", "ARCH-UI", "ARCH-UI-GUARD", "CAP-RELATIONS-API", "CAP-BROWSE-UI-REQS")
+    if ui_shipped:
+        for to in targets:
+            ensure_edge(edges, {"from": CAP_UI, "to": to, "kind": "satisfies"})
+    else:
+        data["edges"] = [e for e in edges if e.get("from") != CAP_UI]
+        for to in targets:
+            ensure_edge(data["edges"], {"from": CAP_UI, "to": to, "kind": "satisfies"})
     arts = data.setdefault("capability_artifacts", [])
     data["capability_artifacts"] = [a for a in arts if a.get("requirement_version_uid") != CAP_UI]
     for uri in UI_ARTIFACTS:

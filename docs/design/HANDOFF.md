@@ -52,20 +52,20 @@ Last updated for **Cyber control-placement + browse relations ship** on **main @
 
 | Track | Release / capability | Notes |
 |-------|----------------------|--------|
-| Relations seed ship | `rel-r1-relations-api` / `CAP-RELATIONS-API` | Code on main (#31); seed release still **planned** until dedicated seed PR marks shipped. |
-| Catalogs browse UI | `rel-r1-browse-ui-catalogs` | API shipped on main (#33); UI tranche next. |
+| Catalogs browse UI | `rel-r1-browse-ui-catalogs` | Catalogs API shipped on main (#33); UI tranche next. |
 
 ## Next-up (ordered)
 
-1. Ship **`rel-r1-relations-api`** seed at #31 merge SHA (parallel seed PR).
-2. **`rel-r1-catalogs-api`** (PR #33) then **`rel-r1-browse-ui-catalogs`** (catalogs / imprints / controls read).
-3. **Planning read** (`rel-r1-read-planning` → browse UI).
-5. **Artifacts, workflow, people/access, audit** read APIs + UIs (see `ARCH-BROWSE-ROADMAP` in seed).
-6. **Two-column trace views** (`rel-r1-browse-ui-trace-views`) after relations UI + worker layout.
-7. **Security follow-ups before first edge write route** (`ARCH-SEC-*` in seed): dedupe index, loader integrity, cross-project read gate, stub design, paging, FK, edge sync, imprint-scoped labels.
-8. **Security headers** (`ARCH-SEC-HEADERS`) before any non-127.0.0.1 bind.
-9. **Write foundation** (`ARCH-WRITE-FOUNDATION`) — UoW, repository layer, TRUNCATE guard + runtime role, audit flood controls, UNIQUE version constraint, reserved id segments.
-10. **Key cache + span flush** (`ARCH-KEY-RUNTIME-CACHE`); **test teardown** (`ARCH-TEST-HARNESS-TEARDOWN`).
+1. **`rel-r1-browse-ui-catalogs`** (catalogs / imprints / controls browse UI).
+2. **Planning read** (`rel-r1-read-planning` → browse UI).
+3. **Artifacts, workflow, people/access, audit** read APIs + UIs (see `ARCH-BROWSE-ROADMAP` in seed).
+4. **Two-column trace views** (`rel-r1-browse-ui-trace-views`) after relations UI + worker layout.
+5. **Security follow-ups before first edge write route** (`ARCH-SEC-*` in seed): dedupe index, loader integrity, cross-project read gate, stub design, paging, FK, edge sync, imprint-scoped labels.
+6. **Security headers** (`ARCH-SEC-HEADERS`) before any non-127.0.0.1 bind.
+7. **Write foundation** (`ARCH-WRITE-FOUNDATION`) — UoW, repository layer, TRUNCATE guard + runtime role, audit flood controls, UNIQUE version constraint, reserved id segments.
+8. **Key cache + span flush** (`ARCH-KEY-RUNTIME-CACHE`); **test teardown** (`ARCH-TEST-HARNESS-TEARDOWN`).
+
+On main @ **`c827234`**, **`rel-r1-relations-api`** / **`CAP-RELATIONS-API`** and **`rel-r1-browse-ui-relations`** / **`CAP-BROWSE-UI-RELATIONS`** are already **shipped** in seed (relations API via prior seed PR; browse UI shipped in PR #36).
 
 ## Seed artifacts (Cyber control-placement PR #36)
 

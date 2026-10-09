@@ -7186,7 +7186,7 @@ requirement_versions:
 - uid: ARCH-DEVENV-IDENTITY.1
   base_uid: ARCH-DEVENV-IDENTITY
   version_n: 1
-  status: active
+  status: superseded
   statement: "Local development signs in through ReqAML's internal OAuth AS (ARCH-AUTH-AS) with seeded dev local accounts mapped to the dogfood seed identities, so A01/A02 sessions, grants, Scoped View, and MCP authorization can be exercised offline. Dev account credentials are never committed: they come from the local env file or are generated at first seed and shown locally. Seeded dev accounts and the dev seed loader are dev-only. Production builds and configs ship no seeded dev accounts and no default credentials, and the seed loader refuses to create accounts in production mode. In production, enterprise SSO federates through the same AS (ARCH-AUTH-FEDERATION). This replaces the earlier third-party local OIDC stub idea."
   priority: 10
   iteration: iter-r0
@@ -8214,7 +8214,7 @@ requirement_versions:
 - uid: CAP-RELATIONS-API
   base_uid: CAP-RELATIONS-API
   version_n: 0
-  status: active
+  status: superseded
   statement: 'Grant-scoped read-only relations API: GET /api/v1/projects/:projectId/requirements/:id/relations returns incoming and outgoing trace links grouped by kind (conforms_to, uses, satisfies, refines). Each link resolves the peer end with id, title, kind, and type for in-project lines and readable catalog controls in one response; cross-project and unreadable catalog peers return a non-revealing restricted stub. Dogfood seed loader persists trace_edges plus catalog imprint labels for ConformsTo pins.'
   priority: 10
   iteration: iter-r1
@@ -8816,7 +8816,7 @@ requirement_versions:
 - uid: ARCH-CP-HIER.1
   base_uid: ARCH-CP-HIER
   version_n: 1
-  status: active
+  status: superseded
   statement: 'ReqAML organizes work as Client → Project. Projects belong to exactly one client; Client Scoped View
 
     is assumed for most project operations. UI and API both refuse cross-client project joins.'
@@ -8831,7 +8831,7 @@ requirement_versions:
 - uid: ARCH-VER.1
   base_uid: ARCH-VER
   version_n: 1
-  status: active
+  status: superseded
   statement: 'Each requirement line has versions with UIDs base_uid or base_uid.N (static append). Children stay on the parent line (parent = base_uid); there is no cascade fork. INVARIANT: ≤1 active version per line. When a new tip is activated (D04), the prior active version is set to superseded IN PLACE in the same transaction (not a new version). Terminal obsolete/withdraw without replacement may be in-place status or a status-only .N (mint_kind=status) — see D05 / ARCH-MINT-KIND / FIX-ALLOW-STATUS-SUPERSEDE.'
   statement_hash: sha256:83c5a6eddc2dc440b3d73dac3f53c4e3ecf839886d84df36dd3bdffa41bdc811
   priority: 5
@@ -8857,7 +8857,7 @@ requirement_versions:
 - uid: ARCH-OTEL.1
   base_uid: ARCH-OTEL
   version_n: 1
-  status: active
+  status: superseded
   statement: 'Security-relevant actions emit structured audit events exported via OTEL (OTLP) for centralized
 
     review, aligned to NIST AU-2/3/6/9/12. Session teardown destroys session identifiers (V-222578).
@@ -8930,7 +8930,7 @@ requirement_versions:
 - uid: ARCH-API.1
   base_uid: ARCH-API
   version_n: 1
-  status: active
+  status: superseded
   statement: 'API is schema-first (Zod + OpenAPI): HTTP adapters validate DTOs, RBAC authorizes, business services
 
     orchestrate, data providers implement repositories against Postgres. Invalid input never reaches domain
@@ -9170,6 +9170,20 @@ requirement_versions:
   grooming_state: detailed
   mint_kind: pin
   rbac_op: auth:client:register
+- uid: CAP-RELATIONS-API.1
+  base_uid: CAP-RELATIONS-API
+  version_n: 1
+  status: active
+  statement: 'Grant-scoped read-only relations API: GET /api/v1/projects/:projectId/requirements/:id/relations returns incoming and outgoing trace links grouped by kind (conforms_to, uses, satisfies, refines). Each link resolves the peer end with id, title, kind, and type for in-project lines and readable catalog controls in one response; cross-project and unreadable catalog peers return a non-revealing restricted stub. Dogfood seed loader persists trace_edges plus catalog imprint labels for ConformsTo pins.'
+  statement_hash: sha256:49308d84d521d418a7cd3be6acd8cef23550d2aef39bc6a21bb3e81276a42264
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-3
+    verification_note: 'Shipped with requirement relations read API PR #31 (merge cb8a8c97895b651c8f25ce660482e7e5e7ae4454).'
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
 - uid: CAP-DEVENV-SEED-RESET.1
   base_uid: CAP-DEVENV-SEED-RESET
   version_n: 1
@@ -9184,6 +9198,20 @@ requirement_versions:
   grooming_state: detailed
   mint_kind: pin
   verification_outcome: pass
+- uid: ARCH-DEVENV-IDENTITY.2
+  base_uid: ARCH-DEVENV-IDENTITY
+  version_n: 2
+  status: active
+  statement: "Local development signs in through ReqAML's internal OAuth AS (ARCH-AUTH-AS) with seeded dev local accounts mapped to the dogfood seed identities, so A01/A02 sessions, grants, Scoped View, and MCP authorization can be exercised offline. Dev account credentials are never committed: they come from the local env file or are generated at first seed and shown locally. Seeded dev accounts and the dev seed loader are dev-only. Production builds and configs ship no seeded dev accounts and no default credentials, and the seed loader refuses to create accounts in production mode. In production, enterprise SSO federates through the same AS (ARCH-AUTH-FEDERATION). This replaces the earlier third-party local OIDC stub idea."
+  statement_hash: sha256:80f22d357c33918a1543964d35d89a922854996b11ff6550d0071650339d7323
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-7
+    verification_note: CM-7 least functionality; IA-5 default authenticators; ASD V-222662 / V-222661 / V-222642.
+  grooming_state: detailed
+  mint_kind: pin
+  rbac_op: auth:signin
 - uid: ARCH-WRITE-DB-RUNTIME-ROLE
   base_uid: ARCH-WRITE-DB-RUNTIME-ROLE
   version_n: 0
@@ -9211,7 +9239,7 @@ requirement_versions:
 - uid: ARCH-SUPPLY-VENDORED
   base_uid: ARCH-SUPPLY-VENDORED
   version_n: 0
-  status: draft
+  status: active
   statement: Third-party code committed to the repository (for example apps/reqalm/src/web/public/vendor/qr-min.js) shall be listed in a vendor manifest with package, version, license, source URL, upstream registry integrity and the SHA-256 of the committed bytes. A test in the pnpm test gate shall fail when committed bytes differ from the recorded hash. Vendored browser code shall be served same-origin only.
   priority: 15
   iteration: iter-r1
@@ -9245,6 +9273,68 @@ requirement_versions:
     verification_note: Planned seed-only; no runtime deliverable.
   statement_hash: sha256:e33849ef8b2f464431389dcb6ff59b8aa21724798dd3218e39e6dd20e5fc8571
   grooming_state: detailed
+- uid: ARCH-CP-HIER.2
+  base_uid: ARCH-CP-HIER
+  version_n: 2
+  status: active
+  statement: 'ReqAML organizes work as Client → Project. Projects belong to exactly one client; Client Scoped View
+
+    is assumed for most project operations. UI and API both refuse cross-client project joins.'
+  statement_hash: sha256:ce4c6c1d754ee1aafa8bbd5f2ec79cce37cf2d5f18c4ab2425509943d94df7d2
+  priority: 5
+  iteration: iter-r0
+  security:
+    catalog_ref: AC-3
+    verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+  grooming_state: detailed
+  mint_kind: pin
+- uid: ARCH-VER.2
+  base_uid: ARCH-VER
+  version_n: 2
+  status: active
+  statement: 'Each requirement line has versions with UIDs base_uid or base_uid.N (static append). Children stay on the parent line (parent = base_uid); there is no cascade fork. INVARIANT: ≤1 active version per line. When a new tip is activated (D04), the prior active version is set to superseded IN PLACE in the same transaction (not a new version). Terminal obsolete/withdraw without replacement may be in-place status or a status-only .N (mint_kind=status) — see D05 / ARCH-MINT-KIND / FIX-ALLOW-STATUS-SUPERSEDE.'
+  statement_hash: sha256:83c5a6eddc2dc440b3d73dac3f53c4e3ecf839886d84df36dd3bdffa41bdc811
+  priority: 5
+  iteration: iter-r0
+  security:
+    catalog_ref: AC-3
+    verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+  grooming_state: detailed
+  mint_kind: pin
+- uid: ARCH-OTEL.2
+  base_uid: ARCH-OTEL
+  version_n: 2
+  status: active
+  statement: 'Security-relevant actions emit structured audit events exported via OTEL (OTLP) for centralized
+
+    review, aligned to NIST AU-2/3/6/9/12. Session teardown destroys session identifiers (V-222578).
+
+    Auditors read via M01/M02; actors cannot alter prior audit rows (AU-9).'
+  statement_hash: sha256:497b0cb8d6e84203a77d95910447799e3bd15df76291b4bbaf767a9c95049e2e
+  priority: 25
+  iteration: iter-r0
+  security:
+    catalog_ref: AU-2
+    verification_note: AU-2/3/6/12. ASD STIG V6R4 V-222578 (session ID destroy complements audit lifecycle).
+  grooming_state: detailed
+  mint_kind: pin
+- uid: ARCH-API.2
+  base_uid: ARCH-API
+  version_n: 2
+  status: active
+  statement: 'API is schema-first (Zod + OpenAPI): HTTP adapters validate DTOs, RBAC authorizes, business services
+
+    orchestrate, data providers implement repositories against Postgres. Invalid input never reaches domain
+
+    mutations (SI-10). The same stack serves UI and MCP tools.'
+  statement_hash: sha256:e6a9e2db9df99e40eddb37a1c9651d0175124974ea5bcb5e5ba6f3c480d20183
+  priority: 20
+  iteration: iter-r0
+  security:
+    catalog_ref: AC-3
+    verification_note: Architecture enforces AC-3 via adapters/guards/layers.
+  grooming_state: detailed
+  mint_kind: pin
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -10073,10 +10163,6 @@ edges:
   to: IA-2
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-OTEL
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: M01
   to: AU-2
   kind: conforms_to
@@ -10099,23 +10185,6 @@ edges:
 - from: ARCH-UI
   to: ARCH-UI-GUARD
   kind: uses
-- from: ARCH-API
-  to: ARCH-VER
-  kind: uses
-- from: ARCH-API
-  to: ARCH-API-RBAC
-  kind: uses
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
-- from: ARCH-API
-  to: ARCH-API-LAYERS
-  kind: uses
-- from: ARCH-OTEL
-  to: A01
-  kind: refines
-- from: ARCH-OTEL
-  to: G05
-  kind: refines
 - from: A03
   to: ARCH-CP-HIER
   kind: refines
@@ -10338,10 +10407,6 @@ edges:
   to: AC-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-OTEL
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: M01
   to: AU-3
   kind: conforms_to
@@ -10352,10 +10417,6 @@ edges:
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: M02
   to: AU-9
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-OTEL
-  to: AU-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: G05
@@ -10396,10 +10457,6 @@ edges:
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: MC01.1
   to: SC-13
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-API
-  to: SI-10
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: FIX-ALLOW-CLIENT-CREATE
@@ -10523,10 +10580,6 @@ edges:
   catalog_imprint_id: asd-stig@v6r4
 - from: CAP-SCOPED-VIEW
   to: V-222550
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
-- from: ARCH-OTEL
-  to: V-222578
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
 - from: MC01
@@ -10753,22 +10806,6 @@ edges:
   to: AU-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CP-HIER
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CP-HIER
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CP-HIER
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CP-HIER
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-CP-SCOPE
   to: AC-3
   kind: conforms_to
@@ -11058,22 +11095,6 @@ edges:
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: D10
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VER
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VER
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VER
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VER
   to: AU-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
@@ -11717,18 +11738,6 @@ edges:
   to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-AUDIT
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-AUDIT
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-AUDIT
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: J01
   to: AC-3
   kind: conforms_to
@@ -12045,10 +12054,6 @@ edges:
   to: AU-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-OTEL
-  to: AU-6
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: N01
   to: AC-3
   kind: conforms_to
@@ -12102,10 +12107,6 @@ edges:
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-UI-GUARD
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-API
   to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
@@ -13190,17 +13191,6 @@ edges:
 - from: ARCH-DEVENV-PARITY.1
   to: ARCH-DEVENV-PARITY
   kind: refines
-- from: ARCH-DEVENV-IDENTITY.1
-  to: A01
-  kind: refines
-- from: ARCH-DEVENV-IDENTITY.1
-  to: CAP-SSO
-  kind: uses
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (CAP-SSO)
-- from: ARCH-DEVENV-IDENTITY.1
-  to: ARCH-DEVENV-IDENTITY
-  kind: refines
 - from: FIX-DENY-DEVENV-PROD-LOGIN.1
   to: ARCH-DEVENV-IDENTITY.1
   kind: uses
@@ -13231,12 +13221,6 @@ edges:
 - from: ARCH-AUTH-PKCE
   to: ARCH-AUTH-AS
   kind: refines
-- from: ARCH-AUTH-METADATA
-  to: ARCH-AUTH-AS
-  kind: refines
-- from: ARCH-AUTH-METADATA
-  to: MC01.1
-  kind: refines
 - from: ARCH-AUTH-AUDIENCE
   to: ARCH-AUTH-AS
   kind: refines
@@ -13252,18 +13236,6 @@ edges:
   to: ARCH-AUTH-AS
   kind: refines
 - from: ARCH-AUTH-REFRESH
-  to: ARCH-CRED-TOKENS
-  kind: uses
-- from: ARCH-AUTH-REVOKE
-  to: ARCH-AUTH-AS
-  kind: refines
-- from: ARCH-AUTH-REVOKE
-  to: A02
-  kind: refines
-- from: ARCH-AUTH-CLIENTREG
-  to: ARCH-AUTH-AS
-  kind: refines
-- from: ARCH-AUTH-CLIENTREG
   to: ARCH-CRED-TOKENS
   kind: uses
 - from: ARCH-AUTH-FEDERATION
@@ -13462,15 +13434,6 @@ edges:
 - from: ARCH-DEVENV-PARITY.1
   to: ARCH-DEPLOY-PERIPHERALS
   kind: uses
-- from: ARCH-DEVENV-IDENTITY.1
-  to: ARCH-AUTH-AS
-  kind: uses
-- from: ARCH-DEVENV-IDENTITY.1
-  to: ARCH-AUTH-LOCAL.1
-  kind: uses
-- from: ARCH-DEVENV-IDENTITY.1
-  to: ARCH-DEVENV-SEED
-  kind: uses
 - from: FIX-DENY-DEVENV-PROD-LOGIN.1
   to: ARCH-CRED-POLICY
   kind: uses
@@ -13637,10 +13600,6 @@ edges:
   to: V-222531
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
-- from: ARCH-AUTH-METADATA
-  to: SC-23
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-AUTH-AUDIENCE
   to: AC-3
   kind: conforms_to
@@ -13655,30 +13614,6 @@ edges:
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-AUTH-REFRESH
   to: IA-5
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-AUTH-REVOKE
-  to: AC-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-AUTH-REVOKE
-  to: V-222549
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
-- from: ARCH-AUTH-REVOKE
-  to: V-222578
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
-- from: ARCH-AUTH-REVOKE
-  to: V-222391
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
-- from: ARCH-AUTH-CLIENTREG
-  to: CM-7
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-AUTH-CLIENTREG
-  to: AU-2
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-AUTH-FEDERATION
@@ -14113,30 +14048,6 @@ edges:
   to: CM-2
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-DEVENV-IDENTITY.1
-  to: CM-7
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-DEVENV-IDENTITY.1
-  to: IA-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-DEVENV-IDENTITY.1
-  to: IA-5
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-DEVENV-IDENTITY.1
-  to: V-222662
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
-- from: ARCH-DEVENV-IDENTITY.1
-  to: V-222661
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
-- from: ARCH-DEVENV-IDENTITY.1
-  to: V-222642
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
 - from: FIX-DENY-DEVENV-PROD-LOGIN.1
   to: CM-7
   kind: conforms_to
@@ -14257,21 +14168,6 @@ edges:
   to: CM-7
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-AUTH-LOCAL.1
-  to: ARCH-AUTH-AS
-  kind: refines
-- from: ARCH-AUTH-LOCAL.1
-  to: ARCH-CRED
-  kind: uses
-- from: ARCH-AUTH-LOCAL.1
-  to: ARCH-AUTH-PROFILE
-  kind: uses
-- from: ARCH-AUTH-LOCAL.1
-  to: A01
-  kind: refines
-- from: ARCH-AUTH-LOCAL.1
-  to: ARCH-AUTH-LOCAL
-  kind: refines
 - from: ARCH-AUTH-PROFILE
   to: ARCH-AUTH-AS
   kind: refines
@@ -14415,30 +14311,6 @@ edges:
 - from: ARCH-BUILD-FOUNDATION
   to: ARCH-AUTH-PROFILE
   kind: uses
-- from: ARCH-AUTH-LOCAL.1
-  to: AC-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-AUTH-LOCAL.1
-  to: IA-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-AUTH-LOCAL.1
-  to: CM-7
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-AUTH-LOCAL.1
-  to: V-222407
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
-- from: ARCH-AUTH-LOCAL.1
-  to: V-222412
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
-- from: ARCH-AUTH-LOCAL.1
-  to: V-222661
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
 - from: ARCH-AUTH-PROFILE
   to: CM-6
   kind: conforms_to
@@ -14646,29 +14518,6 @@ edges:
   to: CM-2
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-DEVENV-DOCKERFILE-ROLES
-  to: ARCH-DEPLOY-MINIMAL
-  kind: satisfies
-- from: CAP-DEVENV-DOCKERFILE-ROLES
-  to: ARCH-DEVENV-PARITY.1
-  kind: satisfies
-- from: CAP-DEVENV-DOCKERFILE-ROLES
-  to: FIX-ALLOW-APP-ROLE-SPLIT
-  kind: satisfies
-- from: CAP-DEVENV-DOCKERFILE-ROLES
-  to: CM-7
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-DEVENV-PERIPHERALS
-  to: ARCH-DEPLOY-PERIPHERALS
-  kind: satisfies
-- from: CAP-DEVENV-PERIPHERALS
-  to: ARCH-DEVENV-KEYS
-  kind: satisfies
-- from: CAP-DEVENV-PERIPHERALS
-  to: SC-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-DEVENV-COMPOSE
   to: ARCH-DEVENV-COMPOSE.1
   kind: satisfies
@@ -14686,33 +14535,6 @@ edges:
   kind: satisfies
 - from: CAP-DEVENV-COMPOSE
   to: CM-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-HEALTH-LIVENESS
-  to: M04
-  kind: satisfies
-- from: CAP-HEALTH-LIVENESS
-  to: SI-4
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-READY-PROBES
-  to: ARCH-DEVENV-HEALTH
-  kind: satisfies
-- from: CAP-READY-PROBES
-  to: M04
-  kind: satisfies
-- from: CAP-READY-PROBES
-  to: ARCH-KEY-FAILCLOSED
-  kind: satisfies
-- from: CAP-READY-PROBES
-  to: SI-4
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-DEVENV-STARTUP-BACKOFF
-  to: ARCH-DEVENV-HEALTH
-  kind: satisfies
-- from: CAP-DEVENV-STARTUP-BACKOFF
-  to: CP-10
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-PROD-SELFCHECK
@@ -14878,13 +14700,6 @@ edges:
   to: AU-2
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-AUTH-UPSTREAM-SEAM
-  to: ARCH-AUTH-UPSTREAM-CONNECTOR
-  kind: satisfies
-- from: CAP-AUTH-UPSTREAM-SEAM
-  to: IA-8
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-DEVENV-INIT
   to: ARCH-DEVENV-SECRETS
   kind: satisfies
@@ -14895,28 +14710,11 @@ edges:
   to: IA-5
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-MFA-ENROLL
-  to: ARCH-CRED-MFA
-  kind: satisfies
-- from: CAP-MFA-ENROLL
-  to: IA-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-AGENT-ACCESS
   to: ARCH-AUTH-AGENT-ATTRIBUTION
   kind: satisfies
 - from: CAP-AGENT-ACCESS
   to: IA-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-AUTH-HARDEN
-  to: ARCH-AUTH-AS
-  kind: satisfies
-- from: CAP-AUTH-HARDEN
-  to: ARCH-CRED-LOCKOUT
-  kind: satisfies
-- from: CAP-AUTH-HARDEN
-  to: SC-23
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-TEST-MEMORY-KEYPROVIDER
@@ -14942,12 +14740,6 @@ edges:
   kind: satisfies
 - from: CAP-TEST-PNPM-GATE
   to: FIX-ALLOW-DEVENV-SMOKE
-  kind: satisfies
-- from: CAP-TEST-PROD-BUILD-EXCLUDE
-  to: ARCH-KEY-PROVIDER
-  kind: satisfies
-- from: CAP-TEST-PROD-BUILD-EXCLUDE
-  to: ARCH-BUILD-FOUNDATION
   kind: satisfies
 - from: CAP-TEST-AUTH-HYGIENE
   to: ARCH-CRED-LOCKOUT
@@ -15008,29 +14800,11 @@ edges:
 - from: CAP-OTEL-TEST-HARNESS
   to: ARCH-OTEL-TRACE
   kind: satisfies
-- from: CAP-SVC-OPERATION-ROUTE
-  to: ARCH-API-LAYERS
-  kind: satisfies
-- from: CAP-SVC-OPERATION-ROUTE
-  to: CAP-SVC-OPERATION-EXECUTOR
-  kind: uses
 - from: CAP-SVC-BUSINESS-ROUTE-AUDIT
   to: CAP-SVC-ROUTE-REGISTRY
   kind: satisfies
 - from: CAP-SVC-PROBLEM-JSON
   to: CAP-SVC-RESULT-ENVELOPE
-  kind: satisfies
-- from: CAP-SVC-PROJECT-ID-SLUG
-  to: CAP-SVC-OPERATION-ROUTE
-  kind: refines
-- from: CAP-SVC-STATIC-DEP-PATCH
-  to: ARCH-DEPLOY-MINIMAL
-  kind: satisfies
-- from: CAP-OTEL-SPAN-SAFE-ERRORS
-  to: CAP-OTEL-OPERATION-SPANS
-  kind: refines
-- from: CAP-OTEL-SPAN-SAFE-ERRORS
-  to: ARCH-OTEL-TRACE
   kind: satisfies
 - from: CAP-SVC-IMPLICIT-PUBLIC-EXACT
   to: CAP-SVC-ROUTE-REGISTRY
@@ -15041,12 +14815,6 @@ edges:
 - from: CAP-SVC-NON-API-AUTH-AUDIT
   to: CAP-SVC-ROUTE-REGISTRY
   kind: refines
-- from: CAP-DEVENV-SEED-RESET
-  to: ARCH-DEVENV-SEED
-  kind: satisfies
-- from: CAP-DEVENV-SEED-RESET
-  to: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
-  kind: satisfies
 - from: CAP-BROWSE-CP
   to: B07
   kind: satisfies
@@ -15158,27 +14926,6 @@ edges:
 - from: CAP-BROWSE-UI-TREE
   to: CAP-READ-HIERARCHY
   kind: satisfies
-- from: CAP-MFA-QR
-  to: CAP-MFA-ENROLL
-  kind: satisfies
-- from: CAP-MFA-QR
-  to: ARCH-CRED-MFA
-  kind: satisfies
-- from: CAP-MFA-QR
-  to: ARCH-UI-GUARD
-  kind: satisfies
-- from: CAP-RELATIONS-API
-  to: C08
-  kind: satisfies
-- from: CAP-RELATIONS-API
-  to: E06
-  kind: satisfies
-- from: CAP-RELATIONS-API
-  to: CAP-READ-REQS
-  kind: satisfies
-- from: CAP-RELATIONS-API
-  to: CAP-SVC-OPERATION-ROUTE
-  kind: satisfies
 - from: CAP-SEED-GROOMING
   to: ARCH-BROWSE-ROADMAP
   kind: satisfies
@@ -15230,9 +14977,6 @@ edges:
 - from: CAP-BROWSE-UI-TREE
   to: CAP-UI-KIT-TREE
   kind: uses
-- from: CAP-RELATIONS-API
-  to: ARCH-SEC-REL-STUB
-  kind: satisfies
 - from: ARCH-REQ-AC-FACET
   to: ARCH-VERIFICATION
   kind: refines
@@ -15438,69 +15182,63 @@ edges:
 - from: CAP-CATALOGS-API
   to: C08
   kind: satisfies
-- from: ARCH-CP-HIER.1
-  to: ARCH-CP-HIER
+- from: CAP-BROWSE-UI-RELATIONS
+  to: C08
+  kind: satisfies
+- from: CAP-BROWSE-UI-RELATIONS
+  to: D06
+  kind: satisfies
+- from: CAP-BROWSE-UI-RELATIONS
+  to: ARCH-UI
+  kind: satisfies
+- from: CAP-BROWSE-UI-RELATIONS
+  to: ARCH-UI-GUARD
+  kind: satisfies
+- from: CAP-BROWSE-UI-RELATIONS
+  to: CAP-RELATIONS-API
+  kind: satisfies
+- from: CAP-BROWSE-UI-RELATIONS
+  to: CAP-BROWSE-UI-REQS
+  kind: satisfies
+- from: ARCH-AUTH-METADATA.1
+  to: ARCH-AUTH-AS
   kind: refines
-- from: ARCH-CP-HIER.1
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VER.1
-  to: ARCH-VER
+- from: ARCH-AUTH-METADATA.1
+  to: MC01.1
   kind: refines
 - from: ARCH-AUTH-METADATA.1
   to: ARCH-AUTH-METADATA
   kind: refines
-- from: ARCH-OTEL.1
-  to: ARCH-OTEL
-  kind: refines
-- from: ARCH-OTEL.1
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-OTEL.1
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-OTEL.1
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-OTEL.1
-  to: AU-6
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-HEALTH-LIVENESS.1
+  to: M04
+  kind: satisfies
 - from: CAP-HEALTH-LIVENESS.1
   to: CAP-HEALTH-LIVENESS
   kind: refines
 - from: CAP-READY-PROBES.1
+  to: ARCH-DEVENV-HEALTH
+  kind: satisfies
+- from: CAP-READY-PROBES.1
+  to: M04
+  kind: satisfies
+- from: CAP-READY-PROBES.1
+  to: ARCH-KEY-FAILCLOSED
+  kind: satisfies
+- from: CAP-READY-PROBES.1
   to: CAP-READY-PROBES
   kind: refines
+- from: CAP-DEVENV-STARTUP-BACKOFF.1
+  to: ARCH-DEVENV-HEALTH
+  kind: satisfies
 - from: CAP-DEVENV-STARTUP-BACKOFF.1
   to: CAP-DEVENV-STARTUP-BACKOFF
   kind: refines
 - from: CAP-AUTH-UPSTREAM-SEAM.1
+  to: ARCH-AUTH-UPSTREAM-CONNECTOR
+  kind: satisfies
+- from: CAP-AUTH-UPSTREAM-SEAM.1
   to: CAP-AUTH-UPSTREAM-SEAM
   kind: refines
-- from: ARCH-OTEL.1
-  to: AU-9
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-API.1
-  to: ARCH-API
-  kind: refines
-- from: ARCH-API.1
-  to: SI-10
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-API.1
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-API.1
-  to: V-222606
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
 - from: ARCH-CP-SCOPE
   to: V-222425
   kind: conforms_to
@@ -15514,7 +15252,10 @@ edges:
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-AUTH-REVOKE.1
-  to: ARCH-AUTH-REVOKE
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-REVOKE.1
+  to: A02
   kind: refines
 - from: ARCH-AUTH-REVOKE.1
   to: AC-12
@@ -15532,6 +15273,9 @@ edges:
   to: V-222391
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-REVOKE.1
+  to: ARCH-AUTH-REVOKE
+  kind: refines
 - from: ARCH-AUTH-REVOKE.1
   to: AC-12.1
   kind: conforms_to
@@ -15585,16 +15329,25 @@ edges:
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
 - from: CAP-AUTH-HARDEN.1
-  to: CAP-AUTH-HARDEN
-  kind: refines
+  to: ARCH-AUTH-AS
+  kind: satisfies
+- from: CAP-AUTH-HARDEN.1
+  to: ARCH-CRED-LOCKOUT
+  kind: satisfies
 - from: CAP-AUTH-HARDEN.1
   to: SC-23
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-AUTH-HARDEN.1
+  to: CAP-AUTH-HARDEN
+  kind: refines
+- from: CAP-AUTH-HARDEN.1
   to: V-222603
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
+- from: CAP-MFA-ENROLL.1
+  to: ARCH-CRED-MFA
+  kind: satisfies
 - from: CAP-MFA-ENROLL.1
   to: CAP-MFA-ENROLL
   kind: refines
@@ -15602,6 +15355,15 @@ edges:
   to: IA-2.8
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-MFA-QR.1
+  to: CAP-MFA-ENROLL
+  kind: satisfies
+- from: CAP-MFA-QR.1
+  to: ARCH-CRED-MFA
+  kind: satisfies
+- from: CAP-MFA-QR.1
+  to: ARCH-UI-GUARD
+  kind: satisfies
 - from: CAP-MFA-QR.1
   to: CAP-MFA-QR
   kind: refines
@@ -15613,6 +15375,12 @@ edges:
   to: IA-5
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-OPERATION-ROUTE.1
+  to: ARCH-API-LAYERS
+  kind: satisfies
+- from: CAP-SVC-OPERATION-ROUTE.1
+  to: CAP-SVC-OPERATION-EXECUTOR
+  kind: uses
 - from: CAP-SVC-OPERATION-ROUTE.1
   to: CAP-SVC-OPERATION-ROUTE
   kind: refines
@@ -15640,6 +15408,9 @@ edges:
   to: AU-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-PROJECT-ID-SLUG.1
+  to: CAP-SVC-OPERATION-ROUTE
+  kind: refines
 - from: CAP-SVC-PROJECT-ID-SLUG.1
   to: CAP-SVC-PROJECT-ID-SLUG
   kind: refines
@@ -15669,12 +15440,21 @@ edges:
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
 - from: CAP-OTEL-SPAN-SAFE-ERRORS.1
+  to: CAP-OTEL-OPERATION-SPANS
+  kind: refines
+- from: CAP-OTEL-SPAN-SAFE-ERRORS.1
+  to: ARCH-OTEL-TRACE
+  kind: satisfies
+- from: CAP-OTEL-SPAN-SAFE-ERRORS.1
   to: CAP-OTEL-SPAN-SAFE-ERRORS
   kind: refines
 - from: CAP-OTEL-SPAN-SAFE-ERRORS.1
   to: SI-11
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-STATIC-DEP-PATCH.1
+  to: ARCH-DEPLOY-MINIMAL
+  kind: satisfies
 - from: CAP-SVC-STATIC-DEP-PATCH.1
   to: CAP-SVC-STATIC-DEP-PATCH
   kind: refines
@@ -15687,16 +15467,28 @@ edges:
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
 - from: CAP-DEVENV-PERIPHERALS.1
-  to: CAP-DEVENV-PERIPHERALS
-  kind: refines
+  to: ARCH-DEPLOY-PERIPHERALS
+  kind: satisfies
+- from: CAP-DEVENV-PERIPHERALS.1
+  to: ARCH-DEVENV-KEYS
+  kind: satisfies
 - from: CAP-DEVENV-PERIPHERALS.1
   to: SC-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-DEVENV-PERIPHERALS.1
+  to: CAP-DEVENV-PERIPHERALS
+  kind: refines
+- from: CAP-DEVENV-PERIPHERALS.1
   to: SI-7
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-TEST-PROD-BUILD-EXCLUDE.1
+  to: ARCH-KEY-PROVIDER
+  kind: satisfies
+- from: CAP-TEST-PROD-BUILD-EXCLUDE.1
+  to: ARCH-BUILD-FOUNDATION
+  kind: satisfies
 - from: CAP-TEST-PROD-BUILD-EXCLUDE.1
   to: CAP-TEST-PROD-BUILD-EXCLUDE
   kind: refines
@@ -15705,18 +15497,39 @@ edges:
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-DEVENV-DOCKERFILE-ROLES.1
-  to: CAP-DEVENV-DOCKERFILE-ROLES
-  kind: refines
+  to: ARCH-DEPLOY-MINIMAL
+  kind: satisfies
+- from: CAP-DEVENV-DOCKERFILE-ROLES.1
+  to: ARCH-DEVENV-PARITY.1
+  kind: satisfies
+- from: CAP-DEVENV-DOCKERFILE-ROLES.1
+  to: FIX-ALLOW-APP-ROLE-SPLIT
+  kind: satisfies
 - from: CAP-DEVENV-DOCKERFILE-ROLES.1
   to: CM-7
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-DEVENV-DOCKERFILE-ROLES.1
+  to: CAP-DEVENV-DOCKERFILE-ROLES
+  kind: refines
+- from: CAP-DEVENV-DOCKERFILE-ROLES.1
   to: V-222518
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
 - from: ARCH-AUTH-LOCAL.2
-  to: ARCH-AUTH-LOCAL.1
+  to: ARCH-AUTH-AS
+  kind: refines
+- from: ARCH-AUTH-LOCAL.2
+  to: ARCH-CRED
+  kind: uses
+- from: ARCH-AUTH-LOCAL.2
+  to: ARCH-AUTH-PROFILE
+  kind: uses
+- from: ARCH-AUTH-LOCAL.2
+  to: A01
+  kind: refines
+- from: ARCH-AUTH-LOCAL.2
+  to: ARCH-AUTH-LOCAL
   kind: refines
 - from: ARCH-AUTH-LOCAL.2
   to: AC-2
@@ -15743,12 +15556,18 @@ edges:
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
 - from: ARCH-AUTH-LOCAL.2
+  to: ARCH-AUTH-LOCAL.1
+  kind: refines
+- from: ARCH-AUTH-LOCAL.2
   to: V-222518
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
 - from: ARCH-AUTH-CLIENTREG.1
-  to: ARCH-AUTH-CLIENTREG
+  to: ARCH-AUTH-AS
   kind: refines
+- from: ARCH-AUTH-CLIENTREG.1
+  to: ARCH-CRED-TOKENS
+  kind: uses
 - from: ARCH-AUTH-CLIENTREG.1
   to: CM-7
   kind: conforms_to
@@ -15758,10 +15577,31 @@ edges:
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-AUTH-CLIENTREG.1
+  to: ARCH-AUTH-CLIENTREG
+  kind: refines
+- from: ARCH-AUTH-CLIENTREG.1
   to: V-222518
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
-- from: CAP-RELATIONS-API
+- from: CAP-RELATIONS-API.1
+  to: C08
+  kind: satisfies
+- from: CAP-RELATIONS-API.1
+  to: E06
+  kind: satisfies
+- from: CAP-RELATIONS-API.1
+  to: CAP-READ-REQS
+  kind: satisfies
+- from: CAP-RELATIONS-API.1
+  to: CAP-SVC-OPERATION-ROUTE
+  kind: satisfies
+- from: CAP-RELATIONS-API.1
+  to: ARCH-SEC-REL-STUB
+  kind: satisfies
+- from: CAP-RELATIONS-API.1
+  to: CAP-RELATIONS-API
+  kind: refines
+- from: CAP-RELATIONS-API.1
   to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
@@ -15769,6 +15609,12 @@ edges:
   to: AU-9
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-SEED-RESET.1
+  to: ARCH-DEVENV-SEED
+  kind: satisfies
+- from: CAP-DEVENV-SEED-RESET.1
+  to: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  kind: satisfies
 - from: CAP-DEVENV-SEED-RESET.1
   to: CAP-DEVENV-SEED-RESET
   kind: refines
@@ -15791,7 +15637,52 @@ edges:
   to: AU-10
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-DEVENV-IDENTITY.1
+- from: ARCH-DEVENV-IDENTITY.2
+  to: A01
+  kind: refines
+- from: ARCH-DEVENV-IDENTITY.2
+  to: CAP-SSO
+  kind: uses
+- from: ARCH-DEVENV-IDENTITY.2
+  to: ARCH-DEVENV-IDENTITY
+  kind: refines
+- from: ARCH-DEVENV-IDENTITY.2
+  to: ARCH-AUTH-AS
+  kind: uses
+- from: ARCH-DEVENV-IDENTITY.2
+  to: ARCH-AUTH-LOCAL.1
+  kind: uses
+- from: ARCH-DEVENV-IDENTITY.2
+  to: ARCH-DEVENV-SEED
+  kind: uses
+- from: ARCH-DEVENV-IDENTITY.2
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-IDENTITY.2
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-IDENTITY.2
+  to: IA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-IDENTITY.2
+  to: V-222662
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-DEVENV-IDENTITY.2
+  to: V-222661
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-DEVENV-IDENTITY.2
+  to: V-222642
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-DEVENV-IDENTITY.2
+  to: ARCH-DEVENV-IDENTITY.1
+  kind: refines
+- from: ARCH-DEVENV-IDENTITY.2
   to: V-222518
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
@@ -15866,34 +15757,115 @@ edges:
 - from: CAP-SVC-STATIC-DEP-PATCH
   to: ARCH-SUPPLY-DEP-SCAN
   kind: satisfies
-- from: CAP-SVC-AUDIT-APPEND
+- from: CAP-SVC-AUDIT-APPEND.1
   to: ARCH-WRITE-UOW-AUDIT
   kind: satisfies
-- from: CAP-SVC-STRUCTURED-LOG
+- from: CAP-SVC-STRUCTURED-LOG.1
   to: ARCH-CRED-AUDIT
   kind: satisfies
-- from: ARCH-SEC-TLS
-  to: ARCH-SEC-HEADERS
+- from: CAP-MFA-QR.1
+  to: ARCH-SUPPLY-VENDORED
   kind: satisfies
+- from: CAP-SVC-STATIC-DEP-PATCH.1
+  to: ARCH-SUPPLY-DEP-SCAN
+  kind: satisfies
+- from: CAP-CYBER-CONTROL-PLACEMENT
+  to: ARCH-CAT-PIN
+  kind: satisfies
+- from: ARCH-CP-HIER.2
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CP-HIER.2
+  to: ARCH-CP-HIER
+  kind: refines
+- from: ARCH-CP-HIER.2
+  to: ARCH-CP-HIER.1
+  kind: refines
+- from: ARCH-VER.2
+  to: ARCH-VER
+  kind: refines
+- from: ARCH-VER.2
+  to: ARCH-VER.1
+  kind: refines
+- from: ARCH-OTEL.2
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-OTEL.2
+  to: A01
+  kind: refines
+- from: ARCH-OTEL.2
+  to: G05
+  kind: refines
+- from: ARCH-OTEL.2
+  to: AU-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-OTEL.2
+  to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-OTEL.2
+  to: AU-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-OTEL.2
+  to: ARCH-OTEL
+  kind: refines
+- from: ARCH-OTEL.2
+  to: AU-9
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-OTEL.2
+  to: ARCH-OTEL.1
+  kind: refines
+- from: ARCH-API.2
+  to: ARCH-VER
+  kind: uses
+- from: ARCH-API.2
+  to: ARCH-API-RBAC
+  kind: uses
+- from: ARCH-API.2
+  to: ARCH-API-LAYERS
+  kind: uses
+- from: ARCH-API.2
+  to: SI-10
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-API.2
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-API.2
+  to: ARCH-API
+  kind: refines
+- from: ARCH-API.2
+  to: V-222606
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-API.2
+  to: ARCH-API.1
+  kind: refines
 - from: CAP-SVC-REQUEST-CONTEXT
   to: ARCH-API-RBAC.1
   kind: satisfies
 - from: CAP-SVC-OPERATION-EXECUTOR
   to: ARCH-API-RBAC.1
   kind: satisfies
-- from: CAP-SVC-ROUTE-REGISTRY
+- from: CAP-SVC-ROUTE-REGISTRY.1
   to: ARCH-API-RBAC.1
   kind: satisfies
 - from: CAP-SVC-PROJECT-READ
   to: ARCH-API-RBAC.1
   kind: satisfies
-- from: CAP-SVC-OPERATION-ROUTE
+- from: CAP-SVC-OPERATION-ROUTE.1
   to: ARCH-API-RBAC.1
   kind: satisfies
 - from: CAP-SVC-BUSINESS-ROUTE-AUDIT
   to: ARCH-API-RBAC.1
   kind: satisfies
-- from: CAP-SVC-PROJECT-ID-SLUG
+- from: CAP-SVC-PROJECT-ID-SLUG.1
   to: ARCH-API-RBAC.1
   kind: satisfies
 - from: CAP-SVC-IMPLICIT-PUBLIC-EXACT
@@ -15911,50 +15883,8 @@ edges:
 - from: CAP-READ-HIERARCHY
   to: ARCH-API-RBAC.1
   kind: satisfies
-- from: CAP-RELATIONS-API
+- from: CAP-RELATIONS-API.1
   to: ARCH-API-RBAC.1
-  kind: satisfies
-- from: A05
-  to: CAP-RBAC.1
-  kind: satisfies
-- from: A06
-  to: CAP-RBAC.1
-  kind: satisfies
-- from: A07
-  to: CAP-RBAC.1
-  kind: satisfies
-- from: A08
-  to: CAP-RBAC.1
-  kind: satisfies
-- from: A09
-  to: CAP-RBAC.1
-  kind: satisfies
-- from: A10
-  to: CAP-RBAC.1
-  kind: satisfies
-- from: A11
-  to: CAP-RBAC.1
-  kind: satisfies
-- from: CAP-CYBER-CONTROL-PLACEMENT
-  to: ARCH-CAT-PIN
-  kind: satisfies
-- from: CAP-BROWSE-UI-RELATIONS
-  to: C08
-  kind: satisfies
-- from: CAP-BROWSE-UI-RELATIONS
-  to: D06
-  kind: satisfies
-- from: CAP-BROWSE-UI-RELATIONS
-  to: ARCH-UI
-  kind: satisfies
-- from: CAP-BROWSE-UI-RELATIONS
-  to: ARCH-UI-GUARD
-  kind: satisfies
-- from: CAP-BROWSE-UI-RELATIONS
-  to: CAP-RELATIONS-API
-  kind: satisfies
-- from: CAP-BROWSE-UI-RELATIONS
-  to: CAP-BROWSE-UI-REQS
   kind: satisfies
 contracts:
 - id: contract-design-2026-10
@@ -16005,9 +15935,9 @@ contracts:
   - H09
   - I01
   - I03
-  - ARCH-CP-HIER
+  - ARCH-CP-HIER.2
   - ARCH-CP-SCOPE
-  - ARCH-VER
+  - ARCH-VER.2
   - ARCH-VER-SUCC
   - ARCH-CONTRACT.1
   - ARCH-CONTRACT-DOC
@@ -16015,10 +15945,10 @@ contracts:
   - ARCH-RELEASE-FREEZE
   - ARCH-UI
   - ARCH-UI-GUARD
-  - ARCH-API
+  - ARCH-API.2
   - ARCH-API-RBAC.1
   - ARCH-API-LAYERS
-  - ARCH-OTEL
+  - ARCH-OTEL.2
   - CAP-SSO.1
   - CAP-SCOPED-VIEW.1
   - CAP-RBAC.1
@@ -16049,7 +15979,7 @@ contracts:
   - A12.1
   - ARCH-CP-SCOPE
   - ARCH-API-RBAC.1
-  - ARCH-OTEL
+  - ARCH-OTEL.2
   - ARCH-UI-GUARD
   - CAP-SSO.1
   - CAP-SCOPED-VIEW.1
@@ -16083,9 +16013,9 @@ contracts:
   - D02
   - D03
   - D04
-  - ARCH-CP-HIER
-  - ARCH-VER
-  - ARCH-API
+  - ARCH-CP-HIER.2
+  - ARCH-VER.2
+  - ARCH-API.2
   - ARCH-API-LAYERS
   - ARCH-UI
   - CAP-SSO.1
