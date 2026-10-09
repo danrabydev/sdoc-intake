@@ -95,18 +95,30 @@ def active_uid(data, base_uid: str) -> str:
     return max(vers, key=lambda v: v.get("version_n", 0))["uid"]
 
 
-def reqalm_release_snapshot(data) -> tuple[list[str], list[str]]:
+def reqalm_release_ids(data) -> list[str]:
     rel_ids: list[str] = []
-    deliver_uids: set[str] = set()
     for r in data.get("releases") or []:
         if r.get("project_id") != "reqalm":
             continue
         rid = r.get("id")
         if rid:
             rel_ids.append(rid)
-        for u in r.get("delivers") or []:
-            deliver_uids.add(u)
-    return sorted(rel_ids), sorted(deliver_uids)
+    return sorted(rel_ids)
+
+
+def reqalm_active_cap_and_requirement_uids(data) -> list[str]:
+    """Active tip UID for every reqalm capability and requirement line (not release snapshot pins)."""
+    uids: list[str] = []
+    for ln in data.get("requirement_lines") or []:
+        if ln.get("project_id") != "reqalm":
+            continue
+        if ln.get("kind") not in ("requirement", "capability"):
+            continue
+        bu = ln.get("base_uid")
+        if not bu:
+            continue
+        uids.append(active_uid(data, bu))
+    return sorted(set(uids))
 
 
 def ship_ui_header_nav(data) -> None:
@@ -192,7 +204,7 @@ UPKEEP_CAPABILITIES: list[dict] = [
 
 CAP_STMT = (
     "Seed-only contract overlay pass: ReqALM product contract (ctr-reqalm-product) covers all reqalm releases "
-    "via covers_releases and their delivered version snapshots via in_scope_of; maintenance contract "
+    "via covers_releases; in_scope_of pins active reqalm capability/requirement tips; maintenance contract "
     "(ctr-reqalm-maintenance) owns draft CAP-UPKEEP-* capabilities satisfying SYS-CYBER-UPKEEP. "
     "Regenerates docs/design/seed/out/, schema docs, and HANDOFF.md. No application runtime changes."
 )
@@ -350,9 +362,9 @@ def upsert_contracts(data, *, product_delivers: list[str], product_releases: lis
             covers_releases=product_releases,
             in_scope_of=product_delivers,
             notes=(
-                "Umbrella build contract for the ReqALM project: owns every seeded release id and the union of "
-                "all release.delivers version snapshots (capabilities and requirements). Distinct from legacy "
-                "overlay fixtures (Design-2026-10, Security package, …)."
+                "Umbrella build contract for the ReqALM project: covers_releases lists every reqalm release id; "
+                "in_scope_of pins the active version UID of each reqalm capability and requirement line (not "
+                "historical release.delivers snapshots). Distinct from legacy overlay fixtures (Design-2026-10, …)."
             ),
         ),
     )
@@ -460,11 +472,12 @@ def main() -> None:
         data = yaml.load(f)
 
     ship_ui_header_nav(data)
-    product_releases, product_delivers = reqalm_release_snapshot(data)
+    product_releases = reqalm_release_ids(data)
+    product_scope = reqalm_active_cap_and_requirement_uids(data)
     maint_cap_uids = upsert_cyber_upkeep_model(data)
     upsert_contracts(
         data,
-        product_delivers=product_delivers,
+        product_delivers=product_scope,
         product_releases=product_releases,
         maint_uids=maint_cap_uids,
     )
@@ -474,7 +487,7 @@ def main() -> None:
         yaml.dump(data, f)
     print(
         f"Patched dogfood.yaml: shipped {REL_HEADER}, contracts {PRODUCT_CONTRACT}+{MAINT_CONTRACT}, "
-        f"{REL} / {CAP} ({len(product_releases)} releases, {len(product_delivers)} deliver uids, "
+        f"{REL} / {CAP} ({len(product_releases)} releases, {len(product_scope)} active cap/req uids, "
         f"{len(maint_cap_uids)} upkeep capabilities)"
     )
 

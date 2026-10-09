@@ -8894,13 +8894,13 @@ requirement_versions:
   base_uid: CAP-REQALM-CONTRACTS
   version_n: 0
   status: draft
-  statement: 'Seed-only contract overlay pass: ReqALM product contract (ctr-reqalm-product) covers all reqalm releases via covers_releases and their delivered version snapshots via in_scope_of; maintenance contract (ctr-reqalm-maintenance) owns draft CAP-UPKEEP-* capabilities satisfying SYS-CYBER-UPKEEP. Regenerates docs/design/seed/out/, schema docs, and HANDOFF.md. No application runtime changes.'
+  statement: 'Seed-only contract overlay pass: ReqALM product contract (ctr-reqalm-product) covers all reqalm releases via covers_releases; in_scope_of pins active reqalm capability/requirement tips; maintenance contract (ctr-reqalm-maintenance) owns draft CAP-UPKEEP-* capabilities satisfying SYS-CYBER-UPKEEP. Regenerates docs/design/seed/out/, schema docs, and HANDOFF.md. No application runtime changes.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until ReqALM contracts seed PR merges.
-  statement_hash: sha256:4399d1ab485ef9ac9dd4b1bda2f1bc5f6896bb41773eb6452c07c6e10dbdabf5
+  statement_hash: sha256:e7e5c538dd763e691fe38b7491a2f27de23cc90bf29ced79652a3b28ff0cb164
   grooming_state: detailed
 - uid: SYS-CYBER-UPKEEP
   base_uid: SYS-CYBER-UPKEEP
@@ -16154,9 +16154,10 @@ contracts:
   - A12.1
   - ARCH-API
   - ARCH-API-LAYERS
-  - ARCH-API-RBAC
+  - ARCH-API-RBAC.1
   - ARCH-APPROVAL
   - ARCH-APPROVAL-LINE
+  - ARCH-APPROVAL-VIEW
   - ARCH-APPROVER-SLOTS
   - ARCH-AUTH-AGENT-ATTRIBUTION
   - ARCH-AUTH-AS
@@ -16174,9 +16175,27 @@ contracts:
   - ARCH-AUTH-REVOKE
   - ARCH-AUTH-UPSTREAM-CONNECTOR
   - ARCH-AUTH-UPSTREAM-REVOKE
+  - ARCH-BACKLOG
+  - ARCH-BROWSE-ROADMAP
   - ARCH-BUILD-FOUNDATION
+  - ARCH-CAP-APPROVE
+  - ARCH-CAP-LINK
+  - ARCH-CAT-DRIFT
+  - ARCH-CAT-EXTERNAL
+  - ARCH-CAT-FREEZE
+  - ARCH-CAT-IMPORT
+  - ARCH-CAT-IMPRINT
+  - ARCH-CAT-MIGRATE
+  - ARCH-CAT-PIN
+  - ARCH-CAT-PROJECT-ROLLUP
+  - ARCH-CAT-REACT
+  - ARCH-CAT-SCOPE
+  - ARCH-CAT-VISIBILITY
   - ARCH-CHANGESET
-  - ARCH-CONTRACT
+  - ARCH-CHANGESET-CONFLICT
+  - ARCH-CHANGESET-RBAC
+  - ARCH-CHANGESET-RETAIN
+  - ARCH-CONTRACT-DOC
   - ARCH-CONTRACT.1
   - ARCH-CP-HIER
   - ARCH-CP-SCOPE
@@ -16201,8 +16220,13 @@ contracts:
   - ARCH-DEVENV-PARITY.1
   - ARCH-DEVENV-SECRETS
   - ARCH-DEVENV-SEED
+  - ARCH-GANTT
   - ARCH-GATE-MODEL
   - ARCH-GATE-SIGNOFF
+  - ARCH-HIER-CAP-PARTOF
+  - ARCH-HIER-REQ-DECOMP
+  - ARCH-HIER-SECTION-GROUP
+  - ARCH-HIER-USES-DEP
   - ARCH-HOOK-EVAL
   - ARCH-KEY
   - ARCH-KEY-BREAKGLASS
@@ -16212,29 +16236,68 @@ contracts:
   - ARCH-KEY-JWKS
   - ARCH-KEY-LIFECYCLE
   - ARCH-KEY-PROVIDER
+  - ARCH-KEY-RUNTIME-CACHE
   - ARCH-KEY-SCOPE
   - ARCH-LOCKED
   - ARCH-MINT-KIND
   - ARCH-OTEL
+  - ARCH-OTEL-TRACE
+  - ARCH-PLANNING-GATES
   - ARCH-RELEASE
+  - ARCH-RELEASE-FREEZE
+  - ARCH-REQ-AC-FACET
+  - ARCH-REQ-AC-ROLLUP
+  - ARCH-REQ-VS-CAP
+  - ARCH-SEC-CAT-FK
+  - ARCH-SEC-CAT-LABEL-IMPRINT
+  - ARCH-SEC-EDGE-DEDUPE-API
+  - ARCH-SEC-EDGE-DEDUPE-DB
+  - ARCH-SEC-HEADERS
+  - ARCH-SEC-LOADER-EDGE-SYNC
+  - ARCH-SEC-REL-PAGING
+  - ARCH-SEC-REL-STUB
+  - ARCH-SEC-SEED-INTEGRITY
+  - ARCH-SEC-XPROJ-READ
+  - ARCH-SUBJECT-KIND
   - ARCH-SUCCESSION-HASH
   - ARCH-SUSPECT-QUEUE
   - ARCH-SUSPECT.1
+  - ARCH-TEST-HARNESS-TEARDOWN
+  - ARCH-TRACE-LAYOUT-WORKER
+  - ARCH-TRACE-RECHECK
+  - ARCH-TRACE-VIEW-CCM
+  - ARCH-TRACE-VIEW-RTM
   - ARCH-UI
   - ARCH-UI-GUARD
+  - ARCH-UI-KIT-SHARED
   - ARCH-VER
   - ARCH-VER-SUCC
+  - ARCH-VER-TOMB
   - ARCH-VERIFICATION
+  - ARCH-VERIFICATION-GATE
+  - ARCH-WF-ADMIN
   - ARCH-WORKFLOW
+  - ARCH-WRITE-AUDIT-FLOOD
+  - ARCH-WRITE-REPOSITORY-LAYER
+  - ARCH-WRITE-RESERVED-IDS
+  - ARCH-WRITE-TRUNCATE-GUARD
+  - ARCH-WRITE-UOW-AUDIT
+  - ARCH-WRITE-VERSION-UNIQUE
   - B01
+  - B02
+  - B03
   - B04
   - B05
+  - B06
   - B07
   - B08
   - C01
   - C02
   - C03
+  - C04
+  - C05
   - C06
+  - C07
   - C08
   - CAP-AGENT-ACCESS
   - CAP-API-DOCS-SEED-SUMMARY
@@ -16243,6 +16306,7 @@ contracts:
   - CAP-AUTH-HARDEN
   - CAP-AUTH-UPSTREAM-SEAM
   - CAP-BROWSE-CP
+  - CAP-BROWSE-ROADMAP
   - CAP-BROWSE-UI-CP
   - CAP-BROWSE-UI-RELATIONS
   - CAP-BROWSE-UI-RELEASES
@@ -16265,6 +16329,7 @@ contracts:
   - CAP-DEVENV-STARTUP-BACKOFF
   - CAP-HEALTH-LIVENESS
   - CAP-KEY-ENVELOPE
+  - CAP-MCP-DESK
   - CAP-MFA-ENROLL
   - CAP-MFA-QR
   - CAP-OAUTH-AS
@@ -16277,7 +16342,7 @@ contracts:
   - CAP-OTEL-TEST-HARNESS
   - CAP-OTEL-W3C-CONTEXT
   - CAP-PROD-SELFCHECK
-  - CAP-RBAC
+  - CAP-RBAC.1
   - CAP-READ-HIERARCHY
   - CAP-READ-RELEASES
   - CAP-READ-REQS
@@ -16285,9 +16350,9 @@ contracts:
   - CAP-RELATIONS-API
   - CAP-RENAME-REQALM
   - CAP-REQALM-CONTRACTS
-  - CAP-SCOPED-VIEW
+  - CAP-SCOPED-VIEW.1
   - CAP-SEED-GROOMING
-  - CAP-SSO
+  - CAP-SSO.1
   - CAP-SVC-AUDIT-APPEND
   - CAP-SVC-BUSINESS-ROUTE-AUDIT
   - CAP-SVC-IMPLICIT-PUBLIC-EXACT
@@ -16310,8 +16375,15 @@ contracts:
   - CAP-TEST-PNPM-GATE
   - CAP-TEST-PROD-BUILD-EXCLUDE
   - CAP-TREE
-  - CAP-UI-FRAME
+  - CAP-UI-FRAME.1
   - CAP-UI-HEADER-NAV
+  - CAP-UI-KIT
+  - CAP-UI-KIT-CHROME
+  - CAP-UI-KIT-TREE
+  - CAP-UPKEEP-AUDIT-LOG-REVIEW
+  - CAP-UPKEEP-MONTHLY-DEPS-VULN
+  - CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  - CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
   - CAP-VERSION-UI
   - D01
   - D02
@@ -16319,63 +16391,163 @@ contracts:
   - D04
   - D05
   - D06
+  - D07
   - D08
   - D09
+  - D10
+  - D11
   - D12
   - D13
   - E01
   - E02
+  - E03
   - E04
+  - E05
   - E06
+  - E07
   - F01
+  - F02
+  - F03
   - F04
+  - F05
+  - F06
   - F07
+  - F08
+  - F09
   - F10
+  - FIX-ALLOW-AGENT-ATTRIBUTION
+  - FIX-ALLOW-APP-ROLE-SPLIT
   - FIX-ALLOW-APPROVE-LINE
+  - FIX-ALLOW-AUDIT-CLIENT
+  - FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+  - FIX-ALLOW-CLIENT-CREATE
+  - FIX-ALLOW-CRED-HASH-ONLY
+  - FIX-ALLOW-DEVENV-MIN-CONTAINERS
   - FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
   - FIX-ALLOW-DEVENV-SMOKE
+  - FIX-ALLOW-FEDERATED-SSO-VIA-AS
+  - FIX-ALLOW-KEK-REWRAP-ONLINE
+  - FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+  - FIX-ALLOW-MCP-OAUTH-PKCE
+  - FIX-ALLOW-PIN-MIGRATE-MINT
   - FIX-ALLOW-PIN-REQUEST
   - FIX-ALLOW-SECURITY-PIN-APPLY
+  - FIX-ALLOW-STATUS-SUPERSEDE
+  - FIX-ALLOW-STEWARD-UPDATE
+  - FIX-ALLOW-SUCCEED
+  - FIX-ALLOW-SUSPECT-CARRY
+  - FIX-ALLOW-SUSPECT-DROP
+  - FIX-ALLOW-SUSPECT-KEEP-PINNED
+  - FIX-COMPARE-2HOP
+  - FIX-CONTRACT-DOC-CTX
+  - FIX-CONTRACT-DOC-NOCTX
   - FIX-DENY-APPROVE-WITHOUT-SLOT
+  - FIX-DENY-AUDIT-CROSS-CLIENT
   - FIX-DENY-AUTHOR-PIN-APPLY
+  - FIX-DENY-CLOSED-LINK
+  - FIX-DENY-CROSS-CLIENT
+  - FIX-DENY-CROSS-TENANT-CONNECTOR
+  - FIX-DENY-DCR-DISABLED
+  - FIX-DENY-DEV-KEK-IN-PROD
+  - FIX-DENY-DEVENV-PROD-LOGIN.1
+  - FIX-DENY-EDIT-ACTIVE
+  - FIX-DENY-KEK-UNREACHABLE-PROD
+  - FIX-DENY-KEYOP-NO-CUSTODIAN
+  - FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+  - FIX-DENY-LOCKOUT
+  - FIX-DENY-MCP-ESCALATE
+  - FIX-DENY-MCP-WRONG-AUDIENCE
+  - FIX-DENY-NO-GRANT
   - FIX-DENY-NOOP-CONTENT
+  - FIX-DENY-NOOP-SUCCESSOR
+  - FIX-DENY-PKCE-PLAIN
   - FIX-DENY-PRIORITY-UNAPPROVED
+  - FIX-DENY-PRIV-NO-MFA
+  - FIX-DENY-READER-GRANT
+  - FIX-DENY-REFRESH-REUSE
+  - FIX-DENY-REVERT-NON-LATEST
+  - FIX-DENY-REVOKED
+  - FIX-DENY-REVOKED-TOKEN
   - FIX-DENY-SECOND-ACTIVE
+  - FIX-DENY-SESSION-IDLE
   - FIX-DENY-SHIP-UNSIGNED
+  - FIX-DENY-SHIP-WITH-OPEN-SUSPECT
+  - FIX-DENY-SHIPPED-DELIVERS
+  - FIX-DENY-STEPUP-STALE-AUTH
+  - FIX-DENY-STEWARD-STANDARD
+  - FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+  - FIX-DENY-UPSTREAM-TOKEN-AT-API
+  - FIX-EXPORT-L02-GOLDEN
   - FIX-GRANDFATHER-SEED-APPROVED
+  - FIX-JWKS-ROTATION-OVERLAP
   - FIX-PLANNING-BLOCKED-AFTER-CONTENT-N
   - FIX-REL-SNAP
+  - FIX-SAMPLE-APPROVED
+  - FIX-SAMPLE-UNAPPROVED
+  - FIX-SAMPLE-WF-CAP
+  - FIX-SAMPLE-WF-REQ
   - FIX-SUCC-2HOP.2
   - FIX-SUSPECT-ON-CONTENT-N
   - G01
+  - G02
   - G03
+  - G04
   - G05
+  - G06
+  - G07
   - G08
+  - H01
+  - H02
+  - H03
+  - H04
+  - H05
   - H06
+  - H07
+  - H08
   - H09
+  - H10
   - I01
+  - I02
   - I03
+  - I04
+  - I05
+  - I06
   - J01
   - J02
+  - J03
+  - J04
+  - J05
+  - J06
   - J07
+  - J08
   - K01
+  - K02
   - K03
+  - K04
   - K05
+  - K06
   - L01
   - L02
+  - L03
   - L04
   - M01
+  - M02
+  - M03
   - M04
   - M05
   - M06
+  - M07
   - MC01.1
   - MC02
   - MC03
   - N01
+  - N02
   - N03
+  - SYS-CYBER-UPKEEP
   - UI-APPROVE-LINE
   - UI-APPROVE-TREE
-  notes: 'Umbrella build contract for the ReqALM project: owns every seeded release id and the union of all release.delivers version snapshots (capabilities and requirements). Distinct from legacy overlay fixtures (Design-2026-10, Security package, …).'
+  - WANT-CHANGESET-FIELD-UNDO
+  notes: 'Umbrella build contract for the ReqALM project: covers_releases lists every reqalm release id; in_scope_of pins the active version UID of each reqalm capability and requirement line (not historical release.delivers snapshots). Distinct from legacy overlay fixtures (Design-2026-10, …).'
 - id: ctr-reqalm-maintenance
   client_id: raby-family
   project_id: reqalm

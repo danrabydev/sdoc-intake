@@ -55,7 +55,7 @@ Last updated for seed **ReqALM contracts** on **main @ `dd43cc1`** (2026-10-09).
 |-------|----------------------|--------|
 | Seed grooming | `rel-r1-seed-grooming` / `CAP-SEED-GROOMING` | Parallel documentation-only grooming PR. |
 | Browse UI catalogs | `rel-r1-browse-ui-catalogs` | After catalogs API; not in this PR. |
-| LF endings | `rel-r1-lf-endings` | May already be shipped on main via #35 — check seed before duplicate ship PR. |
+| LF endings | `rel-r1-lf-endings` / `CAP-DEVENV-LF-ENDINGS` | **Shipped** on main via PR #35 (seed marks shipped; no duplicate ship PR). |
 
 ## Next-up (ordered)
 
@@ -72,7 +72,7 @@ Last updated for seed **ReqALM contracts** on **main @ `dd43cc1`** (2026-10-09).
 - **Ship (parallel):** `rel-r1-ui-header-nav` → **`CAP-UI-HEADER-NAV`** at merge **`dd43cc1523544d0f6375a628bc9d7d45a31fa738`** (2026-10-09), `active` / `pass`.
 - **Release (this PR):** `rel-r1-reqalm-contracts` → **`CAP-REQALM-CONTRACTS`** (seed-only, planned).
 - **Contracts (extended model):**
-  - **`ctr-reqalm-product`** — build contract; `covers_releases` = all reqalm release ids; `in_scope_of` = union of all `release.delivers` version UIDs.
+  - **`ctr-reqalm-product`** — build contract; `covers_releases` = all reqalm release ids; `in_scope_of` = **active** version UID of each reqalm capability and requirement line (not release snapshot pins).
   - **`ctr-reqalm-maintenance`** — maintenance contract; `covers_releases` empty; `in_scope_of` = draft **`CAP-UPKEEP-*`** capabilities (planned, not shipped) that **`satisfies` → `SYS-CYBER-UPKEEP`** with per-capability NIST `conforms_to` pins.
   - **`SYS-CYBER-UPKEEP`** — system requirement under **SEC-SEC** (draft); umbrella `conforms_to` **CA-7, RA-5, SI-2, AC-2, AU-6** @ NIST imprint.
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_reqalm_contracts_release.py`
