@@ -611,8 +611,12 @@ describe("browse UI render (jsdom)", () => {
     assert.ok([...main.querySelectorAll(".relation-chip-id")].some((n) => n.textContent === xss));
     const outgoing = main.querySelector('[data-direction="outgoing"]');
     const incoming = main.querySelector('[data-direction="incoming"]');
-    assert.match(outgoing?.textContent ?? "", /Outgoing|Satisfies|this → 1 peer|Uses|Conforms to/);
-    assert.match(incoming?.textContent ?? "", /Incoming|Refines|→ this 4 peers/);
+    for (const re of [/Outgoing/, /Satisfies/, /this → 1 peer/, /Uses/, /Conforms to/]) {
+      assert.match(outgoing?.textContent ?? "", re);
+    }
+    for (const re of [/Incoming/, /Refines/, /→ this 4 peers/]) {
+      assert.match(incoming?.textContent ?? "", re);
+    }
     assert.equal(outgoing?.querySelector(".relations-direction-count")?.textContent, "3");
     assert.equal(incoming?.querySelector(".relations-direction-count")?.textContent, "4");
     assert.ok([...main.querySelectorAll(".relation-chip-suspect")].every((n) => n.textContent === "needs re-check"));
