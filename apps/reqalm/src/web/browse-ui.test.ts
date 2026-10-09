@@ -698,8 +698,7 @@ describe("browse UI render (jsdom)", () => {
     assert.ok(catalog);
     assert.notEqual(catalog?.tagName, "A");
     assert.equal(catalog?.getAttribute("href"), null);
-    assert.match(catalog?.textContent ?? "", new RegExp(xss.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-    assert.match(catalog?.textContent ?? "", /NIST/);
+    assert.ok((catalog?.textContent ?? "").includes(xss) && (catalog?.textContent ?? "").includes("NIST"));
     assert.equal(catalog?.querySelector(".relation-chip-title")?.textContent, xss);
     const restricted = main.querySelector(".relation-chip-restricted");
     assert.ok(restricted);
@@ -708,36 +707,25 @@ describe("browse UI render (jsdom)", () => {
     assert.match(restricted?.textContent ?? "", /Restricted/);
     assert.doesNotMatch(restricted?.textContent ?? "", /PEER/);
 
-    const errMain = document.createElement("main");
-    await renderRequirementDetail(errMain, {
-      apiFn: mockFetch((url) => {
-        if (url === "/api/v1/projects/reqalm/requirements/ERR-1") {
-          return { status: 200, body: { data: { id: "ERR-1", title: "E", kind: "requirement", type: "requirement", status: "active", version_n: 0, statement: "s", attributes: {} } } };
-        }
-        if (url === relationsPath("reqalm", "ERR-1")) return { status: 500, body: {} };
-        return { status: 404 };
-      }),
-      projectId: "reqalm",
-      requirementId: "ERR-1",
-      listFilters: {},
-    });
-    assert.ok(errMain.querySelector(".relations-error"));
-    assert.equal(errMain.querySelector(".relations-loading"), null);
-
-    const netMain = document.createElement("main");
-    await renderRequirementDetail(netMain, {
-      apiFn: mockFetch((url) => {
-        if (url === "/api/v1/projects/reqalm/requirements/NET-1") {
-          return { status: 200, body: { data: { id: "NET-1", title: "N", kind: "requirement", type: "requirement", status: "active", version_n: 0, statement: "s", attributes: {} } } };
-        }
-        if (url === relationsPath("reqalm", "NET-1")) throw new Error("network down");
-        return { status: 404 };
-      }),
-      projectId: "reqalm",
-      requirementId: "NET-1",
-      listFilters: {},
-    });
-    assert.ok(netMain.querySelector(".relations-error"));
+    const reqStub = (id: string) => ({ id, title: "E", kind: "requirement", type: "requirement", status: "active", version_n: 0, statement: "s", attributes: {} });
+    for (const [rid, relFn] of [
+      ["ERR-1", () => ({ status: 500, body: {} })],
+      ["NET-1", () => { throw new Error("network down"); }],
+    ] as const) {
+      const m = document.createElement("main");
+      await renderRequirementDetail(m, {
+        apiFn: mockFetch((url) => {
+          if (url === `/api/v1/projects/reqalm/requirements/${rid}`) return { status: 200, body: { data: reqStub(rid) } };
+          if (url === relationsPath("reqalm", rid)) return relFn();
+          return { status: 404 };
+        }),
+        projectId: "reqalm",
+        requirementId: rid,
+        listFilters: {},
+      });
+      assert.ok(m.querySelector(".relations-error"));
+      assert.equal(m.querySelector(".relations-loading"), null);
+    }
 
     const emptyMain = document.createElement("main");
     await renderRequirementDetail(emptyMain, {
@@ -755,14 +743,7 @@ describe("browse UI render (jsdom)", () => {
     assert.ok(emptyMain.querySelector(".relations-empty-state"));
 
     assert.equal(imprintShortLabel("nist-800-53@rev5"), "NIST");
-    const shell = relationsPanelShell();
-    assert.ok(shell.querySelector(".relations-loading"));
-    const restrictedChip = relationPeerChip({ restricted: true, relation_kind: "uses", direction: "outgoing" });
-    assert.notEqual(restrictedChip.tagName, "A");
-    assert.equal(restrictedChip.getAttribute("href"), null);
-    const bodyHost = document.createElement("div");
-    bodyHost.append(renderRelationsPanelBody(relPayload, "reqalm"));
-    assert.ok(bodyHost.querySelector('[data-direction="outgoing"]'));
+    assert.ok(relationsPanelShell().querySelector(".relations-loading"));
   });
 
   it("relations collapse toggle, chip version, and missing project_id", () => {

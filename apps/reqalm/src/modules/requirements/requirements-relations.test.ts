@@ -198,25 +198,24 @@ describe("requirements relations API", () => {
   });
 
   it("readable private-catalog peer uses catalog owner project_id", async () => {
-    await q(`INSERT INTO projects (id, client_id, name) VALUES ('rel-cat-p2', 'reqalm-client', 'Cat P2') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('grant-casey-rel-cat-p2', 'rel-cat-p2', 'casey-reader', 'Reader') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO catalog_defs (id, is_standard, project_id) VALUES ('cat-test-private', false, 'rel-cat-p2') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO catalog_imprints (id, catalog_id) VALUES ('imprint-live-cc-PRIVATE', 'cat-test-private') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO catalog_item_labels (catalog_id, item_uid, title) VALUES ('cat-test-private', 'PRIV-CTL-1', 'Private ctl') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO trace_edges (from_project_id, from_uid, to_uid, kind, catalog_imprint_id) VALUES ('reqalm', 'CAP-READ-REQS', 'PRIV-CTL-1', 'conforms_to', 'imprint-live-cc-PRIVATE') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO projects (id, client_id, name) VALUES ('rel-cat-p2', 'reqalm-client', 'Cat P2') ON CONFLICT DO NOTHING;
+      INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('grant-casey-rel-cat-p2', 'rel-cat-p2', 'casey-reader', 'Reader') ON CONFLICT DO NOTHING;
+      INSERT INTO catalog_defs (id, is_standard, project_id) VALUES ('cat-test-private', false, 'rel-cat-p2') ON CONFLICT DO NOTHING;
+      INSERT INTO catalog_imprints (id, catalog_id) VALUES ('imprint-live-cc-PRIVATE', 'cat-test-private') ON CONFLICT DO NOTHING;
+      INSERT INTO catalog_item_labels (catalog_id, item_uid, title) VALUES ('cat-test-private', 'PRIV-CTL-1', 'Private ctl') ON CONFLICT DO NOTHING;
+      INSERT INTO trace_edges (from_project_id, from_uid, to_uid, kind, catalog_imprint_id) VALUES ('reqalm', 'CAP-READ-REQS', 'PRIV-CTL-1', 'conforms_to', 'imprint-live-cc-PRIVATE') ON CONFLICT DO NOTHING`);
     try {
       const link = dataOf(await inject(REL("reqalm", "CAP-READ-REQS"))).outgoing.conforms_to?.find(
         (l) => !("restricted" in l) && vis(l).peer.id === "PRIV-CTL-1",
       );
-      assert.ok(link);
       assert.equal(vis(link!).peer.project_id, "rel-cat-p2");
     } finally {
-      await q(`DELETE FROM trace_edges WHERE from_uid = 'CAP-READ-REQS' AND to_uid = 'PRIV-CTL-1'`);
-      await q(`DELETE FROM catalog_item_labels WHERE catalog_id = 'cat-test-private'`);
-      await q(`DELETE FROM catalog_imprints WHERE id = 'imprint-live-cc-PRIVATE'`);
-      await q(`DELETE FROM catalog_defs WHERE id = 'cat-test-private'`);
-      await q(`DELETE FROM project_grants WHERE id = 'grant-casey-rel-cat-p2'`);
-      await q(`DELETE FROM projects WHERE id = 'rel-cat-p2'`);
+      await q(`DELETE FROM trace_edges WHERE from_uid = 'CAP-READ-REQS' AND to_uid = 'PRIV-CTL-1';
+        DELETE FROM catalog_item_labels WHERE catalog_id = 'cat-test-private';
+        DELETE FROM catalog_imprints WHERE id = 'imprint-live-cc-PRIVATE';
+        DELETE FROM catalog_defs WHERE id = 'cat-test-private';
+        DELETE FROM project_grants WHERE id = 'grant-casey-rel-cat-p2';
+        DELETE FROM projects WHERE id = 'rel-cat-p2'`);
     }
   });
 
