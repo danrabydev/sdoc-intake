@@ -167,13 +167,23 @@ export async function applyDogfoodSeed(
   );
   inserted.catalog_defs = (seed.catalogs ?? []).length;
   const uidProject = new Map(lineProject);
+  const uidToBaseUid = new Map<string, string>();
+  const lineKindByProjectBase = new Map<string, string>();
+  for (const line of seed.requirement_lines ?? []) {
+    lineKindByProjectBase.set(
+      lineProjectKey(String(line.project_id), String(line.base_uid)),
+      String(line.kind),
+    );
+  }
   for (const ver of seed.requirement_versions ?? []) {
     const baseUid = String(ver.base_uid);
     const verProject = (ver.project_id as string | undefined) ?? lineProject.get(baseUid);
     if (!verProject) throw new SeedValidationError(`version ${ver.uid}: no project_id`);
     uidProject.set(String(ver.uid), verProject);
+    uidToBaseUid.set(String(ver.uid), baseUid);
   }
   for (const e of seed.edges ?? []) {
+    assertInheritableTraceEdge(e, uidProject, uidToBaseUid, lineKindByProjectBase);
     await upsertTraceEdge(client, e, uidProject, inserted);
   }
 
@@ -530,6 +540,36 @@ async function upsertPlatformGrant(
   if (r.rowCount) inserted.platform_grants++;
 }
 
+function assertInheritableTraceEdge(
+  row: Record<string, unknown>,
+  uidProject: Map<string, string>,
+  uidToBaseUid: Map<string, string>,
+  lineKindByProjectBase: Map<string, string>,
+): void {
+  if (row.inheritable !== true) return;
+  const fromUid = String(row.from);
+  const kind = String(row.kind);
+  if (kind !== "conforms_to") {
+    throw new SeedValidationError(
+      `trace edge from ${fromUid}: inheritable is only allowed on conforms_to edges`,
+    );
+  }
+  const fromProject = uidProject.get(fromUid);
+  if (!fromProject) {
+    throw new SeedValidationError(`trace edge from ${fromUid}: no project for endpoint`);
+  }
+  const baseUid = uidToBaseUid.get(fromUid);
+  if (!baseUid) {
+    throw new SeedValidationError(`trace edge from ${fromUid}: unknown version uid`);
+  }
+  const lineKind = lineKindByProjectBase.get(lineProjectKey(fromProject, baseUid));
+  if (lineKind !== "capability") {
+    throw new SeedValidationError(
+      `trace edge from ${fromUid}: inheritable conforms_to requires a capability source line`,
+    );
+  }
+}
+
 function collectConformsTargets(edges: Record<string, unknown>[]): Map<string, Set<string>> {
   const byImprint = new Map<string, Set<string>>();
   for (const e of edges) {
@@ -559,12 +599,14 @@ async function upsertTraceEdge(
   const r = await client.query(
     `
     INSERT INTO trace_edges (
-      from_project_id, from_uid, to_project_id, to_uid, kind, catalog_imprint_id, trace_suspect
+      from_project_id, from_uid, to_project_id, to_uid, kind, catalog_imprint_id, trace_suspect,
+      inheritable
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (from_project_id, from_uid, to_uid, kind, catalog_imprint_id) DO UPDATE SET
       to_project_id = EXCLUDED.to_project_id,
-      trace_suspect = EXCLUDED.trace_suspect
+      trace_suspect = EXCLUDED.trace_suspect,
+      inheritable = EXCLUDED.inheritable
     RETURNING (xmax = 0) AS inserted
   `,
     [
@@ -575,6 +617,7 @@ async function upsertTraceEdge(
       row.kind,
       row.catalog_imprint_id ?? "",
       row.trace_suspect === true,
+      row.inheritable === true,
     ],
   );
   if (r.rows[0]?.inserted) inserted.trace_edges++;

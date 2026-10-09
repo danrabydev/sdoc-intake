@@ -627,6 +627,13 @@
             "null"
           ]
         },
+        "inheritable": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "When true on a capability conforms_to pin, the control may inherit to consumers over a uses edge (ARCH-TRACE-INHERIT-USES)."
+        },
         "suspect_reason": {
           "type": [
             "string",

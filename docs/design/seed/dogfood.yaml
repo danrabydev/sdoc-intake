@@ -1340,7 +1340,7 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned for ReqALM product/maintenance contracts seed PR.
+  notes: 'Capability active with verification pass after PR #38 merge 88df54dea5c8d2bfd895e2613b17dbf2c5b3405f; formal approval record not filed in seed.'
   approved_version_uid:
   approved_statement_hash:
 - id: ar-upkeep-monthly-sec-audit
@@ -3535,6 +3535,21 @@ requirement_lines:
   parent: SEC-CAP
   kind: capability
   title: Audit log review (planned)
+- base_uid: ARCH-TRACE-INHERIT-USES
+  project_id: reqalm
+  parent: SEC-EDGE
+  kind: requirement
+  title: Inherited controls over uses edges (common-control model)
+- base_uid: ARCH-TRACE-INHERIT-HYBRID
+  project_id: reqalm
+  parent: SEC-EDGE
+  kind: requirement
+  title: Hybrid controls (provider-supplied plus consumer direct link)
+- base_uid: CAP-TRACE-INHERIT-USES
+  project_id: reqalm
+  parent: SEC-EDGE
+  kind: capability
+  title: Trace inheritable ConformsTo loader + seed beds
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -4962,8 +4977,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: 'AC-3 enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+    verification_note: 'AC-3 enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:07904dc523cccd3c24e8ab49deca0a2aa3cbaaf2882a8d8028c24eaf737ea60b
   grooming_state: detailed
   verification_outcome: pass
@@ -7600,8 +7614,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: 'AC-3 guard enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.'
+    verification_note: 'AC-3 guard enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.'
   statement_hash: sha256:0828332feb654b6ef8c411828750b14e293b41e4400377cb3abf3d6c18aefde6
   grooming_state: detailed
   verification_outcome: pass
@@ -7614,8 +7627,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: IA-2
-    verification_note: 'IA-2 / SC-23 OAuth beds. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
-      refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+    verification_note: 'IA-2 / SC-23 OAuth beds. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:2bd4307c791183ba58e460d4c7556b19e61f1d6e469cf4e8a269f00de4f8b49c
   grooming_state: detailed
   verification_outcome: pass
@@ -7628,8 +7640,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: IA-5
-    verification_note: 'IA-5 / AC-7 credential controls. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
-      refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; TOTP secrets envelope-wrapped; replay of the same code within its window rejected.'
+    verification_note: 'IA-5 / AC-7 credential controls. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; TOTP secrets envelope-wrapped; replay of the same code within its window rejected.'
   statement_hash: sha256:cfd369100cb9be628e6bca2ca3f22c1b00e37e12795e816d999a72f97f1784ec
   grooming_state: detailed
   verification_outcome: pass
@@ -7642,8 +7653,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: SC-12
-    verification_note: 'SC-12 / SC-28(3). Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; `/oauth/jwks` serves Transit-wrapped ES256. FIPS/Transit-sign deferred.'
+    verification_note: 'SC-12 / SC-28(3). Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; `/oauth/jwks` serves Transit-wrapped ES256. FIPS/Transit-sign deferred.'
   statement_hash: sha256:a705e5c39bd7ea6a4f37e3d9bd224f85f22916512c2d9b4fbb1adc0277491299
   grooming_state: detailed
   verification_outcome: pass
@@ -7656,8 +7666,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: AU-2
-    verification_note: 'AU-2 / AU-3 / AU-12. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.'
+    verification_note: 'AU-2 / AU-3 / AU-12. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.'
   statement_hash: sha256:9e67395126b2352f3b3448a0f9a9f362d1633b66041b1da79e12d568b185af13
   grooming_state: detailed
   verification_outcome: pass
@@ -7683,8 +7692,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: IA-5
-    verification_note: 'IA-5 dev credential hygiene. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
-      refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+    verification_note: 'IA-5 dev credential hygiene. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:f2224091a2e630376b036c38cffe22254712e3c5afb5aeef358a3ddd2f043d67
   grooming_state: detailed
   verification_outcome: pass
@@ -7697,8 +7705,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: IA-2
-    verification_note: 'IA-2 MFA enrollment. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+    verification_note: 'IA-2 MFA enrollment. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:ea65e8ae0ed82a9287326222ff49d3f74f6abb901ad5c1cb46050231af545045
   grooming_state: detailed
   verification_outcome: pass
@@ -7711,22 +7718,20 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: IA-2
-    verification_note: 'IA-2 agent attribution. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
-      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+    verification_note: 'IA-2 agent attribution. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:f71263df62f9ede6dbe321ef345a56c83e523cbcabac2557a448e14662c77154
   grooming_state: detailed
   verification_outcome: pass
 - uid: CAP-AUTH-HARDEN
   base_uid: CAP-AUTH-HARDEN
   version_n: 0
-  status: active
+  status: superseded
   statement: Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF required on every cookie-authenticated mutation, per-IP failed-login throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default (production requires an explicit REQAML_TRUSTED_PROXIES list), auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, JWT signature verify before access-token revocation, normalized usernames.
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: SC-23
-    verification_note: 'SC-23 session/OAuth hardening. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
-      refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+    verification_note: 'SC-23 session/OAuth hardening. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
   statement_hash: sha256:f5ebe525628150baa5e42b194b775edc62e7f2f69bcf6efb53da28bff7accbb6
   grooming_state: detailed
   verification_outcome: pass
@@ -7863,7 +7868,7 @@ requirement_versions:
 - uid: CAP-SVC-OPERATION-EXECUTOR
   base_uid: CAP-SVC-OPERATION-EXECUTOR
   version_n: 0
-  status: active
+  status: superseded
   statement: runOperation enforces RBAC + project scope, writes audit_events, structured logs, returns ServiceResult.
   priority: 10
   iteration: iter-r1
@@ -8893,15 +8898,16 @@ requirement_versions:
 - uid: CAP-REQALM-CONTRACTS
   base_uid: CAP-REQALM-CONTRACTS
   version_n: 0
-  status: draft
+  status: active
   statement: 'Seed-only contract overlay pass: ReqALM product contract (ctr-reqalm-product) covers all reqalm releases via covers_releases; in_scope_of pins active reqalm capability/requirement tips; maintenance contract (ctr-reqalm-maintenance) owns draft CAP-UPKEEP-* capabilities satisfying SYS-CYBER-UPKEEP. Regenerates docs/design/seed/out/, schema docs, and HANDOFF.md. No application runtime changes.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: Planned until ReqALM contracts seed PR merges.
+    verification_note: 'Shipped with ReqALM contracts seed PR #38 (merge 88df54dea5c8d2bfd895e2613b17dbf2c5b3405f).'
   statement_hash: sha256:e7e5c538dd763e691fe38b7491a2f27de23cc90bf29ced79652a3b28ff0cb164
   grooming_state: detailed
+  verification_outcome: pass
 - uid: SYS-CYBER-UPKEEP
   base_uid: SYS-CYBER-UPKEEP
   version_n: 0
@@ -8962,6 +8968,74 @@ requirement_versions:
     verification_note: Planned upkeep capability — not shipped; no verification outcome.
   statement_hash: sha256:fd20427878522fad6d89a049ecf8919dca843ec0209b370d8128ba75c1a21a61
   grooming_state: want
+- uid: ARCH-TRACE-INHERIT-USES
+  base_uid: ARCH-TRACE-INHERIT-USES
+  version_n: 0
+  status: draft
+  statement: |-
+    A provider capability version may mark any of its conforms_to pins inheritable (common control, NIST SP 800-53 Rev. 5 PL-2/PM-10 common-control designation). A consumer capability version that uses the provider inherits each inheritable pin and shows it as "inherited via uses <provider>". Rules: (1) Only capability-to-capability uses edges carry inheritance; uses edges from or to requirement lines remain dependency-only per ARCH-HIER-USES-DEP. (2) Only pins on the provider line's current active version that is shipped or verification_outcome=pass are inheritable; draft, superseded, obsolete or withdrawn provider versions supply nothing. (3) A control whose provider verification is fail, pending, or not assessed is not inherited; the consumer shows it "provider not-pass" and the control stays incomplete for the consumer. (4) Inheritance is one hop. A provider re-exports a control it inherited only when its own conforms_to pin for that control is marked inheritable (that is, it takes ownership of the control). (5) Any content, status, or verification change on the provider line, or a change to its inheritable set, flags needs re-check (trace_suspect) on every consumer for the affected controls only, per ARCH-TRACE-RECHECK. (6) Cross-project or restricted providers follow existing scope rules: a consumer without read grant on the provider project sees the inherited control id and the state "inherited (provider restricted)", but not the provider uid, statement, or evidence.
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: PL-2
+    verification_note: Cyber 2026-10-09 inherit-uses mapping; common-control model per SP 800-53 Rev5 PL-2, PM-10, CA-2, SA-9.
+  statement_hash: sha256:f5ceaff40f763c63a433b9b052dea088bf102b586d6947bbf9914ee8c46996ca
+  grooming_state: detailed
+  rbac_op: trace:edit
+- uid: ARCH-TRACE-INHERIT-HYBRID
+  base_uid: ARCH-TRACE-INHERIT-HYBRID
+  version_n: 0
+  status: draft
+  statement: |-
+    When a consumer capability both inherits a control via uses and has its own direct conforms_to pin for the same control, the control is hybrid for that consumer: the provider supplies the shared part and the consumer adds or overrides the rest (for example a custom session timeout). The consumer's direct pin wins for display and for the consumer's verification state, labeled "hybrid (via <provider>)". Hybrid counts once per consumer and control. A provider change still flags the hybrid control for re-check on the consumer. Removing the direct pin returns the control to inherited; removing the provider inheritable mark returns it to direct-only.
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: CA-2
+    verification_note: Cyber 2026-10-09; hybrid control per SP 800-53 Rev5 PL-2 discussion (common, hybrid, system-specific).
+  statement_hash: sha256:59044cbac6b9dc016d7de96e74d8062450c4859da2426db7dbe7c90859bf52b5
+  grooming_state: detailed
+  rbac_op: trace:edit
+- uid: CAP-TRACE-INHERIT-USES
+  base_uid: CAP-TRACE-INHERIT-USES
+  version_n: 0
+  status: draft
+  statement: Dogfood seed loader persists trace_edges.inheritable on capability conforms_to pins; validation rejects inheritable on non-capability sources or non-conforms_to edges. Read APIs resolve inherited and hybrid control state at read time in a follow-on PR.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until inherit-uses loader PR merges.
+  statement_hash: sha256:c0c9ee34dd005fb6b8f9c79ccce303be368fe6c1acba7103650c613135b9214a
+  grooming_state: detailed
+- uid: CAP-SVC-OPERATION-EXECUTOR.1
+  base_uid: CAP-SVC-OPERATION-EXECUTOR
+  version_n: 1
+  status: active
+  statement: runOperation enforces RBAC + project scope, writes audit_events, structured logs, returns ServiceResult.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: 'Pin mint: inheritable AC-3, AU-2, AU-12 for uses inheritance seed bed.'
+  statement_hash: sha256:4db7c1cb1e0dadd01c4428291c4c8746f6baa8f86364b385d58f0d098fb9982b
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-AUTH-HARDEN.1
+  base_uid: CAP-AUTH-HARDEN
+  version_n: 1
+  status: active
+  statement: Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF required on every cookie-authenticated mutation, per-IP failed-login throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default (production requires an explicit REQAML_TRUSTED_PROXIES list), auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, JWT signature verify before access-token revocation, normalized usernames.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-23
+    verification_note: 'security_meta mint: inheritable SC-23 for uses inheritance seed bed.'
+  statement_hash: sha256:f5ebe525628150baa5e42b194b775edc62e7f2f69bcf6efb53da28bff7accbb6
+  grooming_state: detailed
+  mint_kind: security_meta
+  verification_outcome: pass
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -9719,6 +9793,24 @@ capability_artifacts:
 - requirement_version_uid: CAP-REQALM-CONTRACTS
   kind: other
   uri: ../../../docs/design/HANDOFF.md
+- requirement_version_uid: CAP-TRACE-INHERIT-USES
+  kind: other
+  uri: ../../../apps/reqalm/src/db/migrations/011_trace_edges_inheritable.sql
+- requirement_version_uid: CAP-TRACE-INHERIT-USES
+  kind: other
+  uri: ../../../apps/reqalm/src/seed/load-dogfood.ts
+- requirement_version_uid: CAP-TRACE-INHERIT-USES
+  kind: other
+  uri: ../../../apps/reqalm/src/seed/load-dogfood-edges.test.ts
+- requirement_version_uid: CAP-TRACE-INHERIT-USES
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_trace_inherit_uses_release.py
+- requirement_version_uid: CAP-TRACE-INHERIT-USES
+  kind: other
+  uri: ../../../docs/design/seed/reqseed.schema.json
+- requirement_version_uid: CAP-TRACE-INHERIT-USES
+  kind: other
+  uri: ../../../docs/design/seed/schema.md
 edges:
 - from: CAP-SSO
   to: A01
@@ -15318,7 +15410,7 @@ edges:
   trace_suspect: true
   suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-OPERATION-ROUTE
-  to: CAP-SVC-OPERATION-EXECUTOR
+  to: CAP-SVC-OPERATION-EXECUTOR.1
   kind: uses
 - from: CAP-SVC-BUSINESS-ROUTE-AUDIT
   to: CAP-SVC-ROUTE-REGISTRY
@@ -15939,6 +16031,87 @@ edges:
   to: CM-2
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-OPERATION-EXECUTOR.1
+  to: CAP-SVC-OPERATION-EXECUTOR
+  kind: refines
+- from: CAP-AUTH-HARDEN.1
+  to: CAP-AUTH-HARDEN
+  kind: refines
+- from: CAP-AUTH-HARDEN.1
+  to: ARCH-AUTH-AS
+  kind: satisfies
+- from: CAP-AUTH-HARDEN.1
+  to: ARCH-CRED-LOCKOUT
+  kind: satisfies
+- from: CAP-SVC-OPERATION-EXECUTOR.1
+  to: ARCH-API-RBAC
+  kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
+- from: CAP-SVC-OPERATION-EXECUTOR.1
+  to: CAP-RBAC
+  kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (CAP-RBAC)
+- from: ARCH-TRACE-INHERIT-USES
+  to: PL-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-TRACE-INHERIT-USES
+  to: PM-10
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-TRACE-INHERIT-USES
+  to: CA-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-TRACE-INHERIT-USES
+  to: SA-17
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-TRACE-INHERIT-HYBRID
+  to: PL-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-TRACE-INHERIT-HYBRID
+  to: CA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-TRACE-INHERIT-USES
+  to: ARCH-TRACE-RECHECK
+  kind: refines
+- from: ARCH-TRACE-INHERIT-USES
+  to: ARCH-HIER-USES-DEP
+  kind: refines
+- from: ARCH-TRACE-INHERIT-HYBRID
+  to: ARCH-TRACE-INHERIT-USES
+  kind: refines
+- from: CAP-SVC-OPERATION-EXECUTOR.1
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  inheritable: true
+- from: CAP-SVC-OPERATION-EXECUTOR.1
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  inheritable: true
+- from: CAP-SVC-OPERATION-EXECUTOR.1
+  to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  inheritable: true
+- from: CAP-AUTH-HARDEN.1
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  inheritable: true
+- from: CAP-UI-FRAME.1
+  to: CAP-SVC-OPERATION-EXECUTOR.1
+  kind: uses
+- from: CAP-UI-FRAME.1
+  to: CAP-AUTH-HARDEN.1
+  kind: uses
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -16138,6 +16311,7 @@ contracts:
   - rel-r1-service-foundation
   - rel-r1-test-harness
   - rel-r1-test-hygiene
+  - rel-r1-trace-inherit-uses
   - rel-r1-ui-header-nav
   in_scope_of:
   - A01
@@ -16263,6 +16437,8 @@ contracts:
   - ARCH-SUSPECT-QUEUE
   - ARCH-SUSPECT.1
   - ARCH-TEST-HARNESS-TEARDOWN
+  - ARCH-TRACE-INHERIT-HYBRID
+  - ARCH-TRACE-INHERIT-USES
   - ARCH-TRACE-LAYOUT-WORKER
   - ARCH-TRACE-RECHECK
   - ARCH-TRACE-VIEW-CCM
@@ -16303,7 +16479,7 @@ contracts:
   - CAP-API-DOCS-SEED-SUMMARY
   - CAP-AUDIT
   - CAP-AUTH-AUDIT
-  - CAP-AUTH-HARDEN
+  - CAP-AUTH-HARDEN.1
   - CAP-AUTH-UPSTREAM-SEAM
   - CAP-BROWSE-CP
   - CAP-BROWSE-ROADMAP
@@ -16358,7 +16534,7 @@ contracts:
   - CAP-SVC-IMPLICIT-PUBLIC-EXACT
   - CAP-SVC-MODULE-BOOTSTRAP
   - CAP-SVC-NON-API-AUTH-AUDIT
-  - CAP-SVC-OPERATION-EXECUTOR
+  - CAP-SVC-OPERATION-EXECUTOR.1
   - CAP-SVC-OPERATION-ROUTE
   - CAP-SVC-PROBLEM-JSON
   - CAP-SVC-PROJECT-ID-SLUG
@@ -16374,6 +16550,7 @@ contracts:
   - CAP-TEST-PGLITE-DB
   - CAP-TEST-PNPM-GATE
   - CAP-TEST-PROD-BUILD-EXCLUDE
+  - CAP-TRACE-INHERIT-USES
   - CAP-TREE
   - CAP-UI-FRAME.1
   - CAP-UI-HEADER-NAV
@@ -16672,8 +16849,7 @@ releases:
   - CAP-OAUTH-AS
   - CAP-RBAC
   - CAP-UI-FRAME
-  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/13 merged to main as 45d4c3f2aabcd94b910752d256b38b2c97abeee0 on 2026-10-07. Shipped: UI frame + internal OAuth AS (see delivers). Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max /
-    Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass. Deferred items moved to rel-r1-platform-followups (federation, break-glass, full step-up session UX, FIPS, etc.).'
+  notes: 'One PR = one release. https://github.com/danrabydev/sdoc-intake/pull/13 merged to main as 45d4c3f2aabcd94b910752d256b38b2c97abeee0 on 2026-10-07. Shipped: UI frame + internal OAuth AS (see delivers). Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass. Deferred items moved to rel-r1-platform-followups (federation, break-glass, full step-up session UX, FIPS, etc.).'
 - id: rel-r1-core-alm
   project_id: reqalm
   name: R1-core-ALM
@@ -17059,12 +17235,22 @@ releases:
   project_id: reqalm
   name: R1 — ReqALM product and maintenance contracts (seed)
   planned_on: '2026-10-09'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-09'
+  status: shipped
   delivers:
   - CAP-REQALM-CONTRACTS
   cyber_gate: false
-  notes: 'Seed-only: ctr-reqalm-product / ctr-reqalm-maintenance, SYS-CYBER-UPKEEP + CAP-UPKEEP-*, ships rel-r1-ui-header-nav at dd43cc1523544d0f6375a628bc9d7d45a31fa738.'
+  notes: 'PR #38 merged to main as 88df54dea5c8d2bfd895e2613b17dbf2c5b3405f on 2026-10-09. ReqALM product/maintenance contracts seed (ctr-reqalm-product, ctr-reqalm-maintenance, CAP-UPKEEP-*).'
+- id: rel-r1-trace-inherit-uses
+  project_id: reqalm
+  name: R1 — trace inheritable controls over uses
+  planned_on: '2026-10-09'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-TRACE-INHERIT-USES
+  cyber_gate: false
+  notes: 'Loader column trace_edges.inheritable + seed beds (ARCH-TRACE-INHERIT-*). Ships rel-r1-reqalm-contracts at PR #38 merge 88df54dea5c8d2bfd895e2613b17dbf2c5b3405f.'
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

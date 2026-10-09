@@ -91,6 +91,7 @@ def validate(data: dict[str, Any]) -> list[str]:
         if parent is not None and parent not in base_uids:
             errs.append(f"line {bu}: parent {parent!r} is not a line base_uid")
 
+    active_by_base: dict[str, list[str]] = {}
     for ver in versions:
         uid = ver.get("uid")
         base = ver.get("base_uid")
@@ -100,6 +101,8 @@ def validate(data: dict[str, Any]) -> list[str]:
             errs.append(f"version {uid}: base_uid {base!r} has no line")
         if status not in ("draft", "active", "superseded", "obsolete", "withdrawn"):
             errs.append(f"version {uid}: invalid status {status!r}")
+        if status == "active" and base:
+            active_by_base.setdefault(str(base), []).append(str(uid))
         if not isinstance(vn, int) or vn < 0:
             errs.append(f"version {uid}: version_n must be int >= 0")
         if vn == 0:
@@ -111,6 +114,12 @@ def validate(data: dict[str, Any]) -> list[str]:
             expected = f"{base}.{vn}"
             if uid != expected:
                 errs.append(f"version {uid}: expected uid {expected!r} for version_n={vn}")
+
+    for base, uids in active_by_base.items():
+        if len(uids) > 1:
+            errs.append(
+                f"line {base}: {len(uids)} active versions {uids} (≤1 active invariant / FIX-DENY-SECOND-ACTIVE)"
+            )
 
     imprint_ids = {
         imp.get("id") for imp in (data.get("catalog_imprints") or []) if imp.get("id")
@@ -303,8 +312,9 @@ def emit_requirement_version(
             if key in allowed_role_edges:
                 parent_outgoing.append(e)
                 if imprint and e.get("kind") == "conforms_to":
+                    inh = " inheritable" if e.get("inheritable") else ""
                     cmt.append(
-                        f"edge: → conforms_to to {e['to']} (pin imprint={imprint})"
+                        f"edge: → conforms_to to {e['to']} (pin imprint={imprint}{inh})"
                     )
             elif key in child_role_edges:
                 child_outgoing.append(e)

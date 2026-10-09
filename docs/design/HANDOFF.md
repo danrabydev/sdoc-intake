@@ -80,3 +80,20 @@ Last updated for seed **ReqALM contracts** on **main @ `dd43cc1`** (2026-10-09).
 - **Source of truth:** `docs/design/seed/dogfood.yaml` + regenerated `docs/design/seed/out/`
 
 When continuing in Cursor: read `dogfood.yaml` releases and `ARCH-BROWSE-ROADMAP` first; pick the next **planned** release; implement; update seed via a dedicated `patch_*_release.py`; validate and test.
+
+## Addendum — main @ `88df54d` (2026-10-09, PR #38 merged)
+
+- **Merged on main:** **PR #38** — product + maintenance contracts seed (`rel-r1-reqalm-contracts` / `CAP-REQALM-CONTRACTS` at merge **`88df54dea5c8d2bfd895e2613b17dbf2c5b3405f`**).
+- **Parallel PR pair (rule 3):** PR #39 ships **`rel-r1-reqalm-contracts`** at that full merge SHA when landing inherit-uses seed (no partial pins).
+
+## Addendum — inherit-uses common control (PR #39, branch `cursor/inherit-uses-controls-0606`)
+
+- **Release (planned):** `rel-r1-trace-inherit-uses` → **`CAP-TRACE-INHERIT-USES`**.
+- **Architecture:** **`ARCH-TRACE-INHERIT-USES`**, **`ARCH-TRACE-INHERIT-HYBRID`** (Cyber 2026-10-09 text, `rbac_op: trace:edit`).
+- **Seed beds:** `CAP-SVC-OPERATION-EXECUTOR.1` / `CAP-AUTH-HARDEN.1` supersede v0; inheritable `conforms_to` pins; **`uses`** from `CAP-UI-FRAME.1` and route executor; product contract `in_scope_of` refreshed to **active tips** (not superseded v0).
+- **Patch (idempotent, run after `patch_reqalm_contracts_release.py`):** `docs/design/seed/scripts/patch_trace_inherit_uses_release.py` — also marks **`rel-r1-reqalm-contracts`** shipped at **`88df54d`**; idempotent re-run on `origin/main` dogfood → zero diff.
+- **Loader:** migration `011_trace_edges_inheritable.sql`; `trace_edges.inheritable` on capability `conforms_to` only; validate **≤1 active version per line** in `yaml_to_strictdoc.py`.
+- **Schema:** edge field **`inheritable`** (see `schema.md` / `reqseed.schema.json`); contract **`covers_releases`** / **`notes`** unchanged from PR #38.
+- **Deferred:** read-time inherited + hybrid control display (follow-on PR after loader merge).
+
+When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `dogfood.yaml` first; keep read API inheritance for the next small PR.

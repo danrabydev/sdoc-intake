@@ -917,6 +917,7 @@ edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← refines from CAP-RBAC.1
+edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -1081,6 +1082,7 @@ edge: ← refines from ARCH-AUTH-PROFILE
 edge: ← refines from ARCH-AUTH-MCP-REQUIRED
 edge: ← satisfies from CAP-OAUTH-AS
 edge: ← satisfies from CAP-AUTH-HARDEN
+edge: ← satisfies from CAP-AUTH-HARDEN.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -2270,7 +2272,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-AUTH-HARDEN
-STATUS: Active
+STATUS: Draft
 TITLE: Auth hardening: handoffs, BFF session, throttle, prod issuer
 STATEMENT: >>>
 Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF required on every cookie-authenticated mutation, per-IP failed-login throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default (production requires an explicit REQAML_TRUSTED_PROXIES list), auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, JWT signature verify before access-token revocation, normalized usernames.
@@ -2283,7 +2285,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: SC-23
 security.verification_note: SC-23 session/OAuth hardening. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
-in_scope_of_contract: ReqALM product (build)
+edge: ← refines from CAP-AUTH-HARDEN.1
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2300,11 +2302,46 @@ RELATIONS:
   VALUE: SC-23
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
-- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-AUTH-HARDEN.1
+STATUS: Active
+TITLE: Auth hardening: handoffs, BFF session, throttle, prod issuer
+STATEMENT: >>>
+Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF required on every cookie-authenticated mutation, per-IP failed-login throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default (production requires an explicit REQAML_TRUSTED_PROXIES list), auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, JWT signature verify before access-token revocation, normalized usernames.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-AUTH-HARDEN
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: SC-23
+security.verification_note: security_meta mint: inheritable SC-23 for uses inheritance seed bed.
+edge: ← uses from CAP-UI-FRAME.1
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006 inheritable)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: CAP-AUTH-HARDEN
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CRED-LOCKOUT
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: SC-23
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 
 [REQUIREMENT]
 UID: CAP-TEST-AUTH-ROUTES
@@ -5160,6 +5197,7 @@ security.catalog_ref: CM-3
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 edge: ← uses from ARCH-HIER-USES-DEP
 edge: ← uses from ARCH-SUSPECT.1
+edge: ← refines from ARCH-TRACE-INHERIT-USES
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -5187,6 +5225,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Groomed 2026-10-09; pre-write or UI track. rbac_op trace:edit proposed for future trace mutation routes.
+edge: ← refines from ARCH-TRACE-INHERIT-USES
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -5339,6 +5378,118 @@ RELATIONS:
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: ARCH-TRACE-INHERIT-USES
+STATUS: Draft
+TITLE: Inherited controls over uses edges (common-control model)
+STATEMENT: >>>
+A provider capability version may mark any of its conforms_to pins inheritable (common control, NIST SP 800-53 Rev. 5 PL-2/PM-10 common-control designation). A consumer capability version that uses the provider inherits each inheritable pin and shows it as "inherited via uses <provider>". Rules: (1) Only capability-to-capability uses edges carry inheritance; uses edges from or to requirement lines remain dependency-only per ARCH-HIER-USES-DEP. (2) Only pins on the provider line's current active version that is shipped or verification_outcome=pass are inheritable; draft, superseded, obsolete or withdrawn provider versions supply nothing. (3) A control whose provider verification is fail, pending, or not assessed is not inherited; the consumer shows it "provider not-pass" and the control stays incomplete for the consumer. (4) Inheritance is one hop. A provider re-exports a control it inherited only when its own conforms_to pin for that control is marked inheritable (that is, it takes ownership of the control). (5) Any content, status, or verification change on the provider line, or a change to its inheritable set, flags needs re-check (trace_suspect) on every consumer for the affected controls only, per ARCH-TRACE-RECHECK. (6) Cross-project or restricted providers follow existing scope rules: a consumer without read grant on the provider project sees the inherited control id and the state "inherited (provider restricted)", but not the provider uid, statement, or evidence.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-TRACE-INHERIT-USES
+VERSION_N: 0
+rbac_op: trace:edit
+priority: 15
+iteration: iter-r1
+security.catalog_ref: PL-2
+security.verification_note: Cyber 2026-10-09 inherit-uses mapping; common-control model per SP 800-53 Rev5 PL-2, PM-10, CA-2, SA-9.
+edge: ← refines from ARCH-TRACE-INHERIT-HYBRID
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to PL-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to PM-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CA-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SA-17 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: PL-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: PM-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CA-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SA-17
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-TRACE-RECHECK
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-HIER-USES-DEP
+  ROLE: Refines
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: ARCH-TRACE-INHERIT-HYBRID
+STATUS: Draft
+TITLE: Hybrid controls (provider-supplied plus consumer direct link)
+STATEMENT: >>>
+When a consumer capability both inherits a control via uses and has its own direct conforms_to pin for the same control, the control is hybrid for that consumer: the provider supplies the shared part and the consumer adds or overrides the rest (for example a custom session timeout). The consumer's direct pin wins for display and for the consumer's verification state, labeled "hybrid (via <provider>)". Hybrid counts once per consumer and control. A provider change still flags the hybrid control for re-check on the consumer. Removing the direct pin returns the control to inherited; removing the provider inheritable mark returns it to direct-only.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-TRACE-INHERIT-HYBRID
+VERSION_N: 0
+rbac_op: trace:edit
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CA-2
+security.verification_note: Cyber 2026-10-09; hybrid control per SP 800-53 Rev5 PL-2 discussion (common, hybrid, system-specific).
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to PL-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: PL-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-TRACE-INHERIT-USES
+  ROLE: Refines
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-TRACE-INHERIT-USES
+STATUS: Draft
+TITLE: Trace inheritable ConformsTo loader + seed beds
+STATEMENT: >>>
+Dogfood seed loader persists trace_edges.inheritable on capability conforms_to pins; validation rejects inheritable on non-capability sources or non-conforms_to edges. Read APIs resolve inherited and hybrid control state at read time in a follow-on PR.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-TRACE-INHERIT-USES
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until inherit-uses loader PR merges.
+in_scope_of_contract: ReqALM product (build)
+delivered_by_release: R1 — trace inheritable controls over uses
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-trace-inherit-uses
+  ROLE: Delivers
 
 [[/SECTION]]
 
@@ -5980,7 +6131,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-REQALM-CONTRACTS
-STATUS: Draft
+STATUS: Active
 TITLE: ReqALM product and maintenance contracts (seed)
 STATEMENT: >>>
 Seed-only contract overlay pass: ReqALM product contract (ctr-reqalm-product) covers all reqalm releases via covers_releases; in_scope_of pins active reqalm capability/requirement tips; maintenance contract (ctr-reqalm-maintenance) owns draft CAP-UPKEEP-* capabilities satisfying SYS-CYBER-UPKEEP. Regenerates docs/design/seed/out/, schema docs, and HANDOFF.md. No application runtime changes.
@@ -5992,7 +6143,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until ReqALM contracts seed PR merges.
+security.verification_note: Shipped with ReqALM contracts seed PR #38 (merge 88df54dea5c8d2bfd895e2613b17dbf2c5b3405f).
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — ReqALM product and maintenance contracts (seed)
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -10436,6 +10587,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AC-3
   ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-EXECUTOR.1
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CAP-AUTH-HARDEN.1
+  ROLE: Uses
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
@@ -10922,6 +11079,7 @@ edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
 edge: ← refines from ARCH-API-RBAC.1
 edge: ← satisfies from CAP-CATALOGS-API
+edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -11160,7 +11318,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-OPERATION-EXECUTOR
-STATUS: Active
+STATUS: Draft
 TITLE: Operation executor (authorize → execute → audit → log)
 STATEMENT: >>>
 runOperation enforces RBAC + project scope, writes audit_events, structured logs, returns ServiceResult.
@@ -11173,8 +11331,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
-edge: ← uses from CAP-SVC-OPERATION-ROUTE
-in_scope_of_contract: ReqALM product (build)
+edge: ← refines from CAP-SVC-OPERATION-EXECUTOR.1
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -11187,11 +11344,55 @@ RELATIONS:
   VALUE: CAP-RBAC
   ROLE: Satisfies
 - TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
-- TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-OPERATION-EXECUTOR.1
+STATUS: Active
+TITLE: Operation executor (authorize → execute → audit → log)
+STATEMENT: >>>
+runOperation enforces RBAC + project scope, writes audit_events, structured logs, returns ServiceResult.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-OPERATION-EXECUTOR
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Pin mint: inheritable AC-3, AU-2, AU-12 for uses inheritance seed bed.
+edge: ← uses from CAP-SVC-OPERATION-ROUTE
+edge: ← uses from CAP-UI-FRAME.1
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006 inheritable)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006 inheritable)
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006 inheritable)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-EXECUTOR
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 
 [REQUIREMENT]
 UID: CAP-SVC-AUDIT-APPEND
@@ -11633,7 +11834,7 @@ RELATIONS:
   VALUE: ARCH-API-RBAC
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: CAP-SVC-OPERATION-EXECUTOR
+  VALUE: CAP-SVC-OPERATION-EXECUTOR.1
   ROLE: Uses
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-product
@@ -12495,6 +12696,7 @@ edge: ← satisfies from CAP-CRED-STORE
 edge: ← satisfies from CAP-AUTH-HARDEN
 edge: ← satisfies from CAP-TEST-AUTH-ROUTES
 edge: ← satisfies from CAP-TEST-AUTH-HYGIENE
+edge: ← satisfies from CAP-AUTH-HARDEN.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
