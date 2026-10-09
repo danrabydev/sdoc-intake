@@ -453,6 +453,9 @@ def prune_legacy_grooming_edges(data) -> None:
         ("ARCH-WRITE-RESERVED-IDS", "SEC-API", "refines"),
         ("ARCH-KEY-RUNTIME-CACHE", "ARCH-KEY", "refines"),
         ("ARCH-TEST-HARNESS-TEARDOWN", "SEC-BUILD", "refines"),
+        ("CAP-UI-KIT-TREE", "CAP-UI-KIT", "refines"),
+        ("CAP-UI-KIT-CHROME", "CAP-UI-KIT", "refines"),
+        ("ARCH-HIER-CAP-PARTOF", "ARCH-CP-HIER", "refines"),
         ("CAP-BROWSE-ROADMAP", "K03", "satisfies"),
         ("CAP-SEED-GROOMING", "K03", "satisfies"),
         ("CAP-RELATIONS-API", "ARCH-SEC-EDGE-DEDUPE-DB", "satisfies"),
@@ -462,6 +465,38 @@ def prune_legacy_grooming_edges(data) -> None:
     ]
     for frm, to, kind in noise:
         remove_edge(edges, {"from": frm, "to": to, "kind": kind})
+
+
+# Upstream refines: each groomed ARCH requirement → an existing requirement it elaborates.
+ARCH_UPSTREAM_REFINES: list[tuple[str, str]] = [
+    ("ARCH-REQ-AC-FACET", "ARCH-VERIFICATION"),
+    ("ARCH-TRACE-RECHECK", "ARCH-SUSPECT"),
+    ("ARCH-CAT-EXTERNAL", "ARCH-CAT-IMPRINT"),
+    ("ARCH-TRACE-LAYOUT-WORKER", "E06"),
+    ("ARCH-HIER-CAP-PARTOF", "ARCH-CAP-LINK"),
+    ("ARCH-HIER-USES-DEP", "E03"),
+    ("ARCH-HIER-SECTION-GROUP", "ARCH-SUBJECT-KIND"),
+    ("ARCH-UI-KIT-SHARED", "ARCH-UI"),
+    ("ARCH-BROWSE-ROADMAP", "C07"),
+    ("ARCH-SEC-EDGE-DEDUPE-DB", "E04"),
+    ("ARCH-SEC-EDGE-DEDUPE-API", "E04"),
+    ("ARCH-SEC-SEED-INTEGRITY", "ARCH-DEVENV-SEED"),
+    ("ARCH-SEC-XPROJ-READ", "ARCH-API-RBAC"),
+    ("ARCH-SEC-REL-STUB", "E06"),
+    ("ARCH-SEC-REL-PAGING", "ARCH-API"),
+    ("ARCH-SEC-CAT-FK", "ARCH-CAT-SCOPE"),
+    ("ARCH-SEC-LOADER-EDGE-SYNC", "ARCH-DEVENV-SEED"),
+    ("ARCH-SEC-CAT-LABEL-IMPRINT", "ARCH-CAT-PIN"),
+    ("ARCH-SEC-HEADERS", "ARCH-API"),
+    ("ARCH-WRITE-UOW-AUDIT", "ARCH-CRED-AUDIT"),
+    ("ARCH-WRITE-REPOSITORY-LAYER", "ARCH-API-LAYERS"),
+    ("ARCH-WRITE-TRUNCATE-GUARD", "ARCH-API-RBAC"),
+    ("ARCH-WRITE-AUDIT-FLOOD", "ARCH-CRED-AUDIT"),
+    ("ARCH-WRITE-VERSION-UNIQUE", "ARCH-VER"),
+    ("ARCH-WRITE-RESERVED-IDS", "ARCH-MINT-KIND"),
+    ("ARCH-KEY-RUNTIME-CACHE", "ARCH-KEY-LIFECYCLE"),
+    ("ARCH-TEST-HARNESS-TEARDOWN", "ARCH-BUILD-FOUNDATION"),
+]
 
 
 def wire_architecture_edges(data) -> None:
@@ -475,15 +510,12 @@ def wire_architecture_edges(data) -> None:
         ("ARCH-CAT-VISIBILITY", "H09", "refines"),
         ("ARCH-CAT-PROJECT-ROLLUP", "ARCH-CAT-EXTERNAL", "refines"),
         ("ARCH-HIER-REQ-DECOMP", "C01", "refines"),
-        ("ARCH-HIER-CAP-PARTOF", "ARCH-CP-HIER", "refines"),
         ("ARCH-TRACE-VIEW-RTM", "CAP-UI-KIT-TREE", "uses"),
         ("ARCH-TRACE-VIEW-CCM", "CAP-UI-KIT-TREE", "uses"),
         ("CAP-UI-KIT", "ARCH-UI-KIT-SHARED", "satisfies"),
         ("CAP-UI-KIT", "ARCH-UI", "satisfies"),
         ("CAP-UI-KIT", "C07", "satisfies"),
-        ("CAP-UI-KIT-TREE", "CAP-UI-KIT", "refines"),
         ("CAP-UI-KIT-TREE", "ARCH-UI-KIT-SHARED", "satisfies"),
-        ("CAP-UI-KIT-CHROME", "CAP-UI-KIT", "refines"),
         ("CAP-UI-KIT-CHROME", "ARCH-UI-KIT-SHARED", "satisfies"),
         ("CAP-BROWSE-ROADMAP", "ARCH-BROWSE-ROADMAP", "satisfies"),
         ("CAP-BROWSE-UI-TREE", "CAP-UI-KIT-TREE", "uses"),
@@ -492,6 +524,8 @@ def wire_architecture_edges(data) -> None:
     ]
     for frm, to, kind in pairs:
         ensure_edge(edges, {"from": frm, "to": to, "kind": kind})
+    for frm, to in ARCH_UPSTREAM_REFINES:
+        ensure_edge(edges, {"from": frm, "to": to, "kind": "refines"})
 
 
 # --- requirement bodies (shall statements) ---
@@ -680,7 +714,7 @@ def main() -> None:
         "ARCH-WRITE-AUDIT-FLOOD": "AU-9",
         "ARCH-WRITE-TRUNCATE-GUARD": "CM-6",
         "ARCH-KEY-RUNTIME-CACHE": "SC-12",
-        "ARCH-TRACE-RECHECK": "AU-9",
+        "ARCH-TRACE-RECHECK": "CM-3",
     }
     arch_reqs = [
         ("ARCH-REQ-AC-FACET", "SEC-RL", "Acceptance criteria facets", REQ_ACCEPT_FACET, "requirement:tree:read"),

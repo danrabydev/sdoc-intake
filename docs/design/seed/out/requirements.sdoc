@@ -2646,7 +2646,6 @@ edge: ← uses from ARCH-UI
 edge: ← refines from A03
 edge: ← refines from B04
 edge: ← satisfies from CAP-BROWSE-CP
-edge: ← refines from ARCH-HIER-CAP-PARTOF
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -2773,7 +2772,7 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-CP-HIER
 - TYPE: Parent
-  VALUE: ARCH-CP-HIER
+  VALUE: ARCH-CAP-LINK
   ROLE: Refines
 
 [REQUIREMENT]
@@ -2796,6 +2795,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-CP-HIER
+- TYPE: Parent
+  VALUE: ARCH-SUBJECT-KIND
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -3341,6 +3343,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-UI-KIT
+edge: ← refines from ARCH-BROWSE-ROADMAP
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3929,6 +3932,7 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from ARCH-API
 edge: ← uses from C03
 edge: ← uses from FIX-ALLOW-STATUS-SUPERSEDE
+edge: ← refines from ARCH-WRITE-VERSION-UNIQUE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -4144,6 +4148,7 @@ priority: 25
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Soft/v1 verification_outcome; Tester sets. Does not block ship unless future policy.
+edge: ← refines from ARCH-REQ-AC-FACET
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4314,6 +4319,9 @@ edge: ← refines from ARCH-REQ-AC-ROLLUP
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-RL
+- TYPE: Parent
+  VALUE: ARCH-VERIFICATION
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-REQ-AC-ROLLUP
@@ -4462,6 +4470,7 @@ priority: 30
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from ARCH-HIER-USES-DEP
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4500,6 +4509,8 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← refines from I02
+edge: ← refines from ARCH-SEC-EDGE-DEDUPE-DB
+edge: ← refines from ARCH-SEC-EDGE-DEDUPE-API
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → uses to I02 (RELATIONS TYPE: Child; Parent would cycle)
@@ -4591,6 +4602,8 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-RELATIONS-API
 edge: ← refines from ARCH-TRACE-VIEW-RTM
 edge: ← refines from ARCH-TRACE-VIEW-CCM
+edge: ← refines from ARCH-TRACE-LAYOUT-WORKER
+edge: ← refines from ARCH-SEC-REL-STUB
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4710,7 +4723,7 @@ VERSION_N: 0
 rbac_op: trace:suspect
 priority: 15
 iteration: iter-r1
-security.catalog_ref: AU-9
+security.catalog_ref: CM-3
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 edge: ← uses from ARCH-SUSPECT
 edge: ← uses from ARCH-HIER-USES-DEP
@@ -4718,6 +4731,9 @@ edge: ← uses from ARCH-HIER-USES-DEP
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: ARCH-SUSPECT
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-HIER-USES-DEP
@@ -4741,6 +4757,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-TRACE-RECHECK
   ROLE: Uses
+- TYPE: Parent
+  VALUE: E03
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-SEC-EDGE-DEDUPE-DB
@@ -4761,6 +4780,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: E04
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-SEC-EDGE-DEDUPE-API
@@ -4781,6 +4803,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: E04
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-SEC-XPROJ-READ
@@ -4802,6 +4827,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-SEC-REL-STUB
@@ -4823,6 +4851,9 @@ edge: ← satisfies from CAP-RELATIONS-API
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: E06
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-SEC-REL-PAGING
@@ -4844,6 +4875,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -6087,6 +6121,7 @@ security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← uses from ARCH-CAT-PIN
 edge: ← uses from ARCH-CAT-IMPORT
+edge: ← refines from ARCH-CAT-EXTERNAL
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -6126,6 +6161,7 @@ security.verification_note: Catalog steward gates; standard catalogs imprint-pub
 edge: ← uses from ARCH-CAT-REACT
 edge: ← uses from ARCH-CAT-FREEZE
 edge: ← uses from ARCH-CAT-MIGRATE
+edge: ← refines from ARCH-SEC-CAT-LABEL-IMPRINT
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -6327,6 +6363,7 @@ priority: 40
 iteration: iter-r1
 security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
+edge: ← refines from ARCH-SEC-CAT-FK
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -6724,6 +6761,9 @@ edge: ← refines from ARCH-CAT-PROJECT-ROLLUP
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-CAT
+- TYPE: Parent
+  VALUE: ARCH-CAT-IMPRINT
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-CAT-PROJECT-ROLLUP
@@ -6792,6 +6832,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-CAT
+- TYPE: Parent
+  VALUE: ARCH-CAT-SCOPE
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-SEC-CAT-LABEL-IMPRINT
@@ -6812,6 +6855,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-CAT
+- TYPE: Parent
+  VALUE: ARCH-CAT-PIN
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -8123,6 +8169,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-IO
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-SEC-LOADER-EDGE-SYNC
@@ -8143,6 +8192,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-IO
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -8974,6 +9026,7 @@ edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 edge: ← satisfies from CAP-BROWSE-UI-TREE
 edge: ← satisfies from CAP-UI-FRAME.1
 edge: ← satisfies from CAP-UI-KIT
+edge: ← refines from ARCH-UI-KIT-SHARED
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -9349,6 +9402,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: E06
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-UI-KIT-SHARED
@@ -9372,6 +9428,9 @@ edge: ← satisfies from CAP-UI-KIT-CHROME
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-BROWSE-ROADMAP
@@ -9395,6 +9454,9 @@ edge: ← satisfies from CAP-BROWSE-ROADMAP
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: C07
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: CAP-UI-KIT
@@ -9411,8 +9473,6 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned; not shipped on main.
-edge: ← refines from CAP-UI-KIT-TREE
-edge: ← refines from CAP-UI-KIT-CHROME
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -9454,9 +9514,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-UI-KIT
 - TYPE: Parent
-  VALUE: CAP-UI-KIT
-  ROLE: Refines
-- TYPE: Parent
   VALUE: ARCH-UI-KIT-SHARED
   ROLE: Satisfies
 
@@ -9479,9 +9536,6 @@ security.verification_note: Planned; tree browse exists in CAP-BROWSE-UI-TREE wi
 RELATIONS:
 - TYPE: Parent
   VALUE: CAP-UI-KIT
-- TYPE: Parent
-  VALUE: CAP-UI-KIT
-  ROLE: Refines
 - TYPE: Parent
   VALUE: ARCH-UI-KIT-SHARED
   ROLE: Satisfies
@@ -9590,6 +9644,8 @@ edge: ← uses from ARCH-DEPLOY-MINIMAL
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-API-DOCS-SEED-SUMMARY
 edge: ← satisfies from CAP-SVC-RESULT-ENVELOPE
+edge: ← refines from ARCH-SEC-REL-PAGING
+edge: ← refines from ARCH-SEC-HEADERS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -9666,6 +9722,8 @@ edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-RBAC.1
+edge: ← refines from ARCH-SEC-XPROJ-READ
+edge: ← refines from ARCH-WRITE-TRUNCATE-GUARD
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -9721,6 +9779,7 @@ edge: ← satisfies from CAP-SVC-RESULT-ENVELOPE
 edge: ← satisfies from CAP-SVC-REQUEST-CONTEXT
 edge: ← satisfies from CAP-SVC-MODULE-BOOTSTRAP
 edge: ← satisfies from CAP-SVC-OPERATION-ROUTE
+edge: ← refines from ARCH-WRITE-REPOSITORY-LAYER
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
@@ -10489,6 +10548,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-CRED-AUDIT
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-WRITE-REPOSITORY-LAYER
@@ -10509,6 +10571,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-API-LAYERS
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-WRITE-TRUNCATE-GUARD
@@ -10529,6 +10594,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-WRITE-AUDIT-FLOOD
@@ -10549,6 +10617,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-CRED-AUDIT
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-WRITE-VERSION-UNIQUE
@@ -10569,6 +10640,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-VER
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-WRITE-RESERVED-IDS
@@ -10589,6 +10663,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-MINT-KIND
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -11235,6 +11312,8 @@ edge: ← uses from ARCH-AUTH-AS
 edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← refines from ARCH-AUTH-AGENT-ATTRIBUTION
 edge: ← satisfies from CAP-AUTH-AUDIT
+edge: ← refines from ARCH-WRITE-UOW-AUDIT
+edge: ← refines from ARCH-WRITE-AUDIT-FLOOD
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11509,6 +11588,7 @@ security.catalog_ref: SC-12
 security.verification_note: SC-12 / SC-12(2) / SC-12(3); AU-2.
 edge: ← uses from FIX-ALLOW-KEK-REWRAP-ONLINE
 edge: ← satisfies from CAP-KEY-ENVELOPE
+edge: ← refines from ARCH-KEY-RUNTIME-CACHE
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12.2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11740,6 +11820,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY-LIFECYCLE
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -11890,6 +11973,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -14953,6 +15039,7 @@ priority: 15
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from ARCH-HIER-SECTION-GROUP
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15232,6 +15319,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from ARCH-HIER-CAP-PARTOF
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15387,6 +15475,7 @@ security.catalog_ref: CM-3
 security.verification_note: CM-3 change control; mint kinds / succession.
 edge: ← uses from FIX-DENY-NOOP-CONTENT
 edge: ← uses from FIX-ALLOW-PIN-MIGRATE-MINT
+edge: ← refines from ARCH-WRITE-RESERVED-IDS
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15433,11 +15522,13 @@ security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 workflow / approval / suspect audit.
 edge: ← uses from FIX-SUSPECT-ON-CONTENT-N
 edge: ← uses from FIX-DENY-SHIP-WITH-OPEN-SUSPECT
+edge: ← refines from ARCH-TRACE-RECHECK
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → uses to ARCH-TRACE-RECHECK (RELATIONS TYPE: Child; Parent would cycle)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -15457,7 +15548,7 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-SUCCESSION-HASH
   ROLE: Uses
-- TYPE: Parent
+- TYPE: Child
   VALUE: ARCH-TRACE-RECHECK
   ROLE: Uses
 - TYPE: Child
@@ -15788,6 +15879,8 @@ edge: ← uses from FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
 edge: ← uses from ARCH-DEVENV-IDENTITY.1
 edge: ← satisfies from CAP-DEVENV-MIGRATE-SEED
 edge: ← satisfies from CAP-DEVENV-SEED-RESET
+edge: ← refines from ARCH-SEC-SEED-INTEGRITY
+edge: ← refines from ARCH-SEC-LOADER-EDGE-SYNC
 delivered_by_release: PR #12 — devenv foundation
 edge: → uses to ARCH-DEVENV-CLONE (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -16720,6 +16813,7 @@ security.verification_note: SA-8 security engineering: security foundations buil
 edge: ← satisfies from CAP-TEST-PGLITE-DB
 edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE
 edge: ← satisfies from CAP-RENAME-REQALM
+edge: ← refines from ARCH-TEST-HARNESS-TEARDOWN
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16848,5 +16942,8 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-BUILD
+- TYPE: Parent
+  VALUE: ARCH-BUILD-FOUNDATION
+  ROLE: Refines
 
 [[/SECTION]]

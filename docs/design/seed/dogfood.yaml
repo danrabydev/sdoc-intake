@@ -8181,7 +8181,7 @@ requirement_versions:
   priority: 15
   iteration: iter-r1
   security:
-    catalog_ref: AU-9
+    catalog_ref: CM-3
     verification_note: Groomed 2026-10-09; pre-write or UI track.
   statement_hash: sha256:9f1099d15553ba84d33e3da231b9e775072c4c045885578b8efe4d4c6013fcde
   grooming_state: detailed
@@ -15140,9 +15140,6 @@ edges:
 - from: ARCH-HIER-REQ-DECOMP
   to: C01
   kind: refines
-- from: ARCH-HIER-CAP-PARTOF
-  to: ARCH-CP-HIER
-  kind: refines
 - from: ARCH-TRACE-VIEW-RTM
   to: CAP-UI-KIT-TREE
   kind: uses
@@ -15159,14 +15156,8 @@ edges:
   to: C07
   kind: satisfies
 - from: CAP-UI-KIT-TREE
-  to: CAP-UI-KIT
-  kind: refines
-- from: CAP-UI-KIT-TREE
   to: ARCH-UI-KIT-SHARED
   kind: satisfies
-- from: CAP-UI-KIT-CHROME
-  to: CAP-UI-KIT
-  kind: refines
 - from: CAP-UI-KIT-CHROME
   to: ARCH-UI-KIT-SHARED
   kind: satisfies
@@ -15179,6 +15170,87 @@ edges:
 - from: CAP-RELATIONS-API
   to: ARCH-SEC-REL-STUB
   kind: satisfies
+- from: ARCH-REQ-AC-FACET
+  to: ARCH-VERIFICATION
+  kind: refines
+- from: ARCH-TRACE-RECHECK
+  to: ARCH-SUSPECT
+  kind: refines
+- from: ARCH-CAT-EXTERNAL
+  to: ARCH-CAT-IMPRINT
+  kind: refines
+- from: ARCH-TRACE-LAYOUT-WORKER
+  to: E06
+  kind: refines
+- from: ARCH-HIER-CAP-PARTOF
+  to: ARCH-CAP-LINK
+  kind: refines
+- from: ARCH-HIER-USES-DEP
+  to: E03
+  kind: refines
+- from: ARCH-HIER-SECTION-GROUP
+  to: ARCH-SUBJECT-KIND
+  kind: refines
+- from: ARCH-UI-KIT-SHARED
+  to: ARCH-UI
+  kind: refines
+- from: ARCH-BROWSE-ROADMAP
+  to: C07
+  kind: refines
+- from: ARCH-SEC-EDGE-DEDUPE-DB
+  to: E04
+  kind: refines
+- from: ARCH-SEC-EDGE-DEDUPE-API
+  to: E04
+  kind: refines
+- from: ARCH-SEC-SEED-INTEGRITY
+  to: ARCH-DEVENV-SEED
+  kind: refines
+- from: ARCH-SEC-XPROJ-READ
+  to: ARCH-API-RBAC
+  kind: refines
+- from: ARCH-SEC-REL-STUB
+  to: E06
+  kind: refines
+- from: ARCH-SEC-REL-PAGING
+  to: ARCH-API
+  kind: refines
+- from: ARCH-SEC-CAT-FK
+  to: ARCH-CAT-SCOPE
+  kind: refines
+- from: ARCH-SEC-LOADER-EDGE-SYNC
+  to: ARCH-DEVENV-SEED
+  kind: refines
+- from: ARCH-SEC-CAT-LABEL-IMPRINT
+  to: ARCH-CAT-PIN
+  kind: refines
+- from: ARCH-SEC-HEADERS
+  to: ARCH-API
+  kind: refines
+- from: ARCH-WRITE-UOW-AUDIT
+  to: ARCH-CRED-AUDIT
+  kind: refines
+- from: ARCH-WRITE-REPOSITORY-LAYER
+  to: ARCH-API-LAYERS
+  kind: refines
+- from: ARCH-WRITE-TRUNCATE-GUARD
+  to: ARCH-API-RBAC
+  kind: refines
+- from: ARCH-WRITE-AUDIT-FLOOD
+  to: ARCH-CRED-AUDIT
+  kind: refines
+- from: ARCH-WRITE-VERSION-UNIQUE
+  to: ARCH-VER
+  kind: refines
+- from: ARCH-WRITE-RESERVED-IDS
+  to: ARCH-MINT-KIND
+  kind: refines
+- from: ARCH-KEY-RUNTIME-CACHE
+  to: ARCH-KEY-LIFECYCLE
+  kind: refines
+- from: ARCH-TEST-HARNESS-TEARDOWN
+  to: ARCH-BUILD-FOUNDATION
+  kind: refines
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
