@@ -3,6 +3,7 @@ import {
   parseAppRoute,
   el,
   loadJson,
+  isValidSlugId,
 } from "./browse.js";
 import { api } from "./api-client.js";
 import { buildMfaEnrollmentChildren, clearMfaEnrollmentUi } from "./mfa-enroll-ui.js";
@@ -34,14 +35,17 @@ export async function loadShellMeta(route, apiFn = api) {
         name: projRes.data.name,
         client_id: projRes.data.client_id,
       };
-      const clientRes = await loadJson(apiFn, `/api/v1/clients/${encodeURIComponent(projRes.data.client_id)}`);
-      if (clientRes.kind === "ok") {
-        meta.client = { id: clientRes.data.id, name: clientRes.data.name };
-      } else {
-        meta.client = { id: projRes.data.client_id, name: projRes.data.client_id };
+      const clientId = projRes.data.client_id;
+      if (isValidSlugId(clientId)) {
+        const clientRes = await loadJson(apiFn, `/api/v1/clients/${encodeURIComponent(clientId)}`);
+        if (clientRes.kind === "ok") {
+          meta.client = { id: clientRes.data.id, name: clientRes.data.name };
+        } else {
+          meta.client = { id: clientId, name: clientId };
+        }
       }
     }
-  } else if (route.clientId) {
+  } else if (route.clientId && isValidSlugId(route.clientId)) {
     const clientRes = await loadJson(apiFn, `/api/v1/clients/${encodeURIComponent(route.clientId)}`);
     if (clientRes.kind === "ok") {
       meta.client = { id: clientRes.data.id, name: clientRes.data.name };

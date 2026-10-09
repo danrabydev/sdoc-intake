@@ -49,12 +49,14 @@ import {
 } from "./public/browse-relations.js";
 import {
   APP_MIN_NAV,
+  avatarTooltipLabel,
   breadcrumbSegments,
+  initialsFromIdentity,
   projectTabItems,
   PROJECT_TABS,
 } from "./public/shell-nav.js";
 import { api, setUnauthorizedRedirect, clearUnauthorizedRedirect } from "./public/api-client.js";
-import { rootRedirectPath, renderAppShell, signOut } from "./public/app.js";
+import { loadShellMeta, rootRedirectPath, renderAppShell, signOut } from "./public/app.js";
 import { pathGetsWebSpaShell } from "./spa-shell-paths.js";
 
 type FetchHandler = (url: string) => { status: number; body?: unknown };
@@ -1434,6 +1436,22 @@ const shellMeta = {
   project: { id: "reqalm", name: "ReqALM Product", client_id: "danrabydev" },
 };
 
+describe("shell-nav helpers", () => {
+  it("initialsFromIdentity uses grapheme clusters and ?? when name is empty", () => {
+    assert.equal(initialsFromIdentity("", ""), "??");
+    assert.equal(initialsFromIdentity("", "   "), "??");
+    assert.equal(initialsFromIdentity("", "🎉 Party"), "🎉P");
+    assert.notEqual(initialsFromIdentity("", "🎉 Party").length, 1);
+    assert.equal(initialsFromIdentity("casey-reader", null), "CR");
+  });
+
+  it("avatarTooltipLabel prefers display name and omits raw identity id", () => {
+    assert.equal(avatarTooltipLabel({ identityId: "secret-id", agentName: null }), null);
+    assert.equal(avatarTooltipLabel({ agentName: "Dan Raby" }), "Dan Raby");
+    assert.equal(avatarTooltipLabel({ displayName: "  Casey  ", agentName: "ignored" }), "Casey");
+  });
+});
+
 describe("app shell", () => {
   beforeEach(() => installDom("http://localhost/app/projects/reqalm/requirements"));
   afterEach(() => {
@@ -1548,7 +1566,47 @@ describe("app shell", () => {
   it("shows user initials avatar and sign out", () => {
     renderAppShell("/app/clients", parseAppRoute("/app/clients"), shellMeta);
     assert.equal(document.querySelector(".user-avatar")?.textContent, "DR");
+    assert.equal(document.querySelector(".user-avatar")?.getAttribute("title"), "Dan Raby");
     assert.ok(document.getElementById("signout"));
+  });
+
+  it("avatar omits title when no display name is available", () => {
+    renderAppShell("/app/clients", parseAppRoute("/app/clients"), {
+      identityId: "casey-reader",
+      agentName: null,
+    });
+    const avatar = document.querySelector(".user-avatar");
+    assert.equal(avatar?.getAttribute("title"), null);
+    assert.notEqual(avatar?.getAttribute("title"), "casey-reader");
+  });
+
+  it("breadcrumb skips invalid client slug and loadShellMeta does not fetch client", async () => {
+    const route = parseAppRoute("/app/projects/reqalm/requirements");
+    let clientFetch = false;
+    const meta = await loadShellMeta(route, mockFetch((url) => {
+      if (url === "/api/v1/me") return { status: 200, body: { data: { identity_id: "u1", agent_name: null } } };
+      if (url === "/api/v1/projects/reqalm") {
+        return {
+          status: 200,
+          body: { data: { id: "reqalm", name: "ReqALM", client_id: "INVALID!" } },
+        };
+      }
+      if (url.startsWith("/api/v1/clients/")) {
+        clientFetch = true;
+        return { status: 404 };
+      }
+      return { status: 404 };
+    }));
+    assert.equal(clientFetch, false);
+    assert.equal(meta.client, undefined);
+    const segs = breadcrumbSegments(route, meta);
+    assert.deepEqual(
+      segs.map((s) => s.label),
+      ["ReqALM", "Requirements"],
+    );
+    assert.equal(segs[0]?.href, "/app/projects/reqalm");
+    renderAppShell("/app/projects/reqalm/requirements", route, meta);
+    assert.equal(document.querySelector('.header-breadcrumb a[href*="clients"]'), null);
   });
 
   it("requirement detail relationships panel renders under project header tabs", async () => {

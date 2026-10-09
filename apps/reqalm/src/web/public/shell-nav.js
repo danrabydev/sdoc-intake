@@ -49,19 +49,46 @@ export const PROJECT_TABS = [
   { id: "audit", label: "Audit", enabled: false },
 ];
 
+function firstGrapheme(str) {
+  return Array.from(str)[0] ?? "";
+}
+
+function firstTwoGraphemes(str) {
+  return Array.from(str).slice(0, 2).join("");
+}
+
 export function initialsFromIdentity(identityId, agentName) {
   const agent = typeof agentName === "string" ? agentName.trim() : "";
   if (agent) {
     const parts = agent.split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-    if (parts[0]?.length >= 2) return parts[0].slice(0, 2).toUpperCase();
+    if (parts.length >= 2) {
+      const a = firstGrapheme(parts[0]);
+      const b = firstGrapheme(parts[1]);
+      if (a && b) return (a + b).toLocaleUpperCase();
+    }
+    const two = firstTwoGraphemes(parts[0] ?? "");
+    if (two) return two.toLocaleUpperCase();
   }
-  const bits = String(identityId ?? "")
-    .split(/[-_]/)
-    .filter(Boolean);
-  if (bits.length >= 2) return (bits[0][0] + bits[1][0]).toUpperCase();
-  const id = String(identityId ?? "??");
-  return id.slice(0, 2).toUpperCase();
+  const idRaw = typeof identityId === "string" ? identityId.trim() : "";
+  if (idRaw) {
+    const bits = idRaw.split(/[-_]/).filter(Boolean);
+    if (bits.length >= 2) {
+      const a = firstGrapheme(bits[0]);
+      const b = firstGrapheme(bits[1]);
+      if (a && b) return (a + b).toLocaleUpperCase();
+    }
+    const two = firstTwoGraphemes(idRaw);
+    if (two) return two.toLocaleUpperCase();
+  }
+  return "??";
+}
+
+/** @param {{ agentName?: string | null, displayName?: string | null }} meta */
+export function avatarTooltipLabel(meta) {
+  const display =
+    (typeof meta.displayName === "string" ? meta.displayName.trim() : "") ||
+    (typeof meta.agentName === "string" ? meta.agentName.trim() : "");
+  return display || null;
 }
 
 export function pageLabelForRoute(route) {
@@ -119,14 +146,18 @@ export function breadcrumbSegments(route, meta) {
   const inProject = route.projectId && isValidSlugId(route.projectId) && projectViews.has(route.view);
 
   if (inProject && project) {
-    const clientLabel = client?.name || client?.id || project.client_id;
-    const clientHref = client?.id ? appClientHref(client.id) : appClientHref(project.client_id);
     const projectHref = appProjectHref(project.id);
-    return [
-      { label: clientLabel, href: clientHref },
-      { label: project.name || project.id, href: projectHref },
-      { label: page, current: true },
-    ];
+    const segs = [];
+    const clientId = client?.id ?? project.client_id;
+    if (clientId && isValidSlugId(clientId)) {
+      segs.push({
+        label: client?.name || clientId,
+        href: appClientHref(clientId),
+      });
+    }
+    segs.push({ label: project.name || project.id, href: projectHref });
+    segs.push({ label: page, current: true });
+    return segs;
   }
 
   return [{ label: page, current: true }];
@@ -208,8 +239,11 @@ export function buildShellHeader(el, route, currentPath, meta) {
   }
 
   const initials = initialsFromIdentity(meta.identityId, meta.agentName);
+  const avatarProps = { className: "user-avatar", text: initials };
+  const tooltip = avatarTooltipLabel(meta);
+  if (tooltip) avatarProps.title = tooltip;
   const end = el("div", { className: "topbar-end" }, [
-    el("span", { className: "user-avatar", title: meta.identityId ?? "", text: initials }),
+    el("span", avatarProps),
     el("button", { id: "signout", type: "button", className: "signout-btn", text: "Sign out" }),
   ]);
 
