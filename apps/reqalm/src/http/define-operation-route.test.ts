@@ -354,6 +354,15 @@ describe("defineOperationRoute registration", () => {
     );
   });
 
+  it("redacts invalid catalog imprint and control path segments", () => {
+    assert.equal(
+      redactInvalidPathParamIds(
+        "/api/v1/projects/reqalm/catalogs/!!bad!!/imprints/bad imprint/controls/!!ctl!!",
+      ),
+      "/api/v1/projects/reqalm/catalogs/[invalid]/imprints/[invalid]/controls/[invalid]",
+    );
+  });
+
   it("throws when listScope is combined with projectScoped", () => {
     assertRefused(
       {

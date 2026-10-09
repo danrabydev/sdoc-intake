@@ -6,6 +6,7 @@ import {
   parseZodInput,
   projectIdSchema,
 } from "../../http/define-operation-route.js";
+import { CATALOG_ID, CONTROL_ID, IMPRINT_ID } from "../../http/project-id.js";
 import type { OperationDef } from "../../core/operation.js";
 import { ok } from "../../core/service-result.js";
 import type { RequestContextDeps } from "../../core/request-context.js";
@@ -22,9 +23,9 @@ import {
   type ProjectCatalogsDto,
 } from "./catalogs.service.js";
 
-const catalogIdSchema = z.string().min(1).max(128);
-const imprintIdSchema = z.string().min(1).max(160);
-const controlIdSchema = z.string().min(1).max(128);
+export const catalogIdSchema = z.string().regex(CATALOG_ID, "invalid catalog id");
+export const imprintIdSchema = z.string().regex(IMPRINT_ID, "invalid imprint id");
+export const controlIdSchema = z.string().regex(CONTROL_ID, "invalid control id");
 
 const catalogParams = z.object({
   projectId: projectIdSchema,

@@ -236,11 +236,13 @@ paths:
           required: true
           schema:
             type: string
+            pattern: "^[a-z0-9][a-z0-9-]{0,63}$"
         - name: imprintId
           in: path
           required: true
           schema:
             type: string
+            pattern: "^[a-z0-9][a-z0-9.@_-]{0,159}$"
         - name: limit
           in: query
           schema:
@@ -292,16 +294,19 @@ paths:
           required: true
           schema:
             type: string
+            pattern: "^[a-z0-9][a-z0-9-]{0,63}$"
         - name: imprintId
           in: path
           required: true
           schema:
             type: string
+            pattern: "^[a-z0-9][a-z0-9.@_-]{0,159}$"
         - name: controlId
           in: path
           required: true
           schema:
             type: string
+            pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
       responses:
         "200":
           description: Control text and conforming lines in this project

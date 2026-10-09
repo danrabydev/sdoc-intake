@@ -180,6 +180,15 @@ describe("catalogs read API", () => {
     }
   });
 
+  it("S7: listed control ids belong only to the requested catalog", async () => {
+    const page = dataOf(await inject(`${CTRLS("reqalm", STIG_CAT, STIG)}?limit=100`)) as { items: { id: string }[] };
+    const allowed = new Set(
+      (await q(`SELECT item_uid FROM catalog_item_labels WHERE catalog_id = '${STIG_CAT}'`)).rows.map((r) => r.item_uid as string),
+    );
+    assert.ok(allowed.size > 0);
+    for (const { id } of page.items) assert.ok(allowed.has(id), id);
+  });
+
   it("paging, STIG family, statement, imprint/control 404, full audits", async () => {
     assert.equal((dataOf(await inject(`${CTRLS("reqalm", CAT, NIST)}?limit=5`)) as { total: number }).total, 49);
     assert.match((await detail("reqalm", "AC-3")).text ?? "", /Enforce approved authorizations/);
@@ -189,6 +198,7 @@ describe("catalogs read API", () => {
     assert.equal(v.family, "STIG");
     assert.equal((await inject(CTRLS("reqalm", CAT, "no-such-imprint"))).statusCode, 404);
     assert.equal((await inject(CTRLS("reqalm", CAT, STIG))).statusCode, 404);
+    assert.equal((await inject(CTRL("reqalm", CAT, STIG, "AC-3"))).statusCode, 404);
     assert.equal((await inject(CTRL("reqalm", CAT, NIST, "NO-SUCH-CONTROL"))).statusCode, 404);
     const p0 = dataOf(await inject(`${CTRLS("reqalm", CAT, NIST)}?limit=2&offset=0`)) as { items: { id: string }[] };
     const p1 = dataOf(await inject(`${CTRLS("reqalm", CAT, NIST)}?limit=2&offset=2`)) as { items: { id: string }[] };
@@ -208,6 +218,16 @@ describe("catalogs read API", () => {
       project_id: "reqalm",
       target_id: "AC-3",
     });
+  });
+
+  it("invalid catalog, imprint, and control path params return 400", async () => {
+    for (const url of [
+      CTRLS("reqalm", "Not_A_Slug", NIST),
+      CTRLS("reqalm", CAT, "bad imprint"),
+      CTRL("reqalm", CAT, NIST, "!!bad!!"),
+    ]) {
+      assert.equal((await inject(url)).statusCode, 400, url);
+    }
   });
 
   it("authz 401/403/404; key custodian blocked on catalog + controls", async () => {
