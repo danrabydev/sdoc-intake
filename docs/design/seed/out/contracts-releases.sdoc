@@ -1661,17 +1661,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-mfa-qr
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — MFA enrollment QR (sign-in UI)
 STATEMENT: >>>
-ReqALM release `R1 — MFA enrollment QR (sign-in UI)` (status=planned, planned_on=2026-10-08). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — MFA enrollment QR (sign-in UI)` (status=shipped, planned_on=2026-10-08). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-mfa-qr
 project_id: reqalm
-shipped_on: None
-raw_status: planned
+shipped_on: 2026-10-09
+raw_status: shipped
 delivers: CAP-MFA-QR
 delivers_count: 1
 <<<
@@ -1680,6 +1680,29 @@ RELATIONS:
   VALUE: SEC-RELEASES-EXPORT
 - TYPE: Parent
   VALUE: CAP-MFA-QR
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-relations-api
+STATUS: Draft
+TITLE: Release R1 — requirement relations read API
+STATEMENT: >>>
+ReqALM release `R1 — requirement relations read API` (status=planned, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-relations-api
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-RELATIONS-API
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-RELATIONS-API
   ROLE: Delivers
 
 [[/SECTION]]

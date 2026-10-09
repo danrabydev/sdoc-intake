@@ -145,6 +145,47 @@ paths:
           $ref: "#/components/responses/ProblemForbidden"
         "404":
           $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/requirements/{requirementId}/relations:
+    get:
+      operationId: getRequirementRelations
+      summary: Read trace relations for a requirement line (grouped by kind)
+      tags: [requirements]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requirementId
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 128
+            pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+      responses:
+        "200":
+          description: Incoming and outgoing trace links grouped by relation kind
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/RequirementRelations"
+                  request_id:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "403":
+          $ref: "#/components/responses/ProblemForbidden"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
   /api/v1/projects/{projectId}/requirements/{requirementId}:
     get:
       operationId: getRequirement
@@ -264,6 +305,66 @@ components:
         kind:
           type: string
           description: Line kind (e.g. section, requirement, capability)
+    RelationPeer:
+      oneOf:
+        - type: object
+          required: [id, title, kind, type]
+          properties:
+            id:
+              type: string
+              description: Navigable peer id (line base_uid or catalog item uid)
+            title:
+              type: string
+            kind:
+              type: string
+              description: Line kind or control/reference classifier
+            type:
+              type: string
+              description: mint_kind, catalog_control, or external_ref
+        - type: object
+          required: [restricted]
+          properties:
+            restricted:
+              type: boolean
+              const: true
+              description: Peer omitted because the caller cannot read the target project or catalog
+    RelationLink:
+      type: object
+      required: [relation_kind, peer, trace_suspect]
+      properties:
+        relation_kind:
+          type: string
+          enum: [conforms_to, uses, satisfies, refines]
+        peer:
+          $ref: "#/components/schemas/RelationPeer"
+        catalog_imprint_id:
+          type: [string, "null"]
+          description: Present for conforms_to pins
+        trace_suspect:
+          type: boolean
+    RequirementRelations:
+      type: object
+      required: [id, project_id, outgoing, incoming]
+      properties:
+        id:
+          type: string
+          description: Requirement line base_uid
+        project_id:
+          type: string
+        outgoing:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/RelationLink"
+          description: Links where this line/version is the source, grouped by relation_kind
+        incoming:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/RelationLink"
+          description: Links where this line/version is the target, grouped by relation_kind
     RequirementDetail:
       type: object
       description: Current-version requirement read model

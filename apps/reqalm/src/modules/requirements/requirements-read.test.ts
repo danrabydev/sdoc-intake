@@ -68,7 +68,7 @@ describe("requirements read API", () => {
         headers: bearer,
       })
     ).json() as { data: { items: Array<{ kind: string }>; total: number } };
-    assert.equal(cap.data.total, 72);
+    assert.equal(cap.data.total, 73);
     assert.ok(cap.data.items.length > 0);
     assert.ok(cap.data.items.every((i) => i.kind === "capability"));
     const draft = (
@@ -79,8 +79,9 @@ describe("requirements read API", () => {
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-READ-RELEASES"));
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-BROWSE-UI-RELEASES"));
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-READ-HIERARCHY"));
-    assert.ok(draft.data.items.some((i) => i.id === "CAP-MFA-QR"));
+    assert.ok(!draft.data.items.some((i) => i.id === "CAP-MFA-QR"));
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-BROWSE-UI-TREE"));
+    assert.ok(draft.data.items.some((i) => i.id === "CAP-RELATIONS-API"));
     const uiActive = (
       await inject({
         method: "GET",
