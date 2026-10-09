@@ -1,6 +1,10 @@
 // @ts-nocheck
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, it, beforeEach, afterEach } from "node:test";
 import { JSDOM } from "jsdom";
 import {
@@ -8,16 +12,23 @@ import {
   buildMfaEnrollmentChildren,
   clearMfaEnrollmentUi,
   createMfaQrSvg,
+  assertSvgEncodesOtpauthUri,
+  setupKeyFromOtpauthUri,
+  moduleGridFromMfaQrSvg,
+  moduleGridsEqual,
 } from "./public/mfa-enroll-ui.js";
 import { renderLogin } from "./public/app.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const VENDOR_QR_MIN = path.join(__dirname, "public/vendor/qr-min.js");
+const VENDOR_QR_MIN_SHA256 = "0bebad1a102e61131ba2988d75985234395c187127dff724c2125cc75e868ac8";
+
 const SAMPLE_URI =
   "otpauth://totp/ReqALM:sam-security@dev.local?secret=JBSWY3DPEHPK3PXP&issuer=ReqALM";
-/** Golden fingerprint for SAMPLE_URI (qr-min matrix); catches wrong encoder input. */
-const SAMPLE_MATRIX_SHA256 = "37011c86164605eba6fa6ba421c7e823fc4dcbc2dace3cd8bee730dc8d8172d3";
 
-function matrixFingerprint(matrix: number[][]) {
-  return createHash("sha256").update(matrix.flat().join("")).digest("hex");
+function loadVendoredQrMin() {
+  const require = createRequire(import.meta.url);
+  globalThis.QR = require("./public/vendor/qr-min.js");
 }
 
 function el(tag: string, props: Record<string, unknown> = {}, children: unknown[] = []) {
@@ -31,31 +42,39 @@ function el(tag: string, props: Record<string, unknown> = {}, children: unknown[
   return node;
 }
 
-function installDom(url = "http://localhost/login?h=handoff-1") {
+function installDom(url = "http://localhost/") {
   const dom = new JSDOM("<!doctype html><html><body></body></html>", { url });
   globalThis.window = dom.window as unknown as Window & typeof globalThis;
   globalThis.document = dom.window.document;
   globalThis.FormData = dom.window.FormData;
   globalThis.Event = dom.window.Event;
+  loadVendoredQrMin();
   return dom;
+}
+
+function assertEnrollmentPanelMatchesUri(enrollRoot: ParentNode, otpauthUri: string) {
+  const svg = enrollRoot.querySelector("svg.mfa-qr") as SVGSVGElement | null;
+  assert.ok(svg, "expected MFA QR svg");
+  assertSvgEncodesOtpauthUri(svg, otpauthUri);
+  const secret = setupKeyFromOtpauthUri(otpauthUri);
+  assert.ok(secret, "expected secret in otpauth URI");
+  assert.equal(enrollRoot.querySelector("#mfa-setup-key")?.textContent, secret);
+  assert.equal(enrollRoot.querySelector("#mfa-otpauth-uri")?.textContent, otpauthUri);
 }
 
 describe("MFA enrollment QR (client-side)", () => {
   beforeEach(() => installDom());
   afterEach(() => {
     delete (globalThis as { fetch?: unknown }).fetch;
+    delete (globalThis as { QR?: unknown }).QR;
   });
 
-  it("encodeQrMatrix is deterministic and changes when otpauth payload changes", () => {
-    const a = encodeQrMatrix(SAMPLE_URI);
-    const b = encodeQrMatrix(SAMPLE_URI);
-    assert.equal(matrixFingerprint(a), SAMPLE_MATRIX_SHA256);
-    assert.equal(matrixFingerprint(b), SAMPLE_MATRIX_SHA256);
-    assert.notEqual(matrixFingerprint(a), matrixFingerprint(encodeQrMatrix(`${SAMPLE_URI}&period=60`)));
-    assert.ok(a.length >= 21 && a.length <= 177);
+  it("vendored qr-min.js matches upstream npm 1.0.0 bytes (sha256)", () => {
+    const digest = createHash("sha256").update(readFileSync(VENDOR_QR_MIN)).digest("hex");
+    assert.equal(digest, VENDOR_QR_MIN_SHA256);
   });
 
-  it("renders an accessible SVG QR for the enroll response without network I/O", () => {
+  it("renders SVG whose modules match the encoder for the enroll otpauth URI", () => {
     const networkCalls: string[] = [];
     globalThis.fetch = (async (url: string) => {
       networkCalls.push(String(url));
@@ -66,22 +85,17 @@ describe("MFA enrollment QR (client-side)", () => {
     assert.equal(networkCalls.length, 0);
     assert.equal(svg.getAttribute("role"), "img");
     assert.equal(svg.getAttribute("aria-label"), "QR code for authenticator setup");
-    assert.ok(svg.querySelector("rect[fill='#000000']"));
+    assert.equal(svg.getAttribute("shape-rendering"), "crispEdges");
+    assertSvgEncodesOtpauthUri(svg, SAMPLE_URI);
+
+    const expected = encodeQrMatrix(SAMPLE_URI);
+    const decoded = moduleGridFromMfaQrSvg(svg, expected.length);
+    assert.ok(moduleGridsEqual(decoded, expected));
 
     const nodes = buildMfaEnrollmentChildren(document, el, { otpauth_uri: SAMPLE_URI });
-    const wrap = nodes.find(
-      (n) => n instanceof document.defaultView!.HTMLElement && n.dataset.mfaQr === "true",
-    ) as HTMLElement;
-    assert.ok(wrap);
-    assert.ok(wrap.querySelector("svg.mfa-qr"));
-    const keyLine = nodes.flatMap((n) => Array.from(n.querySelectorAll?.("code") ?? [])).find((c) =>
-      c.textContent?.includes("JBSWY3DPEHPK3PXP"),
-    );
-    assert.ok(keyLine);
-    const uriLine = nodes.find((n) => n.tagName === "CODE" && n.textContent === SAMPLE_URI);
-    assert.ok(uriLine);
-
-    assert.equal(matrixFingerprint(encodeQrMatrix(SAMPLE_URI)), SAMPLE_MATRIX_SHA256);
+    const wrap = document.createElement("div");
+    wrap.append(...nodes);
+    assertEnrollmentPanelMatchesUri(wrap, SAMPLE_URI);
   });
 
   it("clearMfaEnrollmentUi removes QR markup from the DOM", () => {
@@ -99,7 +113,7 @@ describe("MFA enrollment QR (client-side)", () => {
     await new Promise((r) => setTimeout(r, 30));
   }
 
-  it("login flow shows QR on enrollment and clears it after successful sign-in", async () => {
+  it("login flow QR and setup key match the enrollment otpauth_uri response", async () => {
     const otpauth =
       "otpauth://totp/ReqALM:test@dev.local?secret=GEZDGNBVGY3TQOJQ&issuer=ReqALM";
     let calls = 0;
@@ -134,6 +148,7 @@ describe("MFA enrollment QR (client-side)", () => {
     const enrollBox = document.getElementById("enroll-box") as HTMLElement;
     assert.ok(enrollBox.querySelector("[data-mfa-qr]"));
     assert.equal(calls, 1);
+    assertEnrollmentPanelMatchesUri(enrollBox, otpauth);
 
     (form.querySelector('[name="mfa_code"]') as HTMLInputElement).value = "123456";
     await submitLoginForm(form);

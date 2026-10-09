@@ -389,18 +389,21 @@ describe("auth routes (in-process)", () => {
        SET mfa_enabled = false, mfa_secret_encrypted = NULL
        WHERE identity_id = 'sam-security'`,
     );
-    const { handoff } = await authorizeHandoff();
-    const res = await localLogin("sam-security@dev.local", TEST_PASSWORD, handoff);
-    assert.equal(res.statusCode, 200);
-    const cache = res.headers["cache-control"];
-    assert.equal(Array.isArray(cache) ? cache[0] : cache, "no-store");
-    const body = res.json() as { status?: string; otpauth_uri?: string; enrollment_ticket?: string };
-    assert.equal(body.status, "mfa_enrollment_required");
-    assert.match(body.otpauth_uri ?? "", /^otpauth:\/\//);
-    assert.ok(body.enrollment_ticket);
-    await storeMfaSecret(ctx.pool, ctx.keyProvider, "sam-security", TEST_MFA_SECRET);
-    await ctx.pool.query(
-      `UPDATE local_credentials SET mfa_enabled = true WHERE identity_id = 'sam-security'`,
-    );
+    try {
+      const { handoff } = await authorizeHandoff();
+      const res = await localLogin("sam-security@dev.local", TEST_PASSWORD, handoff);
+      assert.equal(res.statusCode, 200);
+      const cache = res.headers["cache-control"];
+      assert.equal(Array.isArray(cache) ? cache[0] : cache, "no-store");
+      const body = res.json() as { status?: string; otpauth_uri?: string; enrollment_ticket?: string };
+      assert.equal(body.status, "mfa_enrollment_required");
+      assert.match(body.otpauth_uri ?? "", /^otpauth:\/\//);
+      assert.ok(body.enrollment_ticket);
+    } finally {
+      await storeMfaSecret(ctx.pool, ctx.keyProvider, "sam-security", TEST_MFA_SECRET);
+      await ctx.pool.query(
+        `UPDATE local_credentials SET mfa_enabled = true WHERE identity_id = 'sam-security'`,
+      );
+    }
   });
 });

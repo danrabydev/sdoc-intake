@@ -1,9 +1,17 @@
-/**
- * Vendored from qr-min@1.0.0 (MIT, https://github.com/jazz-soft/qr-min).
- * Minimal UTF-8 QR matrix encoder; no network, no DOM.
- */
-/* eslint-disable */
-function factory() {
+(function(global, factory) {
+  /* istanbul ignore next */
+  if (typeof exports === 'object' && typeof module !== 'undefined') {
+    module.exports = factory();
+  }
+  else if (typeof define === 'function' && define.amd) {
+    define('QR', [], factory);
+  }
+  else {
+    if (!global) global = window;
+    if (global.QR) return;
+    global.QR = factory();
+  }
+})(this, function() {
   var _crn = [
     [1, 1, 1, 1, 1, 1, 1, 0], [1, 0, 0, 0, 0, 0, 1, 0], [1, 0, 1, 1, 1, 0, 1, 0], [1, 0, 1, 1, 1, 0, 1, 0],
     [1, 0, 1, 1, 1, 0, 1, 0], [1, 0, 0, 0, 0, 0, 1, 0], [1, 1, 1, 1, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0]
@@ -15,7 +23,7 @@ function factory() {
     s = new TextEncoder().encode(s);
     var i, j, k, v;
     for (v = 1; v <= 40; v++) if (s.length + (v < 10 ? 2 : 3) <= _len(v)) break;
-    if (v > 40) throw new Error("Input string is too long!");
+    if (v > 40) throw "Input string is too long!";
     var b = [0x40];
     if (v >= 10) {
       b[0] += s.length >> 12;
@@ -300,9 +308,4 @@ function factory() {
     return a;
   }
   return QR;
-}
-
-/** @param {string} text UTF-8 payload (otpauth URI). @returns {number[][]} module grid (1 = dark). */
-export default function encodeQrMatrix(text) {
-  return factory()(text);
-}
+});
