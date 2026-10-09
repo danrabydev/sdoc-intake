@@ -982,9 +982,6 @@ RELATIONS:
   VALUE: A11
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
-  ROLE: Satisfies
-- TYPE: Parent
   VALUE: AC-3
   ROLE: ConformsTo
 - TYPE: Parent
@@ -996,6 +993,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Satisfies
 
 [REQUIREMENT]
 UID: ARCH-AUTH-AS
@@ -4729,7 +4729,6 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: CM-3
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
-edge: ← uses from ARCH-SUSPECT
 edge: ← uses from ARCH-HIER-USES-DEP
 edge: ← uses from ARCH-SUSPECT.1
 <<<
@@ -4737,7 +4736,7 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SEC-EDGE
 - TYPE: Parent
-  VALUE: ARCH-SUSPECT
+  VALUE: ARCH-SUSPECT.1
   ROLE: Refines
 
 [REQUIREMENT]
@@ -4833,7 +4832,7 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SEC-EDGE
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
+  VALUE: ARCH-API-RBAC.1
   ROLE: Refines
 
 [REQUIREMENT]
@@ -9730,8 +9729,6 @@ edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
-edge: ← refines from ARCH-SEC-XPROJ-READ
-edge: ← satisfies from CAP-RBAC.1
 edge: ← refines from ARCH-API-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
@@ -9777,10 +9774,13 @@ COMMENT: >>>
 KIND: requirement
 BASE_UID: ARCH-API-RBAC
 VERSION_N: 1
+rbac_op: rbac:authorize
 priority: 10
 iteration: iter-r0
 security.catalog_ref: REQALM-SEC-RBAC
 security.verification_note: Maps to ReqALM RBAC catalog item; .1 narrows honesty vs CAP-RBAC enforcement subset.
+edge: ← refines from ARCH-SEC-XPROJ-READ
+edge: ← satisfies from CAP-RBAC.1
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15665,14 +15665,11 @@ security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 workflow / approval / suspect audit.
 edge: ← uses from FIX-SUSPECT-ON-CONTENT-N
 edge: ← uses from FIX-DENY-SHIP-WITH-OPEN-SUSPECT
-edge: ← refines from ARCH-TRACE-RECHECK
 edge: ← refines from ARCH-SUSPECT.1
-delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → uses to ARCH-TRACE-RECHECK (RELATIONS TYPE: Child; Parent would cycle)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -15692,12 +15689,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-SUCCESSION-HASH
   ROLE: Uses
-- TYPE: Child
-  VALUE: ARCH-TRACE-RECHECK
-  ROLE: Uses
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-core-alm
-  ROLE: Delivers
 
 [REQUIREMENT]
 UID: ARCH-SUSPECT.1
@@ -15710,14 +15701,18 @@ COMMENT: >>>
 KIND: requirement
 BASE_UID: ARCH-SUSPECT
 VERSION_N: 1
+rbac_op: trace:suspect
 priority: 15
 iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: Groomed 2026-10-09; .1 references ARCH-TRACE-RECHECK for re-check vs incomplete semantics.
+edge: ← refines from ARCH-TRACE-RECHECK
+delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → uses to ARCH-TRACE-RECHECK (RELATIONS TYPE: Child; Parent would cycle)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -15740,9 +15735,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-SUCCESSION-HASH
   ROLE: Uses
-- TYPE: Parent
+- TYPE: Child
   VALUE: ARCH-TRACE-RECHECK
   ROLE: Uses
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-core-alm
+  ROLE: Delivers
 
 [REQUIREMENT]
 UID: ARCH-SUSPECT-QUEUE

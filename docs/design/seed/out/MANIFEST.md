@@ -22,7 +22,7 @@ Target grammar: **StrictDoc 0.30**.
 |--------|------:|
 | requirement_lines | 417 |
 | requirement_versions | 435 |
-| edges | 1649 |
+| edges | 1648 |
 | contracts | 5 |
 | releases | 25 |
 | catalogs | 3 |
@@ -44,7 +44,7 @@ Target grammar: **StrictDoc 0.30**.
 | Kind | Count |
 |------|------:|
 | conforms_to | 1074 |
-| uses | 232 |
+| uses | 231 |
 | satisfies | 203 |
 | refines | 140 |
 

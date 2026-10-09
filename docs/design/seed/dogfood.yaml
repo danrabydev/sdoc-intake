@@ -8677,6 +8677,7 @@ requirement_versions:
   statement_hash: sha256:6d92877694951b21549c9ade18d7b8ee9d3a20c4b7ddb35916b92aa4233c7332
   grooming_state: detailed
   mint_kind: content
+  rbac_op: rbac:authorize
 - uid: CAP-UI-FRAME.1
   base_uid: CAP-UI-FRAME
   version_n: 1
@@ -8704,6 +8705,7 @@ requirement_versions:
   statement_hash: sha256:94b2dcf4984d3319c61f864e953361b252a9aaf0b38e5cba822d7daa6b15e814
   grooming_state: detailed
   mint_kind: content
+  rbac_op: trace:suspect
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -15177,9 +15179,6 @@ edges:
 - from: ARCH-REQ-AC-ROLLUP
   to: ARCH-REQ-AC-FACET
   kind: refines
-- from: ARCH-SUSPECT
-  to: ARCH-TRACE-RECHECK
-  kind: uses
 - from: ARCH-HIER-USES-DEP
   to: ARCH-TRACE-RECHECK
   kind: uses
@@ -15232,10 +15231,8 @@ edges:
   to: ARCH-VERIFICATION
   kind: refines
 - from: ARCH-TRACE-RECHECK
-  to: ARCH-SUSPECT
+  to: ARCH-SUSPECT.1
   kind: refines
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-SUSPECT)
 - from: ARCH-CAT-EXTERNAL
   to: ARCH-CAT-IMPRINT
   kind: refines
@@ -15267,10 +15264,8 @@ edges:
   to: ARCH-DEVENV-SEED
   kind: refines
 - from: ARCH-SEC-XPROJ-READ
-  to: ARCH-API-RBAC
+  to: ARCH-API-RBAC.1
   kind: refines
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: ARCH-SEC-REL-STUB
   to: E06
   kind: refines
@@ -15387,11 +15382,6 @@ edges:
 - to: A11
   kind: satisfies
   from: CAP-RBAC.1
-- to: ARCH-API-RBAC
-  kind: satisfies
-  from: CAP-RBAC.1
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
@@ -15462,9 +15452,12 @@ edges:
 - to: ARCH-SUCCESSION-HASH
   kind: uses
   from: ARCH-SUSPECT.1
-- to: ARCH-TRACE-RECHECK
+- from: ARCH-SUSPECT.1
+  to: ARCH-TRACE-RECHECK
   kind: uses
-  from: ARCH-SUSPECT.1
+- from: CAP-RBAC.1
+  to: ARCH-API-RBAC.1
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -15823,7 +15816,7 @@ releases:
   - M06
   - FIX-DENY-PRIORITY-UNAPPROVED
   - ARCH-MINT-KIND
-  - ARCH-SUSPECT
+  - ARCH-SUSPECT.1
   - ARCH-SUSPECT-QUEUE
   - ARCH-GATE-SIGNOFF
   - ARCH-SUCCESSION-HASH

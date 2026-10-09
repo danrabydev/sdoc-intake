@@ -436,6 +436,8 @@ def mint_content_n(
     )
     if v1_verification_outcome is not None:
         ver["verification_outcome"] = v1_verification_outcome
+    if v0 and v0.get("rbac_op"):
+        ver["rbac_op"] = v0["rbac_op"]
     upsert_version(data, ver)
     if v1_verification_outcome is None:
         tip_ver = find(data.get("requirement_versions"), "uid", tip)
@@ -506,6 +508,55 @@ def restore_shipped_release_delivers(data) -> None:
         rel["delivers"] = [mapping.get(d, d) for d in (rel.get("delivers") or [])]
 
 
+def update_planned_release_delivers(data) -> None:
+    """Planned releases track active tips; shipped releases use restore_shipped_release_delivers."""
+    rel = find(data.get("releases"), "id", "rel-r1-core-alm")
+    if not rel:
+        return
+    rel["delivers"] = [
+        "ARCH-SUSPECT.1" if d == "ARCH-SUSPECT" else d for d in (rel.get("delivers") or [])
+    ]
+
+
+def retarget_edge(edges, *, frm: str, old_to: str, new_to: str, kind: str) -> None:
+    """Move an edge endpoint from superseded v0 to active .1; clear trace_suspect when fixed."""
+    remove_edge(edges, {"from": frm, "to": old_to, "kind": kind})
+    for e in edges:
+        if e.get("from") == frm and e.get("to") == new_to and e.get("kind") == kind:
+            e.pop("trace_suspect", None)
+            e.pop("suspect_reason", None)
+            return
+    ensure_edge(edges, {"from": frm, "to": new_to, "kind": kind})
+
+
+def fix_grooming_edge_targets(data) -> None:
+    """Edges added by this patch shall not point at v0 lines this patch superseded."""
+    edges = data.setdefault("edges", [])
+    remove_edge(edges, {"from": "ARCH-SUSPECT", "to": "ARCH-TRACE-RECHECK", "kind": "uses"})
+    ensure_edge(edges, {"from": "ARCH-SUSPECT.1", "to": "ARCH-TRACE-RECHECK", "kind": "uses"})
+    retarget_edge(
+        edges,
+        frm="ARCH-TRACE-RECHECK",
+        old_to="ARCH-SUSPECT",
+        new_to="ARCH-SUSPECT.1",
+        kind="refines",
+    )
+    retarget_edge(
+        edges,
+        frm="ARCH-SEC-XPROJ-READ",
+        old_to="ARCH-API-RBAC",
+        new_to="ARCH-API-RBAC.1",
+        kind="refines",
+    )
+    retarget_edge(
+        edges,
+        frm="CAP-RBAC.1",
+        old_to="ARCH-API-RBAC",
+        new_to="ARCH-API-RBAC.1",
+        kind="satisfies",
+    )
+
+
 def prune_legacy_grooming_edges(data) -> None:
     """Drop parent/section noise and stale CAP-RELATIONS satisfies (idempotent re-run)."""
     edges = data.setdefault("edges", [])
@@ -563,7 +614,7 @@ def prune_legacy_grooming_edges(data) -> None:
 # Upstream refines: each groomed ARCH requirement → an existing requirement it elaborates.
 ARCH_UPSTREAM_REFINES: list[tuple[str, str]] = [
     ("ARCH-REQ-AC-FACET", "ARCH-VERIFICATION"),
-    ("ARCH-TRACE-RECHECK", "ARCH-SUSPECT"),
+    ("ARCH-TRACE-RECHECK", "ARCH-SUSPECT.1"),
     ("ARCH-CAT-EXTERNAL", "ARCH-CAT-IMPRINT"),
     ("ARCH-TRACE-LAYOUT-WORKER", "E06"),
     ("ARCH-HIER-CAP-PARTOF", "ARCH-CAP-LINK"),
@@ -574,7 +625,7 @@ ARCH_UPSTREAM_REFINES: list[tuple[str, str]] = [
     ("ARCH-SEC-EDGE-DEDUPE-DB", "E04"),
     ("ARCH-SEC-EDGE-DEDUPE-API", "E04"),
     ("ARCH-SEC-SEED-INTEGRITY", "ARCH-DEVENV-SEED"),
-    ("ARCH-SEC-XPROJ-READ", "ARCH-API-RBAC"),
+    ("ARCH-SEC-XPROJ-READ", "ARCH-API-RBAC.1"),
     ("ARCH-SEC-REL-STUB", "E06"),
     ("ARCH-SEC-REL-PAGING", "ARCH-API"),
     ("ARCH-SEC-CAT-FK", "ARCH-CAT-SCOPE"),
@@ -596,7 +647,6 @@ def wire_architecture_edges(data) -> None:
     edges = data.setdefault("edges", [])
     pairs = [
         ("ARCH-REQ-AC-ROLLUP", "ARCH-REQ-AC-FACET", "refines"),
-        ("ARCH-SUSPECT", "ARCH-TRACE-RECHECK", "uses"),
         ("ARCH-HIER-USES-DEP", "ARCH-TRACE-RECHECK", "uses"),
         ("ARCH-TRACE-VIEW-RTM", "E06", "refines"),
         ("ARCH-TRACE-VIEW-CCM", "E06", "refines"),
@@ -1054,7 +1104,9 @@ def main() -> None:
         v1_verification_outcome=None,
         copy_edge_kinds=("satisfies", "conforms_to", "uses", "refines"),
     )
+    fix_grooming_edge_targets(data)
     restore_shipped_release_delivers(data)
+    update_planned_release_delivers(data)
 
     ar_cp = find(data.get("approval_records"), "id", "ar-browse-ui-cp")
     if ar_cp and "Planned for browse UI PR" in (ar_cp.get("notes") or ""):
