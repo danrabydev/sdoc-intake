@@ -627,6 +627,13 @@
             "null"
           ]
         },
+        "inheritable": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "When true on a capability conforms_to pin, the control may inherit to consumers over a uses edge (ARCH-TRACE-INHERIT-USES)."
+        },
         "suspect_reason": {
           "type": [
             "string",
@@ -683,16 +690,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "covers_releases": {
-          "type": "array",
-          "description": "Release ids this contract owns (junction overlay; complements in_scope_of version UIDs).",
-          "items": {
-            "type": "string"
-          }
-        },
-        "notes": {
-          "type": "string"
         }
       }
     },

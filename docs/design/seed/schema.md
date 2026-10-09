@@ -221,6 +221,7 @@ Prior active on tip activate → **in-place `superseded`** (same txn; ≤1 activ
 | `kind` | enum | yes | `refines` \| `conforms_to` \| `uses` \| `satisfies` |
 | `catalog_imprint_id` | string | if `conforms_to` → catalog item | → `catalog_imprints[].id`; pin is `(catalog_imprint_id, to)` |
 | `trace_suspect` | bool \| null | no | Set when target line content-minted `.N` and edge still points at prior UID (ARCH-SUSPECT) |
+| `inheritable` | bool \| null | no | Capability `conforms_to` only: control may inherit one hop over capability→capability `uses` (ARCH-TRACE-INHERIT-USES) |
 | `suspect_reason` | string \| null | no | Review-queue hint |
 
 Typical: capability → requirement via `satisfies`; product version → catalog item via `conforms_to` **through an imprint** (not a floating global UID alone).
@@ -239,8 +240,6 @@ Junction overlay — **not** a tree parent.
 | `ends_on` | date \| null | no | |
 | `status` | enum | yes | `planned` \| `active` \| `closed` |
 | `in_scope_of` | string[] | yes | requirement **version** UIDs |
-| `covers_releases` | string[] | no | release **ids** this contract owns (same junction overlay model as `in_scope_of`; exported as Parent + `CoversRelease` on `contracts-releases.sdoc`) |
-| `notes` | string | no | |
 
 ## release
 
