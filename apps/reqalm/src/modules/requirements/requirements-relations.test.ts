@@ -38,6 +38,21 @@ function assertCapReadReqsStable(d: RequirementRelationsDto) {
 }
 
 describe("requirements relations API", () => {
+  it("visible peers include project_id; restricted stubs stay minimal", async () => {
+    const d = dataOf(await inject(REL("reqalm", "CAP-READ-REQS")));
+    for (const link of Object.values(d.outgoing).flat().concat(Object.values(d.incoming).flat())) {
+      if ("restricted" in link) {
+        assert.deepEqual(Object.keys(link).sort(), ["direction", "relation_kind", "restricted"]);
+        continue;
+      }
+      const p = vis(link).peer;
+      assert.equal(typeof p.project_id, "string");
+      assert.ok(p.project_id.length > 0);
+    }
+    const c08 = vis(d.outgoing.satisfies!.find((l) => vis(l).peer.id === "C08")!);
+    assert.equal(c08.peer.project_id, "reqalm");
+  });
+
   it("404 unknown vs foreign-project line; baseline CAP-READ-REQS", async () => {
     assertCapReadReqsStable(dataOf(await inject(REL("reqalm", "CAP-READ-REQS"))));
     const unknown = await inject(REL("reqalm", "NO-SUCH-REQ-XYZ"));
@@ -72,14 +87,13 @@ describe("requirements relations API", () => {
         const raw = await inject(REL("reqalm", "CAP-READ-REQS"));
         const uses = dataOf(raw).outgoing.uses ?? [];
         if (role === "Reader") {
-          assert.deepEqual(
-            uses.filter((l) => !("restricted" in l)).map((l) => [vis(l).peer.id, vis(l).peer.title]).sort(),
-            [
-              ["REL-MISSING-PEER", null],
-              ["REL-NOVER", "line only"],
-              ["REL-SECRET-PEER", "secret title"],
-            ],
-          );
+          const open = uses.filter((l) => !("restricted" in l));
+          assert.deepEqual(open.map((l) => [vis(l).peer.id, vis(l).peer.title]).sort(), [
+            ["REL-MISSING-PEER", null],
+            ["REL-NOVER", "line only"],
+            ["REL-SECRET-PEER", "secret title"],
+          ]);
+          assert.equal(vis(open.find((l) => vis(l).peer.id === "REL-MISSING-PEER")!).peer.project_id, "rel-secret-p2");
         } else {
           const text = raw.payload as string;
           assert.ok(!text.includes("REL-SECRET-PEER") && !text.includes("secret title") && !text.includes("REL-MISSING-PEER"));
@@ -122,7 +136,10 @@ describe("requirements relations API", () => {
       const twin = dataOf(await inject(REL("twin-b", "CAP-READ-REQS")));
       assert.deepEqual(peerIds(twin.outgoing.satisfies), ["C08"]);
       assert.equal(vis(twin.outgoing.satisfies![0]!).peer.title, "TWIN-C08-TITLE");
-      assert.ok(twin.incoming.refines?.some((l) => vis(l).peer.id === "TWIN-IN-SRC"));
+      assert.equal(vis(twin.outgoing.satisfies![0]!).peer.project_id, "twin-b");
+      const twinIn = twin.incoming.refines?.find((l) => !("restricted" in l) && vis(l).peer.id === "TWIN-IN-SRC");
+      assert.ok(twinIn);
+      assert.equal(vis(twinIn!).peer.project_id, "reqalm");
     } finally {
       await teardown();
     }
@@ -132,6 +149,7 @@ describe("requirements relations API", () => {
     const ac3 = a01.outgoing.conforms_to?.find((l) => vis(l).peer.id === "AC-3")!;
     assert.match(vis(ac3).peer.title!, /Access Enforcement/);
     assert.equal(vis(ac3).catalog_imprint_id, "nist-800-53@rev5-dogfood-20261006");
+    assert.equal(vis(ac3).peer.project_id, "reqalm");
     const refIn = a01.incoming.refines ?? [];
     const devenv = refIn.filter((l) => vis(l).peer.id === "ARCH-DEVENV-IDENTITY");
     assert.deepEqual(devenv.map((l) => [vis(l).peer_version_id, vis(l).peer.id]).sort(), [["ARCH-DEVENV-IDENTITY", "ARCH-DEVENV-IDENTITY"], ["ARCH-DEVENV-IDENTITY.1", "ARCH-DEVENV-IDENTITY"]]);
@@ -176,6 +194,28 @@ describe("requirements relations API", () => {
       await q(`DELETE FROM trace_edges WHERE from_uid IN ('DEDUP-PEER','FIX-SUCC-2HOP','FIX-SUCC-2HOP.1','SUS2-PEER') AND to_uid IN ('FIX-SUCC-2HOP.1','FIX-SUCC-2HOP.2','SUS-PEER')`);
       await q(`DELETE FROM requirement_versions WHERE base_uid IN ('DEDUP-PEER','SUS-PEER','SUS2-PEER')`);
       await q(`DELETE FROM requirement_lines WHERE base_uid IN ('DEDUP-PEER','SUS-PEER','SUS2-PEER')`);
+    }
+  });
+
+  it("readable private-catalog peer uses catalog owner project_id", async () => {
+    await q(`INSERT INTO projects (id, client_id, name) VALUES ('rel-cat-p2', 'reqalm-client', 'Cat P2') ON CONFLICT DO NOTHING;
+      INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('grant-casey-rel-cat-p2', 'rel-cat-p2', 'casey-reader', 'Reader') ON CONFLICT DO NOTHING;
+      INSERT INTO catalog_defs (id, is_standard, project_id) VALUES ('cat-test-private', false, 'rel-cat-p2') ON CONFLICT DO NOTHING;
+      INSERT INTO catalog_imprints (id, catalog_id) VALUES ('imprint-live-cc-PRIVATE', 'cat-test-private') ON CONFLICT DO NOTHING;
+      INSERT INTO catalog_item_labels (catalog_id, item_uid, title) VALUES ('cat-test-private', 'PRIV-CTL-1', 'Private ctl') ON CONFLICT DO NOTHING;
+      INSERT INTO trace_edges (from_project_id, from_uid, to_uid, kind, catalog_imprint_id) VALUES ('reqalm', 'CAP-READ-REQS', 'PRIV-CTL-1', 'conforms_to', 'imprint-live-cc-PRIVATE') ON CONFLICT DO NOTHING`);
+    try {
+      const link = dataOf(await inject(REL("reqalm", "CAP-READ-REQS"))).outgoing.conforms_to?.find(
+        (l) => !("restricted" in l) && vis(l).peer.id === "PRIV-CTL-1",
+      );
+      assert.equal(vis(link!).peer.project_id, "rel-cat-p2");
+    } finally {
+      await q(`DELETE FROM trace_edges WHERE from_uid = 'CAP-READ-REQS' AND to_uid = 'PRIV-CTL-1';
+        DELETE FROM catalog_item_labels WHERE catalog_id = 'cat-test-private';
+        DELETE FROM catalog_imprints WHERE id = 'imprint-live-cc-PRIVATE';
+        DELETE FROM catalog_defs WHERE id = 'cat-test-private';
+        DELETE FROM project_grants WHERE id = 'grant-casey-rel-cat-p2';
+        DELETE FROM projects WHERE id = 'rel-cat-p2'`);
     }
   });
 

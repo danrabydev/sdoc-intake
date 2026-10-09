@@ -1,19 +1,24 @@
 /** Client-side browse screens (read-only). */
 
+import { el } from "./browse-dom.js";
+import {
+  appRequirementHref as coreAppRequirementHref,
+  loadJson as coreLoadJson,
+  SLUG_ID,
+  REQUIREMENT_ID,
+  isValidSlugId,
+  isValidRequirementId,
+} from "./browse-core.js";
+import { fillRequirementRelationsPanel, relationsPanelShell } from "./browse-relations.js";
+
+export { el } from "./browse-dom.js";
+
 export const APP_NAV = [
   { href: "/app/clients", label: "Clients" },
   { href: "/app/projects", label: "Projects" },
 ];
-export const SLUG_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
+export { SLUG_ID, REQUIREMENT_ID, isValidSlugId, isValidRequirementId } from "./browse-core.js";
 export const SLUG_MAX_LENGTH = 64;
-export const REQUIREMENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
-
-export function isValidSlugId(id) {
-  return typeof id === "string" && SLUG_ID.test(id);
-}
-export function isValidRequirementId(id) {
-  return typeof id === "string" && REQUIREMENT_ID.test(id);
-}
 export function decodeRouteSegment(segment) {
   try {
     return decodeURIComponent(segment);
@@ -28,7 +33,7 @@ export function appProjectHref(projectId) {
   return `/app/projects/${encodeURIComponent(projectId)}`;
 }
 export function appRequirementHref(projectId, requirementId) {
-  return `/app/projects/${encodeURIComponent(projectId)}/requirements/${encodeURIComponent(requirementId)}`;
+  return coreAppRequirementHref(projectId, requirementId);
 }
 export function appRequirementVersionsHref(projectId, requirementId, offset = 0) {
   const base = `${appRequirementHref(projectId, requirementId)}/versions`;
@@ -187,17 +192,6 @@ export function pagingOffsets(offset, limit, total) {
   return { prevOff, nextOff, showPrev: offset > 0, showNext: nextOff < total };
 }
 
-export function el(tag, props = {}, children = []) {
-  const node = document.createElement(tag);
-  for (const [k, v] of Object.entries(props)) {
-    if (k === "className") node.className = v;
-    else if (k === "text") node.textContent = v;
-    else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2).toLowerCase(), v);
-    else if (v != null) node.setAttribute(k, v);
-  }
-  for (const child of children) if (child != null) node.append(child);
-  return node;
-}
 function excerpt(text, max = 72) {
   if (!text) return "—";
   const t = String(text).trim();
@@ -247,12 +241,7 @@ function dataTable(headers, rows) {
   return table;
 }
 export async function loadJson(apiFn, path) {
-  const res = await apiFn(path);
-  if (!res) return { kind: "auth" };
-  if (res.status === 404) return { kind: "not_found" };
-  if (!res.ok) return { kind: "error", status: res.status };
-  const body = await res.json();
-  return { kind: "ok", data: body.data ?? body };
+  return coreLoadJson(apiFn, path);
 }
 function isPastEnd(page, offset) {
   return (page.total ?? 0) > 0 && (page.offset ?? offset) >= (page.total ?? 0);
@@ -831,13 +820,12 @@ export async function renderRequirementsTree(container, { apiFn, projectId }) {
 
 export async function renderRequirementDetail(container, { apiFn, projectId, requirementId, listFilters }) {
   if (!isValidSlugId(projectId) || !isValidRequirementId(requirementId)) return renderNotFound(container);
-  const res = await loadJson(
-    apiFn,
-    `/api/v1/projects/${encodeURIComponent(projectId)}/requirements/${encodeURIComponent(requirementId)}`,
-  );
+  const detailPath = `/api/v1/projects/${encodeURIComponent(projectId)}/requirements/${encodeURIComponent(requirementId)}`;
+  const res = await loadJson(apiFn, detailPath);
   if (res.kind === "auth") return;
   if (res.kind !== "ok") return renderNotFound(container);
   const req = res.data;
+  const relPanel = relationsPanelShell();
   container.replaceChildren(
     requirementDetailBreadcrumb(projectId, req, listFilters),
     el("h1", { text: req.title || req.id }),
@@ -848,6 +836,7 @@ export async function renderRequirementDetail(container, { apiFn, projectId, req
     el("p", {}, [el("a", { href: appRequirementVersionsHref(projectId, requirementId), text: "Version history" })]),
     el("h2", { text: "Statement" }),
     el("div", { className: "statement-body", text: req.statement }),
+    relPanel,
   );
   const meta = el("dl", { className: "detail-meta" });
   for (const [key, val] of Object.entries(req.attributes ?? {})) {
@@ -855,6 +844,7 @@ export async function renderRequirementDetail(container, { apiFn, projectId, req
     meta.append(el("dt", { text: ATTR_LABELS[key] ?? key }), el("dd", { text: String(val) }));
   }
   if (meta.childNodes.length) container.append(el("h2", { text: "Attributes" }), meta);
+  await fillRequirementRelationsPanel(relPanel, { apiFn, projectId, requirementId });
 }
 
 export async function renderRequirementVersions(container, { apiFn, projectId, requirementId, offset = 0, limit = 20 }) {
