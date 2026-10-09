@@ -12,11 +12,6 @@ import {
 import { fillRequirementRelationsPanel, relationsPanelShell } from "./browse-relations.js";
 
 export { el } from "./browse-dom.js";
-
-export const APP_NAV = [
-  { href: "/app/clients", label: "Clients" },
-  { href: "/app/projects", label: "Projects" },
-];
 export { SLUG_ID, REQUIREMENT_ID, isValidSlugId, isValidRequirementId } from "./browse-core.js";
 export const SLUG_MAX_LENGTH = 64;
 export function decodeRouteSegment(segment) {
@@ -152,29 +147,20 @@ export function parseAppRoute(pathname) {
   return path.startsWith("/app") ? { view: "unknown" } : { view: "home" };
 }
 
-export function navItemsForRoute(route, currentPath) {
-  const items = APP_NAV.map((item) => ({
-    ...item,
-    match:
-      item.href === "/app/clients"
-        ? (p) => p === "/app/clients" || p.startsWith("/app/clients/")
-        : (p) =>
-            p === "/app/projects" ||
-            (p.startsWith("/app/projects/") &&
-              !p.includes("/requirements") &&
-              !p.includes("/releases") &&
-              !p.includes("/tree")),
-  }));
-  if (route.projectId && isValidSlugId(route.projectId)) {
-    const enc = encodeURIComponent(route.projectId);
-    const reqBase = `/app/projects/${enc}/requirements`;
-    const relBase = `/app/projects/${enc}/releases`;
-    const treeBase = `/app/projects/${enc}/tree`;
-    items.push({ href: reqBase, label: "Requirements", match: (p) => p.startsWith(reqBase) });
-    items.push({ href: treeBase, label: "Tree", match: (p) => p.startsWith(treeBase) });
-    items.push({ href: relBase, label: "Releases", match: (p) => p.startsWith(relBase) });
+function requirementsViewToggle(projectId, mode) {
+  const wrap = el("nav", { className: "req-view-toggle", "aria-label": "Requirements view" });
+  for (const [label, href, active] of [
+    ["List", requirementsListHref(projectId), mode === "list"],
+    ["Tree", appTreeHref(projectId), mode === "tree"],
+  ]) {
+    const a = el("a", { href, text: label, className: "req-view-link" });
+    if (active) {
+      a.classList.add("req-view-active");
+      a.setAttribute("aria-current", "page");
+    }
+    wrap.append(a);
   }
-  return items.map((item) => ({ ...item, active: item.match(currentPath) }));
+  return wrap;
 }
 
 export function readPageOffset(search) {
@@ -318,14 +304,7 @@ export async function renderClientDetail(container, { apiFn, clientId, offset = 
   if (clientRes.kind !== "ok") return renderNotFound(container);
   const client = clientRes.data;
   const clientBase = appClientHref(clientId);
-  container.replaceChildren(
-    el("nav", { className: "breadcrumb" }, [
-      el("a", { href: "/app/clients", text: "Clients" }),
-      el("span", { text: " / " }),
-      el("span", { text: client.name }),
-    ]),
-    el("h1", { text: client.name }),
-  );
+  container.replaceChildren(el("h1", { text: client.name }));
   const meta = el("dl", { className: "detail-meta" });
   meta.append(el("dt", { text: "Slug" }), el("dd", {}, [el("code", { text: client.id })]));
   if (client.created_at) meta.append(el("dt", { text: "Created" }), el("dd", { text: client.created_at }));
@@ -457,10 +436,6 @@ export async function renderReleasesList(container, { apiFn, projectId, filters,
   const page = result.data;
   const pageBase = releasesListHref(projectId, filters);
   container.replaceChildren(
-    el("nav", { className: "breadcrumb" }, [
-      el("a", { href: appProjectHref(projectId), text: "Project" }),
-      el("span", { text: " / Releases" }),
-    ]),
     el("h1", { text: "Releases" }),
     releaseStatusFilterForm(filters.status, listPath),
   );
@@ -550,11 +525,8 @@ export async function renderRequirementsList(container, { apiFn, projectId, filt
   const page = result.data;
   const pageBase = requirementsListHref(projectId, filters);
   container.replaceChildren(
-    el("nav", { className: "breadcrumb" }, [
-      el("a", { href: appProjectHref(projectId), text: "Project" }),
-      el("span", { text: " / Requirements" }),
-    ]),
     el("h1", { text: "Requirements" }),
+    requirementsViewToggle(projectId, "list"),
     filterForm(filters, listPath),
   );
   if (!page.items?.length) {
@@ -625,13 +597,7 @@ function treeNodeLabel(node, projectId) {
 export async function renderRequirementsTree(container, { apiFn, projectId }) {
   if (!isValidSlugId(projectId)) return renderNotFound(container);
   const shell = el("div");
-  shell.append(
-    el("nav", { className: "breadcrumb" }, [
-      el("a", { href: appProjectHref(projectId), text: "Project" }),
-      el("span", { text: " / Tree" }),
-    ]),
-    el("h1", { text: "Requirements tree" }),
-  );
+  shell.append(el("h1", { text: "Requirements tree" }), requirementsViewToggle(projectId, "tree"));
   container.replaceChildren(shell);
   const treeEl = el("div", { role: "tree", className: "req-tree", tabindex: "-1" });
   shell.append(treeEl);

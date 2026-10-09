@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 import { describe, it, beforeEach, afterEach } from "node:test";
 import { JSDOM } from "jsdom";
 import {
-  APP_NAV,
   SLUG_MAX_LENGTH,
   appClientHref,
   appProjectHref,
@@ -25,7 +24,6 @@ import {
   readPageOffset,
   readRequirementsFilters,
   pagingOffsets,
-  navItemsForRoute,
   renderClientsList,
   renderClientDetail,
   renderProjectsList,
@@ -49,14 +47,30 @@ import {
   requirementsRelationsApiPath,
   renderKindBlock,
 } from "./public/browse-relations.js";
+import {
+  APP_MIN_NAV,
+  avatarTooltipLabel,
+  breadcrumbSegments,
+  initialsFromIdentity,
+  projectTabItems,
+  PROJECT_TABS,
+} from "./public/shell-nav.js";
 import { api, setUnauthorizedRedirect, clearUnauthorizedRedirect } from "./public/api-client.js";
-import { rootRedirectPath, renderAppShell, signOut } from "./public/app.js";
+import { loadShellMeta, rootRedirectPath, renderAppShell, signOut } from "./public/app.js";
 import { pathGetsWebSpaShell } from "./spa-shell-paths.js";
 
 type FetchHandler = (url: string) => { status: number; body?: unknown };
 
 function jsonResponse(status: number, body: unknown) {
   return { status, ok: status >= 200 && status < 300, json: async () => body };
+}
+
+function mockFetchBare(handler: FetchHandler) {
+  return (async (input: RequestInfo | URL) => {
+    const url = typeof input === "string" ? input : input.toString();
+    const { status, body } = handler(url);
+    return jsonResponse(status, body) as Response;
+  }) as unknown as typeof fetch;
 }
 
 function installDom(url = "http://localhost/app/clients") {
@@ -100,7 +114,7 @@ describe("browse routes and helpers", () => {
     });
     assert.deepEqual(parseAppRoute("/app/projects/reqalm/tree"), { view: "requirements-tree", projectId: "reqalm" });
     assert.equal(parseAppRoute("/app/nope").view, "unknown");
-    assert.deepEqual(APP_NAV.map((n) => n.label), ["Clients", "Projects"]);
+    assert.deepEqual(APP_MIN_NAV.map((n) => n.label), ["Clients", "Projects"]);
   });
 
   it("validates slug and requirement ids", () => {
@@ -176,6 +190,10 @@ describe("browse UI render (jsdom)", () => {
     }) as unknown as typeof fetch;
   }
 
+  function mockFetchTracked(handler: FetchHandler) {
+    return mockFetch(handler);
+  }
+
   type TreeNodeRow = {
     uid: string;
     title: string;
@@ -221,7 +239,7 @@ describe("browse UI render (jsdom)", () => {
 
   async function mountTreeView(handler: FetchHandler, projectId = "reqalm") {
     const main = document.createElement("main");
-    await renderRequirementsTree(main, { apiFn: mockFetch(handler), projectId });
+    await renderRequirementsTree(main, { apiFn: mockFetchTracked(handler), projectId });
     return {
       main,
       tree: main.querySelector('[role="tree"]'),
@@ -233,7 +251,7 @@ describe("browse UI render (jsdom)", () => {
 
   it("list views handle API 404 without throwing", async () => {
     const main = document.createElement("main");
-    const apiFn = mockFetch(() => ({ status: 404 }));
+    const apiFn = mockFetchTracked(() => ({ status: 404 }));
     await renderClientsList(main, { apiFn });
     assert.match(main.textContent ?? "", /don't have access/i);
     await renderProjectsList(main, { apiFn });
@@ -246,7 +264,7 @@ describe("browse UI render (jsdom)", () => {
 
   it("clients list paging and empty states", async () => {
     const main = document.createElement("main");
-    const apiFn = mockFetch((url) => {
+    const apiFn = mockFetchTracked((url) => {
       if (url === "/api/v1/clients?limit=20&offset=20") {
         return {
           status: 200,
@@ -262,15 +280,15 @@ describe("browse UI render (jsdom)", () => {
     assert.match(main.textContent ?? "", /Showing 21–40 of 45/);
     assert.ok(main.querySelector('a.btn-secondary[href="/app/clients?offset=40"]'));
     assert.ok(main.querySelector('a.btn-secondary[href="/app/clients"]'));
-    await renderClientsList(main, { apiFn: mockFetch(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })) });
+    await renderClientsList(main, { apiFn: mockFetchTracked(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })) });
     assert.match(main.textContent ?? "", /no clients you can see/i);
-    await renderClientsList(main, { apiFn: mockFetch(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 40, total: 25 } } })), offset: 40 });
+    await renderClientsList(main, { apiFn: mockFetchTracked(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 40, total: 25 } } })), offset: 40 });
     assert.match(main.textContent ?? "", /No more results/i);
   });
 
   it("renders client-detail projects paging with exact hrefs", async () => {
     const main = document.createElement("main");
-    const apiFn = mockFetch((url) => {
+    const apiFn = mockFetchTracked((url) => {
       if (url === "/api/v1/clients/reqalm-client") {
         return { status: 200, body: { data: { id: "reqalm-client", name: "ReqALM Client", notes: null, created_at: null } } };
       }
@@ -298,7 +316,7 @@ describe("browse UI render (jsdom)", () => {
 
   it("client detail omits notes and validates slug", async () => {
     const main = document.createElement("main");
-    const apiFn = mockFetch((url) => {
+    const apiFn = mockFetchTracked((url) => {
       if (url === "/api/v1/clients/reqalm-client") {
         return { status: 200, body: { data: { id: "reqalm-client", name: "ReqALM Client", notes: "Secret notes", created_at: "2026-01-01" } } };
       }
@@ -314,7 +332,7 @@ describe("browse UI render (jsdom)", () => {
 
   it("invalid slugs skip API fetch", async () => {
     const main = document.createElement("main");
-    const apiFn = mockFetch(() => {
+    const apiFn = mockFetchTracked(() => {
       throw new Error("should not fetch");
     });
     await renderClientDetail(main, { apiFn, clientId: "INVALID!" });
@@ -328,7 +346,7 @@ describe("browse UI render (jsdom)", () => {
   it("requirements list passes filters to API and reflects URL in form", async () => {
     const main = document.createElement("main");
     const filters = { kind: "capability", type: "capability", status: "active", q: "read" };
-    const apiFn = mockFetch((url) => {
+    const apiFn = mockFetchTracked((url) => {
       const u = new URL(url, "http://localhost");
       assert.equal(u.pathname, "/api/v1/projects/reqalm/requirements");
       assert.equal(u.searchParams.get("limit"), "20");
@@ -360,14 +378,14 @@ describe("browse UI render (jsdom)", () => {
     assert.equal(form?.querySelector('input[name="q"]')?.getAttribute("maxlength"), "200");
     assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-1"]'));
     await renderRequirementsList(main, {
-      apiFn: mockFetch(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })),
+      apiFn: mockFetchTracked(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })),
       projectId: "reqalm",
       filters,
       offset: 0,
     });
     assert.match(main.textContent ?? "", /No requirements match your filters/);
     await renderRequirementsList(main, {
-      apiFn: mockFetch(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })),
+      apiFn: mockFetchTracked(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })),
       projectId: "reqalm",
       filters: {},
       offset: 0,
@@ -375,10 +393,48 @@ describe("browse UI render (jsdom)", () => {
     assert.match(main.textContent ?? "", /No requirements in this project/);
   });
 
+  it("requirements list/tree toggle sets active link, hrefs, and aria-current", async () => {
+    const emptyReqs = mockFetchTracked(() => ({
+      status: 200,
+      body: { data: { items: [], limit: 20, offset: 0, total: 0 } },
+    }));
+    const listMain = document.createElement("main");
+    await renderRequirementsList(listMain, { apiFn: emptyReqs, projectId: "reqalm", filters: {}, offset: 0 });
+    const listLinks = [...listMain.querySelectorAll(".req-view-toggle a")];
+    assert.deepEqual(
+      listLinks.map((a) => [a.textContent, a.getAttribute("href"), a.getAttribute("aria-current")]),
+      [
+        ["List", "/app/projects/reqalm/requirements", "page"],
+        ["Tree", "/app/projects/reqalm/tree", null],
+      ],
+    );
+    assert.ok(listLinks[0]?.classList.contains("req-view-active"));
+    assert.equal(listLinks[1]?.classList.contains("req-view-active"), false);
+
+    const treeMain = document.createElement("main");
+    await renderRequirementsTree(treeMain, {
+      apiFn: mockFetchTracked(() => ({
+        status: 200,
+        body: { data: { items: [], limit: 100, offset: 0, total: 0 } },
+      })),
+      projectId: "reqalm",
+    });
+    const treeLinks = [...treeMain.querySelectorAll(".req-view-toggle a")];
+    assert.deepEqual(
+      treeLinks.map((a) => [a.textContent, a.getAttribute("href"), a.getAttribute("aria-current")]),
+      [
+        ["List", "/app/projects/reqalm/requirements", null],
+        ["Tree", "/app/projects/reqalm/tree", "page"],
+      ],
+    );
+    assert.equal(treeLinks[0]?.classList.contains("req-view-active"), false);
+    assert.ok(treeLinks[1]?.classList.contains("req-view-active"));
+  });
+
   it("shows projects list empty state and happy path with client link", async () => {
     const emptyMain = document.createElement("main");
     await renderProjectsList(emptyMain, {
-      apiFn: mockFetch((url) => {
+      apiFn: mockFetchTracked((url) => {
         if (url.startsWith("/api/v1/clients?")) {
           return { status: 200, body: { data: { items: [], limit: 100, offset: 0, total: 0 } } };
         }
@@ -392,7 +448,7 @@ describe("browse UI render (jsdom)", () => {
 
     const main = document.createElement("main");
     await renderProjectsList(main, {
-      apiFn: mockFetch((url) => {
+      apiFn: mockFetchTracked((url) => {
         if (url.startsWith("/api/v1/clients?")) {
           return { status: 200, body: { data: { items: [{ id: "c1", name: "Client One" }], limit: 100, offset: 0, total: 1 } } };
         }
@@ -414,7 +470,7 @@ describe("browse UI render (jsdom)", () => {
   it("requirements list past end shows No more results", async () => {
     const main = document.createElement("main");
     await renderRequirementsList(main, {
-      apiFn: mockFetch(() => ({
+      apiFn: mockFetchTracked(() => ({
         status: 200,
         body: { data: { items: [], limit: 20, offset: 40, total: 25 } },
       })),
@@ -430,7 +486,7 @@ describe("browse UI render (jsdom)", () => {
   it("requirements paging preserves filters in hrefs", async () => {
     const main = document.createElement("main");
     const filters = { kind: "cap", type: "feature", status: "", q: "x" };
-    const apiFn = mockFetch(() => ({
+    const apiFn = mockFetchTracked(() => ({
       status: 200,
       body: { data: { items: [{ id: "R1", title: "T", kind: "k", type: "t", status: "draft", version_n: 0, version_id: "R1" }], limit: 20, offset: 20, total: 45 } },
     }));
@@ -443,7 +499,7 @@ describe("browse UI render (jsdom)", () => {
 
   it("requirement detail and versions", async () => {
     const main = document.createElement("main");
-    const detailFn = mockFetch((url) => {
+    const detailFn = mockFetchTracked((url) => {
       if (url === "/api/v1/projects/reqalm/requirements/CAP-1") {
         return {
           status: 200,
@@ -476,11 +532,11 @@ describe("browse UI render (jsdom)", () => {
     assert.match(main.textContent ?? "", /Full statement text/);
     assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements?kind=cap"]'));
     assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-1/versions"]'));
-    await renderRequirementDetail(main, { apiFn: mockFetch(() => { throw new Error("no"); }), projectId: "reqalm", requirementId: "bad!" });
+    await renderRequirementDetail(main, { apiFn: mockFetchTracked(() => { throw new Error("no"); }), projectId: "reqalm", requirementId: "bad!" });
     assert.equal(fetchCalls.filter((u) => u.includes("requirements")).length, 2);
 
     const verMain = document.createElement("main");
-    const verFn = mockFetch(() => ({
+    const verFn = mockFetchTracked(() => ({
       status: 200,
       body: {
         data: {
@@ -503,7 +559,7 @@ describe("browse UI render (jsdom)", () => {
 
   it("project detail links to requirements list", async () => {
     const main = document.createElement("main");
-    const apiFn = mockFetch((url) => {
+    const apiFn = mockFetchTracked((url) => {
       if (url === "/api/v1/projects/p1") return { status: 200, body: { data: { id: "p1", client_id: "c1", name: "P One" } } };
       if (url === "/api/v1/clients/c1") return { status: 200, body: { data: { id: "c1", name: "Client One" } } };
       return { status: 404 };
@@ -764,7 +820,7 @@ describe("browse UI render (jsdom)", () => {
   it("requirement detail breadcrumbs use ancestor order and section vs requirement links", async () => {
     const main = document.createElement("main");
     await renderRequirementDetail(main, {
-      apiFn: mockFetch((url) => {
+      apiFn: mockFetchTracked((url) => {
         if (url === "/api/v1/projects/reqalm/requirements/LEAF") {
           return {
             status: 200,
@@ -803,7 +859,7 @@ describe("browse UI render (jsdom)", () => {
 
     const plain = document.createElement("main");
     await renderRequirementDetail(plain, {
-      apiFn: mockFetch((url) => {
+      apiFn: mockFetchTracked((url) => {
         if (url === "/api/v1/projects/reqalm/requirements/CAP-1") {
           return {
             status: 200,
@@ -1054,7 +1110,7 @@ describe("browse UI render (jsdom)", () => {
     const stub = treeFetchHandler(roots);
     const rootsUrl = requirementsTreeApiPath("reqalm", null);
     await mountBrowseView(main, route, {
-      apiFn: mockFetch((url) => {
+      apiFn: mockFetchTracked((url) => {
         assert.equal(url, rootsUrl);
         return stub(url);
       }),
@@ -1068,7 +1124,7 @@ describe("browse UI render (jsdom)", () => {
   it("releases list paging via mountBrowseView preserves status in API and hrefs", async () => {
     const main = document.createElement("main");
     const route = parseAppRoute("/app/projects/reqalm/releases");
-    const apiFn = mockFetch((url) => {
+    const apiFn = mockFetchTracked((url) => {
       const u = new URL(url, "http://localhost");
       assert.equal(u.pathname, "/api/v1/projects/reqalm/releases");
       assert.equal(u.searchParams.get("status"), "shipped");
@@ -1104,7 +1160,7 @@ describe("browse UI render (jsdom)", () => {
   it("releases list via mountBrowseView ignores bogus status (release filters, not requirements)", async () => {
     const main = document.createElement("main");
     const route = parseAppRoute("/app/projects/reqalm/releases");
-    const apiFn = mockFetch((url) => {
+    const apiFn = mockFetchTracked((url) => {
       const u = new URL(url, "http://localhost");
       assert.equal(u.pathname, "/api/v1/projects/reqalm/releases");
       assert.equal(u.searchParams.has("status"), false);
@@ -1141,7 +1197,7 @@ describe("browse UI render (jsdom)", () => {
   it("releases list table shows exact planned, shipped, and capability cells", async () => {
     const main = document.createElement("main");
     await renderReleasesList(main, {
-      apiFn: mockFetch(() => ({
+      apiFn: mockFetchTracked(() => ({
         status: 200,
         body: {
           data: {
@@ -1172,7 +1228,7 @@ describe("browse UI render (jsdom)", () => {
   it("releases list passes status filter to API and paging hrefs", async () => {
     const main = document.createElement("main");
     const filters = { status: "planned" };
-    const apiFn = mockFetch((url) => {
+    const apiFn = mockFetchTracked((url) => {
       const u = new URL(url, "http://localhost");
       assert.equal(u.pathname, "/api/v1/projects/reqalm/releases");
       assert.equal(u.searchParams.get("status"), "planned");
@@ -1209,21 +1265,21 @@ describe("browse UI render (jsdom)", () => {
   it("releases list empty, filter miss, and past end", async () => {
     const main = document.createElement("main");
     await renderReleasesList(main, {
-      apiFn: mockFetch(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })),
+      apiFn: mockFetchTracked(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })),
       projectId: "reqalm",
       filters: { status: "" },
       offset: 0,
     });
     assert.match(main.textContent ?? "", /No releases in this project/);
     await renderReleasesList(main, {
-      apiFn: mockFetch(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })),
+      apiFn: mockFetchTracked(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } })),
       projectId: "reqalm",
       filters: { status: "shipped" },
       offset: 0,
     });
     assert.match(main.textContent ?? "", /No releases match your filter/);
     await renderReleasesList(main, {
-      apiFn: mockFetch(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 40, total: 25 } } })),
+      apiFn: mockFetchTracked(() => ({ status: 200, body: { data: { items: [], limit: 20, offset: 40, total: 25 } } })),
       projectId: "reqalm",
       filters: { status: "" },
       offset: 40,
@@ -1236,7 +1292,7 @@ describe("browse UI render (jsdom)", () => {
     const xssName = "<img src=x onerror=alert(1)>";
     const notes = "Line one\nLine two";
     const main = document.createElement("main");
-    const apiFn = mockFetch((url) => {
+    const apiFn = mockFetchTracked((url) => {
       if (url === "/api/v1/projects/reqalm/releases/rel-x") {
         return {
           status: 200,
@@ -1280,14 +1336,14 @@ describe("browse UI render (jsdom)", () => {
     assert.ok(main.querySelector('a[href="/app/projects/reqalm/releases?status=shipped"]'));
     const badMain = document.createElement("main");
     fetchCalls.length = 0;
-    await renderReleaseDetail(badMain, { apiFn: mockFetch(() => { throw new Error("no"); }), projectId: "reqalm", releaseId: "BAD!" });
+    await renderReleaseDetail(badMain, { apiFn: mockFetchTracked(() => { throw new Error("no"); }), projectId: "reqalm", releaseId: "BAD!" });
     assert.equal(fetchCalls.length, 0);
   });
 
   it("release detail API 404 renders not-found without throwing", async () => {
     const main = document.createElement("main");
     await renderReleaseDetail(main, {
-      apiFn: mockFetch(() => ({ status: 404 })),
+      apiFn: mockFetchTracked(() => ({ status: 404 })),
       projectId: "reqalm",
       releaseId: "rel-missing",
     });
@@ -1298,7 +1354,7 @@ describe("browse UI render (jsdom)", () => {
     const main = document.createElement("main");
     fetchCalls.length = 0;
     await renderReleaseDetail(main, {
-      apiFn: mockFetch(() => {
+      apiFn: mockFetchTracked(() => {
         throw new Error("should not fetch");
       }),
       projectId: "INVALID!",
@@ -1312,7 +1368,7 @@ describe("browse UI render (jsdom)", () => {
     const main = document.createElement("main");
     const route = parseAppRoute("/app/projects/reqalm/releases/rel-empty");
     await mountBrowseView(main, route, {
-      apiFn: mockFetch((url) => {
+      apiFn: mockFetchTracked((url) => {
         if (url === "/api/v1/projects/reqalm/releases/rel-empty") {
           return {
             status: 200,
@@ -1343,7 +1399,7 @@ describe("browse UI render (jsdom)", () => {
     const xss = "<img src=x onerror=alert(1)>";
     const main = document.createElement("main");
     await renderClientsList(main, {
-      apiFn: mockFetch(() => ({
+      apiFn: mockFetchTracked(() => ({
         status: 200,
         body: { data: { items: [{ id: "xss", name: xss, created_at: null, notes: null }], limit: 20, offset: 0, total: 1 } },
       })),
@@ -1356,7 +1412,7 @@ describe("browse UI render (jsdom)", () => {
   it("browse renders never fetch SPA document paths", async () => {
     const main = document.createElement("main");
     await renderRequirementsList(main, {
-      apiFn: mockFetch((url) => {
+      apiFn: mockFetchTracked((url) => {
         assert.ok(url.startsWith("/api/v1/"), url);
         return { status: 200, body: { data: { items: [], limit: 20, offset: 0, total: 0 } } };
       }),
@@ -1371,10 +1427,43 @@ describe("browse UI render (jsdom)", () => {
     assert.equal(decodeRouteSegment("%E0%A4%A"), null);
     const main = document.createElement("main");
     await mountBrowseView(main, parseAppRoute("/app/projects/%E0%A4%A/requirements"), {
-      apiFn: mockFetch(() => { throw new Error("no"); }),
+      apiFn: mockFetchTracked(() => { throw new Error("no"); }),
     });
     assert.match(main.textContent ?? "", /don't have access/i);
     assert.equal(fetchCalls.length, 0);
+  });
+});
+
+const shellMeta = {
+  identityId: "dan-raby",
+  agentName: "Dan Raby",
+  client: { id: "danrabydev", name: "Dan Raby Dev" },
+  project: { id: "reqalm", name: "ReqALM Product", client_id: "danrabydev" },
+};
+
+describe("shell-nav helpers", () => {
+  it("initialsFromIdentity, avatarTooltipLabel, breadcrumbSegments, projectTabItems", () => {
+    assert.equal(initialsFromIdentity("", ""), "??");
+    assert.equal(initialsFromIdentity("", "   "), "??");
+    assert.equal(initialsFromIdentity("   ", ""), "??");
+    assert.equal(initialsFromIdentity("", "🎉 Party"), "🎉P");
+    assert.notEqual(initialsFromIdentity("", "🎉 Party").length, 1);
+    assert.equal(initialsFromIdentity("casey-reader", null), "CR");
+    assert.equal(avatarTooltipLabel({ identityId: "secret-id", agentName: null }), null);
+    assert.equal(avatarTooltipLabel({ agentName: "Dan Raby" }), "Dan Raby");
+    assert.equal(avatarTooltipLabel({ displayName: "  Casey  ", agentName: "ignored" }), "Casey");
+    const route = parseAppRoute("/app/projects/reqalm/releases");
+    const segs = breadcrumbSegments(route, shellMeta);
+    assert.deepEqual(
+      segs.map((s) => s.label),
+      ["Dan Raby Dev", "ReqALM Product", "Releases"],
+    );
+    assert.ok(segs[0]?.href?.includes("danrabydev"));
+    assert.ok(segs[1]?.href?.includes("reqalm"));
+    assert.equal(segs[2]?.current, true);
+    const tabs = projectTabItems("reqalm", "/app/projects/reqalm/tree");
+    assert.equal(tabs.filter((t) => t.active).length, 1);
+    assert.equal(tabs.find((t) => t.active)?.id, "requirements");
   });
 });
 
@@ -1385,27 +1474,182 @@ describe("app shell", () => {
     Reflect.deleteProperty(globalThis, "document");
   });
 
-  it("shows Clients, Projects, and project Requirements nav", () => {
+  it("live project tabs, minimal nav, and coming-soon tabs", () => {
+    const cases = [
+      {
+        path: "/app/projects/reqalm/requirements",
+        label: "Requirements",
+        href: "/app/projects/reqalm/requirements",
+        hideTopNav: true,
+        comingSoon: true,
+      },
+      {
+        path: "/app/projects/reqalm/tree",
+        label: "Requirements",
+        href: "/app/projects/reqalm/requirements",
+        hideTopNav: true,
+      },
+      { path: "/app/projects/reqalm/releases", label: "Releases", href: "/app/projects/reqalm/releases" },
+      {
+        path: "/app/projects/reqalm/releases/rel-a",
+        label: "Releases",
+        href: "/app/projects/reqalm/releases",
+        releaseActiveHref: true,
+      },
+      { path: "/app/clients", minNav: true },
+    ];
+    for (const { path, label, href, hideTopNav, releaseActiveHref, comingSoon, minNav } of cases) {
+      installDom(`http://localhost${path}`);
+      const meta = minNav ? { identityId: "dan-raby", agentName: null } : shellMeta;
+      renderAppShell(path, parseAppRoute(path), meta);
+      if (minNav) {
+        assert.equal(document.querySelector("#project-nav"), null, path);
+        assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/clients"]'), path);
+        assert.equal(document.querySelectorAll("#project-nav .project-tab-disabled").length, 0, path);
+        continue;
+      }
+      const active = document.querySelector("#project-nav .project-tab-active");
+      assert.equal(active?.textContent, label, path);
+      if (hideTopNav) assert.equal(document.querySelector("#top-nav"), null, path);
+      const ariaCurrent = [...document.querySelectorAll('#project-nav a[aria-current="page"]')];
+      assert.equal(ariaCurrent.length, 1, path);
+      assert.equal(ariaCurrent[0]?.textContent, label, path);
+      assert.equal(ariaCurrent[0]?.getAttribute("href"), href, path);
+      assert.ok(ariaCurrent[0]?.classList.contains("project-tab-active"), path);
+      if (releaseActiveHref) {
+        assert.ok(
+          document.querySelector('#project-nav a.project-tab-active[href="/app/projects/reqalm/releases"]'),
+          path,
+        );
+      }
+      if (comingSoon) {
+        for (const tabLabel of ["Traceability", "Capabilities", "Contracts", "Audit"]) {
+          const tab = [...document.querySelectorAll("#project-nav .project-tab-disabled")].find(
+            (n) => n.textContent === tabLabel,
+          );
+          assert.ok(tab, tabLabel);
+          assert.equal(tab?.getAttribute("aria-disabled"), "true");
+          assert.equal(tab?.getAttribute("title"), "Coming soon");
+          assert.equal(tab?.tagName, "SPAN");
+        }
+        assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 4);
+      }
+    }
+  });
+
+  it("breadcrumb links and escaped client/project names in project context", () => {
+    const evil = "<img src=x onerror=alert(1)>";
+    const cases = [
+      { meta: shellMeta, links: true, escape: false },
+      {
+        meta: {
+          ...shellMeta,
+          client: { id: "danrabydev", name: evil },
+          project: { id: "reqalm", name: evil, client_id: "danrabydev" },
+        },
+        links: false,
+        escape: true,
+      },
+    ];
+    for (const { meta, links, escape } of cases) {
+      renderAppShell("/app/projects/reqalm/requirements", parseAppRoute("/app/projects/reqalm/requirements"), meta);
+      const crumb = document.querySelector(".header-breadcrumb");
+      if (links) {
+        assert.match(crumb?.textContent ?? "", /Dan Raby Dev/);
+        assert.match(crumb?.textContent ?? "", /ReqALM Product/);
+        assert.match(crumb?.textContent ?? "", /Requirements/);
+        assert.equal(document.querySelector('.header-breadcrumb a[href="/app/clients/danrabydev"]')?.textContent, "Dan Raby Dev");
+        assert.equal(document.querySelector('.header-breadcrumb a[href="/app/projects/reqalm"]')?.textContent, "ReqALM Product");
+        assert.ok(document.querySelector('.header-breadcrumb [aria-current="page"]'));
+      }
+      if (escape) {
+        assert.equal(document.querySelector(".header-breadcrumb img"), null);
+        assert.ok(crumb?.textContent?.includes("<img"));
+      }
+    }
+  });
+
+  it("user avatar, sign out, and tooltip policy", () => {
+    for (const { meta, initials, title, forbiddenTitle } of [
+      { meta: shellMeta, initials: "DR", title: "Dan Raby" },
+      { meta: { identityId: "casey-reader", agentName: null }, initials: "CR", title: null, forbiddenTitle: "casey-reader" },
+    ]) {
+      renderAppShell("/app/clients", parseAppRoute("/app/clients"), meta);
+      const avatar = document.querySelector(".user-avatar");
+      assert.equal(avatar?.textContent, initials);
+      assert.equal(avatar?.getAttribute("title"), title);
+      if (forbiddenTitle) assert.notEqual(avatar?.getAttribute("title"), forbiddenTitle);
+    }
+    assert.ok(document.getElementById("signout"));
+  });
+
+  it("breadcrumb skips invalid client slug and loadShellMeta does not fetch client", async () => {
     const route = parseAppRoute("/app/projects/reqalm/requirements");
-    renderAppShell("/app/projects/reqalm/requirements", route);
-    const texts = [...document.querySelectorAll("#top-nav a")].map((a) => a.textContent);
-    assert.deepEqual(texts, ["Clients", "Projects", "Requirements", "Tree", "Releases"]);
-    assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm/requirements"]'));
+    let clientFetch = false;
+    const meta = await loadShellMeta(route, mockFetchBare((url) => {
+      if (url === "/api/v1/me") return { status: 200, body: { data: { identity_id: "u1", agent_name: null } } };
+      if (url === "/api/v1/projects/reqalm") {
+        return {
+          status: 200,
+          body: { data: { id: "reqalm", name: "ReqALM", client_id: "INVALID!" } },
+        };
+      }
+      if (url.startsWith("/api/v1/clients/")) {
+        clientFetch = true;
+        return { status: 404 };
+      }
+      return { status: 404 };
+    }));
+    assert.equal(clientFetch, false);
+    assert.equal(meta.client, undefined);
+    const segs = breadcrumbSegments(route, meta);
+    assert.deepEqual(
+      segs.map((s) => s.label),
+      ["ReqALM", "Requirements"],
+    );
+    assert.equal(segs[0]?.href, "/app/projects/reqalm");
+    renderAppShell("/app/projects/reqalm/requirements", route, meta);
+    assert.equal(document.querySelector('.header-breadcrumb a[href*="clients"]'), null);
   });
 
-  it("shows Tree nav active on tree route", () => {
-    const route = parseAppRoute("/app/projects/reqalm/tree");
-    renderAppShell("/app/projects/reqalm/tree", route);
-    const activeNav = [...document.querySelectorAll("#top-nav a.nav-active")];
-    assert.equal(activeNav.length, 1);
-    assert.equal(activeNav[0]?.getAttribute("href"), "/app/projects/reqalm/tree");
-    assert.equal(document.querySelector('#top-nav a.nav-active[href="/app/projects"]'), null);
-  });
-
-  it("shows Releases nav active on releases routes", () => {
-    const route = parseAppRoute("/app/projects/reqalm/releases/rel-a");
-    renderAppShell("/app/projects/reqalm/releases/rel-a", route);
-    assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm/releases"]'));
+  it("requirement detail relationships panel renders under project header tabs", async () => {
+    const path = "/app/projects/reqalm/requirements/CAP-1";
+    installDom(`http://localhost${path}`);
+    const route = parseAppRoute(path);
+    const content = renderAppShell(path, route, shellMeta);
+    await mountBrowseView(content, route, {
+      apiFn: mockFetchBare((url) => {
+        if (url === "/api/v1/projects/reqalm/requirements/CAP-1") {
+          return {
+            status: 200,
+            body: {
+              data: {
+                id: "CAP-1",
+                title: "Cap one",
+                kind: "capability",
+                type: "capability",
+                status: "active",
+                version_n: 0,
+                statement: "S",
+                attributes: {},
+              },
+            },
+          };
+        }
+        if (url === relationsPath("reqalm", "CAP-1")) {
+          return {
+            status: 200,
+            body: {
+              data: { id: "CAP-1", project_id: "reqalm", outgoing: {}, incoming: {} },
+            },
+          };
+        }
+        return { status: 404 };
+      }),
+    });
+    assert.ok(document.querySelector('#project-nav a.project-tab-active[aria-current="page"]'));
+    assert.ok(content.querySelector(".relations-panel"));
+    assert.ok(content.querySelector("#relations-heading"));
   });
 
   it("root redirect targets clients or login", () => {
