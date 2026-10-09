@@ -42,12 +42,12 @@ import {
   pageHref,
 } from "./public/browse.js";
 import {
+  fillRequirementRelationsPanel,
   imprintShortLabel,
   relationPeerChip,
   relationsPanelShell,
   requirementsRelationsApiPath,
   renderKindBlock,
-  renderRelationsPanelBody,
 } from "./public/browse-relations.js";
 import { api, setUnauthorizedRedirect, clearUnauthorizedRedirect } from "./public/api-client.js";
 import { rootRedirectPath, renderAppShell, signOut } from "./public/app.js";
@@ -574,82 +574,28 @@ describe("browse UI render (jsdom)", () => {
     const xss = '<img src=x onerror=alert(1)>';
     const encodedId = "A B/C?x#y";
     const encodedHref = `/app/projects/reqalm/requirements/${encodeURIComponent(encodedId)}`;
+    const req = (id: string, title: string | null, project_id = "reqalm") => ({ id, title, kind: "requirement", type: "requirement", project_id });
+    const link = (kind: string, dir: string, pvid: string, peer: object, extra: Record<string, unknown> = {}) => ({
+      relation_kind: kind, direction: dir, self_version_id: "ANCHOR", peer_version_id: pvid, trace_suspect: false, peer, ...extra,
+    });
     const relPayload = {
       id: "ANCHOR",
       project_id: "reqalm",
       outgoing: {
-        satisfies: [
-          {
-            relation_kind: "satisfies",
-            direction: "outgoing",
-            self_version_id: "ANCHOR",
-            peer_version_id: xss,
-            trace_suspect: false,
-            peer: { id: xss, title: "safe title", kind: "requirement", type: "requirement", project_id: "reqalm" },
-          },
-        ],
-        uses: [
-          {
-            relation_kind: "uses",
-            direction: "outgoing",
-            self_version_id: "ANCHOR",
-            peer_version_id: "USE-TGT",
-            trace_suspect: false,
-            peer: { id: "USE-TGT", title: "Uses target", kind: "requirement", type: "requirement", project_id: "reqalm" },
-          },
-        ],
-        conforms_to: [
-          {
-            relation_kind: "conforms_to",
-            direction: "outgoing",
-            self_version_id: "ANCHOR",
-            peer_version_id: xss,
-            catalog_imprint_id: "nist-800-53@rev5-dogfood-20261006",
-            trace_suspect: true,
-            peer: { id: xss, title: null, kind: "control", type: "catalog_control", project_id: "reqalm" },
-          },
-        ],
+        satisfies: [link("satisfies", "outgoing", xss, req(xss, "safe title"))],
+        uses: [link("uses", "outgoing", "USE-TGT", req("USE-TGT", xss))],
+        conforms_to: [link("conforms_to", "outgoing", xss, { id: xss, title: null, kind: "control", type: "catalog_control", project_id: "reqalm" }, { catalog_imprint_id: "nist-800-53@rev5-dogfood-20261006", trace_suspect: true })],
       },
       incoming: {
         refines: [
-          {
-            relation_kind: "refines",
-            direction: "incoming",
-            self_version_id: "ANCHOR",
-            peer_version_id: "PEER-IN",
-            trace_suspect: true,
-            peer: { id: "PEER-IN", title: null, kind: "requirement", type: "requirement", project_id: "reqalm" },
-          },
-          {
-            relation_kind: "refines",
-            direction: "incoming",
-            self_version_id: "ANCHOR",
-            peer_version_id: "TWIN-A01",
-            trace_suspect: false,
-            peer: { id: "A01", title: "Twin A01", kind: "requirement", type: "requirement", project_id: "twin-b" },
-          },
-          {
-            relation_kind: "refines",
-            direction: "incoming",
-            self_version_id: "ANCHOR",
-            peer_version_id: encodedId,
-            trace_suspect: false,
-            peer: { id: encodedId, title: "Encoded id peer", kind: "requirement", type: "requirement", project_id: "reqalm" },
-          },
+          link("refines", "incoming", "PEER-IN", req("PEER-IN", null), { trace_suspect: true }),
+          link("refines", "incoming", "TWIN-A01", req("A01", "Twin A01", "twin-b")),
+          link("refines", "incoming", encodedId, req(encodedId, "Encoded id peer")),
           { restricted: true, relation_kind: "refines", direction: "incoming" },
         ],
       },
     };
-    const detailBody = {
-      id: "ANCHOR",
-      title: "Anchor",
-      kind: "capability",
-      type: "capability",
-      status: "active",
-      version_n: 0,
-      statement: "S",
-      attributes: {},
-    };
+    const detailBody = { id: "ANCHOR", title: "Anchor", kind: "capability", type: "capability", status: "active", version_n: 0, statement: "S", attributes: {} };
     const main = document.createElement("main");
     await renderRequirementDetail(main, {
       apiFn: mockFetch((url) => {
@@ -671,6 +617,8 @@ describe("browse UI render (jsdom)", () => {
     assert.match(outgoing?.textContent ?? "", /Satisfies/);
     assert.match(outgoing?.textContent ?? "", /this → 1 peer/);
     assert.match(outgoing?.textContent ?? "", /Uses/);
+    assert.equal(outgoing?.querySelector(".relations-direction-count")?.textContent, "3");
+    assert.equal(incoming?.querySelector(".relations-direction-count")?.textContent, "4");
     assert.match(incoming?.textContent ?? "", /Refines/);
     assert.match(incoming?.textContent ?? "", /→ this 4 peers/);
     assert.match(outgoing?.textContent ?? "", /Conforms to/);
@@ -681,7 +629,10 @@ describe("browse UI render (jsdom)", () => {
     assert.ok(!incoming?.contains(outLink));
     const usesLink = outgoing?.querySelector('a.relation-chip-link[href="/app/projects/reqalm/requirements/USE-TGT"]');
     assert.ok(usesLink);
-    assert.match(usesLink?.textContent ?? "", /Uses target/);
+    assert.ok((usesLink?.textContent ?? "").includes(xss));
+    assert.equal(usesLink?.querySelector(".relation-chip-title")?.getAttribute("title"), xss);
+    assert.equal(usesLink?.querySelector(".relation-chip-status")?.textContent, "Requirement");
+    assert.equal(usesLink?.querySelector(".relation-chip-project"), null);
     const inLink = incoming?.querySelector('a.relation-chip-link[href="/app/projects/reqalm/requirements/PEER-IN"]');
     assert.ok(inLink);
     assert.equal(inLink?.querySelector(".relation-chip-title"), null);
@@ -689,7 +640,9 @@ describe("browse UI render (jsdom)", () => {
     const twinLink = incoming?.querySelector('a.relation-chip-link[href="/app/projects/twin-b/requirements/A01"]');
     assert.ok(twinLink);
     assert.equal(twinLink?.querySelector(".relation-chip-version"), null);
-    assert.ok(twinLink?.querySelector(".relation-chip-project")?.textContent?.includes("twin-b"));
+    const twinTag = twinLink?.querySelector(".relation-chip-project");
+    assert.equal(twinTag?.textContent, "twin-b");
+    assert.ok(twinTag?.childNodes.length && twinTag.childNodes[0]?.nodeType === 3);
     assert.equal(incoming?.querySelector(`a[href="/app/projects/reqalm/requirements/A01"]`), null);
     const encLink = incoming?.querySelector(`a.relation-chip-link[href="${encodedHref}"]`);
     assert.ok(encLink);
@@ -700,6 +653,7 @@ describe("browse UI render (jsdom)", () => {
     assert.equal(catalog?.getAttribute("href"), null);
     assert.ok((catalog?.textContent ?? "").includes(xss) && (catalog?.textContent ?? "").includes("NIST"));
     assert.equal(catalog?.querySelector(".relation-chip-title")?.textContent, xss);
+    assert.equal(catalog?.querySelector(".relation-chip-project"), null);
     const restricted = main.querySelector(".relation-chip-restricted");
     assert.ok(restricted);
     assert.notEqual(restricted?.tagName, "A");
@@ -746,7 +700,7 @@ describe("browse UI render (jsdom)", () => {
     assert.ok(relationsPanelShell().querySelector(".relations-loading"));
   });
 
-  it("relations collapse toggle, chip version, and missing project_id", () => {
+  it("relations collapse toggle, chip version, and missing project_id", async () => {
     const cssPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "public/styles.css");
     assert.match(fs.readFileSync(cssPath, "utf8"), /\.relation-chip-list\[hidden\]\s*\{\s*display:\s*none/);
     const peer = (id: string) => ({
@@ -766,41 +720,38 @@ describe("browse UI render (jsdom)", () => {
     const lists = block.querySelectorAll(".relation-chip-list");
     assert.equal(lists.length, 2);
     assert.equal(lists[0].querySelectorAll(".relation-chip").length, 10);
+    assert.equal(lists[1].querySelectorAll(".relation-chip").length, 2);
     assert.equal(lists[1].hidden, true);
     const btn = block.querySelector(".relation-show-all");
     assert.equal(btn?.textContent, "Show all 12");
     assert.equal(btn?.getAttribute("aria-expanded"), "false");
-    btn?.dispatchEvent(new window.Event("click", { bubbles: true }));
-    assert.equal(lists[1].hidden, false);
-    assert.equal(btn?.textContent, "Show less");
-    assert.equal(btn?.getAttribute("aria-expanded"), "true");
-    btn?.dispatchEvent(new window.Event("click", { bubbles: true }));
-    assert.equal(lists[1].hidden, true);
-    assert.equal(btn?.textContent, "Show all 12");
-    const verHost = document.createElement("div");
-    verHost.append(
-      renderRelationsPanelBody(
+    for (const [hidden, label, expanded] of [
+      [false, "Show less", "true"],
+      [true, "Show all 12", "false"],
+    ] as const) {
+      btn?.dispatchEvent(new window.Event("click", { bubbles: true }));
+      assert.equal(lists[1].hidden, hidden);
+      assert.equal(btn?.textContent, label);
+      assert.equal(btn?.getAttribute("aria-expanded"), expanded);
+    }
+    assert.equal(
+      relationPeerChip(
         {
-          id: "X",
-          project_id: "reqalm",
-          outgoing: {},
-          incoming: {
-            refines: [
-              {
-                relation_kind: "refines",
-                direction: "incoming",
-                self_version_id: "X",
-                peer_version_id: "BASE.1",
-                trace_suspect: false,
-                peer: { id: "BASE", title: "Base line", kind: "requirement", type: "requirement", project_id: "reqalm" },
-              },
-            ],
-          },
+          relation_kind: "refines",
+          direction: "incoming",
+          self_version_id: "X",
+          peer_version_id: "BASE.1",
+          trace_suspect: false,
+          peer: { id: "BASE", title: "Base line", kind: "requirement", type: "requirement", project_id: "reqalm" },
         },
         "reqalm",
-      ),
+      ).querySelector(".relation-chip-version")?.textContent,
+      ".1",
     );
-    assert.equal(verHost.querySelector(".relation-chip-version")?.textContent, ".1");
+    const authPanel = relationsPanelShell();
+    await fillRequirementRelationsPanel(authPanel, { apiFn: async () => null, projectId: "reqalm", requirementId: "R" });
+    assert.equal(authPanel.querySelector(".relations-error"), null);
+    assert.equal(authPanel.querySelector(".relations-panel-body"), null);
     const noProj = relationPeerChip(
       {
         relation_kind: "uses",

@@ -384,8 +384,13 @@ pre {
 
 .relations-columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1.25rem;
+}
+
+.relations-direction,
+.relation-chip {
+  min-width: 0;
 }
 
 .relations-direction-title {
@@ -470,6 +475,7 @@ pre {
 }
 
 .relation-chip-title {
+  flex: 1 1 auto;
   font-weight: 500;
   min-width: 0;
   overflow: hidden;
@@ -488,6 +494,8 @@ pre {
 }
 
 .relation-chip-id {
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: 0.82rem;
   background: #e0e7ff;
   color: var(--accent);
@@ -518,6 +526,7 @@ pre {
 }
 
 .relation-chip-suspect {
+  white-space: nowrap;
   font-size: 0.72rem;
   font-weight: 600;
   color: #b45309;
