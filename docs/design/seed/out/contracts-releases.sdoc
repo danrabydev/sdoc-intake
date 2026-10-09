@@ -1753,17 +1753,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-catalogs-api
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — catalogs read API
 STATEMENT: >>>
-ReqALM release `R1 — catalogs read API` (status=planned, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — catalogs read API` (status=shipped, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-catalogs-api
 project_id: reqalm
-shipped_on: None
-raw_status: planned
+shipped_on: 2026-10-09
+raw_status: shipped
 delivers: CAP-CATALOGS-API
 delivers_count: 1
 <<<
@@ -1775,26 +1775,26 @@ RELATIONS:
   ROLE: Delivers
 
 [REQUIREMENT]
-UID: RELEASE-rel-r1-lf-endings
-STATUS: Active
-TITLE: Release R1 — Git LF line endings (Compose entrypoints)
+UID: RELEASE-rel-r1-browse-ui-relations
+STATUS: Draft
+TITLE: Release R1 — browse requirement relationships UI (read-only)
 STATEMENT: >>>
-ReqALM release `R1 — Git LF line endings (Compose entrypoints)` (status=shipped, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — browse requirement relationships UI (read-only)` (status=planned, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
-release_id: rel-r1-lf-endings
+release_id: rel-r1-browse-ui-relations
 project_id: reqalm
-shipped_on: 2026-10-09
-raw_status: shipped
-delivers: CAP-DEVENV-LF-ENDINGS
+shipped_on: None
+raw_status: planned
+delivers: CAP-BROWSE-UI-RELATIONS
 delivers_count: 1
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-RELEASES-EXPORT
 - TYPE: Parent
-  VALUE: CAP-DEVENV-LF-ENDINGS
+  VALUE: CAP-BROWSE-UI-RELATIONS
   ROLE: Delivers
 
 [[/SECTION]]
