@@ -344,14 +344,56 @@ CAP_UI_FRAME_V1_STMT = (
     "and CSRF on cookie mutations. Partial: shell and sign-in work; not every ARCH-UI surface is implemented."
 )
 
+PR13_EVIDENCE = "Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes)."
 
-def mint_capability_content_n(
+CAP_SSO_V0_STMT = (
+    "Capability pack for federated SSO session establishment and teardown against the enterprise IdP.\n"
+    "Covers sign-in and sign-out paths used by UI and MCP hosts. No local passwords; MFA and authenticator\n"
+    "policy live at the IdP (NIST IA-2/IA-5, V-222536/542)."
+)
+CAP_SSO_V0_HASH = "sha256:090fad7f2a28d03f0eb0ea1684631e535ac2df550dc81596a7f1abb3cc271cb4"
+CAP_SSO_V1_STMT = (
+    "Capability pack for enterprise federated SSO session establishment and teardown (ARCH-AUTH-FEDERATION). "
+    "R0 delivered sequence diagrams and requirements only; runtime today uses the internal OAuth AS with dev "
+    "local accounts (ARCH-DEVENV-IDENTITY.1), not upstream IdP federation. MFA for production remains at the "
+    "enterprise IdP when federation ships."
+)
+
+CAP_SCOPED_V0_STMT = (
+    "Capability pack for selecting, clearing, and binding Client Scoped View on the server session.\n"
+    "UI App providers consume the bound clientId for navigation guards. Scope change and clear are audited;\n"
+    "server rejects cross-client resource access even if the client id appears in a forged request."
+)
+CAP_SCOPED_V0_HASH = "sha256:6d9d653098304d18fc6d61cd24753e12655075be1d43e5b64f6b6ae74150fe6c"
+CAP_SCOPED_V1_STMT = (
+    "Capability pack for Client Scoped View: select, clear, and bind clientId on the server session. "
+    "Partial R1: grant-scoped browse APIs enforce project/client visibility; full A03/A04 UX and MCP parity "
+    "remain in core-ALM. Scope changes shall be audited when mutating routes exist."
+)
+
+ARCH_API_RBAC_V0_STMT = (
+    "Every mutating business operation checks project_grant (and steward grants where applicable) before\n"
+    "writes. Denied calls return a consistent unauthorized/forbidden outcome and emit an audit event."
+)
+ARCH_API_RBAC_V0_HASH = "sha256:319f1dad1c8772a1cc5be6cc71b9a52630fd21601c5bac288a1b4b33eee3e8be"
+ARCH_API_RBAC_V1_STMT = (
+    "Every mutating business operation shall check project_grant (and steward grants where applicable) before "
+    "writes. Denied calls return a consistent unauthorized/forbidden outcome and emit an audit event. "
+    "CAP-RBAC documents the currently verified enforcement subset; this architecture requirement remains "
+    "active until all mutators in scope ship."
+)
+
+
+def mint_content_n(
     data,
     base_uid: str,
     v0_statement: str,
     v0_hash: str,
     v1_statement: str,
     v1_verification_note: str,
+    *,
+    v1_verification_outcome: str | None = "pass",
+    copy_edge_kinds: tuple[str, ...] = ("satisfies", "conforms_to"),
 ) -> None:
     v0 = find(data.get("requirement_versions"), "uid", base_uid)
     if v0:
@@ -359,30 +401,34 @@ def mint_capability_content_n(
         v0["statement_hash"] = v0_hash
         v0["status"] = "superseded"
     tip = f"{base_uid}.1"
-    upsert_version(
-        data,
-        cm(
-            uid=tip,
-            base_uid=base_uid,
-            version_n=1,
-            status="active",
-            statement=v1_statement,
-            priority=v0.get("priority", 10) if v0 else 10,
-            iteration=v0.get("iteration", "iter-r1") if v0 else "iter-r1",
-            security={
-                "catalog_ref": (v0.get("security") or {}).get("catalog_ref", "AC-3") if v0 else "AC-3",
-                "verification_note": v1_verification_note,
-            },
-            statement_hash=statement_hash(v1_statement),
-            grooming_state="detailed",
-            verification_outcome="pass",
-            mint_kind="content",
-        ),
+    ver = cm(
+        uid=tip,
+        base_uid=base_uid,
+        version_n=1,
+        status="active",
+        statement=v1_statement,
+        priority=v0.get("priority", 10) if v0 else 10,
+        iteration=v0.get("iteration", "iter-r1") if v0 else "iter-r1",
+        security={
+            "catalog_ref": (v0.get("security") or {}).get("catalog_ref", "AC-3") if v0 else "AC-3",
+            "verification_note": v1_verification_note,
+        },
+        statement_hash=statement_hash(v1_statement),
+        grooming_state="detailed",
+        mint_kind="content",
     )
+    if v1_verification_outcome is not None:
+        ver["verification_outcome"] = v1_verification_outcome
+    upsert_version(data, ver)
+    if v1_verification_outcome is None:
+        tip_ver = find(data.get("requirement_versions"), "uid", tip)
+        if tip_ver and "verification_outcome" in tip_ver:
+            tip_ver.pop("verification_outcome")
+            stats["versions_updated"] += 1
     edges = data.setdefault("edges", [])
     ensure_edge(edges, {"from": tip, "to": base_uid, "kind": "refines"})
     for e in list(edges):
-        if e.get("from") != base_uid or e.get("kind") not in ("satisfies", "conforms_to"):
+        if e.get("from") != base_uid or e.get("kind") not in copy_edge_kinds:
             continue
         copied = {k: v for k, v in e.items() if k in ("to", "kind", "catalog_imprint_id")}
         copied["from"] = tip
@@ -401,13 +447,39 @@ def mint_capability_content_n(
             stats["versions_updated"] += 1
 
 
+def mint_capability_content_n(
+    data,
+    base_uid: str,
+    v0_statement: str,
+    v0_hash: str,
+    v1_statement: str,
+    v1_verification_note: str,
+    *,
+    v1_verification_outcome: str | None = "pass",
+) -> None:
+    mint_content_n(
+        data,
+        base_uid,
+        v0_statement,
+        v0_hash,
+        v1_statement,
+        v1_verification_note,
+        v1_verification_outcome=v1_verification_outcome,
+    )
+
+
 def restore_shipped_release_delivers(data) -> None:
     """Shipped releases pin historical version UIDs; content mint must not rewrite them to .1."""
     replacements = {
-        "rel-r0-sequences": {"CAP-RBAC.1": "CAP-RBAC"},
+        "rel-r0-sequences": {
+            "CAP-RBAC.1": "CAP-RBAC",
+            "CAP-SSO.1": "CAP-SSO",
+            "CAP-SCOPED-VIEW.1": "CAP-SCOPED-VIEW",
+        },
         "rel-r1-foundation-shell-auth": {
             "CAP-RBAC.1": "CAP-RBAC",
             "CAP-UI-FRAME.1": "CAP-UI-FRAME",
+            "ARCH-API-RBAC.1": "ARCH-API-RBAC",
         },
     }
     for rel_id, mapping in replacements.items():
@@ -456,6 +528,10 @@ def prune_legacy_grooming_edges(data) -> None:
         ("CAP-UI-KIT-TREE", "CAP-UI-KIT", "refines"),
         ("CAP-UI-KIT-CHROME", "CAP-UI-KIT", "refines"),
         ("ARCH-HIER-CAP-PARTOF", "ARCH-CP-HIER", "refines"),
+        ("ARCH-BROWSE-ROADMAP", "C07", "refines"),
+        ("ARCH-WRITE-UOW-AUDIT", "ARCH-CRED-AUDIT", "refines"),
+        ("ARCH-WRITE-AUDIT-FLOOD", "ARCH-CRED-AUDIT", "refines"),
+        ("ARCH-WRITE-TRUNCATE-GUARD", "ARCH-API-RBAC", "refines"),
         ("CAP-BROWSE-ROADMAP", "K03", "satisfies"),
         ("CAP-SEED-GROOMING", "K03", "satisfies"),
         ("CAP-RELATIONS-API", "ARCH-SEC-EDGE-DEDUPE-DB", "satisfies"),
@@ -477,7 +553,7 @@ ARCH_UPSTREAM_REFINES: list[tuple[str, str]] = [
     ("ARCH-HIER-USES-DEP", "E03"),
     ("ARCH-HIER-SECTION-GROUP", "ARCH-SUBJECT-KIND"),
     ("ARCH-UI-KIT-SHARED", "ARCH-UI"),
-    ("ARCH-BROWSE-ROADMAP", "C07"),
+    ("ARCH-BROWSE-ROADMAP", "H09"),
     ("ARCH-SEC-EDGE-DEDUPE-DB", "E04"),
     ("ARCH-SEC-EDGE-DEDUPE-API", "E04"),
     ("ARCH-SEC-SEED-INTEGRITY", "ARCH-DEVENV-SEED"),
@@ -488,10 +564,10 @@ ARCH_UPSTREAM_REFINES: list[tuple[str, str]] = [
     ("ARCH-SEC-LOADER-EDGE-SYNC", "ARCH-DEVENV-SEED"),
     ("ARCH-SEC-CAT-LABEL-IMPRINT", "ARCH-CAT-PIN"),
     ("ARCH-SEC-HEADERS", "ARCH-API"),
-    ("ARCH-WRITE-UOW-AUDIT", "ARCH-CRED-AUDIT"),
+    ("ARCH-WRITE-UOW-AUDIT", "ARCH-OTEL"),
     ("ARCH-WRITE-REPOSITORY-LAYER", "ARCH-API-LAYERS"),
-    ("ARCH-WRITE-TRUNCATE-GUARD", "ARCH-API-RBAC"),
-    ("ARCH-WRITE-AUDIT-FLOOD", "ARCH-CRED-AUDIT"),
+    ("ARCH-WRITE-TRUNCATE-GUARD", "ARCH-CP-SCOPE"),
+    ("ARCH-WRITE-AUDIT-FLOOD", "ARCH-OTEL"),
     ("ARCH-WRITE-VERSION-UNIQUE", "ARCH-VER"),
     ("ARCH-WRITE-RESERVED-IDS", "ARCH-MINT-KIND"),
     ("ARCH-KEY-RUNTIME-CACHE", "ARCH-KEY-LIFECYCLE"),
@@ -906,65 +982,6 @@ def main() -> None:
         f"Seed-only PR on main {MAIN_CB8[:12]}…; regenerates out/ and HANDOFF. Does not ship rel-r1-relations-api.",
     )
 
-    # --- B: honesty / grooming corrections (preserve V-222518 conforms_to on v0 devenv caps) ---
-    patch_statement(
-        "CAP-SSO",
-        "Capability pack for enterprise federated SSO session establishment and teardown (ARCH-AUTH-FEDERATION). "
-        "R0 delivered sequence diagrams and requirements only; runtime today uses the internal OAuth AS with dev "
-        "local accounts (ARCH-DEVENV-IDENTITY.1), not upstream IdP federation. MFA for production remains at the "
-        "enterprise IdP when federation ships.",
-    )
-    patch_verification(
-        "CAP-SSO",
-        None,
-        "R0 design pack; federation not shipped — do not mark pass until ARCH-AUTH-FEDERATION delivers.",
-    )
-    if find(data.get("requirement_versions"), "uid", "CAP-SSO") and find(
-        data.get("requirement_versions"), "uid", "CAP-SSO"
-    ).get("verification_outcome") == "pass":
-        find(data.get("requirement_versions"), "uid", "CAP-SSO").pop("verification_outcome", None)
-        bump_status_correction()
-
-    patch_statement(
-        "CAP-SCOPED-VIEW",
-        "Capability pack for Client Scoped View: select, clear, and bind clientId on the server session. "
-        "Partial R1: grant-scoped browse APIs enforce project/client visibility; full A03/A04 UX and MCP parity "
-        "remain in core-ALM. Scope changes shall be audited when mutating routes exist.",
-    )
-    patch_verification(
-        "CAP-SCOPED-VIEW",
-        "pending",
-        "Partial: browse read scope shipped; full scoped-view mutate UX not complete.",
-    )
-
-    mint_capability_content_n(
-        data,
-        "CAP-RBAC",
-        CAP_RBAC_V0_STMT,
-        CAP_RBAC_V0_HASH,
-        CAP_RBAC_V1_STMT,
-        "Partial pass on .1: foundation + read routes verified; full matrix deferred to core-ALM.",
-    )
-    restore_shipped_release_delivers(data)
-
-    patch_statement(
-        "ARCH-API-RBAC",
-        "Every mutating business operation shall check project_grant (and steward grants where applicable) before "
-        "writes. Denied calls return a consistent unauthorized/forbidden outcome and emit an audit event. "
-        "CAP-RBAC documents the currently verified enforcement subset; this architecture requirement remains "
-        "active until all mutators in scope ship.",
-    )
-
-    mint_capability_content_n(
-        data,
-        "CAP-UI-FRAME",
-        CAP_UI_FRAME_V0_STMT,
-        CAP_UI_FRAME_V0_HASH,
-        CAP_UI_FRAME_V1_STMT,
-        "Partial pass on .1: shell + guards verified on PR #13; full UI catalog still planned.",
-    )
-    restore_shipped_release_delivers(data)
-
     patch_verification(
         "CAP-RELATIONS-API",
         None,
@@ -975,6 +992,52 @@ def main() -> None:
     dedupe_seed_grooming_approvals(data)
     prune_legacy_grooming_edges(data)
     wire_architecture_edges(data)
+
+    # --- B: content mints after trace edges (so inbound refines get trace_suspect on first run) ---
+    mint_content_n(
+        data,
+        "CAP-SSO",
+        CAP_SSO_V0_STMT,
+        CAP_SSO_V0_HASH,
+        CAP_SSO_V1_STMT,
+        "R0 design pack; federation not shipped — do not mark pass until ARCH-AUTH-FEDERATION delivers.",
+        v1_verification_outcome=None,
+    )
+    mint_content_n(
+        data,
+        "CAP-SCOPED-VIEW",
+        CAP_SCOPED_V0_STMT,
+        CAP_SCOPED_V0_HASH,
+        CAP_SCOPED_V1_STMT,
+        "Partial: browse read scope shipped; full scoped-view mutate UX not complete.",
+        v1_verification_outcome="pending",
+    )
+    mint_capability_content_n(
+        data,
+        "CAP-RBAC",
+        CAP_RBAC_V0_STMT,
+        CAP_RBAC_V0_HASH,
+        CAP_RBAC_V1_STMT,
+        f"Partial pass on .1: foundation + read routes verified; full matrix deferred to core-ALM. {PR13_EVIDENCE}",
+    )
+    mint_content_n(
+        data,
+        "ARCH-API-RBAC",
+        ARCH_API_RBAC_V0_STMT,
+        ARCH_API_RBAC_V0_HASH,
+        ARCH_API_RBAC_V1_STMT,
+        "Maps to ReqALM RBAC catalog item; .1 narrows honesty vs CAP-RBAC enforcement subset.",
+        v1_verification_outcome=None,
+    )
+    mint_capability_content_n(
+        data,
+        "CAP-UI-FRAME",
+        CAP_UI_FRAME_V0_STMT,
+        CAP_UI_FRAME_V0_HASH,
+        CAP_UI_FRAME_V1_STMT,
+        f"Partial pass on .1: shell + guards verified on PR #13; full UI catalog still planned. {PR13_EVIDENCE}",
+    )
+    restore_shipped_release_delivers(data)
 
     ar_cp = find(data.get("approval_records"), "id", "ar-browse-ui-cp")
     if ar_cp and "Planned for browse UI PR" in (ar_cp.get("notes") or ""):

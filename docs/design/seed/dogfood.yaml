@@ -4788,13 +4788,17 @@ requirement_versions:
 - uid: CAP-SSO
   base_uid: CAP-SSO
   version_n: 0
-  status: active
-  statement: 'Capability pack for enterprise federated SSO session establishment and teardown (ARCH-AUTH-FEDERATION). R0 delivered sequence diagrams and requirements only; runtime today uses the internal OAuth AS with dev local accounts (ARCH-DEVENV-IDENTITY.1), not upstream IdP federation. MFA for production remains at the enterprise IdP when federation ships.'
+  status: superseded
+  statement: 'Capability pack for federated SSO session establishment and teardown against the enterprise IdP.
+
+    Covers sign-in and sign-out paths used by UI and MCP hosts. No local passwords; MFA and authenticator
+
+    policy live at the IdP (NIST IA-2/IA-5, V-222536/542).'
   priority: 10
   iteration: iter-r0
   security:
     catalog_ref: AC-3
-    verification_note: R0 design pack; federation not shipped — do not mark pass until ARCH-AUTH-FEDERATION delivers.
+    verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
   catalog_drift:
     status: flagged
     change_class: normative
@@ -4802,19 +4806,22 @@ requirement_versions:
     imprint_to: nist-800-53@rev5-dogfood-20261006
     item_uid: AC-3
     notes: 'SAMPLE: flagged after imprint import diff for dogfood drift-review / migrate path (ARCH-CAT-DRIFT / H10). CAP-SSO is locked (in_scope + delivers) so migrate requires successor .N.'
-  statement_hash: sha256:b663ee8b8c5c11f72dc0e5d9738f28c2e22ffcc5b4d284fcb7fa410ca86c543d
+  statement_hash: sha256:090fad7f2a28d03f0eb0ea1684631e535ac2df550dc81596a7f1abb3cc271cb4
 - uid: CAP-SCOPED-VIEW
   base_uid: CAP-SCOPED-VIEW
   version_n: 0
-  status: active
-  statement: 'Capability pack for Client Scoped View: select, clear, and bind clientId on the server session. Partial R1: grant-scoped browse APIs enforce project/client visibility; full A03/A04 UX and MCP parity remain in core-ALM. Scope changes shall be audited when mutating routes exist.'
+  status: superseded
+  statement: 'Capability pack for selecting, clearing, and binding Client Scoped View on the server session.
+
+    UI App providers consume the bound clientId for navigation guards. Scope change and clear are audited;
+
+    server rejects cross-client resource access even if the client id appears in a forged request.'
   priority: 10
   iteration: iter-r0
   security:
     catalog_ref: REQALM-SEC-SCOPE
-    verification_note: 'Partial: browse read scope shipped; full scoped-view mutate UX not complete.'
-  statement_hash: sha256:4f477b2f036d2898581f15570281a9217f81b3f3f281d4e25e57530f731c4996
-  verification_outcome: pending
+    verification_note: Server-bound Client Scoped View. ASD STIG V6R4 V-222429 / V-222550.
+  statement_hash: sha256:6d9d653098304d18fc6d61cd24753e12655075be1d43e5b64f6b6ae74150fe6c
 - uid: CAP-RBAC
   base_uid: CAP-RBAC
   version_n: 0
@@ -5281,15 +5288,17 @@ requirement_versions:
 - uid: ARCH-API-RBAC
   base_uid: ARCH-API-RBAC
   version_n: 0
-  status: active
-  statement: 'Every mutating business operation shall check project_grant (and steward grants where applicable) before writes. Denied calls return a consistent unauthorized/forbidden outcome and emit an audit event. CAP-RBAC documents the currently verified enforcement subset; this architecture requirement remains active until all mutators in scope ship.'
+  status: superseded
+  statement: 'Every mutating business operation checks project_grant (and steward grants where applicable) before
+
+    writes. Denied calls return a consistent unauthorized/forbidden outcome and emit an audit event.'
   priority: 10
   iteration: iter-r0
   rbac_op: rbac:authorize
   security:
     catalog_ref: REQALM-SEC-RBAC
     verification_note: Maps to ReqALM RBAC catalog item.
-  statement_hash: sha256:6d92877694951b21549c9ade18d7b8ee9d3a20c4b7ddb35916b92aa4233c7332
+  statement_hash: sha256:319f1dad1c8772a1cc5be6cc71b9a52630fd21601c5bac288a1b4b33eee3e8be
 - uid: ARCH-API-LAYERS
   base_uid: ARCH-API-LAYERS
   version_n: 0
@@ -8614,6 +8623,33 @@ requirement_versions:
     verification_note: Planned until seed grooming PR merges.
   statement_hash: sha256:6ed1cc308534df99f68cf4b683de1bc5192e8371ec681a8b7faa2484c47bf3f6
   grooming_state: detailed
+- uid: CAP-SSO.1
+  base_uid: CAP-SSO
+  version_n: 1
+  status: active
+  statement: Capability pack for enterprise federated SSO session establishment and teardown (ARCH-AUTH-FEDERATION). R0 delivered sequence diagrams and requirements only; runtime today uses the internal OAuth AS with dev local accounts (ARCH-DEVENV-IDENTITY.1), not upstream IdP federation. MFA for production remains at the enterprise IdP when federation ships.
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: AC-3
+    verification_note: R0 design pack; federation not shipped — do not mark pass until ARCH-AUTH-FEDERATION delivers.
+  statement_hash: sha256:b663ee8b8c5c11f72dc0e5d9738f28c2e22ffcc5b4d284fcb7fa410ca86c543d
+  grooming_state: detailed
+  mint_kind: content
+- uid: CAP-SCOPED-VIEW.1
+  base_uid: CAP-SCOPED-VIEW
+  version_n: 1
+  status: active
+  statement: 'Capability pack for Client Scoped View: select, clear, and bind clientId on the server session. Partial R1: grant-scoped browse APIs enforce project/client visibility; full A03/A04 UX and MCP parity remain in core-ALM. Scope changes shall be audited when mutating routes exist.'
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: REQALM-SEC-SCOPE
+    verification_note: 'Partial: browse read scope shipped; full scoped-view mutate UX not complete.'
+  statement_hash: sha256:4f477b2f036d2898581f15570281a9217f81b3f3f281d4e25e57530f731c4996
+  grooming_state: detailed
+  mint_kind: content
+  verification_outcome: pending
 - uid: CAP-RBAC.1
   base_uid: CAP-RBAC
   version_n: 1
@@ -8623,10 +8659,23 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: 'Partial pass on .1: foundation + read routes verified; full matrix deferred to core-ALM.'
+    verification_note: 'Partial pass on .1: foundation + read routes verified; full matrix deferred to core-ALM. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes).'
   statement_hash: sha256:0045c4227166008043b2ea36e012eeac13e7b88b408b7f98a79e490486d19697
   grooming_state: detailed
+  mint_kind: content
   verification_outcome: pass
+- uid: ARCH-API-RBAC.1
+  base_uid: ARCH-API-RBAC
+  version_n: 1
+  status: active
+  statement: Every mutating business operation shall check project_grant (and steward grants where applicable) before writes. Denied calls return a consistent unauthorized/forbidden outcome and emit an audit event. CAP-RBAC documents the currently verified enforcement subset; this architecture requirement remains active until all mutators in scope ship.
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: REQALM-SEC-RBAC
+    verification_note: Maps to ReqALM RBAC catalog item; .1 narrows honesty vs CAP-RBAC enforcement subset.
+  statement_hash: sha256:6d92877694951b21549c9ade18d7b8ee9d3a20c4b7ddb35916b92aa4233c7332
+  grooming_state: detailed
   mint_kind: content
 - uid: CAP-UI-FRAME.1
   base_uid: CAP-UI-FRAME
@@ -8637,11 +8686,11 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: 'Partial pass on .1: shell + guards verified on PR #13; full UI catalog still planned.'
+    verification_note: 'Partial pass on .1: shell + guards verified on PR #13; full UI catalog still planned. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes).'
   statement_hash: sha256:ecfb50b7d5b104a80fdec0d8b7d6259d8de44013b7be94822644c5a66a0361a5
   grooming_state: detailed
-  verification_outcome: pass
   mint_kind: content
+  verification_outcome: pass
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -9442,6 +9491,8 @@ edges:
 - from: ARCH-API
   to: ARCH-API-RBAC
   kind: uses
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: ARCH-API
   to: ARCH-API-LAYERS
   kind: uses
@@ -9460,6 +9511,8 @@ edges:
 - from: ARCH-CP-SCOPE
   to: CAP-SCOPED-VIEW
   kind: uses
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (CAP-SCOPED-VIEW)
 - from: MC02
   to: ARCH-API
   kind: uses
@@ -9534,6 +9587,8 @@ edges:
 - from: CAP-RBAC
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: E04
   to: I02
   kind: uses
@@ -9590,6 +9645,8 @@ edges:
 - from: FIX-DENY-CROSS-CLIENT
   to: CAP-SCOPED-VIEW
   kind: uses
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (CAP-SCOPED-VIEW)
 - from: FIX-DENY-STEWARD-STANDARD
   to: AC-3
   kind: conforms_to
@@ -12927,6 +12984,8 @@ edges:
 - from: ARCH-DEVENV-IDENTITY
   to: CAP-SSO
   kind: uses
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (CAP-SSO)
 - from: ARCH-DEVENV-SECRETS
   to: ARCH-DEVENV-COMPOSE.1
   kind: uses
@@ -13047,6 +13106,8 @@ edges:
 - from: ARCH-DEVENV-IDENTITY.1
   to: CAP-SSO
   kind: uses
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (CAP-SSO)
 - from: ARCH-DEVENV-IDENTITY.1
   to: ARCH-DEVENV-IDENTITY
   kind: refines
@@ -13095,6 +13156,8 @@ edges:
 - from: ARCH-AUTH-AUDIENCE
   to: ARCH-API-RBAC
   kind: uses
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: ARCH-AUTH-REFRESH
   to: ARCH-AUTH-AS
   kind: refines
@@ -13122,6 +13185,8 @@ edges:
 - from: ARCH-AUTH-FEDERATION
   to: CAP-SSO
   kind: refines
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (CAP-SSO)
 - from: ARCH-AUTH-FEDERATION
   to: A06
   kind: uses
@@ -13236,6 +13301,8 @@ edges:
 - from: ARCH-KEY-CUSTODIAN
   to: ARCH-API-RBAC
   kind: uses
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: ARCH-KEY-CUSTODIAN
   to: ARCH-CRED-MFA
   kind: uses
@@ -13338,6 +13405,8 @@ edges:
 - from: ARCH-BUILD-FOUNDATION
   to: ARCH-API-RBAC
   kind: uses
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: ARCH-BUILD-FOUNDATION
   to: ARCH-OTEL
   kind: uses
@@ -14188,6 +14257,8 @@ edges:
 - from: ARCH-AUTH-CLAIM-MAP
   to: ARCH-API-RBAC
   kind: uses
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: ARCH-AUTH-UPSTREAM-REVOKE
   to: ARCH-AUTH-FEDERATION
   kind: refines
@@ -14818,9 +14889,13 @@ edges:
 - from: CAP-SVC-REQUEST-CONTEXT
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-OPERATION-EXECUTOR
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-OPERATION-EXECUTOR
   to: CAP-RBAC
   kind: satisfies
@@ -14829,12 +14904,16 @@ edges:
 - from: CAP-SVC-ROUTE-REGISTRY
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-MODULE-BOOTSTRAP
   to: ARCH-API-LAYERS
   kind: satisfies
 - from: CAP-SVC-PROJECT-READ
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: ARCH-OTEL-TRACE
   to: ARCH-OTEL
   kind: uses
@@ -14865,6 +14944,8 @@ edges:
 - from: CAP-SVC-OPERATION-ROUTE
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-OPERATION-ROUTE
   to: CAP-SVC-OPERATION-EXECUTOR
   kind: uses
@@ -14874,12 +14955,16 @@ edges:
 - from: CAP-SVC-BUSINESS-ROUTE-AUDIT
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-PROBLEM-JSON
   to: CAP-SVC-RESULT-ENVELOPE
   kind: satisfies
 - from: CAP-SVC-PROJECT-ID-SLUG
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-PROJECT-ID-SLUG
   to: CAP-SVC-OPERATION-ROUTE
   kind: refines
@@ -14901,12 +14986,16 @@ edges:
 - from: CAP-SVC-IMPLICIT-PUBLIC-EXACT
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-NON-API-AUTH-AUDIT
   to: CAP-SVC-ROUTE-REGISTRY
   kind: refines
 - from: CAP-SVC-NON-API-AUTH-AUDIT
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-DEVENV-SEED-RESET
   to: ARCH-DEVENV-SEED
   kind: satisfies
@@ -14949,6 +15038,8 @@ edges:
 - from: CAP-READ-REQS
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-READ-REQS
   to: CAP-SVC-OPERATION-ROUTE
   kind: satisfies
@@ -14978,6 +15069,8 @@ edges:
 - from: CAP-READ-RELEASES
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-READ-RELEASES
   to: CAP-SVC-OPERATION-ROUTE
   kind: satisfies
@@ -15010,6 +15103,8 @@ edges:
 - from: CAP-READ-HIERARCHY
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-READ-HIERARCHY
   to: CAP-READ-REQS
   kind: satisfies
@@ -15051,6 +15146,8 @@ edges:
 - from: CAP-RELATIONS-API
   to: ARCH-API-RBAC
   kind: satisfies
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-RELATIONS-API
   to: CAP-READ-REQS
   kind: satisfies
@@ -15060,62 +15157,6 @@ edges:
 - from: CAP-SEED-GROOMING
   to: ARCH-BROWSE-ROADMAP
   kind: satisfies
-- from: CAP-RBAC.1
-  to: CAP-RBAC
-  kind: refines
-- to: A05
-  kind: satisfies
-  from: CAP-RBAC.1
-- to: A06
-  kind: satisfies
-  from: CAP-RBAC.1
-- to: A07
-  kind: satisfies
-  from: CAP-RBAC.1
-- to: A08
-  kind: satisfies
-  from: CAP-RBAC.1
-- to: A09
-  kind: satisfies
-  from: CAP-RBAC.1
-- to: A10
-  kind: satisfies
-  from: CAP-RBAC.1
-- to: A11
-  kind: satisfies
-  from: CAP-RBAC.1
-- to: ARCH-API-RBAC
-  kind: satisfies
-  from: CAP-RBAC.1
-- to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-RBAC.1
-- to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-RBAC.1
-- to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-RBAC.1
-- to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-RBAC.1
-- from: CAP-UI-FRAME.1
-  to: CAP-UI-FRAME
-  kind: refines
-- to: ARCH-UI
-  kind: satisfies
-  from: CAP-UI-FRAME.1
-- to: ARCH-UI-GUARD
-  kind: satisfies
-  from: CAP-UI-FRAME.1
-- to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-UI-FRAME.1
 - from: ARCH-REQ-AC-ROLLUP
   to: ARCH-REQ-AC-FACET
   kind: refines
@@ -15195,7 +15236,7 @@ edges:
   to: ARCH-UI
   kind: refines
 - from: ARCH-BROWSE-ROADMAP
-  to: C07
+  to: H09
   kind: refines
 - from: ARCH-SEC-EDGE-DEDUPE-DB
   to: E04
@@ -15209,6 +15250,8 @@ edges:
 - from: ARCH-SEC-XPROJ-READ
   to: ARCH-API-RBAC
   kind: refines
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: ARCH-SEC-REL-STUB
   to: E06
   kind: refines
@@ -15228,16 +15271,16 @@ edges:
   to: ARCH-API
   kind: refines
 - from: ARCH-WRITE-UOW-AUDIT
-  to: ARCH-CRED-AUDIT
+  to: ARCH-OTEL
   kind: refines
 - from: ARCH-WRITE-REPOSITORY-LAYER
   to: ARCH-API-LAYERS
   kind: refines
 - from: ARCH-WRITE-TRUNCATE-GUARD
-  to: ARCH-API-RBAC
+  to: ARCH-CP-SCOPE
   kind: refines
 - from: ARCH-WRITE-AUDIT-FLOOD
-  to: ARCH-CRED-AUDIT
+  to: ARCH-OTEL
   kind: refines
 - from: ARCH-WRITE-VERSION-UNIQUE
   to: ARCH-VER
@@ -15251,6 +15294,133 @@ edges:
 - from: ARCH-TEST-HARNESS-TEARDOWN
   to: ARCH-BUILD-FOUNDATION
   kind: refines
+- from: CAP-SSO.1
+  to: CAP-SSO
+  kind: refines
+- to: A01
+  kind: satisfies
+  from: CAP-SSO.1
+- to: A02
+  kind: satisfies
+  from: CAP-SSO.1
+- to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-SSO.1
+- to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-SSO.1
+- to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-SSO.1
+- to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-SSO.1
+- to: AU-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-SSO.1
+- from: CAP-SCOPED-VIEW.1
+  to: CAP-SCOPED-VIEW
+  kind: refines
+- to: A03
+  kind: satisfies
+  from: CAP-SCOPED-VIEW.1
+- to: A04
+  kind: satisfies
+  from: CAP-SCOPED-VIEW.1
+- to: V-222429
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+  from: CAP-SCOPED-VIEW.1
+- to: V-222550
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+  from: CAP-SCOPED-VIEW.1
+- to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-SCOPED-VIEW.1
+- from: CAP-RBAC.1
+  to: CAP-RBAC
+  kind: refines
+- to: A05
+  kind: satisfies
+  from: CAP-RBAC.1
+- to: A06
+  kind: satisfies
+  from: CAP-RBAC.1
+- to: A07
+  kind: satisfies
+  from: CAP-RBAC.1
+- to: A08
+  kind: satisfies
+  from: CAP-RBAC.1
+- to: A09
+  kind: satisfies
+  from: CAP-RBAC.1
+- to: A10
+  kind: satisfies
+  from: CAP-RBAC.1
+- to: A11
+  kind: satisfies
+  from: CAP-RBAC.1
+- to: ARCH-API-RBAC
+  kind: satisfies
+  from: CAP-RBAC.1
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
+- to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-RBAC.1
+- to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-RBAC.1
+- to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-RBAC.1
+- to: AU-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-RBAC.1
+- from: ARCH-API-RBAC.1
+  to: ARCH-API-RBAC
+  kind: refines
+- to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: ARCH-API-RBAC.1
+- to: AC-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: ARCH-API-RBAC.1
+- to: AC-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: ARCH-API-RBAC.1
+- to: V-222429
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+  from: ARCH-API-RBAC.1
+- from: CAP-UI-FRAME.1
+  to: CAP-UI-FRAME
+  kind: refines
+- to: ARCH-UI
+  kind: satisfies
+  from: CAP-UI-FRAME.1
+- to: ARCH-UI-GUARD
+  kind: satisfies
+  from: CAP-UI-FRAME.1
+- to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-UI-FRAME.1
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
