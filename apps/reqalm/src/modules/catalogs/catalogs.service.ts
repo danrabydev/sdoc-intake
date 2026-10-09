@@ -7,6 +7,7 @@ import {
   catalogFamily,
   type CatalogMetaRow,
 } from "./catalog-access.js";
+import { RESOLVED_CONFORMS_BODY } from "./catalogs-conforming.sql.js";
 
 export type CatalogImprintDto = { id: string; version_label: string; status: string };
 export type CatalogSummaryDto = {
@@ -24,11 +25,17 @@ export type ControlSummaryDto = {
   conforming_count: number;
 };
 
+export type ConformingPinDto = {
+  edge_uid: string;
+  version_id: string;
+  trace_suspect: boolean;
+};
+
 export type ConformingLineDto = {
   id: string;
   title: string | null;
   status: string;
-  link: { mode: "direct" } | { mode: "via"; edge_uid: string };
+  pins: ConformingPinDto[];
 };
 
 export type ControlDetailDto = {
@@ -54,9 +61,35 @@ export type GetControlInput = {
   controlId: string;
 };
 
+type ResolvedConformRow = {
+  to_uid: string;
+  from_uid: string;
+  trace_suspect: boolean;
+  base_uid: string;
+  line_title: string;
+  line_status: string;
+};
+
 const catalogNotFound = () => err("not_found", "Catalog not found");
 const imprintNotFound = () => err("not_found", "Imprint not found");
 const controlNotFound = () => err("not_found", "Control not found");
+
+function groupConformingLines(rows: ResolvedConformRow[]): ConformingLineDto[] {
+  const byLine = new Map<string, ConformingLineDto>();
+  for (const r of rows) {
+    let line = byLine.get(r.base_uid);
+    if (!line) {
+      line = { id: r.base_uid, title: r.line_title, status: r.line_status, pins: [] };
+      byLine.set(r.base_uid, line);
+    }
+    line.pins.push({
+      edge_uid: r.from_uid,
+      version_id: r.from_uid,
+      trace_suspect: r.trace_suspect,
+    });
+  }
+  return [...byLine.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
 
 async function loadCatalogMeta(
   ctx: RequestContext,
@@ -165,10 +198,9 @@ export async function listImprintControls(
             COALESCE(x.cnt, 0)::int AS conforming_count
        FROM catalog_item_labels l
        LEFT JOIN (
-         SELECT to_uid, count(DISTINCT from_uid)::int AS cnt
-           FROM trace_edges
-          WHERE from_project_id = $1 AND kind = 'conforms_to' AND catalog_imprint_id = $2
-          GROUP BY to_uid
+         SELECT rc.to_uid, count(DISTINCT rc.base_uid)::int AS cnt
+           FROM (${RESOLVED_CONFORMS_BODY}) rc
+          GROUP BY rc.to_uid
        ) x ON x.to_uid = l.item_uid
       WHERE l.catalog_id = $3
       ORDER BY l.item_uid
@@ -205,35 +237,10 @@ export async function getImprintControl(
   );
   if (!label.rowCount) return controlNotFound();
 
-  const edges = await ctx.pool.query<{ from_uid: string; base_uid: string; line_title: string; status: string }>(
-    `SELECT e.from_uid, l.base_uid,
-            COALESCE(v.title, l.title) AS line_title,
-            COALESCE(v.status, 'unknown') AS status
-       FROM trace_edges e
-       JOIN requirement_lines l ON l.project_id = e.from_project_id
-        AND (l.base_uid = e.from_uid OR EXISTS (
-          SELECT 1 FROM requirement_versions rv
-           WHERE rv.project_id = e.from_project_id AND rv.uid = e.from_uid AND rv.base_uid = l.base_uid))
-       LEFT JOIN LATERAL (
-         SELECT title, status FROM requirement_versions
-          WHERE project_id = l.project_id AND base_uid = l.base_uid
-          ORDER BY version_n DESC LIMIT 1
-       ) v ON true
-      WHERE e.from_project_id = $1 AND e.kind = 'conforms_to'
-        AND e.catalog_imprint_id = $2 AND e.to_uid = $3
-      ORDER BY l.base_uid, e.from_uid`,
+  const edges = await ctx.pool.query<ResolvedConformRow>(
+    `${RESOLVED_CONFORMS_BODY} AND e.to_uid = $3 ORDER BY l.base_uid, e.from_uid`,
     [input.projectId, input.imprintId, input.controlId],
   );
-
-  const conforming_lines: ConformingLineDto[] = edges.rows.map((r) => ({
-    id: r.base_uid,
-    title: r.line_title,
-    status: r.status,
-    link:
-      r.from_uid === r.base_uid
-        ? { mode: "direct" as const }
-        : { mode: "via" as const, edge_uid: r.from_uid },
-  }));
 
   const row = label.rows[0]!;
   return ok({
@@ -241,6 +248,6 @@ export async function getImprintControl(
     title: row.title,
     family: row.family || catalogFamily(input.controlId),
     text: row.statement,
-    conforming_lines,
+    conforming_lines: groupConformingLines(edges.rows),
   });
 }

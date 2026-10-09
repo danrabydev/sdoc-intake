@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type pg from "pg";
+import { catalogFamily } from "../modules/catalogs/catalog-access.js";
 
 const TITLE_AFTER_UID = /^UID: ([^\n]+)\nTITLE: ([^\n]+)/gm;
 const REQ_BLOCK =
@@ -22,12 +23,6 @@ export type CatalogImprintSeedRow = {
   library_revision?: string;
   status?: string;
 };
-
-function itemFamily(uid: string): string {
-  if (/^V-\d+$/.test(uid)) return "STIG";
-  const m = /^([A-Z]{1,4})-\d/.exec(uid);
-  return m?.[1] ?? "";
-}
 
 /** Parse StrictDoc UID/TITLE pairs for the requested UIDs only (single pass). */
 export async function readSdocTitles(
@@ -82,7 +77,7 @@ async function upsertItemLabel(
        title = EXCLUDED.title,
        family = EXCLUDED.family,
        statement = COALESCE(EXCLUDED.statement, catalog_item_labels.statement)`,
-    [catalogId, itemUid, title, itemFamily(itemUid), statement],
+    [catalogId, itemUid, title, catalogFamily(itemUid), statement],
   );
 }
 

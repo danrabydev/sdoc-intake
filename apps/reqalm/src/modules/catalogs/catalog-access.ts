@@ -8,7 +8,10 @@ export type CatalogMetaRow = {
   title: string;
 };
 
-/** Standard catalogs are readable from any granted project; private catalogs only from their owner project. */
+/**
+ * Standard catalogs: readable from any project the caller may read.
+ * Private catalogs: readable only when the route project is the owning project and the caller has a grant there.
+ */
 export function canReadCatalog(
   meta: Pick<CatalogMetaRow, "is_standard" | "project_id">,
   anchorProjectId: string,
@@ -16,7 +19,7 @@ export function canReadCatalog(
 ): boolean {
   if (!allowedProjectIds.has(anchorProjectId)) return false;
   if (meta.is_standard) return true;
-  return meta.project_id != null && allowedProjectIds.has(meta.project_id);
+  return meta.project_id === anchorProjectId && allowedProjectIds.has(meta.project_id);
 }
 
 export async function allowedReadProjects(ctx: RequestContext): Promise<Set<string>> {
