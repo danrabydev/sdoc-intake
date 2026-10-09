@@ -306,42 +306,56 @@ components:
           type: string
           description: Line kind (e.g. section, requirement, capability)
     RelationPeer:
+      type: object
+      required: [id, title, kind, type]
+      properties:
+        id:
+          type: string
+          description: Line base_uid or catalog item uid
+        title:
+          type: string
+        kind:
+          type: string
+        type:
+          type: string
+          description: mint_kind or catalog_control
+    RelationLink:
       oneOf:
         - type: object
-          required: [id, title, kind, type]
-          properties:
-            id:
-              type: string
-              description: Navigable peer id (line base_uid or catalog item uid)
-            title:
-              type: string
-            kind:
-              type: string
-              description: Line kind or control/reference classifier
-            type:
-              type: string
-              description: mint_kind, catalog_control, or external_ref
-        - type: object
-          required: [restricted]
+          additionalProperties: false
+          required: [restricted, relation_kind, direction]
           properties:
             restricted:
               type: boolean
               const: true
-              description: Peer omitted because the caller cannot read the target project or catalog
-    RelationLink:
-      type: object
-      required: [relation_kind, peer, trace_suspect]
-      properties:
-        relation_kind:
-          type: string
-          enum: [conforms_to, uses, satisfies, refines]
-        peer:
-          $ref: "#/components/schemas/RelationPeer"
-        catalog_imprint_id:
-          type: [string, "null"]
-          description: Present for conforms_to pins
-        trace_suspect:
-          type: boolean
+            relation_kind:
+              type: string
+              enum: [conforms_to, uses, satisfies, refines]
+            direction:
+              type: string
+              enum: [incoming, outgoing]
+        - type: object
+          required: [relation_kind, direction, self_version_id, peer_version_id, peer, trace_suspect]
+          properties:
+            relation_kind:
+              type: string
+              enum: [conforms_to, uses, satisfies, refines]
+            direction:
+              type: string
+              enum: [incoming, outgoing]
+            self_version_id:
+              type: string
+              description: This line's endpoint uid on the edge (base or pinned version)
+            peer_version_id:
+              type: string
+              description: Peer endpoint uid on the edge
+            peer:
+              $ref: "#/components/schemas/RelationPeer"
+            catalog_imprint_id:
+              type: [string, "null"]
+              description: Set only on visible conforms_to links to a catalog item
+            trace_suspect:
+              type: boolean
     RequirementRelations:
       type: object
       required: [id, project_id, outgoing, incoming]

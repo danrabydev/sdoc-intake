@@ -1,4 +1,4 @@
--- Trace edges from dogfood seed (line/version UIDs + catalog ConformsTo pins).
+-- Trace edges from dogfood seed (project-scoped line/version UIDs + catalog targets).
 
 CREATE TABLE IF NOT EXISTS catalog_defs (
   id TEXT PRIMARY KEY,
@@ -19,13 +19,15 @@ CREATE TABLE IF NOT EXISTS catalog_item_labels (
 );
 
 CREATE TABLE IF NOT EXISTS trace_edges (
+  from_project_id TEXT NOT NULL REFERENCES projects(id),
   from_uid TEXT NOT NULL,
+  to_project_id TEXT REFERENCES projects(id),
   to_uid TEXT NOT NULL,
   kind TEXT NOT NULL CHECK (kind IN ('conforms_to', 'uses', 'satisfies', 'refines')),
   catalog_imprint_id TEXT NOT NULL DEFAULT '',
   trace_suspect BOOLEAN NOT NULL DEFAULT false,
-  PRIMARY KEY (from_uid, to_uid, kind, catalog_imprint_id)
+  PRIMARY KEY (from_project_id, from_uid, to_uid, kind, catalog_imprint_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_trace_edges_from ON trace_edges (from_uid);
-CREATE INDEX IF NOT EXISTS idx_trace_edges_to ON trace_edges (to_uid);
+CREATE INDEX IF NOT EXISTS idx_trace_edges_to_project ON trace_edges (to_project_id, to_uid)
+  WHERE to_project_id IS NOT NULL;

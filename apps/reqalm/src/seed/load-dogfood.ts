@@ -166,8 +166,16 @@ export async function applyDogfoodSeed(
     conformsByImprint,
   );
   inserted.catalog_defs = (seed.catalogs ?? []).length;
+  const uidProject = new Map(lineProject);
+  for (const ver of seed.requirement_versions ?? []) {
+    const baseUid = String(ver.base_uid);
+    uidProject.set(
+      String(ver.uid),
+      String(ver.project_id ?? lineProject.get(baseUid) ?? "reqalm"),
+    );
+  }
   for (const e of seed.edges ?? []) {
-    await upsertTraceEdge(client, e, inserted);
+    await upsertTraceEdge(client, e, uidProject, inserted);
   }
 
   // ARCH-DEVENV-IDENTITY.1: no committed/default dev credential. Use the local .env value, or
@@ -541,19 +549,32 @@ function collectConformsTargets(edges: Record<string, unknown>[]): Map<string, S
 async function upsertTraceEdge(
   client: pg.PoolClient,
   row: Record<string, unknown>,
+  uidProject: Map<string, string>,
   inserted: Record<string, number>,
 ): Promise<void> {
+  const fromUid = String(row.from);
+  const toUid = String(row.to);
+  const fromProject = uidProject.get(fromUid);
+  if (!fromProject) {
+    throw new SeedValidationError(`trace edge from ${fromUid}: no project for endpoint`);
+  }
+  const toProject = uidProject.get(toUid) ?? null;
   const r = await client.query(
     `
-    INSERT INTO trace_edges (from_uid, to_uid, kind, catalog_imprint_id, trace_suspect)
-    VALUES ($1, $2, $3, $4, $5)
-    ON CONFLICT (from_uid, to_uid, kind, catalog_imprint_id) DO UPDATE SET
+    INSERT INTO trace_edges (
+      from_project_id, from_uid, to_project_id, to_uid, kind, catalog_imprint_id, trace_suspect
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    ON CONFLICT (from_project_id, from_uid, to_uid, kind, catalog_imprint_id) DO UPDATE SET
+      to_project_id = EXCLUDED.to_project_id,
       trace_suspect = EXCLUDED.trace_suspect
     RETURNING (xmax = 0) AS inserted
   `,
     [
-      row.from,
-      row.to,
+      fromProject,
+      fromUid,
+      toProject,
+      toUid,
       row.kind,
       row.catalog_imprint_id ?? "",
       row.trace_suspect === true,

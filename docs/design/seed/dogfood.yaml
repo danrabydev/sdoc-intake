@@ -7927,13 +7927,13 @@ requirement_versions:
   base_uid: CAP-RELATIONS-API
   version_n: 0
   status: draft
-  statement: 'Grant-scoped read-only relations API: GET /api/v1/projects/:projectId/requirements/:id/relations returns incoming and outgoing trace links grouped by kind (conforms_to, uses, satisfies, refines). Each link resolves the peer end with id, title, kind, and type for in-project lines and readable catalog controls without N+1 calls; cross-project and unreadable catalog peers return a non-revealing restricted stub. Dogfood seed loader persists trace_edges plus catalog imprint labels for ConformsTo pins.'
+  statement: 'Grant-scoped read-only relations API: GET /api/v1/projects/:projectId/requirements/:id/relations returns incoming and outgoing trace links grouped by kind (conforms_to, uses, satisfies, refines). Each link resolves the peer end with id, title, kind, and type for in-project lines and readable catalog controls in one response; cross-project and unreadable catalog peers return a non-revealing restricted stub. Dogfood seed loader persists trace_edges plus catalog imprint labels for ConformsTo pins.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: AC-3
     verification_note: Planned until relations read API PR merges.
-  statement_hash: sha256:a4b8ff0b13eeef7e3dff9893154fb50d0c6d7377e35a39193a1fa0cf7cd37b5e
+  statement_hash: sha256:49308d84d521d418a7cd3be6acd8cef23550d2aef39bc6a21bb3e81276a42264
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -14916,12 +14916,12 @@ releases:
   project_id: reqalm
   name: R1 — MFA enrollment QR (sign-in UI)
   planned_on: '2026-10-08'
-  shipped_on: '2026-10-09'
+  shipped_on: '2026-10-08'
   status: shipped
   delivers:
   - CAP-MFA-QR
   cyber_gate: false
-  notes: 'PR #30 merged to main as c8668b924ba4804e32f4d364aa0d343af60e9f83 on 2026-10-09. MFA enrollment QR on sign-in card (client-side otpauth QR + setup key fallback).'
+  notes: 'PR #30 merged to main as c8668b924ba4804e32f4d364aa0d343af60e9f83 on 2026-10-08. MFA enrollment QR on sign-in card (client-side otpauth QR + setup key fallback).'
 - id: rel-r1-relations-api
   project_id: reqalm
   name: R1 — requirement relations read API

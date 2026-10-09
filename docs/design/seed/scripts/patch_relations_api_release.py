@@ -12,7 +12,8 @@ from ruamel.yaml.comments import CommentedMap
 SEED = Path(__file__).resolve().parent.parent
 DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
-SHIPPED_DATE = "2026-10-09"
+RELATIONS_PLANNED = "2026-10-09"
+MFA_SHIPPED_ON = "2026-10-08"
 MFA_QR_MERGE = "c8668b924ba4804e32f4d364aa0d343af60e9f83"
 CAP_MFA_QR = "CAP-MFA-QR"
 REL_MFA_QR = "rel-r1-mfa-qr"
@@ -66,9 +67,9 @@ def ship_mfa_qr_release(data) -> None:
     rel = find(data.get("releases"), "id", REL_MFA_QR)
     if rel:
         rel["status"] = "shipped"
-        rel["shipped_on"] = SHIPPED_DATE
+        rel["shipped_on"] = MFA_SHIPPED_ON
         rel["notes"] = (
-            f"PR #30 merged to main as {MFA_QR_MERGE} on {SHIPPED_DATE}. "
+            f"PR #30 merged to main as {MFA_QR_MERGE} on {MFA_SHIPPED_ON}. "
             "MFA enrollment QR on sign-in card (client-side otpauth QR + setup key fallback)."
         )
     ver = find(data.get("requirement_versions"), "uid", CAP_MFA_QR)
@@ -86,7 +87,7 @@ STMT = (
     "Grant-scoped read-only relations API: GET /api/v1/projects/:projectId/requirements/:id/relations "
     "returns incoming and outgoing trace links grouped by kind (conforms_to, uses, satisfies, refines). "
     "Each link resolves the peer end with id, title, kind, and type for in-project lines and readable "
-    "catalog controls without N+1 calls; cross-project and unreadable catalog peers return a non-revealing "
+    "catalog controls in one response; cross-project and unreadable catalog peers return a non-revealing "
     "restricted stub. Dogfood seed loader persists trace_edges plus catalog imprint labels for ConformsTo pins."
 )
 ARTIFACTS = [
@@ -163,7 +164,7 @@ def main() -> None:
             id=REL,
             project_id="reqalm",
             name="R1 — requirement relations read API",
-            planned_on=SHIPPED_DATE,
+            planned_on=RELATIONS_PLANNED,
             shipped_on=None,
             status="planned",
             delivers=[CAP],
