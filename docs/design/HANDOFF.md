@@ -1,8 +1,8 @@
 # ReqALM / sdoc-intake — handoff for Dan (Cursor)
 
-Last updated for **inherit-uses control mapping** rebased on **main @ `88df54d`** (2026-10-09). Application code on main through **PR #38** (contracts seed); **PR in flight:** trace inheritable loader + seed (`rel-r1-trace-inherit-uses`, PR #39).
+Last updated for seed **ReqALM contracts** on **main @ `dd43cc1`** (2026-10-09). Application code on main through **PR #37** (header/nav UI); this doc tracks how to run the stack and how we slice PRs.
 
-## What is on main (merged PRs #12–#38, one line each)
+## What is on main (merged PRs #12–#37, one line each)
 
 | PR | Summary |
 |----|---------|
@@ -26,11 +26,10 @@ Last updated for **inherit-uses control mapping** rebased on **main @ `88df54d`*
 | **#29** | Requirements tree browse UI + ancestor breadcrumbs. |
 | **#30** | MFA enrollment QR on sign-in card (client-side otpauth QR). |
 | **#31** | Requirement **relations read API** + `trace_edges` / catalog label seed load (redaction, dedupe, security tests). |
-| **#32** | Requirements **relationships browse UI** (detail panel, read-only). |
-| **#33** | **Catalogs read API** (catalogs / imprints / controls). |
-| **#35** | Git **LF line endings** for Compose entrypoints (.gitattributes). |
-| **#37** | Mockup-style **header and project navigation** (UI + seed). |
-| **#38** | **Product + maintenance contracts** seed (`ctr-reqalm-product`, `ctr-reqalm-maintenance`, `CAP-UPKEEP-*`, overlap validate). |
+| **#32** | Browse UI **relationships** panel on requirement detail. |
+| **#33** | **Catalogs read API** (catalogs, imprints, controls). |
+| **#35** | Git **LF line endings** for Compose entrypoints (`.gitattributes`). |
+| **#37** | **Header and project navigation** (breadcrumb, tabs, list/tree toggle). |
 
 ## Dev environment
 
@@ -43,24 +42,24 @@ Last updated for **inherit-uses control mapping** rebased on **main @ `88df54d`*
 
 1. **Small, single-concern PRs** — ≤800 hand-written lines (exclude vendor, OpenAPI dumps, patch scripts, regenerated `out/`).
 2. **One PR = one seed release** with honest capability/release statuses (no pass/shipped unless merged and verified).
-3. **Parallel PR pair:** the second PR ships the first’s release at the **full merge SHA** of the first (no partial pins). PR #39 ships **`rel-r1-reqalm-contracts`** at **`88df54dea5c8d2bfd895e2613b17dbf2c5b3405f`** (PR #38 merge).
+3. **Parallel PR pair:** the second PR ships the first’s release at the **full merge SHA** of the first (no partial pins).
 4. **Every commit includes `[skip ci]`** — no GitHub Actions spend on push (smoke remains manual / local).
 5. **QA + Cyber review gates** on security-sensitive routes (relations, auth, write paths).
 6. **Lean by default** — plain TypeScript, Web Workers for heavy UI layout; WASM only if measurements demand it.
 7. **Never drop the production approach for test convenience** (prod self-check, no dev OpenBao in prod, etc.).
 8. **Tests use PGlite in-process** with **real SQL migrations**, not mocked schema.
 
-## In-flight / parallel
+## In-flight / parallel (not owned by contracts seed PR)
 
 | Track | Release / capability | Notes |
 |-------|----------------------|--------|
-| **Inherit uses (common-control)** | `rel-r1-trace-inherit-uses` / `CAP-TRACE-INHERIT-USES` | PR #39: loader + seed beds; **read-time inheritance deferred.** |
-| Seed grooming | `rel-r1-seed-grooming` / `CAP-SEED-GROOMING` | Documentation-only grooming PR. |
-| Browse UI catalogs | `rel-r1-browse-ui-catalogs` | After catalogs API. |
+| Seed grooming | `rel-r1-seed-grooming` / `CAP-SEED-GROOMING` | Parallel documentation-only grooming PR. |
+| Browse UI catalogs | `rel-r1-browse-ui-catalogs` | After catalogs API; not in this PR. |
+| LF endings | `rel-r1-lf-endings` / `CAP-DEVENV-LF-ENDINGS` | **Shipped** on main via PR #35 (seed marks shipped; no duplicate ship PR). |
 
 ## Next-up (ordered)
 
-1. Merge **inherit-uses loader** PR #39; follow with **read API** for inherited + hybrid control display.
+1. **`rel-r1-reqalm-contracts`** (this seed PR) — product + maintenance contract overlays.
 2. **`rel-r1-browse-ui-catalogs`** (uses catalogs API).
 3. **Planning read** (`rel-r1-read-planning` → browse UI).
 4. **Artifacts, workflow, people/access, audit** read APIs + UIs (see `ARCH-BROWSE-ROADMAP` in seed).
@@ -68,27 +67,33 @@ Last updated for **inherit-uses control mapping** rebased on **main @ `88df54d`*
 6. **Security follow-ups before first edge write route** (`ARCH-SEC-*` in seed).
 7. **Write foundation** (`ARCH-WRITE-FOUNDATION`).
 
-## Seed artifact (ReqALM contracts — shipped in PR #39 patch)
+## Seed artifact (ReqALM contracts PR)
 
-- **Shipped:** `rel-r1-reqalm-contracts` → **`CAP-REQALM-CONTRACTS`** at merge **`88df54dea5c8d2bfd895e2613b17dbf2c5b3405f`** (2026-10-09), `active` / `pass` (via `patch_trace_inherit_uses_release.py` after PR #38 landed).
-- **Also shipped on main:** `rel-r1-ui-header-nav` → **`CAP-UI-HEADER-NAV`** at **`dd43cc1523544d0f6375a628bc9d7d45a31fa738`**.
+- **Ship (parallel):** `rel-r1-ui-header-nav` → **`CAP-UI-HEADER-NAV`** at merge **`dd43cc1523544d0f6375a628bc9d7d45a31fa738`** (2026-10-09), `active` / `pass`.
+- **Release (this PR):** `rel-r1-reqalm-contracts` → **`CAP-REQALM-CONTRACTS`** (seed-only, planned).
 - **Contracts (extended model):**
-  - **`ctr-reqalm-product`** — build contract; `covers_releases` = all reqalm release ids; `in_scope_of` = active tip or newest non-superseded draft per line (excludes upkeep + **`SYS-CYBER-UPKEEP`**).
-  - **`ctr-reqalm-maintenance`** — draft **`CAP-UPKEEP-*`** only; overlap guard in `yaml_to_strictdoc --validate`.
-- **Patch:** `docs/design/seed/scripts/patch_reqalm_contracts_release.py` (on main); **`patch_trace_inherit_uses_release.py`** refreshes product `in_scope_of` after inherit beds.
+  - **`ctr-reqalm-product`** — build contract; `covers_releases` = all reqalm release ids; `in_scope_of` = each reqalm cap/requirement at **active tip or newest non-superseded draft**, excluding upkeep caps and **`SYS-CYBER-UPKEEP`** (owned under maintenance).
+  - **`ctr-reqalm-maintenance`** — maintenance contract; `covers_releases` empty; `in_scope_of` = draft **`CAP-UPKEEP-*`** capabilities (planned, not shipped) that **`satisfies` → `SYS-CYBER-UPKEEP`** with per-capability NIST `conforms_to` pins.
+  - **`SYS-CYBER-UPKEEP`** — system requirement under **SEC-SEC** (draft); umbrella `conforms_to` **CA-7, RA-5, SI-2, AC-2, AU-6** @ NIST imprint.
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_reqalm_contracts_release.py`
+- **Grammar:** `covers_releases` on `contract` (see `schema.md` / `reqseed.schema.json`); exported as Parent + `CoversRelease` on `contracts-releases.sdoc`.
+- **Source of truth:** `docs/design/seed/dogfood.yaml` + regenerated `docs/design/seed/out/`
 
-## Seed grooming artifact (main track)
+When continuing in Cursor: read `dogfood.yaml` releases and `ARCH-BROWSE-ROADMAP` first; pick the next **planned** release; implement; update seed via a dedicated `patch_*_release.py`; validate and test.
 
-- **Release:** `rel-r1-seed-grooming` → **`CAP-SEED-GROOMING`** (documentation-only).
-- **Patch (idempotent):** `docs/design/seed/scripts/patch_seed_grooming_release.py`
-- **Honesty (content `.1` mints):** **`CAP-RBAC.1`**, **`CAP-UI-FRAME.1`**, **`CAP-SSO.1`**, **`CAP-SCOPED-VIEW.1`**, **`ARCH-API-RBAC.1`**, **`ARCH-SUSPECT.1`**.
+## Addendum — main @ `88df54d` (2026-10-09, PR #38 merged)
 
-## Inherit-uses artifact (PR #39)
+- **Merged on main:** **PR #38** — product + maintenance contracts seed (`rel-r1-reqalm-contracts` / `CAP-REQALM-CONTRACTS` at merge **`88df54dea5c8d2bfd895e2613b17dbf2c5b3405f`**).
+- **Parallel PR pair (rule 3):** PR #39 ships **`rel-r1-reqalm-contracts`** at that full merge SHA when landing inherit-uses seed (no partial pins).
 
-- **Release:** `rel-r1-trace-inherit-uses` → **`CAP-TRACE-INHERIT-USES`** (planned).
+## Addendum — inherit-uses common control (PR #39, branch `cursor/inherit-uses-controls-0606`)
+
+- **Release (planned):** `rel-r1-trace-inherit-uses` → **`CAP-TRACE-INHERIT-USES`**.
 - **Architecture:** **`ARCH-TRACE-INHERIT-USES`**, **`ARCH-TRACE-INHERIT-HYBRID`** (Cyber 2026-10-09 text, `rbac_op: trace:edit`).
-- **Seed beds:** `CAP-SVC-OPERATION-EXECUTOR.1` / `CAP-AUTH-HARDEN.1` supersede v0; inheritable pins; product contract pins **active tips** (not superseded v0).
-- **Patch:** `docs/design/seed/scripts/patch_trace_inherit_uses_release.py` — run **after** `patch_reqalm_contracts_release.py` on rebased main; idempotent re-run on `origin/main` dogfood → **zero diff**.
-- **Loader:** `trace_edges.inheritable`; validate **≤1 active version per line**.
+- **Seed beds:** `CAP-SVC-OPERATION-EXECUTOR.1` / `CAP-AUTH-HARDEN.1` supersede v0; inheritable `conforms_to` pins; **`uses`** from `CAP-UI-FRAME.1` and route executor; product contract `in_scope_of` refreshed to **active tips** (not superseded v0).
+- **Patch (idempotent, run after `patch_reqalm_contracts_release.py`):** `docs/design/seed/scripts/patch_trace_inherit_uses_release.py` — also marks **`rel-r1-reqalm-contracts`** shipped at **`88df54d`**; idempotent re-run on `origin/main` dogfood → zero diff.
+- **Loader:** migration `011_trace_edges_inheritable.sql`; `trace_edges.inheritable` on capability `conforms_to` only; validate **≤1 active version per line** in `yaml_to_strictdoc.py`.
+- **Schema:** edge field **`inheritable`** (see `schema.md` / `reqseed.schema.json`); contract **`covers_releases`** / **`notes`** unchanged from PR #38.
+- **Deferred:** read-time inherited + hybrid control display (follow-on PR after loader merge).
 
-When continuing in Cursor: read `ARCH-TRACE-INHERIT-USES` in `dogfood.yaml`; implement read-time rollup in a separate small PR.
+When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `dogfood.yaml` first; keep read API inheritance for the next small PR.
