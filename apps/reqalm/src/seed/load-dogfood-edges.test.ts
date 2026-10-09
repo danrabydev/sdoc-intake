@@ -1,11 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { loadConfig } from "../config.js";
 import { createMigratedPglitePool } from "../test/pglite-pool.js";
 import { DOGFOOD_SEED_PATH, testConfigEnv } from "../test/harness.js";
-import { loadDogfoodSeed, readDogfoodFile } from "./load-dogfood.js";
+import { SeedValidationError, loadDogfoodSeed, readDogfoodFile, type DogfoodSeed } from "./load-dogfood.js";
 
 describe("loadDogfoodSeed trace edges", () => {
   it("persists dogfood edges and catalog labels", async () => {
@@ -24,6 +22,16 @@ describe("loadDogfoodSeed trace edges", () => {
         `SELECT count(*)::int AS c FROM catalog_item_labels WHERE catalog_id = 'cat-reqalm-security'`,
       );
       assert.equal(reqalmSec.rows[0]?.c, 9);
+    } finally {
+      await pg.close();
+    }
+  });
+
+  it("rejects version rows without resolvable project_id", async () => {
+    const pg = await createMigratedPglitePool();
+    const orphan: DogfoodSeed = { client: { id: "c1", name: "C1" }, projects: [{ id: "p1", client_id: "c1", name: "P1" }], identities: [], project_grants: [], requirement_lines: [], requirement_versions: [{ uid: "V1", base_uid: "B1", version_n: 0, status: "active", statement: "s" }], edges: [] };
+    try {
+      await assert.rejects(() => loadDogfoodSeed(pg.pool, loadConfig(testConfigEnv()), orphan, { skipUnchangedCheck: true }), (e) => e instanceof SeedValidationError && /no project_id/.test(String(e)));
     } finally {
       await pg.close();
     }

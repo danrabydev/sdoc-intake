@@ -21,7 +21,6 @@ before(async () => {
   bearer = { authorization: `Bearer ${await issueTestAccessToken(ctx.app)}` };
 });
 after(async () => ctx.close());
-
 function assertCapReadReqsStable(d: RequirementRelationsDto) {
   assert.deepEqual(Object.keys(d.outgoing).sort(), ["satisfies"]);
   assert.deepEqual(Object.keys(d.incoming).sort(), ["satisfies"]);
@@ -44,6 +43,7 @@ describe("requirements relations API", () => {
     try {
       const other = await inject(REL("reqalm", "REL-P2-ONLY"));
       assert.equal(other.statusCode, 404);
+      assert.equal((unknown.json() as { detail: string }).detail, "Requirement not found");
       assert.deepEqual(stripReqId(other.json() as Record<string, unknown>), stripReqId(unknown.json() as Record<string, unknown>));
     } finally {
       await q(`DELETE FROM requirement_versions WHERE base_uid = 'REL-P2-ONLY'`);
@@ -51,32 +51,46 @@ describe("requirements relations API", () => {
       await q(`DELETE FROM projects WHERE id = 'rel-p2'`);
     }
   });
-
-  it("cross-project line peer redaction without grant and as Key custodian", async () => {
+  it("cross-project redaction, missing peer (LEAK1), KC vs Reader", async () => {
+    const stubUses = { restricted: true, relation_kind: "uses", direction: "outgoing" as const };
     await q(`INSERT INTO projects (id, client_id, name) VALUES ('rel-secret-p2', 'reqalm-client', 'S') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO requirement_lines (base_uid, project_id, kind, title) VALUES ('REL-SECRET-PEER', 'rel-secret-p2', 'requirement', 'secret title') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO requirement_lines (base_uid, project_id, kind, title) VALUES ('REL-SECRET-PEER', 'rel-secret-p2', 'requirement', 'secret title'), ('REL-NOVER', 'rel-secret-p2', 'requirement', 'line only') ON CONFLICT DO NOTHING`);
     await q(`INSERT INTO requirement_versions (uid, base_uid, project_id, version_n, status, statement, title) VALUES ('REL-SECRET-PEER', 'REL-SECRET-PEER', 'rel-secret-p2', 0, 'active', 's', 'secret title') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO trace_edges (from_project_id, from_uid, to_project_id, to_uid, kind) VALUES ('reqalm', 'CAP-READ-REQS', 'rel-secret-p2', 'REL-SECRET-PEER', 'uses') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO trace_edges (from_project_id, from_uid, to_project_id, to_uid, kind) VALUES ('reqalm', 'CAP-READ-REQS', 'rel-secret-p2', 'REL-SECRET-PEER', 'uses'), ('reqalm', 'CAP-READ-REQS', 'rel-secret-p2', 'REL-MISSING-PEER', 'uses'), ('reqalm', 'CAP-READ-REQS', 'rel-secret-p2', 'REL-NOVER', 'uses') ON CONFLICT DO NOTHING`);
     try {
-      for (const grant of [null, `INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('grant-kc-rel-secret', 'rel-secret-p2', 'casey-reader', 'Key custodian') ON CONFLICT DO NOTHING`]) {
-        if (grant) await q(grant);
+      for (const [grantId, role] of [
+        [null, null],
+        ["grant-kc-rel-secret", "Key custodian"],
+        ["grant-r-rel-secret", "Reader"],
+      ] as const) {
+        if (grantId) await ctx.pool.query(`INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ($1, 'rel-secret-p2', 'casey-reader', $2) ON CONFLICT DO NOTHING`, [grantId, role]);
         const raw = await inject(REL("reqalm", "CAP-READ-REQS"));
-        const text = raw.payload as string;
-        assert.ok(!text.includes("REL-SECRET-PEER") && !text.includes("secret title"));
         const uses = dataOf(raw).outgoing.uses ?? [];
-        const s = uses.find((l) => l.relation_kind === "uses" && "restricted" in l)!;
-        stub(s, "uses", "outgoing");
-        assert.equal(uses.indexOf(s), uses.length - 1);
-        if (grant) await q(`DELETE FROM project_grants WHERE id = 'grant-kc-rel-secret'`);
+        if (role === "Reader") {
+          assert.deepEqual(
+            uses.filter((l) => !("restricted" in l)).map((l) => [vis(l).peer.id, vis(l).peer.title]).sort(),
+            [
+              ["REL-MISSING-PEER", null],
+              ["REL-NOVER", "line only"],
+              ["REL-SECRET-PEER", "secret title"],
+            ],
+          );
+        } else {
+          const text = raw.payload as string;
+          assert.ok(!text.includes("REL-SECRET-PEER") && !text.includes("secret title") && !text.includes("REL-MISSING-PEER"));
+          const stubs = uses.filter((l) => "restricted" in l);
+          assert.equal(stubs.length, 3);
+          for (const l of stubs) assert.deepEqual(l, stubUses);
+        }
+        if (grantId) await ctx.pool.query(`DELETE FROM project_grants WHERE id = $1`, [grantId]);
       }
     } finally {
-      await q(`DELETE FROM trace_edges WHERE from_project_id = 'reqalm' AND to_uid = 'REL-SECRET-PEER'`);
+      await q(`DELETE FROM trace_edges WHERE from_project_id = 'reqalm' AND to_project_id = 'rel-secret-p2'`);
       await q(`DELETE FROM requirement_versions WHERE base_uid = 'REL-SECRET-PEER'`);
-      await q(`DELETE FROM requirement_lines WHERE base_uid = 'REL-SECRET-PEER'`);
+      await q(`DELETE FROM requirement_lines WHERE base_uid IN ('REL-SECRET-PEER','REL-NOVER')`);
       await q(`DELETE FROM projects WHERE id = 'rel-secret-p2'`);
     }
   });
-
   it("twin project grant on/off, incoming edge, distinct C08 title", async () => {
     const setup = async (grant: boolean) => {
       await q(`INSERT INTO projects (id, client_id, name) VALUES ('twin-b', 'reqalm-client', 'Twin B') ON CONFLICT DO NOTHING`);
@@ -108,14 +122,14 @@ describe("requirements relations API", () => {
       await teardown();
     }
   });
-
   it("A01 version pins, latest title, incoming dedupe, suspect dedupe", async () => {
-    const refIn = dataOf(await inject(REL("reqalm", "A01"))).incoming.refines ?? [];
+    const a01 = dataOf(await inject(REL("reqalm", "A01")));
+    const ac3 = a01.outgoing.conforms_to?.find((l) => vis(l).peer.id === "AC-3")!;
+    assert.match(vis(ac3).peer.title!, /Access Enforcement/);
+    assert.equal(vis(ac3).catalog_imprint_id, "nist-800-53@rev5-dogfood-20261006");
+    const refIn = a01.incoming.refines ?? [];
     const devenv = refIn.filter((l) => vis(l).peer.id === "ARCH-DEVENV-IDENTITY");
-    assert.deepEqual(devenv.map((l) => [vis(l).peer_version_id, vis(l).relation_kind, vis(l).peer.id]).sort(), [
-      ["ARCH-DEVENV-IDENTITY", "refines", "ARCH-DEVENV-IDENTITY"],
-      ["ARCH-DEVENV-IDENTITY.1", "refines", "ARCH-DEVENV-IDENTITY"],
-    ]);
+    assert.deepEqual(devenv.map((l) => [vis(l).peer_version_id, vis(l).peer.id]).sort(), [["ARCH-DEVENV-IDENTITY", "ARCH-DEVENV-IDENTITY"], ["ARCH-DEVENV-IDENTITY.1", "ARCH-DEVENV-IDENTITY"]]);
     await q(`UPDATE requirement_versions SET title = 'LATEST-DEVENV-TITLE' WHERE uid = 'ARCH-DEVENV-IDENTITY.1'`);
     try {
       const dev2 = (dataOf(await inject(REL("reqalm", "A01"))).incoming.refines ?? []).filter((l) => vis(l).peer.id === "ARCH-DEVENV-IDENTITY");
@@ -129,54 +143,62 @@ describe("requirements relations API", () => {
       assert.equal(vis(l).peer.id, id.replace(/\.1$/, ""));
       assert.ok(vis(l).peer.title);
     }
-    await q(`INSERT INTO requirement_lines (base_uid, project_id, kind, title) VALUES ('DEDUP-PEER', 'reqalm', 'requirement', 'd'), ('SUS-PEER', 'reqalm', 'requirement', 's') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO requirement_versions (uid, base_uid, project_id, version_n, status, statement) VALUES ('DEDUP-PEER', 'DEDUP-PEER', 'reqalm', 0, 'active', 'x'), ('SUS-PEER', 'SUS-PEER', 'reqalm', 0, 'active', 's') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO requirement_lines (base_uid, project_id, kind, title) VALUES ('DEDUP-PEER', 'reqalm', 'requirement', 'd'), ('SUS-PEER', 'reqalm', 'requirement', 's'), ('SUS2-PEER', 'reqalm', 'requirement', 's2') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO requirement_versions (uid, base_uid, project_id, version_n, status, statement) VALUES ('DEDUP-PEER', 'DEDUP-PEER', 'reqalm', 0, 'active', 'x'), ('SUS-PEER', 'SUS-PEER', 'reqalm', 0, 'active', 's'), ('SUS2-PEER', 'SUS2-PEER', 'reqalm', 0, 'active', 's2') ON CONFLICT DO NOTHING`);
     await q(`INSERT INTO trace_edges (from_project_id, from_uid, to_project_id, to_uid, kind, trace_suspect) VALUES
       ('reqalm', 'DEDUP-PEER', 'reqalm', 'FIX-SUCC-2HOP.1', 'uses', false), ('reqalm', 'DEDUP-PEER', 'reqalm', 'FIX-SUCC-2HOP.2', 'uses', false),
-      ('reqalm', 'FIX-SUCC-2HOP', 'reqalm', 'SUS-PEER', 'uses', false), ('reqalm', 'FIX-SUCC-2HOP.1', 'reqalm', 'SUS-PEER', 'uses', true) ON CONFLICT DO NOTHING`);
+      ('reqalm', 'FIX-SUCC-2HOP', 'reqalm', 'SUS-PEER', 'uses', false), ('reqalm', 'FIX-SUCC-2HOP.1', 'reqalm', 'SUS-PEER', 'uses', true),
+      ('reqalm', 'SUS2-PEER', 'reqalm', 'FIX-SUCC-2HOP.1', 'uses', true), ('reqalm', 'SUS2-PEER', 'reqalm', 'FIX-SUCC-2HOP.2', 'uses', false) ON CONFLICT DO NOTHING`);
     try {
       const hop = dataOf(await inject(REL("reqalm", "FIX-SUCC-2HOP")));
+      const cm3 = hop.outgoing.conforms_to?.filter((l) => vis(l).peer.id === "CM-3") ?? [];
+      assert.equal(cm3.length, 1);
+      assert.equal(vis(cm3[0]!).self_version_id, "FIX-SUCC-2HOP.2");
       const ded = hop.incoming.uses?.filter((l) => vis(l).peer.id === "DEDUP-PEER") ?? [];
       assert.equal(ded.length, 1);
       assert.equal(vis(ded[0]!).self_version_id, "FIX-SUCC-2HOP.2");
-      assert.equal(vis(ded[0]!).relation_kind, "uses");
       const sus = hop.outgoing.uses?.filter((l) => vis(l).peer.id === "SUS-PEER") ?? [];
-      assert.deepEqual(sus.map((l) => [vis(l).self_version_id, vis(l).trace_suspect, vis(l).relation_kind]).sort(), [
-        ["FIX-SUCC-2HOP", false, "uses"],
-        ["FIX-SUCC-2HOP.1", true, "uses"],
-      ]);
+      assert.deepEqual(sus.map((l) => [vis(l).self_version_id, vis(l).trace_suspect]).sort(), [["FIX-SUCC-2HOP", false], ["FIX-SUCC-2HOP.1", true]]);
       const inc = hop.incoming.uses?.find((l) => vis(l).peer.id === "FIX-CONTRACT-DOC-NOCTX")!;
       assert.equal(vis(inc).trace_suspect, true);
       assert.equal(vis(inc).self_version_id, "FIX-SUCC-2HOP.1");
+      const sus2 = hop.incoming.uses?.filter((l) => vis(l).peer.id === "SUS2-PEER") ?? [];
+      assert.deepEqual(sus2.map((l) => [vis(l).self_version_id, vis(l).trace_suspect]).sort(), [
+        ["FIX-SUCC-2HOP.1", true],
+        ["FIX-SUCC-2HOP.2", false],
+      ]);
     } finally {
-      await q(`DELETE FROM trace_edges WHERE from_uid IN ('DEDUP-PEER','FIX-SUCC-2HOP','FIX-SUCC-2HOP.1') AND to_uid IN ('FIX-SUCC-2HOP.1','FIX-SUCC-2HOP.2','SUS-PEER')`);
-      await q(`DELETE FROM requirement_versions WHERE base_uid IN ('DEDUP-PEER','SUS-PEER')`);
-      await q(`DELETE FROM requirement_lines WHERE base_uid IN ('DEDUP-PEER','SUS-PEER')`);
+      await q(`DELETE FROM trace_edges WHERE from_uid IN ('DEDUP-PEER','FIX-SUCC-2HOP','FIX-SUCC-2HOP.1','SUS2-PEER') AND to_uid IN ('FIX-SUCC-2HOP.1','FIX-SUCC-2HOP.2','SUS-PEER')`);
+      await q(`DELETE FROM requirement_versions WHERE base_uid IN ('DEDUP-PEER','SUS-PEER','SUS2-PEER')`);
+      await q(`DELETE FROM requirement_lines WHERE base_uid IN ('DEDUP-PEER','SUS-PEER','SUS2-PEER')`);
     }
   });
 
   it("private catalog stub, authz, audit", async () => {
-    await q(`INSERT INTO catalog_defs (id, is_standard, project_id) VALUES ('cat-test-private', false, 'rel-cat-p2') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO catalog_imprints (id, catalog_id) VALUES ('imprint-live-cc-PRIVATE', 'cat-test-private') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO catalog_item_labels (catalog_id, item_uid, title) VALUES ('cat-test-private', 'PRIV-CTL-1', 'Secret control title') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO trace_edges (from_project_id, from_uid, to_uid, kind, catalog_imprint_id, trace_suspect) VALUES ('reqalm', 'CAP-READ-REQS', 'PRIV-CTL-1', 'conforms_to', 'imprint-live-cc-PRIVATE', true) ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO catalog_defs (id, is_standard, project_id) VALUES ('cat-test-private', false, 'rel-cat-p2') ON CONFLICT DO NOTHING; INSERT INTO catalog_imprints (id, catalog_id) VALUES ('imprint-live-cc-PRIVATE', 'cat-test-private') ON CONFLICT DO NOTHING; INSERT INTO catalog_item_labels (catalog_id, item_uid, title) VALUES ('cat-test-private', 'PRIV-CTL-1', 'Secret control title') ON CONFLICT DO NOTHING; INSERT INTO trace_edges (from_project_id, from_uid, to_uid, kind, catalog_imprint_id, trace_suspect) VALUES ('reqalm', 'CAP-READ-REQS', 'PRIV-CTL-1', 'conforms_to', 'imprint-live-cc-PRIVATE', true) ON CONFLICT DO NOTHING`);
     try {
-      stub((dataOf(await inject(REL("reqalm", "CAP-READ-REQS"))).outgoing.conforms_to ?? []).find((l) => "restricted" in l)!, "conforms_to", "outgoing");
+      const raw = await inject(REL("reqalm", "CAP-READ-REQS"));
+      const text = raw.payload as string;
+      assert.ok(!text.includes("imprint-live-cc-PRIVATE") && !text.includes("PRIV-CTL-1") && !text.includes("Secret control title"));
+      const priv = dataOf(raw).outgoing.conforms_to!.find((l) => "restricted" in l)!;
+      stub(priv, "conforms_to", "outgoing");
+      await q(`DELETE FROM catalog_item_labels WHERE catalog_id = 'cat-nist-global' AND item_uid = 'UNLAB-CTL-1'`);
+      await q(`INSERT INTO trace_edges (from_project_id, from_uid, to_uid, kind, catalog_imprint_id) VALUES ('reqalm', 'CAP-READ-REQS', 'UNLAB-CTL-1', 'conforms_to', 'nist-800-53@rev5-dogfood-20261006') ON CONFLICT DO NOTHING`);
+      const conforms = dataOf(await inject(REL("reqalm", "CAP-READ-REQS"))).outgoing.conforms_to ?? [];
+      assert.equal(conforms.indexOf(conforms.find((l) => "restricted" in l)!), conforms.length - 1);
+      assert.equal(vis(conforms.find((l) => !("restricted" in l) && (l as VisibleRelationLink).peer.id === "UNLAB-CTL-1")!).peer.title, null);
     } finally {
-      await q(`DELETE FROM trace_edges WHERE from_uid = 'CAP-READ-REQS' AND to_uid = 'PRIV-CTL-1'`);
-      await q(`DELETE FROM catalog_item_labels WHERE catalog_id = 'cat-test-private'`);
-      await q(`DELETE FROM catalog_imprints WHERE id = 'imprint-live-cc-PRIVATE'`);
-      await q(`DELETE FROM catalog_defs WHERE id = 'cat-test-private'`);
+      await q(`DELETE FROM trace_edges WHERE from_uid = 'CAP-READ-REQS' AND to_uid IN ('PRIV-CTL-1','UNLAB-CTL-1')`);
+      await q(`DELETE FROM catalog_item_labels WHERE catalog_id = 'cat-test-private'; DELETE FROM catalog_imprints WHERE id = 'imprint-live-cc-PRIVATE'; DELETE FROM catalog_defs WHERE id = 'cat-test-private'`);
     }
-    await q(`INSERT INTO identities (id, display_name) VALUES ('no-grant-user', 'No Grant') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO local_credentials (identity_id, username, password_hash, is_dev_seeded) SELECT 'no-grant-user', 'no-grant@dev.local', password_hash, true FROM local_credentials WHERE identity_id = 'casey-reader' LIMIT 1 ON CONFLICT (identity_id) DO UPDATE SET username = EXCLUDED.username, password_hash = EXCLUDED.password_hash`);
+    await q(`INSERT INTO identities (id, display_name) VALUES ('no-grant-user', 'No Grant') ON CONFLICT DO NOTHING; INSERT INTO local_credentials (identity_id, username, password_hash, is_dev_seeded) SELECT 'no-grant-user', 'no-grant@dev.local', password_hash, true FROM local_credentials WHERE identity_id = 'casey-reader' LIMIT 1 ON CONFLICT (identity_id) DO UPDATE SET username = EXCLUDED.username, password_hash = EXCLUDED.password_hash`);
     assert.equal((await inject(REL("reqalm", "A01"), { authorization: `Bearer ${await issueTestAccessToken(ctx.app, "no-grant@dev.local")}` })).statusCode, 404);
     const saved = (await ctx.pool.query<{ id: string; role: string }>(`SELECT id, role FROM project_grants WHERE identity_id = 'casey-reader' AND project_id = 'reqalm' AND revoked_at IS NULL`)).rows;
     await q(`DELETE FROM project_grants WHERE identity_id = 'casey-reader' AND project_id = 'reqalm'`);
     await q(`INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('grant-kc-rel', 'reqalm', 'casey-reader', 'Key custodian')`);
     assert.equal((await inject(REL("reqalm", "A01"))).statusCode, 403);
     await q(`DELETE FROM project_grants WHERE id = 'grant-kc-rel'`);
-    for (const g of saved) await q(`INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('${g.id}', 'reqalm', 'casey-reader', '${g.role}') ON CONFLICT DO NOTHING`);
+    for (const g of saved) await ctx.pool.query(`INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ($1, 'reqalm', 'casey-reader', $2) ON CONFLICT DO NOTHING`, [g.id, g.role]);
     const res = await inject(REL("reqalm", "CAP-READ-REQS"), { ...bearer, "x-request-id": "rel-audit-allowed" });
     assert.equal(res.statusCode, 200);
     assert.deepEqual((await ctx.pool.query(`SELECT operation, outcome, project_id, target_id FROM audit_events WHERE request_id = 'rel-audit-allowed' ORDER BY id DESC LIMIT 1`)).rows[0], {
