@@ -1,7 +1,7 @@
 /** Requirement detail — trace relations panel (read-only). */
 
 import { el } from "./browse-dom.js";
-import { appRequirementHref, loadJson } from "./browse-core.js";
+import { appRequirementHref, isValidRequirementId, isValidSlugId, loadJson } from "./browse-core.js";
 
 export const RELATION_KINDS = ["conforms_to", "refines", "satisfies", "uses"];
 export const RELATION_KIND_COLLAPSE = 10;
@@ -110,7 +110,7 @@ function requirementPeerChip(link, anchorProjectId) {
   }
   if (link.trace_suspect) inner.push(suspectBadge());
   const chipProps = { className: "relation-chip relation-chip-link", role: "listitem" };
-  if (!peerProject) {
+  if (!peerProject || !isValidSlugId(peerProject) || !isValidRequirementId(peer.id)) {
     return el("div", { ...chipProps, className: "relation-chip relation-chip-noproj" }, inner);
   }
   return el("a", { ...chipProps, href: appRequirementHref(peerProject, peer.id) }, inner);

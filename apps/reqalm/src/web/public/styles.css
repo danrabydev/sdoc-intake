@@ -388,11 +388,6 @@ pre {
   gap: 1.25rem;
 }
 
-.relations-direction,
-.relation-chip {
-  min-width: 0;
-}
-
 .relations-direction-title {
   margin: 0 0 0.65rem;
   font-size: 0.95rem;
@@ -434,6 +429,11 @@ pre {
 
 .relation-chip-list[hidden] {
   display: none;
+}
+
+.relations-direction,
+.relation-chip {
+  min-width: 0;
 }
 
 .relation-chip {
@@ -488,6 +488,10 @@ pre {
   cursor: pointer;
 }
 
+.relation-chip-list-more {
+  margin-top: 6px;
+}
+
 .relation-chip-link:hover {
   border-color: var(--accent);
   background: #fff;
@@ -504,10 +508,6 @@ pre {
   color: var(--accent);
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
-}
-
-.relation-chip-list-more {
-  margin-top: 6px;
 }
 
 .relation-chip-status {

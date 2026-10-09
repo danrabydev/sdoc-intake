@@ -22,7 +22,10 @@ CAP_RELATIONS = "CAP-RELATIONS-API"
 REL_RELATIONS = "rel-r1-relations-api"
 CAP = "CAP-DEVENV-LF-ENDINGS"
 REL = "rel-r1-lf-endings"
+<<<<<<< HEAD
 NIST = "nist-800-53@rev5-dogfood-20261006"
+=======
+>>>>>>> b8d3f4f ([skip ci] Validate relation chip hrefs; ship LF endings in browse UI seed patch)
 
 yaml = YAML()
 yaml.preserve_quotes = True
@@ -60,9 +63,14 @@ def upsert(seq, key, item):
 
 
 def ensure_edge(edges, edge):
+<<<<<<< HEAD
     key = (edge.get("from"), edge.get("to"), edge.get("kind"), edge.get("catalog_imprint_id"))
     for e in edges:
         if (e.get("from"), e.get("to"), e.get("kind"), e.get("catalog_imprint_id")) == key:
+=======
+    for e in edges:
+        if (e.get("from"), e.get("to"), e.get("kind")) == (edge.get("from"), edge.get("to"), edge.get("kind")):
+>>>>>>> b8d3f4f ([skip ci] Validate relation chip hrefs; ship LF endings in browse UI seed patch)
             return 0
     edges.append(edge)
     return 1
@@ -172,12 +180,17 @@ def main() -> None:
     )
     edges = data.setdefault("edges", [])
     data["edges"] = [e for e in edges if e.get("from") != CAP]
+<<<<<<< HEAD
     for to in ("ARCH-DEVENV-CLONE", "ARCH-DEVENV-COMPOSE.1", "ARCH-DEPLOY-MINIMAL", "ARCH-DEPLOY-PERIPHERALS"):
         ensure_edge(data["edges"], {"from": CAP, "to": to, "kind": "satisfies"})
     ensure_edge(
         data["edges"],
         {"from": CAP, "to": "CM-2", "kind": "conforms_to", "catalog_imprint_id": NIST},
     )
+=======
+    for to in ("ARCH-DEVENV-CLONE", "ARCH-DEVENV-COMPOSE", "ARCH-DEPLOY-MINIMAL", "ARCH-DEPLOY-PERIPHERALS"):
+        ensure_edge(data["edges"], {"from": CAP, "to": to, "kind": "satisfies"})
+>>>>>>> b8d3f4f ([skip ci] Validate relation chip hrefs; ship LF endings in browse UI seed patch)
 
     arts = data.setdefault("capability_artifacts", [])
     data["capability_artifacts"] = [a for a in arts if a.get("requirement_version_uid") != CAP]

@@ -1,7 +1,14 @@
 /** Client-side browse screens (read-only). */
 
 import { el } from "./browse-dom.js";
-import { appRequirementHref as coreAppRequirementHref, loadJson as coreLoadJson } from "./browse-core.js";
+import {
+  appRequirementHref as coreAppRequirementHref,
+  loadJson as coreLoadJson,
+  SLUG_ID,
+  REQUIREMENT_ID,
+  isValidSlugId,
+  isValidRequirementId,
+} from "./browse-core.js";
 import { fillRequirementRelationsPanel, relationsPanelShell } from "./browse-relations.js";
 
 export { el } from "./browse-dom.js";
@@ -10,16 +17,8 @@ export const APP_NAV = [
   { href: "/app/clients", label: "Clients" },
   { href: "/app/projects", label: "Projects" },
 ];
-export const SLUG_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
+export { SLUG_ID, REQUIREMENT_ID, isValidSlugId, isValidRequirementId } from "./browse-core.js";
 export const SLUG_MAX_LENGTH = 64;
-export const REQUIREMENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
-
-export function isValidSlugId(id) {
-  return typeof id === "string" && SLUG_ID.test(id);
-}
-export function isValidRequirementId(id) {
-  return typeof id === "string" && REQUIREMENT_ID.test(id);
-}
 export function decodeRouteSegment(segment) {
   try {
     return decodeURIComponent(segment);
