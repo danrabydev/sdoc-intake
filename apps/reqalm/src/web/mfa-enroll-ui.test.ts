@@ -15,6 +15,7 @@ import {
 import { renderLogin } from "./public/app.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const INDEX_HTML = path.join(__dirname, "public/index.html");
 const VENDOR_QR_MIN = path.join(__dirname, "public/vendor/qr-min.js");
 const VENDOR_QR_MIN_SHA256 = "0bebad1a102e61131ba2988d75985234395c187127dff724c2125cc75e868ac8";
 
@@ -143,6 +144,8 @@ describe("MFA enrollment QR (client-side)", () => {
     assert.equal(svg.getAttribute("aria-label"), "QR code for authenticator setup");
     assert.equal(svg.getAttribute("shape-rendering"), "crispEdges");
     assertSvgMatchesVendoredEncoder(svg, SAMPLE_URI, SAMPLE_MATRIX_SHA256);
+    const n = vendoredEncodeQr(SAMPLE_URI).length;
+    assert.equal(svg.getAttribute("viewBox"), `0 0 ${n + 8} ${n + 8}`);
 
     const nodes = buildMfaEnrollmentChildren(document, el, { otpauth_uri: SAMPLE_URI });
     const wrap = document.createElement("div");
@@ -167,7 +170,15 @@ describe("MFA enrollment QR (client-side)", () => {
     const wrap = document.createElement("div");
     wrap.append(...nodes);
     assert.equal(wrap.querySelector("svg.mfa-qr"), null);
+    assert.match(wrap.textContent ?? "", /QR code unavailable/);
     assertEnrollmentTextFallback(wrap, SAMPLE_URI, SAMPLE_SECRET);
+  });
+
+  it("index.html loads vendor qr-min before the app module script", () => {
+    const html = readFileSync(INDEX_HTML, "utf8");
+    const scripts = [...html.matchAll(/<script[^>]*src="([^"]+)"[^>]*>/gi)].map((m) => m[1]);
+    assert.deepEqual(scripts, ["/vendor/qr-min.js", "/app.js"]);
+    assert.match(html, /<script src="\/vendor\/qr-min\.js"><\/script>\s*\n\s*<script type="module" src="\/app\.js"><\/script>/);
   });
 
   it("clearMfaEnrollmentUi removes QR markup from the DOM", () => {
@@ -227,6 +238,58 @@ describe("MFA enrollment QR (client-side)", () => {
     assert.equal(enrollBox.querySelector("[data-mfa-qr]"), null);
     assert.equal(enrollBox.hidden, true);
     assert.equal(redirected, "/oauth/web/callback?code=x");
+  });
+
+  it("login enrollment keeps QR after invalid MFA, resends ticket, clears on success", async () => {
+    const ticket = "ticket-enroll-xyz";
+    const bodies: Record<string, unknown>[] = [];
+    let calls = 0;
+    const fetchFn = async (_url: string, init?: RequestInit) => {
+      calls += 1;
+      bodies.push(JSON.parse(String(init?.body)));
+      if (calls === 1) {
+        return {
+          ok: true,
+          json: async () => ({
+            status: "mfa_enrollment_required",
+            enrollment_ticket: ticket,
+            otpauth_uri: LOGIN_OTPAUTH,
+          }),
+        };
+      }
+      if (calls === 2) {
+        return { ok: false, status: 401, json: async () => ({ error: "invalid_mfa" }) };
+      }
+      return { ok: true, json: async () => ({ redirect: "/oauth/web/callback?code=ok" }) };
+    };
+    let redirected = "";
+    renderLogin("handoff-1", { fetchFn, redirect: (u) => {
+      redirected = u;
+    } });
+    const form = document.getElementById("login-form") as HTMLFormElement;
+    const err = document.getElementById("error") as HTMLElement;
+    (form.querySelector('[name="username"]') as HTMLInputElement).value = "test@dev.local";
+    (form.querySelector('[name="password"]') as HTMLInputElement).value = "pw";
+    await submitLoginForm(form);
+    const enrollBox = document.getElementById("enroll-box") as HTMLElement;
+    assertEnrollmentPanelWithQr(enrollBox, LOGIN_OTPAUTH, LOGIN_SECRET);
+
+    (form.querySelector('[name="mfa_code"]') as HTMLInputElement).value = "000000";
+    await submitLoginForm(form);
+    assert.equal(calls, 2);
+    assert.equal(err.hidden, false);
+    assert.equal(err.textContent, "invalid_mfa");
+    assert.ok(enrollBox.querySelector("svg.mfa-qr"));
+    assert.equal(enrollBox.querySelector("#mfa-setup-key")?.textContent, LOGIN_SECRET);
+    assert.equal(bodies[1]?.enrollment_ticket, ticket);
+
+    (form.querySelector('[name="mfa_code"]') as HTMLInputElement).value = "123456";
+    await submitLoginForm(form);
+    assert.equal(calls, 3);
+    assert.equal(bodies[2]?.enrollment_ticket, ticket);
+    assert.equal(enrollBox.hidden, true);
+    assert.equal(enrollBox.childElementCount, 0);
+    assert.equal(redirected, "/oauth/web/callback?code=ok");
   });
 
   it("login enrollment still shows setup key when encoder is missing", async () => {

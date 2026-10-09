@@ -480,6 +480,13 @@ describe("unknown /api paths", () => {
     }
   });
 
+  it("serves /vendor/qr-min.js from the web static root (GET)", async () => {
+    const res = await inject({ method: "GET", url: "/vendor/qr-min.js" });
+    assert.equal(res.statusCode, 200);
+    assert.match(String(res.headers["content-type"]), /javascript/i);
+    assert.match(res.body, /function\(global, factory\)/);
+  });
+
   it("SPA fallback serves index.html for each web UI entry path (GET)", async () => {
     for (const url of WEB_UI_SPA_ENTRY_GET_PATHS) {
       const res = await call404("GET", url, `spa-entry-${url.replace(/[^a-z0-9]+/gi, "-")}`);
