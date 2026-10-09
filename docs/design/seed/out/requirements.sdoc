@@ -4673,7 +4673,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-RELATIONS-API
-STATUS: Draft
+STATUS: Active
 TITLE: Read requirement relations (trace links API)
 STATEMENT: >>>
 Grant-scoped read-only relations API: GET /api/v1/projects/:projectId/requirements/:id/relations returns incoming and outgoing trace links grouped by kind (conforms_to, uses, satisfies, refines). Each link resolves the peer end with id, title, kind, and type for in-project lines and readable catalog controls in one response; cross-project and unreadable catalog peers return a non-revealing restricted stub. Dogfood seed loader persists trace_edges plus catalog imprint labels for ConformsTo pins.
@@ -4685,7 +4685,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: Runtime on main (PR #31); rel-r1-relations-api release still planned in a parallel seed PR.
+security.verification_note: Shipped with requirement relations read API PR #31 (merge cb8a8c97895b651c8f25ce660482e7e5e7ae4454).
 delivered_by_release: R1 — requirement relations read API
 <<<
 RELATIONS:
@@ -15896,6 +15896,7 @@ edge: ← refines from ARCH-DEPLOY-MINIMAL
 edge: ← refines from ARCH-DEPLOY-PERIPHERALS
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-DEVENV-COMPOSE
+edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → uses to ARCH-DEPLOY-MINIMAL (RELATIONS TYPE: Child; Parent would cycle)
 edge: → uses to ARCH-DEPLOY-PERIPHERALS (RELATIONS TYPE: Child; Parent would cycle)
@@ -16020,6 +16021,7 @@ edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
 edge: ← satisfies from CAP-DEVENV-MONOREPO
 edge: ← satisfies from CAP-DEVENV-COMPOSE
 edge: ← satisfies from CAP-API-DOCS-SEED-SUMMARY
+edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16201,6 +16203,46 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-DEVENV-LF-ENDINGS
+STATUS: Draft
+TITLE: Git LF line endings for Compose entrypoints
+STATEMENT: >>>
+Repository line endings are enforced for the Compose dev stack: a root .gitattributes keeps shell entrypoints and Docker/Compose context files as LF in Git so Linux containers never see a bash\r shebang when Windows Git checks out with core.autocrlf=true. Documented recovery re-normalizes an existing Windows working tree after pulling the fix.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-DEVENV-LF-ENDINGS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until .gitattributes + dev docs PR merges; verify docker compose up on Windows checkout.
+delivered_by_release: R1 — Git LF line endings (Compose entrypoints)
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE.1
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-CLONE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE.1
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-MINIMAL
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-PERIPHERALS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-lf-endings
   ROLE: Delivers
 
 [[/SECTION]]
@@ -16424,6 +16466,7 @@ edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
 edge: ← uses from FIX-ALLOW-APP-ROLE-SPLIT
 edge: ← satisfies from CAP-DEVENV-DOCKERFILE-ROLES
 edge: ← satisfies from CAP-SVC-STATIC-DEP-PATCH
+edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -16477,6 +16520,7 @@ edge: ← uses from ARCH-DEVENV-MODES.1
 edge: ← uses from ARCH-DEVENV-PARITY.1
 edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
 edge: ← satisfies from CAP-DEVENV-PERIPHERALS
+edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to SC-28.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
