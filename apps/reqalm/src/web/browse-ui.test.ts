@@ -65,7 +65,7 @@ function jsonResponse(status: number, body: unknown) {
   return { status, ok: status >= 200 && status < 300, json: async () => body };
 }
 
-function mockFetch(handler: FetchHandler) {
+function mockFetchBare(handler: FetchHandler) {
   return (async (input: RequestInfo | URL) => {
     const url = typeof input === "string" ? input : input.toString();
     const { status, body } = handler(url);
@@ -181,12 +181,17 @@ describe("browse UI render (jsdom)", () => {
     Reflect.deleteProperty(globalThis, "document");
   });
 
-  function mockFetchTracked(handler: FetchHandler) {
+  function mockFetch(handler: FetchHandler) {
     return (async (input: RequestInfo | URL) => {
       const url = typeof input === "string" ? input : input.toString();
       fetchCalls.push(url);
-      return mockFetch(handler)(input);
+      const { status, body } = handler(url);
+      return jsonResponse(status, body) as Response;
     }) as unknown as typeof fetch;
+  }
+
+  function mockFetchTracked(handler: FetchHandler) {
+    return mockFetch(handler);
   }
 
   type TreeNodeRow = {
@@ -648,7 +653,7 @@ describe("browse UI render (jsdom)", () => {
     const detailBody = { id: "ANCHOR", title: "Anchor", kind: "capability", type: "capability", status: "active", version_n: 0, statement: "S", attributes: {} };
     const main = document.createElement("main");
     await renderRequirementDetail(main, {
-      apiFn: mockFetchTracked((url) => {
+      apiFn: mockFetch((url) => {
         if (url === "/api/v1/projects/reqalm/requirements/ANCHOR") return { status: 200, body: { data: detailBody } };
         if (url === relationsPath("reqalm", "ANCHOR")) return { status: 200, body: { data: relPayload } };
         return { status: 404 };
@@ -718,7 +723,7 @@ describe("browse UI render (jsdom)", () => {
     ] as const) {
       const m = document.createElement("main");
       await renderRequirementDetail(m, {
-        apiFn: mockFetchTracked((url) => {
+        apiFn: mockFetch((url) => {
           if (url === `/api/v1/projects/reqalm/requirements/${rid}`) return { status: 200, body: { data: reqStub(rid) } };
           if (url === relationsPath("reqalm", rid)) return relFn();
           return { status: 404 };
@@ -733,7 +738,7 @@ describe("browse UI render (jsdom)", () => {
 
     const emptyMain = document.createElement("main");
     await renderRequirementDetail(emptyMain, {
-      apiFn: mockFetchTracked((url) => {
+      apiFn: mockFetch((url) => {
         if (url === "/api/v1/projects/reqalm/requirements/EMPTY-1") {
           return { status: 200, body: { data: { id: "EMPTY-1", title: "E", kind: "requirement", type: "requirement", status: "active", version_n: 0, statement: "s", attributes: {} } } };
         }
@@ -1581,7 +1586,7 @@ describe("app shell", () => {
   it("breadcrumb skips invalid client slug and loadShellMeta does not fetch client", async () => {
     const route = parseAppRoute("/app/projects/reqalm/requirements");
     let clientFetch = false;
-    const meta = await loadShellMeta(route, mockFetch((url) => {
+    const meta = await loadShellMeta(route, mockFetchBare((url) => {
       if (url === "/api/v1/me") return { status: 200, body: { data: { identity_id: "u1", agent_name: null } } };
       if (url === "/api/v1/projects/reqalm") {
         return {
@@ -1613,7 +1618,7 @@ describe("app shell", () => {
     const route = parseAppRoute(path);
     const content = renderAppShell(path, route, shellMeta);
     await mountBrowseView(content, route, {
-      apiFn: mockFetch((url) => {
+      apiFn: mockFetchBare((url) => {
         if (url === "/api/v1/projects/reqalm/requirements/CAP-1") {
           return {
             status: 200,
