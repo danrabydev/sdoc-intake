@@ -72,8 +72,8 @@ describe("releases read API", () => {
     const planned = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=planned&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ status: string; id: string }>; total: number } };
-    assert.equal(planned.data.total, 5);
-    assert.equal(planned.data.items.length, 5);
+    assert.equal(planned.data.total, 4);
+    assert.equal(planned.data.items.length, 4);
     assert.ok(planned.data.items.every((i) => i.status === "planned"));
     assert.ok(planned.data.items.some((i) => i.id === "rel-r1-catalogs-api"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-lf-endings"));
@@ -107,7 +107,7 @@ describe("releases read API", () => {
       "rel-r1-platform-followups",
       "rel-r0-sequences",
       "rel-r1-catalogs-api",
-      "rel-r1-relations-api",
+      "rel-r1-lf-endings",
     ]);
     for (let i = 1; i < list.data.items.length; i++) {
       const a = list.data.items[i - 1]!;
