@@ -54,7 +54,8 @@ function kindHeading(kind, direction, count) {
 }
 
 function peerStatusBadge(peer) {
-  const label = peer?.kind === "control" ? "control" : peer?.kind || peer?.type || "line";
+  const raw = peer?.kind === "control" ? "control" : peer?.kind || peer?.type || "line";
+  const label = raw.charAt(0).toUpperCase() + raw.slice(1);
   return el("span", { className: "relation-chip-status", text: label });
 }
 
@@ -68,20 +69,22 @@ function restrictedChip() {
   ]);
 }
 
-function catalogChip(link) {
+function catalogChip(link, anchorProjectId) {
   const peer = link.peer;
   const title = peer.title?.trim() ? peer.title : peer.id;
   const imprint = imprintShortLabel(link.catalog_imprint_id);
   const parts = [el("code", { className: "relation-chip-id", text: peer.id }), el("span", { className: "relation-chip-title", text: title })];
   if (imprint) parts.push(el("span", { className: "relation-chip-imprint", text: imprint }));
+  if (peer.project_id && anchorProjectId && peer.project_id !== anchorProjectId) {
+    parts.push(el("span", { className: "relation-chip-project", text: peer.project_id }));
+  }
   if (link.trace_suspect) parts.push(suspectBadge());
   return el("div", { className: "relation-chip relation-chip-catalog", role: "listitem" }, parts);
 }
 
-function requirementPeerChip(link) {
+function requirementPeerChip(link, anchorProjectId) {
   const peer = link.peer;
   const peerProject = peer.project_id;
-  const href = appRequirementHref(peerProject, peer.id);
   const titleText = peer.title?.trim() ? peer.title : null;
   const inner = [
     el("code", { className: "relation-chip-id", text: peer.id }),
@@ -90,44 +93,53 @@ function requirementPeerChip(link) {
   ];
   const ver = peerVersionSuffix(link);
   if (ver) inner.push(el("span", { className: "relation-chip-version", text: ver }));
+  if (peerProject && anchorProjectId && peerProject !== anchorProjectId) {
+    inner.push(el("span", { className: "relation-chip-project", text: peerProject }));
+  }
   if (link.trace_suspect) inner.push(suspectBadge());
-  return el("a", { className: "relation-chip relation-chip-link", href, role: "listitem" }, inner);
+  const chipProps = { className: "relation-chip relation-chip-link", role: "listitem" };
+  if (!peerProject) {
+    return el("div", { ...chipProps, className: "relation-chip relation-chip-noproj" }, inner);
+  }
+  return el("a", { ...chipProps, href: appRequirementHref(peerProject, peer.id) }, inner);
 }
 
-export function relationPeerChip(link) {
+export function relationPeerChip(link, anchorProjectId = "") {
   if ("restricted" in link) return restrictedChip();
-  if (isCatalogControlLink(link)) return catalogChip(link);
-  return requirementPeerChip(link);
+  if (isCatalogControlLink(link)) return catalogChip(link, anchorProjectId);
+  return requirementPeerChip(link, anchorProjectId);
 }
 
-function renderKindBlock(kind, direction, links) {
+export function renderKindBlock(kind, direction, links, anchorProjectId) {
   const block = el("div", { className: "relation-kind-block" });
   block.append(kindHeading(kind, direction, links.length));
   const list = el("div", { className: "relation-chip-list", role: "list" });
   if (links.length <= RELATION_KIND_COLLAPSE) {
-    for (const link of links) list.append(relationPeerChip(link));
+    for (const link of links) list.append(relationPeerChip(link, anchorProjectId));
     block.append(list);
     return block;
   }
-  for (const link of links.slice(0, RELATION_KIND_COLLAPSE)) list.append(relationPeerChip(link));
+  for (const link of links.slice(0, RELATION_KIND_COLLAPSE)) list.append(relationPeerChip(link, anchorProjectId));
   const hidden = el("div", { className: "relation-chip-list relation-chip-list-more", role: "list", hidden: "" });
-  for (const link of links.slice(RELATION_KIND_COLLAPSE)) hidden.append(relationPeerChip(link));
+  for (const link of links.slice(RELATION_KIND_COLLAPSE)) hidden.append(relationPeerChip(link, anchorProjectId));
   block.append(list, hidden);
   const toggle = el("button", {
     type: "button",
     className: "relation-show-all btn-secondary",
     text: `Show all ${links.length}`,
+    "aria-expanded": "false",
   });
   toggle.addEventListener("click", () => {
     const open = hidden.hidden;
     hidden.hidden = !open;
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
     toggle.textContent = open ? "Show less" : `Show all ${links.length}`;
   });
   block.append(toggle);
   return block;
 }
 
-function renderDirectionColumn(title, direction, grouped) {
+function renderDirectionColumn(title, direction, grouped, anchorProjectId) {
   const total = relationLinkCount(grouped);
   const col = el("section", { className: "relations-direction", "data-direction": direction });
   const h3 = el("h3", { className: "relations-direction-title" });
@@ -142,17 +154,17 @@ function renderDirectionColumn(title, direction, grouped) {
   for (const kind of RELATION_KINDS) {
     const links = grouped[kind];
     if (!links?.length) continue;
-    col.append(renderKindBlock(kind, direction, links));
+    col.append(renderKindBlock(kind, direction, links, anchorProjectId));
   }
   return col;
 }
 
-export function renderRelationsPanelBody(relations) {
+export function renderRelationsPanelBody(relations, anchorProjectId = relations.project_id ?? "") {
   const wrap = el("div", { className: "relations-panel-body" });
   const columns = el("div", { className: "relations-columns" });
   columns.append(
-    renderDirectionColumn("Outgoing", "outgoing", relations.outgoing),
-    renderDirectionColumn("Incoming", "incoming", relations.incoming),
+    renderDirectionColumn("Outgoing", "outgoing", relations.outgoing, anchorProjectId),
+    renderDirectionColumn("Incoming", "incoming", relations.incoming, anchorProjectId),
   );
   wrap.append(columns);
   return wrap;
@@ -188,5 +200,5 @@ export async function fillRequirementRelationsPanel(panel, { apiFn, projectId, r
     panel.append(relationsPanelEmpty());
     return;
   }
-  panel.append(renderRelationsPanelBody(rel));
+  panel.append(renderRelationsPanelBody(rel, projectId));
 }

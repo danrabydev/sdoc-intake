@@ -411,7 +411,6 @@ pre {
 .relation-kind-badge {
   font-size: 0.75rem;
   font-weight: 600;
-  text-transform: lowercase;
   padding: 0.12rem 0.45rem;
   border-radius: 999px;
   background: #ede9fe;
@@ -428,9 +427,13 @@ pre {
   gap: 0.35rem;
 }
 
+.relation-chip-list[hidden] {
+  display: none;
+}
+
 .relation-chip {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 0.35rem 0.5rem;
   min-height: 2.35rem;
@@ -445,10 +448,33 @@ pre {
 }
 
 .relation-chip-version {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--muted);
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #4338ca;
+  background: #eef2ff;
+  padding: 0.06rem 0.35rem;
+  border-radius: 4px;
   font-family: ui-monospace, monospace;
+}
+
+.relation-chip-project {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 0.06rem 0.35rem;
+  border-radius: 4px;
+  text-transform: lowercase;
+}
+
+.relation-chip-title {
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .relation-show-all {
@@ -469,14 +495,10 @@ pre {
   border-radius: 4px;
 }
 
-.relation-chip-title {
-  font-weight: 500;
-}
-
 .relation-chip-status {
+  flex-shrink: 0;
   font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  white-space: nowrap;
   color: var(--muted);
   padding: 0.08rem 0.35rem;
   border: 1px solid var(--border);

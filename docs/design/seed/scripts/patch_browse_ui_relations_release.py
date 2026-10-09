@@ -70,6 +70,8 @@ UI_STMT = (
 )
 UI_ARTIFACTS = [
     f"{REPO}/apps/reqalm/src/web/public/browse.js",
+    f"{REPO}/apps/reqalm/src/web/public/browse-core.js",
+    f"{REPO}/apps/reqalm/src/web/public/browse-dom.js",
     f"{REPO}/apps/reqalm/src/web/public/browse-relations.js",
     f"{REPO}/apps/reqalm/src/web/public/styles.css",
     f"{REPO}/apps/reqalm/src/web/browse-ui.test.ts",
