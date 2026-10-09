@@ -1331,7 +1331,52 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned for header and project tab navigation PR.
+  notes: 'Capability active with verification pass after PR #37 merge dd43cc1523544d0f6375a628bc9d7d45a31fa738; formal approval record not filed in seed.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-reqalm-contracts
+  subject_kind: CapabilityLine
+  base_uid: CAP-REQALM-CONTRACTS
+  status: unapproved
+  by:
+  at:
+  notes: Planned for ReqALM product/maintenance contracts seed PR.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-upkeep-monthly-sec-audit
+  subject_kind: CapabilityLine
+  base_uid: CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  status: unapproved
+  by:
+  at:
+  notes: Planned upkeep capability CAP-UPKEEP-MONTHLY-SEC-AUDIT.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-upkeep-monthly-deps-vuln
+  subject_kind: CapabilityLine
+  base_uid: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  status: unapproved
+  by:
+  at:
+  notes: Planned upkeep capability CAP-UPKEEP-MONTHLY-DEPS-VULN.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-upkeep-quarterly-access-recert
+  subject_kind: CapabilityLine
+  base_uid: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  status: unapproved
+  by:
+  at:
+  notes: Planned upkeep capability CAP-UPKEEP-QUARTERLY-ACCESS-RECERT.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-upkeep-audit-log-review
+  subject_kind: CapabilityLine
+  base_uid: CAP-UPKEEP-AUDIT-LOG-REVIEW
+  status: unapproved
+  by:
+  at:
+  notes: Planned upkeep capability CAP-UPKEEP-AUDIT-LOG-REVIEW.
   approved_version_uid:
   approved_statement_hash:
 gate_signoffs:
@@ -3460,6 +3505,36 @@ requirement_lines:
   parent: CAP-UI-KIT-CHROME
   kind: capability
   title: ReqALM header and project navigation
+- base_uid: CAP-REQALM-CONTRACTS
+  project_id: reqalm
+  parent: SEC-CT
+  kind: capability
+  title: ReqALM product and maintenance contracts (seed)
+- base_uid: SYS-CYBER-UPKEEP
+  project_id: reqalm
+  parent: SEC-SEC
+  kind: requirement
+  title: Ongoing cyber upkeep (ReqALM operations)
+- base_uid: CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  project_id: reqalm
+  parent: SEC-CAP
+  kind: capability
+  title: Monthly security audit (planned)
+- base_uid: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  project_id: reqalm
+  parent: SEC-CAP
+  kind: capability
+  title: Monthly dependency and vulnerability review (planned)
+- base_uid: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  project_id: reqalm
+  parent: SEC-CAP
+  kind: capability
+  title: Quarterly access recertification (planned)
+- base_uid: CAP-UPKEEP-AUDIT-LOG-REVIEW
+  project_id: reqalm
+  parent: SEC-CAP
+  kind: capability
+  title: Audit log review (planned)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -8805,15 +8880,88 @@ requirement_versions:
 - uid: CAP-UI-HEADER-NAV
   base_uid: CAP-UI-HEADER-NAV
   version_n: 0
-  status: draft
+  status: active
   statement: 'ReqALM /app shell header aligned to product chrome: brand mark, client/project/page breadcrumb with safe text, project-scoped tabs (Requirements with list/tree toggle, Releases; coming-soon stubs for Traceability, Capabilities, Contracts, Audit), minimal Clients/Projects nav outside project context, user initials avatar and sign out. Accessible nav landmarks, aria-current on active items, aria-disabled on stub tabs, visible focus styles. No sidebar.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: Planned until header/nav UI PR merges.
+    verification_note: 'Shipped with header/nav UI PR #37 (merge dd43cc1523544d0f6375a628bc9d7d45a31fa738).'
   statement_hash: sha256:01eb837e7646e87710859ddba2ebac44706d1be9d1c14ca17a12e71b73d70e30
   grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-REQALM-CONTRACTS
+  base_uid: CAP-REQALM-CONTRACTS
+  version_n: 0
+  status: draft
+  statement: 'Seed-only contract overlay pass: ReqALM product contract (ctr-reqalm-product) covers all reqalm releases via covers_releases; in_scope_of pins active reqalm capability/requirement tips; maintenance contract (ctr-reqalm-maintenance) owns draft CAP-UPKEEP-* capabilities satisfying SYS-CYBER-UPKEEP. Regenerates docs/design/seed/out/, schema docs, and HANDOFF.md. No application runtime changes.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until ReqALM contracts seed PR merges.
+  statement_hash: sha256:e7e5c538dd763e691fe38b7491a2f27de23cc90bf29ced79652a3b28ff0cb164
+  grooming_state: detailed
+- uid: SYS-CYBER-UPKEEP
+  base_uid: SYS-CYBER-UPKEEP
+  version_n: 0
+  status: draft
+  statement: 'PLANNED system requirement (not shipped). ReqALM in production shall sustain ongoing cyber upkeep: continuous monitoring, vulnerability and flaw remediation, account lifecycle review, and audit log analysis — implemented by the draft CAP-UPKEEP-* capability pack and owned under maintenance contract ctr-reqalm-maintenance.'
+  priority: 40
+  iteration: iter-r1
+  security:
+    catalog_ref: CA-7
+    verification_note: Planned system requirement — not shipped; satisfied by draft CAP-UPKEEP-* pack.
+  statement_hash: sha256:989ef3a6f1bb29ecdd54eac9b3a232c8117869c19a124a5416aacbdbd8e7c6eb
+  grooming_state: detailed
+- uid: CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  base_uid: CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  version_n: 0
+  status: draft
+  statement: 'PLANNED capability (not shipped). Each month, Security performs a documented ReqALM security audit: auth/session anomalies, privileged use, configuration drift vs approved baseline, and open findings from the prior cycle. Results are recorded and remediated.'
+  priority: 50
+  iteration: iter-r1
+  security:
+    catalog_ref: CA-7
+    verification_note: Planned upkeep capability — not shipped; no verification outcome.
+  statement_hash: sha256:ae18e6d312e452ad9816d744eb1c738af2161f4e727eb6ad5f1c0243116c14ba
+  grooming_state: want
+- uid: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  base_uid: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  version_n: 0
+  status: draft
+  statement: PLANNED capability (not shipped). Each month, review application and container dependency manifests for known vulnerabilities (SCA), triage by severity, and plan patches or Security-approved risk acceptance before the next review.
+  priority: 50
+  iteration: iter-r1
+  security:
+    catalog_ref: RA-5
+    verification_note: Planned upkeep capability — not shipped; no verification outcome.
+  statement_hash: sha256:acb2223244a53ae4358495dda2f3f4a2ba66f937e7cb11c49032029aedf692e5
+  grooming_state: want
+- uid: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  base_uid: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  version_n: 0
+  status: draft
+  statement: 'PLANNED capability (not shipped). Quarterly, an Authorizing Official or delegate recertifies ReqALM project grants and privileged roles: confirm least privilege, remove stale grants, audit the decision.'
+  priority: 50
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-2
+    verification_note: Planned upkeep capability — not shipped; no verification outcome.
+  statement_hash: sha256:92cfb9067f3aad31204b334730f73a1755811239eb8c8e9a5c6022e74491c42a
+  grooming_state: want
+- uid: CAP-UPKEEP-AUDIT-LOG-REVIEW
+  base_uid: CAP-UPKEEP-AUDIT-LOG-REVIEW
+  version_n: 0
+  status: draft
+  statement: PLANNED capability (not shipped). Review exported OTEL/security audit streams for suspicious patterns, failed auth spikes, and privileged mutations; escalate per incident response policy.
+  priority: 50
+  iteration: iter-r1
+  security:
+    catalog_ref: AU-6
+    verification_note: Planned upkeep capability — not shipped; no verification outcome.
+  statement_hash: sha256:fd20427878522fad6d89a049ecf8919dca843ec0209b370d8128ba75c1a21a61
+  grooming_state: want
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -9553,6 +9701,24 @@ capability_artifacts:
 - requirement_version_uid: CAP-UI-HEADER-NAV
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_ui_header_nav_release.py
+- requirement_version_uid: CAP-REQALM-CONTRACTS
+  kind: other
+  uri: ../../../docs/design/seed/dogfood.yaml
+- requirement_version_uid: CAP-REQALM-CONTRACTS
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_reqalm_contracts_release.py
+- requirement_version_uid: CAP-REQALM-CONTRACTS
+  kind: other
+  uri: ../../../docs/design/seed/scripts/yaml_to_strictdoc.py
+- requirement_version_uid: CAP-REQALM-CONTRACTS
+  kind: other
+  uri: ../../../docs/design/seed/schema.md
+- requirement_version_uid: CAP-REQALM-CONTRACTS
+  kind: other
+  uri: ../../../docs/design/seed/reqseed.schema.json
+- requirement_version_uid: CAP-REQALM-CONTRACTS
+  kind: other
+  uri: ../../../docs/design/HANDOFF.md
 edges:
 - from: CAP-SSO
   to: A01
@@ -15703,11 +15869,76 @@ edges:
   to: ARCH-UI-GUARD
   kind: satisfies
 - from: CAP-UI-HEADER-NAV
-  to: CAP-UI-KIT-CHROME
-  kind: satisfies
-- from: CAP-UI-HEADER-NAV
   to: CAP-BROWSE-UI-REQS
   kind: satisfies
+- from: CAP-UI-HEADER-NAV
+  to: CAP-UI-KIT-CHROME
+  kind: uses
+- from: SYS-CYBER-UPKEEP
+  to: CA-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: SYS-CYBER-UPKEEP
+  to: RA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: SYS-CYBER-UPKEEP
+  to: SI-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: SYS-CYBER-UPKEEP
+  to: AC-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: SYS-CYBER-UPKEEP
+  to: AU-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  to: SYS-CYBER-UPKEEP
+  kind: satisfies
+- from: CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  to: CA-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  to: SYS-CYBER-UPKEEP
+  kind: satisfies
+- from: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  to: RA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  to: SI-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  to: SYS-CYBER-UPKEEP
+  kind: satisfies
+- from: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  to: AC-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-UPKEEP-AUDIT-LOG-REVIEW
+  to: SYS-CYBER-UPKEEP
+  kind: satisfies
+- from: CAP-UPKEEP-AUDIT-LOG-REVIEW
+  to: AU-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-REQALM-CONTRACTS
+  to: ARCH-CONTRACT.1
+  kind: satisfies
+- from: CAP-REQALM-CONTRACTS
+  to: ARCH-RELEASE
+  kind: satisfies
+- from: CAP-REQALM-CONTRACTS
+  to: MC03
+  kind: satisfies
+- from: CAP-REQALM-CONTRACTS
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -15870,6 +16101,462 @@ contracts:
   - A01
   - A02
   notes: Expected UID sets for FIX-CONTRACT-DOC-NOCTX / FIX-CONTRACT-DOC-CTX.
+- id: ctr-reqalm-product
+  client_id: raby-family
+  project_id: reqalm
+  name: ReqALM product (build)
+  starts_on: '2026-10-01'
+  ends_on:
+  status: active
+  covers_releases:
+  - rel-pr11-planning-baseline
+  - rel-pr12-devenv-foundation
+  - rel-r0-sequences
+  - rel-r1-browse-clients-projects
+  - rel-r1-browse-ui-cp
+  - rel-r1-browse-ui-relations
+  - rel-r1-browse-ui-releases
+  - rel-r1-browse-ui-reqs
+  - rel-r1-browse-ui-tree
+  - rel-r1-catalogs-api
+  - rel-r1-core-alm
+  - rel-r1-foundation-shell-auth
+  - rel-r1-lf-endings
+  - rel-r1-mfa-qr
+  - rel-r1-otel-tracing
+  - rel-r1-platform-followups
+  - rel-r1-read-hierarchy
+  - rel-r1-read-releases
+  - rel-r1-read-requirements
+  - rel-r1-relations-api
+  - rel-r1-rename-reqalm
+  - rel-r1-reqalm-contracts
+  - rel-r1-route-hardening
+  - rel-r1-route-helper
+  - rel-r1-seed-grooming
+  - rel-r1-seed-reset
+  - rel-r1-service-foundation
+  - rel-r1-test-harness
+  - rel-r1-test-hygiene
+  - rel-r1-ui-header-nav
+  in_scope_of:
+  - A01
+  - A02
+  - A03
+  - A04
+  - A05
+  - A06
+  - A07
+  - A08
+  - A09
+  - A10
+  - A11
+  - A12.1
+  - ARCH-API
+  - ARCH-API-LAYERS
+  - ARCH-API-RBAC.1
+  - ARCH-APPROVAL
+  - ARCH-APPROVAL-LINE
+  - ARCH-APPROVAL-VIEW
+  - ARCH-APPROVER-SLOTS
+  - ARCH-AUTH-AGENT-ATTRIBUTION
+  - ARCH-AUTH-AS
+  - ARCH-AUTH-AUDIENCE
+  - ARCH-AUTH-CLAIM-MAP
+  - ARCH-AUTH-CLIENTREG
+  - ARCH-AUTH-FEDERATION
+  - ARCH-AUTH-LOCAL-BREAKGLASS
+  - ARCH-AUTH-LOCAL.1
+  - ARCH-AUTH-MCP-REQUIRED
+  - ARCH-AUTH-METADATA
+  - ARCH-AUTH-PKCE
+  - ARCH-AUTH-PROFILE
+  - ARCH-AUTH-REFRESH
+  - ARCH-AUTH-REVOKE
+  - ARCH-AUTH-UPSTREAM-CONNECTOR
+  - ARCH-AUTH-UPSTREAM-REVOKE
+  - ARCH-BACKLOG
+  - ARCH-BROWSE-ROADMAP
+  - ARCH-BUILD-FOUNDATION
+  - ARCH-CAP-APPROVE
+  - ARCH-CAP-LINK
+  - ARCH-CAT-DRIFT
+  - ARCH-CAT-EXTERNAL
+  - ARCH-CAT-FREEZE
+  - ARCH-CAT-IMPORT
+  - ARCH-CAT-IMPRINT
+  - ARCH-CAT-MIGRATE
+  - ARCH-CAT-PIN
+  - ARCH-CAT-PROJECT-ROLLUP
+  - ARCH-CAT-REACT
+  - ARCH-CAT-SCOPE
+  - ARCH-CAT-VISIBILITY
+  - ARCH-CHANGESET
+  - ARCH-CHANGESET-CONFLICT
+  - ARCH-CHANGESET-RBAC
+  - ARCH-CHANGESET-RETAIN
+  - ARCH-CONTRACT-DOC
+  - ARCH-CONTRACT.1
+  - ARCH-CP-HIER
+  - ARCH-CP-SCOPE
+  - ARCH-CRED
+  - ARCH-CRED-AUDIT
+  - ARCH-CRED-HASH
+  - ARCH-CRED-LOCKOUT
+  - ARCH-CRED-MFA
+  - ARCH-CRED-POLICY
+  - ARCH-CRED-REAUTH
+  - ARCH-CRED-SESSION
+  - ARCH-CRED-TOKENS
+  - ARCH-CYBER-GATE
+  - ARCH-DEPLOY-MINIMAL
+  - ARCH-DEPLOY-PERIPHERALS
+  - ARCH-DEVENV-CLONE
+  - ARCH-DEVENV-COMPOSE.1
+  - ARCH-DEVENV-HEALTH
+  - ARCH-DEVENV-IDENTITY.1
+  - ARCH-DEVENV-KEYS
+  - ARCH-DEVENV-MODES.1
+  - ARCH-DEVENV-PARITY.1
+  - ARCH-DEVENV-SECRETS
+  - ARCH-DEVENV-SEED
+  - ARCH-GANTT
+  - ARCH-GATE-MODEL
+  - ARCH-GATE-SIGNOFF
+  - ARCH-HIER-CAP-PARTOF
+  - ARCH-HIER-REQ-DECOMP
+  - ARCH-HIER-SECTION-GROUP
+  - ARCH-HIER-USES-DEP
+  - ARCH-HOOK-EVAL
+  - ARCH-KEY
+  - ARCH-KEY-BREAKGLASS
+  - ARCH-KEY-CUSTODIAN
+  - ARCH-KEY-FAILCLOSED
+  - ARCH-KEY-FIPS
+  - ARCH-KEY-JWKS
+  - ARCH-KEY-LIFECYCLE
+  - ARCH-KEY-PROVIDER
+  - ARCH-KEY-RUNTIME-CACHE
+  - ARCH-KEY-SCOPE
+  - ARCH-LOCKED
+  - ARCH-MINT-KIND
+  - ARCH-OTEL
+  - ARCH-OTEL-TRACE
+  - ARCH-PLANNING-GATES
+  - ARCH-RELEASE
+  - ARCH-RELEASE-FREEZE
+  - ARCH-REQ-AC-FACET
+  - ARCH-REQ-AC-ROLLUP
+  - ARCH-REQ-VS-CAP
+  - ARCH-SEC-CAT-FK
+  - ARCH-SEC-CAT-LABEL-IMPRINT
+  - ARCH-SEC-EDGE-DEDUPE-API
+  - ARCH-SEC-EDGE-DEDUPE-DB
+  - ARCH-SEC-HEADERS
+  - ARCH-SEC-LOADER-EDGE-SYNC
+  - ARCH-SEC-REL-PAGING
+  - ARCH-SEC-REL-STUB
+  - ARCH-SEC-SEED-INTEGRITY
+  - ARCH-SEC-XPROJ-READ
+  - ARCH-SUBJECT-KIND
+  - ARCH-SUCCESSION-HASH
+  - ARCH-SUSPECT-QUEUE
+  - ARCH-SUSPECT.1
+  - ARCH-TEST-HARNESS-TEARDOWN
+  - ARCH-TRACE-LAYOUT-WORKER
+  - ARCH-TRACE-RECHECK
+  - ARCH-TRACE-VIEW-CCM
+  - ARCH-TRACE-VIEW-RTM
+  - ARCH-UI
+  - ARCH-UI-GUARD
+  - ARCH-UI-KIT-SHARED
+  - ARCH-VER
+  - ARCH-VER-SUCC
+  - ARCH-VER-TOMB
+  - ARCH-VERIFICATION
+  - ARCH-VERIFICATION-GATE
+  - ARCH-WF-ADMIN
+  - ARCH-WORKFLOW
+  - ARCH-WRITE-AUDIT-FLOOD
+  - ARCH-WRITE-REPOSITORY-LAYER
+  - ARCH-WRITE-RESERVED-IDS
+  - ARCH-WRITE-TRUNCATE-GUARD
+  - ARCH-WRITE-UOW-AUDIT
+  - ARCH-WRITE-VERSION-UNIQUE
+  - B01
+  - B02
+  - B03
+  - B04
+  - B05
+  - B06
+  - B07
+  - B08
+  - C01
+  - C02
+  - C03
+  - C04
+  - C05
+  - C06
+  - C07
+  - C08
+  - CAP-AGENT-ACCESS
+  - CAP-API-DOCS-SEED-SUMMARY
+  - CAP-AUDIT
+  - CAP-AUTH-AUDIT
+  - CAP-AUTH-HARDEN
+  - CAP-AUTH-UPSTREAM-SEAM
+  - CAP-BROWSE-CP
+  - CAP-BROWSE-ROADMAP
+  - CAP-BROWSE-UI-CP
+  - CAP-BROWSE-UI-RELATIONS
+  - CAP-BROWSE-UI-RELEASES
+  - CAP-BROWSE-UI-REQS
+  - CAP-BROWSE-UI-TREE
+  - CAP-CATALOGS-API
+  - CAP-CONTRACT-UI
+  - CAP-CRED-STORE
+  - CAP-DEVENV-COMPOSE
+  - CAP-DEVENV-DOCKERFILE-ROLES
+  - CAP-DEVENV-INIT
+  - CAP-DEVENV-LF-ENDINGS
+  - CAP-DEVENV-MIGRATE-SEED
+  - CAP-DEVENV-MONOREPO
+  - CAP-DEVENV-OPENBAO-BOOTSTRAP
+  - CAP-DEVENV-PERIPHERALS
+  - CAP-DEVENV-SEED-RESET
+  - CAP-DEVENV-SMOKE
+  - CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+  - CAP-DEVENV-STARTUP-BACKOFF
+  - CAP-HEALTH-LIVENESS
+  - CAP-KEY-ENVELOPE
+  - CAP-MCP-DESK
+  - CAP-MFA-ENROLL
+  - CAP-MFA-QR
+  - CAP-OAUTH-AS
+  - CAP-OTEL-AUDIT-TRACE
+  - CAP-OTEL-EXPORT
+  - CAP-OTEL-KEY-DEP
+  - CAP-OTEL-OPERATION-SPANS
+  - CAP-OTEL-SDK-BOOTSTRAP
+  - CAP-OTEL-SPAN-SAFE-ERRORS
+  - CAP-OTEL-TEST-HARNESS
+  - CAP-OTEL-W3C-CONTEXT
+  - CAP-PROD-SELFCHECK
+  - CAP-RBAC.1
+  - CAP-READ-HIERARCHY
+  - CAP-READ-RELEASES
+  - CAP-READ-REQS
+  - CAP-READY-PROBES
+  - CAP-RELATIONS-API
+  - CAP-RENAME-REQALM
+  - CAP-REQALM-CONTRACTS
+  - CAP-SCOPED-VIEW.1
+  - CAP-SEED-GROOMING
+  - CAP-SSO.1
+  - CAP-SVC-AUDIT-APPEND
+  - CAP-SVC-BUSINESS-ROUTE-AUDIT
+  - CAP-SVC-IMPLICIT-PUBLIC-EXACT
+  - CAP-SVC-MODULE-BOOTSTRAP
+  - CAP-SVC-NON-API-AUTH-AUDIT
+  - CAP-SVC-OPERATION-EXECUTOR
+  - CAP-SVC-OPERATION-ROUTE
+  - CAP-SVC-PROBLEM-JSON
+  - CAP-SVC-PROJECT-ID-SLUG
+  - CAP-SVC-PROJECT-READ
+  - CAP-SVC-REQUEST-CONTEXT
+  - CAP-SVC-RESULT-ENVELOPE
+  - CAP-SVC-ROUTE-REGISTRY
+  - CAP-SVC-STATIC-DEP-PATCH
+  - CAP-SVC-STRUCTURED-LOG
+  - CAP-TEST-AUTH-HYGIENE
+  - CAP-TEST-AUTH-ROUTES
+  - CAP-TEST-MEMORY-KEYPROVIDER
+  - CAP-TEST-PGLITE-DB
+  - CAP-TEST-PNPM-GATE
+  - CAP-TEST-PROD-BUILD-EXCLUDE
+  - CAP-TREE
+  - CAP-UI-FRAME.1
+  - CAP-UI-HEADER-NAV
+  - CAP-UI-KIT
+  - CAP-UI-KIT-CHROME
+  - CAP-UI-KIT-TREE
+  - CAP-VERSION-UI
+  - D01
+  - D02
+  - D03
+  - D04
+  - D05
+  - D06
+  - D07
+  - D08
+  - D09
+  - D10
+  - D11
+  - D12
+  - D13
+  - E01
+  - E02
+  - E03
+  - E04
+  - E05
+  - E06
+  - E07
+  - F01
+  - F02
+  - F03
+  - F04
+  - F05
+  - F06
+  - F07
+  - F08
+  - F09
+  - F10
+  - FIX-ALLOW-AGENT-ATTRIBUTION
+  - FIX-ALLOW-APP-ROLE-SPLIT
+  - FIX-ALLOW-APPROVE-LINE
+  - FIX-ALLOW-AUDIT-CLIENT
+  - FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+  - FIX-ALLOW-CLIENT-CREATE
+  - FIX-ALLOW-CRED-HASH-ONLY
+  - FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  - FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  - FIX-ALLOW-DEVENV-SMOKE
+  - FIX-ALLOW-FEDERATED-SSO-VIA-AS
+  - FIX-ALLOW-KEK-REWRAP-ONLINE
+  - FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+  - FIX-ALLOW-MCP-OAUTH-PKCE
+  - FIX-ALLOW-PIN-MIGRATE-MINT
+  - FIX-ALLOW-PIN-REQUEST
+  - FIX-ALLOW-SECURITY-PIN-APPLY
+  - FIX-ALLOW-STATUS-SUPERSEDE
+  - FIX-ALLOW-STEWARD-UPDATE
+  - FIX-ALLOW-SUCCEED
+  - FIX-ALLOW-SUSPECT-CARRY
+  - FIX-ALLOW-SUSPECT-DROP
+  - FIX-ALLOW-SUSPECT-KEEP-PINNED
+  - FIX-COMPARE-2HOP
+  - FIX-CONTRACT-DOC-CTX
+  - FIX-CONTRACT-DOC-NOCTX
+  - FIX-DENY-APPROVE-WITHOUT-SLOT
+  - FIX-DENY-AUDIT-CROSS-CLIENT
+  - FIX-DENY-AUTHOR-PIN-APPLY
+  - FIX-DENY-CLOSED-LINK
+  - FIX-DENY-CROSS-CLIENT
+  - FIX-DENY-CROSS-TENANT-CONNECTOR
+  - FIX-DENY-DCR-DISABLED
+  - FIX-DENY-DEV-KEK-IN-PROD
+  - FIX-DENY-DEVENV-PROD-LOGIN.1
+  - FIX-DENY-EDIT-ACTIVE
+  - FIX-DENY-KEK-UNREACHABLE-PROD
+  - FIX-DENY-KEYOP-NO-CUSTODIAN
+  - FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+  - FIX-DENY-LOCKOUT
+  - FIX-DENY-MCP-ESCALATE
+  - FIX-DENY-MCP-WRONG-AUDIENCE
+  - FIX-DENY-NO-GRANT
+  - FIX-DENY-NOOP-CONTENT
+  - FIX-DENY-NOOP-SUCCESSOR
+  - FIX-DENY-PKCE-PLAIN
+  - FIX-DENY-PRIORITY-UNAPPROVED
+  - FIX-DENY-PRIV-NO-MFA
+  - FIX-DENY-READER-GRANT
+  - FIX-DENY-REFRESH-REUSE
+  - FIX-DENY-REVERT-NON-LATEST
+  - FIX-DENY-REVOKED
+  - FIX-DENY-REVOKED-TOKEN
+  - FIX-DENY-SECOND-ACTIVE
+  - FIX-DENY-SESSION-IDLE
+  - FIX-DENY-SHIP-UNSIGNED
+  - FIX-DENY-SHIP-WITH-OPEN-SUSPECT
+  - FIX-DENY-SHIPPED-DELIVERS
+  - FIX-DENY-STEPUP-STALE-AUTH
+  - FIX-DENY-STEWARD-STANDARD
+  - FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+  - FIX-DENY-UPSTREAM-TOKEN-AT-API
+  - FIX-EXPORT-L02-GOLDEN
+  - FIX-GRANDFATHER-SEED-APPROVED
+  - FIX-JWKS-ROTATION-OVERLAP
+  - FIX-PLANNING-BLOCKED-AFTER-CONTENT-N
+  - FIX-REL-SNAP
+  - FIX-SAMPLE-APPROVED
+  - FIX-SAMPLE-UNAPPROVED
+  - FIX-SAMPLE-WF-CAP
+  - FIX-SAMPLE-WF-REQ
+  - FIX-SUCC-2HOP.2
+  - FIX-SUSPECT-ON-CONTENT-N
+  - G01
+  - G02
+  - G03
+  - G04
+  - G05
+  - G06
+  - G07
+  - G08
+  - H01
+  - H02
+  - H03
+  - H04
+  - H05
+  - H06
+  - H07
+  - H08
+  - H09
+  - H10
+  - I01
+  - I02
+  - I03
+  - I04
+  - I05
+  - I06
+  - J01
+  - J02
+  - J03
+  - J04
+  - J05
+  - J06
+  - J07
+  - J08
+  - K01
+  - K02
+  - K03
+  - K04
+  - K05
+  - K06
+  - L01
+  - L02
+  - L03
+  - L04
+  - M01
+  - M02
+  - M03
+  - M04
+  - M05
+  - M06
+  - M07
+  - MC01.1
+  - MC02
+  - MC03
+  - N01
+  - N02
+  - N03
+  - UI-APPROVE-LINE
+  - UI-APPROVE-TREE
+  - WANT-CHANGESET-FIELD-UNDO
+  notes: 'Umbrella build contract for the ReqALM project: covers_releases lists every reqalm release id; in_scope_of pins each reqalm capability/requirement at active tip or newest non-superseded draft (excludes ctr-reqalm-maintenance upkeep caps and SYS-CYBER-UPKEEP). Distinct from legacy overlays.'
+- id: ctr-reqalm-maintenance
+  client_id: raby-family
+  project_id: reqalm
+  name: ReqALM maintenance
+  starts_on: '2026-10-09'
+  ends_on:
+  status: active
+  covers_releases: []
+  in_scope_of:
+  - CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  - CAP-UPKEEP-MONTHLY-DEPS-VULN
+  - CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  - CAP-UPKEEP-AUDIT-LOG-REVIEW
+  notes: Maintenance contract for operating ReqALM after delivery. No releases owned yet; in_scope_of holds draft CAP-UPKEEP-* capabilities (planned, not shipped) that satisfy SYS-CYBER-UPKEEP.
 releases:
 - id: rel-r0-sequences
   project_id: reqalm
@@ -16362,12 +17049,22 @@ releases:
   project_id: reqalm
   name: R1 — ReqALM header and project navigation
   planned_on: '2026-10-09'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-09'
+  status: shipped
   delivers:
   - CAP-UI-HEADER-NAV
   cyber_gate: false
-  notes: Top bar breadcrumb, project tabs, list/tree toggle under Requirements; no new routes.
+  notes: 'PR #37 merged to main as dd43cc1523544d0f6375a628bc9d7d45a31fa738 on 2026-10-09. ReqALM header breadcrumb, project tabs, list/tree toggle under Requirements.'
+- id: rel-r1-reqalm-contracts
+  project_id: reqalm
+  name: R1 — ReqALM product and maintenance contracts (seed)
+  planned_on: '2026-10-09'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-REQALM-CONTRACTS
+  cyber_gate: false
+  notes: 'Seed-only: ctr-reqalm-product / ctr-reqalm-maintenance, SYS-CYBER-UPKEEP + CAP-UPKEEP-*, ships rel-r1-ui-header-nav at dd43cc1523544d0f6375a628bc9d7d45a31fa738.'
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

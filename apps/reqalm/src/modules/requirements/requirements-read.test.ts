@@ -68,7 +68,7 @@ describe("requirements read API", () => {
         headers: bearer,
       })
     ).json() as { data: { items: Array<{ kind: string }>; total: number } };
-    assert.equal(cap.data.total, 82);
+    assert.equal(cap.data.total, 87);
     assert.ok(cap.data.items.length > 0);
     assert.ok(cap.data.items.every((i) => i.kind === "capability"));
     const draft = (
@@ -85,7 +85,9 @@ describe("requirements read API", () => {
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-DEVENV-LF-ENDINGS"));
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-CATALOGS-API"));
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-BROWSE-UI-RELATIONS"));
-    assert.ok(draft.data.items.some((i) => i.id === "CAP-UI-HEADER-NAV"));
+    assert.ok(!draft.data.items.some((i) => i.id === "CAP-UI-HEADER-NAV"));
+    assert.ok(draft.data.items.some((i) => i.id === "CAP-REQALM-CONTRACTS"));
+    assert.ok(draft.data.items.some((i) => i.id === "CAP-UPKEEP-MONTHLY-SEC-AUDIT"));
     const uiActive = (
       await inject({
         method: "GET",
@@ -104,6 +106,15 @@ describe("requirements read API", () => {
     ).json() as { data: { items: Array<{ id: string; status: string }> } };
     assert.deepEqual(relUiActive.data.items.map((i) => i.id), ["CAP-BROWSE-UI-RELATIONS"]);
     assert.equal(relUiActive.data.items[0]?.status, "active");
+    const headerActive = (
+      await inject({
+        method: "GET",
+        url: "/api/v1/projects/reqalm/requirements?status=active&q=CAP-UI-HEADER-NAV&limit=5",
+        headers: bearer,
+      })
+    ).json() as { data: { items: Array<{ id: string; status: string }> } };
+    assert.deepEqual(headerActive.data.items.map((i) => i.id), ["CAP-UI-HEADER-NAV"]);
+    assert.equal(headerActive.data.items[0]?.status, "active");
     const content = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?type=content&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ type: string; id: string }>; total: number } };
