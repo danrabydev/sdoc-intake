@@ -71,7 +71,7 @@ Last updated for seed grooming on **main @ `cb8a8c9`** (2026-10-09). Application
 - **Release:** `rel-r1-seed-grooming` → **`CAP-SEED-GROOMING`** (documentation-only).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_seed_grooming_release.py`
 - **Source of truth:** `docs/design/seed/dogfood.yaml` + regenerated `docs/design/seed/out/`
-- **Honesty:** only **`CAP-SCOPED-VIEW`** verification outcome changed (→ `pending`); **`CAP-SSO`** was already without a pass outcome on main. **`CAP-RBAC`** / **`CAP-UI-FRAME`** narrowed statements minted as **`.1`** (v0 superseded, history preserved); **no** new `conforms_to` pins on `.1` for devenv caps.
+- **Honesty (content `.1` mints, v0 byte-identical to main):** **`CAP-RBAC.1`**, **`CAP-UI-FRAME.1`**, **`CAP-SSO.1`**, **`CAP-SCOPED-VIEW.1`**, **`ARCH-API-RBAC.1`**, **`ARCH-SUSPECT.1`**. Only **`CAP-SCOPED-VIEW.1`** sets **`verification_outcome: pending`**; **`CAP-SSO.1`** has no pass outcome (same as v0 on main). **`CAP-RBAC.1`** / **`CAP-UI-FRAME.1`** keep partial pass with PR #13 verification citation. **No** new `conforms_to` pins on `.1` devenv caps.
 - **V-222518:** `conforms_to` pins on **v0** `ARCH-DEVENV-IDENTITY` and `FIX-DENY-DEVENV-PROD-LOGIN` are **restored** (not removed). Whether `.1` devenv versions should also pin V-222518 is a **Dan decision** — this PR does not add them.
 
 When continuing in Cursor: read `dogfood.yaml` releases and `ARCH-BROWSE-ROADMAP` first; pick the next **planned** release; implement; update seed via a dedicated `patch_*_release.py`; validate and test.

@@ -383,6 +383,23 @@ ARCH_API_RBAC_V1_STMT = (
     "active until all mutators in scope ship."
 )
 
+ARCH_SUSPECT_V0_STMT = (
+    "When a target line receives a content mint_kind=.N, inbound trace edges (satisfies/refines/uses) and "
+    "contract in_scope_of / release delivers junctions that pin a prior version of that line are marked "
+    "trace_suspect=true. Pin-only migrate (mint_kind=pin) updates the ConformsTo pin and does NOT suspect that "
+    "pin. Generalizes catalog_drift to internal traces (P1-1). Detect bed: edge FIX-CONTRACT-DOC-NOCTX → "
+    "FIX-SUCC-2HOP.1 (stale uses on superseded UID)."
+)
+ARCH_SUSPECT_V0_HASH = "sha256:3c64b4a01030b04f4170a2e557106367c789c6e02890bc47d92cb387cee8142d"
+ARCH_SUSPECT_V1_STMT = (
+    "When a target line receives a content mint_kind=.N, inbound trace edges (satisfies/refines/uses) and "
+    "contract in_scope_of / release delivers junctions that pin a prior version of that line are marked "
+    "trace_suspect=true. Pin-only migrate (mint_kind=pin) updates the ConformsTo pin and does NOT suspect that "
+    "pin. Semantics for re-check vs incomplete and audit-sensitive rollups are defined in ARCH-TRACE-RECHECK; "
+    "UI and APIs shall surface trace_suspect separately from incomplete. Detect bed: edge FIX-CONTRACT-DOC-NOCTX "
+    "→ FIX-SUCC-2HOP.1 (stale uses on superseded UID)."
+)
+
 
 def mint_content_n(
     data,
@@ -851,16 +868,6 @@ def main() -> None:
             verification_note=note,
         )
 
-    patch_statement(
-        "ARCH-SUSPECT",
-        "When a target line receives a content mint_kind=.N, inbound trace edges (satisfies/refines/uses) and "
-        "contract in_scope_of / release delivers junctions that pin a prior version of that line are marked "
-        "trace_suspect=true. Pin-only migrate (mint_kind=pin) updates the ConformsTo pin and does NOT suspect that "
-        "pin. Semantics for re-check vs incomplete and audit-sensitive rollups are defined in ARCH-TRACE-RECHECK; "
-        "UI and APIs shall surface trace_suspect separately from incomplete. Detect bed: edge FIX-CONTRACT-DOC-NOCTX "
-        "→ FIX-SUCC-2HOP.1 (stale uses on superseded UID).",
-    )
-
     # UI Kit capability tree
     add_capability(
         data,
@@ -1036,6 +1043,16 @@ def main() -> None:
         CAP_UI_FRAME_V0_HASH,
         CAP_UI_FRAME_V1_STMT,
         f"Partial pass on .1: shell + guards verified on PR #13; full UI catalog still planned. {PR13_EVIDENCE}",
+    )
+    mint_content_n(
+        data,
+        "ARCH-SUSPECT",
+        ARCH_SUSPECT_V0_STMT,
+        ARCH_SUSPECT_V0_HASH,
+        ARCH_SUSPECT_V1_STMT,
+        "Groomed 2026-10-09; .1 references ARCH-TRACE-RECHECK for re-check vs incomplete semantics.",
+        v1_verification_outcome=None,
+        copy_edge_kinds=("satisfies", "conforms_to", "uses", "refines"),
     )
     restore_shipped_release_delivers(data)
 

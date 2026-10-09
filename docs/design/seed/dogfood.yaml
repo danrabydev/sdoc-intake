@@ -6217,15 +6217,15 @@ requirement_versions:
 - uid: ARCH-SUSPECT
   base_uid: ARCH-SUSPECT
   version_n: 0
-  status: active
-  statement: 'When a target line receives a content mint_kind=.N, inbound trace edges (satisfies/refines/uses) and contract in_scope_of / release delivers junctions that pin a prior version of that line are marked trace_suspect=true. Pin-only migrate (mint_kind=pin) updates the ConformsTo pin and does NOT suspect that pin. Semantics for re-check vs incomplete and audit-sensitive rollups are defined in ARCH-TRACE-RECHECK; UI and APIs shall surface trace_suspect separately from incomplete. Detect bed: edge FIX-CONTRACT-DOC-NOCTX → FIX-SUCC-2HOP.1 (stale uses on superseded UID).'
+  status: superseded
+  statement: 'When a target line receives a content mint_kind=.N, inbound trace edges (satisfies/refines/uses) and contract in_scope_of / release delivers junctions that pin a prior version of that line are marked trace_suspect=true. Pin-only migrate (mint_kind=pin) updates the ConformsTo pin and does NOT suspect that pin. Generalizes catalog_drift to internal traces (P1-1). Detect bed: edge FIX-CONTRACT-DOC-NOCTX → FIX-SUCC-2HOP.1 (stale uses on superseded UID).'
   priority: 15
   iteration: iter-r1
   rbac_op: trace:suspect
   security:
     catalog_ref: AU-2
     verification_note: AU-2/3/12 workflow / approval / suspect audit.
-  statement_hash: sha256:94b2dcf4984d3319c61f864e953361b252a9aaf0b38e5cba822d7daa6b15e814
+  statement_hash: sha256:3c64b4a01030b04f4170a2e557106367c789c6e02890bc47d92cb387cee8142d
 - uid: ARCH-SUSPECT-QUEUE
   base_uid: ARCH-SUSPECT-QUEUE
   version_n: 0
@@ -8691,6 +8691,19 @@ requirement_versions:
   grooming_state: detailed
   mint_kind: content
   verification_outcome: pass
+- uid: ARCH-SUSPECT.1
+  base_uid: ARCH-SUSPECT
+  version_n: 1
+  status: active
+  statement: 'When a target line receives a content mint_kind=.N, inbound trace edges (satisfies/refines/uses) and contract in_scope_of / release delivers junctions that pin a prior version of that line are marked trace_suspect=true. Pin-only migrate (mint_kind=pin) updates the ConformsTo pin and does NOT suspect that pin. Semantics for re-check vs incomplete and audit-sensitive rollups are defined in ARCH-TRACE-RECHECK; UI and APIs shall surface trace_suspect separately from incomplete. Detect bed: edge FIX-CONTRACT-DOC-NOCTX → FIX-SUCC-2HOP.1 (stale uses on superseded UID).'
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: AU-2
+    verification_note: Groomed 2026-10-09; .1 references ARCH-TRACE-RECHECK for re-check vs incomplete semantics.
+  statement_hash: sha256:94b2dcf4984d3319c61f864e953361b252a9aaf0b38e5cba822d7daa6b15e814
+  grooming_state: detailed
+  mint_kind: content
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -12915,6 +12928,8 @@ edges:
 - from: FIX-SUSPECT-ON-CONTENT-N
   to: ARCH-SUSPECT
   kind: uses
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-SUSPECT)
 - from: FIX-ALLOW-SUSPECT-CARRY
   to: ARCH-SUSPECT-QUEUE
   kind: uses
@@ -12927,6 +12942,8 @@ edges:
 - from: FIX-DENY-SHIP-WITH-OPEN-SUSPECT
   to: ARCH-SUSPECT
   kind: uses
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-SUSPECT)
 - from: FIX-DENY-AUTHOR-PIN-APPLY
   to: E02
   kind: uses
@@ -15217,6 +15234,8 @@ edges:
 - from: ARCH-TRACE-RECHECK
   to: ARCH-SUSPECT
   kind: refines
+  trace_suspect: true
+  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-SUSPECT)
 - from: ARCH-CAT-EXTERNAL
   to: ARCH-CAT-IMPRINT
   kind: refines
@@ -15421,6 +15440,31 @@ edges:
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
   from: CAP-UI-FRAME.1
+- from: ARCH-SUSPECT.1
+  to: ARCH-SUSPECT
+  kind: refines
+- to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: ARCH-SUSPECT.1
+- to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: ARCH-SUSPECT.1
+- to: AU-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: ARCH-SUSPECT.1
+- to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: ARCH-SUSPECT.1
+- to: ARCH-SUCCESSION-HASH
+  kind: uses
+  from: ARCH-SUSPECT.1
+- to: ARCH-TRACE-RECHECK
+  kind: uses
+  from: ARCH-SUSPECT.1
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
