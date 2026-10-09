@@ -13,7 +13,7 @@ describe("loadDogfoodSeed trace edges", () => {
     try {
       await loadDogfoodSeed(pg.pool, config, seed, { skipUnchangedCheck: true });
       const edges = await pg.pool.query<{ c: number }>(`SELECT count(*)::int AS c FROM trace_edges`);
-      assert.equal(edges.rows[0]?.c, 1665);
+      assert.equal(edges.rows[0]?.c, 1644);
       const ac3 = await pg.pool.query<{ title: string }>(
         `SELECT title FROM catalog_item_labels WHERE catalog_id = 'cat-nist-global' AND item_uid = 'AC-3'`,
       );

@@ -1322,7 +1322,7 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned for relationships browse UI PR.
+  notes: 'Capability active with verification pass after PR #32 merge c8272340b67a0e505b63483bd2ef1550accb4635; formal approval record not filed in seed.'
   approved_version_uid:
   approved_statement_hash:
 gate_signoffs:
@@ -3446,6 +3446,31 @@ requirement_lines:
   parent: SEC-CP
   kind: capability
   title: Browse requirement relationships UI (read-only)
+- base_uid: ARCH-WRITE-DB-RUNTIME-ROLE
+  project_id: reqalm
+  parent: SEC-API
+  kind: requirement
+  title: Runtime DB role is least-privilege non-owner
+- base_uid: ARCH-SEC-TLS
+  project_id: reqalm
+  parent: SEC-SEC
+  kind: requirement
+  title: TLS for all non-loopback traffic
+- base_uid: ARCH-SUPPLY-VENDORED
+  project_id: reqalm
+  parent: SEC-BUILD
+  kind: requirement
+  title: Vendored third-party code is inventoried and hash-pinned
+- base_uid: ARCH-SUPPLY-DEP-SCAN
+  project_id: reqalm
+  parent: SEC-BUILD
+  kind: requirement
+  title: Dependency vulnerability scanning gate
+- base_uid: CAP-CYBER-CONTROL-PLACEMENT
+  project_id: reqalm
+  parent: SEC-CAT
+  kind: capability
+  title: Cyber control-placement seed pass
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -3841,7 +3866,7 @@ requirement_versions:
 - uid: ARCH-CP-HIER
   base_uid: ARCH-CP-HIER
   version_n: 0
-  status: active
+  status: superseded
   statement: 'ReqAML organizes work as Client → Project. Projects belong to exactly one client; Client Scoped View
 
     is assumed for most project operations. UI and API both refuse cross-client project joins.'
@@ -4115,7 +4140,7 @@ requirement_versions:
 - uid: ARCH-VER
   base_uid: ARCH-VER
   version_n: 0
-  status: active
+  status: superseded
   statement: 'Each requirement line has versions with UIDs base_uid or base_uid.N (static append). Children stay on the parent line (parent = base_uid); there is no cascade fork. INVARIANT: ≤1 active version per line. When a new tip is activated (D04), the prior active version is set to superseded IN PLACE in the same transaction (not a new version). Terminal obsolete/withdraw without replacement may be in-place status or a status-only .N (mint_kind=status) — see D05 / ARCH-MINT-KIND / FIX-ALLOW-STATUS-SUPERSEDE.'
   priority: 5
   iteration: iter-r0
@@ -5235,7 +5260,7 @@ requirement_versions:
 - uid: ARCH-OTEL
   base_uid: ARCH-OTEL
   version_n: 0
-  status: active
+  status: superseded
   statement: 'Security-relevant actions emit structured audit events exported via OTEL (OTLP) for centralized
 
     review, aligned to NIST AU-2/3/6/9/12. Session teardown destroys session identifiers (V-222578).
@@ -5316,7 +5341,7 @@ requirement_versions:
 - uid: ARCH-API
   base_uid: ARCH-API
   version_n: 0
-  status: active
+  status: superseded
   statement: 'API is schema-first (Zod + OpenAPI): HTTP adapters validate DTOs, RBAC authorizes, business services
 
     orchestrate, data providers implement repositories against Postgres. Invalid input never reaches domain
@@ -6564,7 +6589,7 @@ requirement_versions:
 - uid: ARCH-AUTH-METADATA
   base_uid: ARCH-AUTH-METADATA
   version_n: 0
-  status: active
+  status: superseded
   statement: 'The AS publishes Authorization Server Metadata (RFC 8414) at /.well-known/oauth-authorization-server, plus OpenID Connect discovery for interop. The metadata issuer is identical to the issuer URL. The MCP server and the API each publish OAuth Protected Resource Metadata (RFC 9728) at /.well-known/oauth-protected-resource, listing the internal AS in authorization_servers and stating their canonical resource URI. A request without a valid token gets 401 with WWW-Authenticate: Bearer resource_metadata="…" so MCP clients can discover the AS.'
   priority: 5
   iteration: iter-r1
@@ -6599,7 +6624,7 @@ requirement_versions:
 - uid: ARCH-AUTH-REVOKE
   base_uid: ARCH-AUTH-REVOKE
   version_n: 0
-  status: active
+  status: superseded
   statement: The AS exposes token revocation (RFC 7009) for refresh and access tokens. Sign-out (A02) revokes the session's refresh tokens and desk attachments. Disabling or deleting an account, or revoking a grant that removes all access, terminates that subject's sessions and token families. Resource servers reject revoked tokens through introspection or short access-token lifetimes plus revocation checks.
   priority: 10
   iteration: iter-r1
@@ -6611,7 +6636,7 @@ requirement_versions:
 - uid: ARCH-AUTH-CLIENTREG
   base_uid: ARCH-AUTH-CLIENTREG
   version_n: 0
-  status: active
+  status: superseded
   statement: First-party clients (Web UI, admin-configured ReqAML MCP clients) are pre-registered with exact redirect URIs. Client ID Metadata Documents and Dynamic Client Registration (RFC 7591; deprecated in the MCP 2026-07-28 revision) ship disabled by default. An admin can enable either one per deployment or per client policy, and every registration is audited. When DCR is disabled, registration_endpoint is omitted from AS metadata and registration requests are refused. Confidential-client secrets are stored hashed (ARCH-CRED-TOKENS).
   priority: 15
   iteration: iter-r1
@@ -7336,7 +7361,7 @@ requirement_versions:
 - uid: ARCH-AUTH-LOCAL.1
   base_uid: ARCH-AUTH-LOCAL
   version_n: 1
-  status: active
+  status: superseded
   statement: "Local password accounts are an optional capability of the auth profile (ARCH-AUTH-PROFILE), not a baseline. The setting local_accounts takes one of three values: disabled (default for every production profile), breakglass_only (only ARCH-AUTH-LOCAL-BREAKGLASS accounts), or enabled (a profile that explicitly opts in). The development profile uses enabled with seeded dev accounts (ARCH-DEVENV-IDENTITY.1). With disabled: no local credential records exist, the local login route and form are absent, and sign-in is federated only. This keeps A01 / CAP-SSO / REQAML-SEC-SSO ('no local password store; MFA at the IdP') as the default production posture, so A01 is not minted. Where local accounts are enabled, they bind to the same identity rows and grants as federated identities, every local credential is subject to ARCH-CRED-*, account lifecycle is automated and audited, and unnecessary or built-in accounts are disabled. The internal AS and OAuth for MCP are required whatever this setting is (ARCH-AUTH-MCP-REQUIRED)."
   priority: 10
   iteration: iter-r1
@@ -7362,7 +7387,7 @@ requirement_versions:
 - uid: CAP-DEVENV-DOCKERFILE-ROLES
   base_uid: CAP-DEVENV-DOCKERFILE-ROLES
   version_n: 0
-  status: active
+  status: superseded
   statement: 'One multi-stage Dockerfile builds every image: app (Node 22, the deploy target), peripherals (dev/test only) and app-hsm-test. The app container runs one Node process whose roles are toggled by REQAML_ROLES (api, web, mcp, sync); /ready reports per enabled role, and routes for disabled roles are not mounted. Acceptance: the same image started with REQAML_ROLES=sync serves only probes (readiness lists sync only; /api and /mcp return 404) without a rebuild; with all roles it serves API, web, MCP stub and runs sync.'
   priority: 10
   iteration: iter-r0
@@ -7375,7 +7400,7 @@ requirement_versions:
 - uid: CAP-DEVENV-PERIPHERALS
   base_uid: CAP-DEVENV-PERIPHERALS
   version_n: 0
-  status: active
+  status: superseded
   statement: 'The peripherals Dockerfile target runs Postgres 16 and OpenBao (checksum-verified release binary) in one dev/test container, each with its own named volume (reqaml-pg, reqaml-openbao) plus reqaml-secrets for the generated unseal key and root token. Its healthcheck passes only when Postgres accepts connections and OpenBao is initialized and unsealed. Acceptance: first start initializes both within seconds; restarting the container unseals OpenBao from the stored key and keeps data; production is documented as separate Postgres and OpenBao units.'
   priority: 10
   iteration: iter-r0
@@ -7401,7 +7426,7 @@ requirement_versions:
 - uid: CAP-HEALTH-LIVENESS
   base_uid: CAP-HEALTH-LIVENESS
   version_n: 0
-  status: active
+  status: superseded
   statement: 'GET /health is liveness only: it returns 200 with status ok, the app version and mode whenever the process can serve HTTP, and never touches Postgres, OpenBao or client data. Acceptance: /health stays 200 while dependencies are down (OpenBao sealed, Postgres stopped) so orchestrators do not restart a healthy process for a dependency outage.'
   priority: 10
   iteration: iter-r0
@@ -7414,7 +7439,7 @@ requirement_versions:
 - uid: CAP-READY-PROBES
   base_uid: CAP-READY-PROBES
   version_n: 0
-  status: active
+  status: superseded
   statement: 'GET /ready live-probes Postgres (SELECT 1), pending migrations, OpenBao (initialized, unsealed, Transit encrypt/decrypt round-trip on reqaml-kek) and each enabled role, caching results for REQAML_READY_CACHE_MS (2 s) and bounding each probe by REQAML_READY_PROBE_TIMEOUT_MS (3 s). It returns 503 with the failing check named and recovers without a restart. Acceptance: sealing OpenBao gives 503 with openbao failing; stopping Postgres gives 503 with database failing; both return to 200 after recovery; the app container is not restarted.'
   priority: 10
   iteration: iter-r0
@@ -7427,7 +7452,7 @@ requirement_versions:
 - uid: CAP-DEVENV-STARTUP-BACKOFF
   base_uid: CAP-DEVENV-STARTUP-BACKOFF
   version_n: 0
-  status: active
+  status: superseded
   statement: 'Before migrating or serving, the app waits for Postgres and a usable OpenBao with exponential backoff (1 s start, x1.5, capped at 15 s, up to REQAML_STARTUP_MAX_WAIT_MS = 120 s), then fails with a clear timeout. The pg pool survives server-side disconnects (idle-client errors are logged, not fatal). A dev-marked OpenBao in production is not retried; it goes straight to the self-check refusal. Acceptance: `docker compose restart` brings the stack back healthy with zero app container restarts, even while OpenBao is still sealed.'
   priority: 10
   iteration: iter-r0
@@ -7575,7 +7600,7 @@ requirement_versions:
 - uid: CAP-AUTH-UPSTREAM-SEAM
   base_uid: CAP-AUTH-UPSTREAM-SEAM
   version_n: 0
-  status: active
+  status: superseded
   statement: Upstream federation is not fully implemented in R1; the `UpstreamConnector` interface and `upstream_connectors` table plus read-only listing API document the extension point without token passthrough. OIDC/SAML RP implementations and home-realm discovery are deferred.
   priority: 10
   iteration: iter-r1
@@ -7602,7 +7627,7 @@ requirement_versions:
 - uid: CAP-MFA-ENROLL
   base_uid: CAP-MFA-ENROLL
   version_n: 0
-  status: active
+  status: superseded
   statement: Privileged roles require MFA in all modes. First login can return `mfa_enrollment_required` with otpauth URI; the sign-in card shows a setup key and the otpauth URI (no QR code) and asks for the 6-digit code. `pnpm devenv:mfa <identity-id>` enrolls dev users inside the app container (or `--interactive` prints the URI + ticket, confirmed with `--ticket=… --confirm=<code>`). TOTP secrets are envelope-encrypted; a code is accepted once (replay of the matched time step is rejected).
   priority: 10
   iteration: iter-r1
@@ -7630,7 +7655,7 @@ requirement_versions:
 - uid: CAP-AUTH-HARDEN
   base_uid: CAP-AUTH-HARDEN
   version_n: 0
-  status: active
+  status: superseded
   statement: Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF required on every cookie-authenticated mutation, per-IP failed-login throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default (production requires an explicit REQAML_TRUSTED_PROXIES list), auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, JWT signature verify before access-token revocation, normalized usernames.
   priority: 10
   iteration: iter-r1
@@ -7696,7 +7721,7 @@ requirement_versions:
 - uid: CAP-TEST-PROD-BUILD-EXCLUDE
   base_uid: CAP-TEST-PROD-BUILD-EXCLUDE
   version_n: 0
-  status: active
+  status: superseded
   statement: TypeScript production build (`tsconfig.build.json`) excludes `src/test/**` and `src/key/memory-provider.ts`; tests import the in-memory KeyProvider from its own module. Docker `dist/` contains no test harness or fake key files.
   priority: 10
   iteration: iter-r1
@@ -7787,7 +7812,7 @@ requirement_versions:
 - uid: CAP-SVC-AUDIT-APPEND
   base_uid: CAP-SVC-AUDIT-APPEND
   version_n: 0
-  status: active
+  status: superseded
   statement: Migration 006 + writeBusinessAudit; auth events remain in auth_audit_events.
   priority: 10
   iteration: iter-r1
@@ -7800,7 +7825,7 @@ requirement_versions:
 - uid: CAP-SVC-STRUCTURED-LOG
   base_uid: CAP-SVC-STRUCTURED-LOG
   version_n: 0
-  status: active
+  status: superseded
   statement: logOperation + redactForLog; secrets/tokens/password keys redacted in log payloads.
   priority: 10
   iteration: iter-r1
@@ -7813,7 +7838,7 @@ requirement_versions:
 - uid: CAP-SVC-ROUTE-REGISTRY
   base_uid: CAP-SVC-ROUTE-REGISTRY
   version_n: 0
-  status: active
+  status: superseded
   statement: Every /api /oauth /mcp /health /ready route declares public, authenticated, or permission; test enforces.
   priority: 10
   iteration: iter-r1
@@ -7955,7 +7980,7 @@ requirement_versions:
 - uid: CAP-SVC-OPERATION-ROUTE
   base_uid: CAP-SVC-OPERATION-ROUTE
   version_n: 0
-  status: active
+  status: superseded
   statement: Business routes under /api/ register only via defineOperationRoute, which runs authenticate, project scope, permission, parseInput, execute, append-only audit_events, log, in that order. Project scope comes from the :projectId path param, parsed before any input validation; an unparsable id is not_found, identical to a missing or ungranted project, and the validated input must name the same project. parseInput validates params/query/body once (Zod); validation failures, including unreadable bodies, reach only authenticated, in-scope, authorized callers, are audited without input values, and answer Problem Details (application/problem+json); unexpected throws are a 500 without the error message. reqalmSecurity is derived from the operation; registration throws unless the operation declares a permission bound to a project (projectScoped + projectIdFromInput + :projectId path param) or authenticatedOnly.
   priority: 10
   iteration: iter-r1
@@ -7994,7 +8019,7 @@ requirement_versions:
 - uid: CAP-SVC-PROJECT-ID-SLUG
   base_uid: CAP-SVC-PROJECT-ID-SLUG
   version_n: 0
-  status: active
+  status: superseded
   statement: 'The :projectId path param must match ^[a-z0-9][a-z0-9-]{0,63}$ before it becomes project scope. An id that does not (padded, control characters, uppercase, over-long at any length) is not_found after authentication, identical to a missing or ungranted project, and an unauthenticated caller gets the same 401 as for a valid id, before any validation detail. An invalid id is never recorded raw: audit_events.project_id is NULL, no reqalm.project_id span attribute is set, and request logs and exported span URL attributes show the segment as [invalid].'
   priority: 10
   iteration: iter-r1
@@ -8007,7 +8032,7 @@ requirement_versions:
 - uid: CAP-SVC-STATIC-DEP-PATCH
   base_uid: CAP-SVC-STATIC-DEP-PATCH
   version_n: 0
-  status: active
+  status: superseded
   statement: apps/reqalm resolves @fastify/static 10.1.5 both directly (^10.1.5) and through @fastify/swagger-ui 6.1.1 (^10.1.0), with no pnpm override, so GHSA-83w8-p2f5-377r and GHSA-8pvw-jcv7-9cmj (and GHSA-pr96-94w5-mx2h, GHSA-x428-ghpx-8j92) are gone from pnpm audit --prod; the web bundle and /docs still serve, and encoded path-traversal requests never return file contents.
   priority: 10
   iteration: iter-r1
@@ -8020,7 +8045,7 @@ requirement_versions:
 - uid: CAP-OTEL-SPAN-SAFE-ERRORS
   base_uid: CAP-OTEL-SPAN-SAFE-ERRORS
   version_n: 0
-  status: active
+  status: superseded
   statement: Every exported span (operation, Fastify request and handler, http, pg, undici, OpenBao) reports a failure as ERROR status with the generic message 'operation failed'; exception events keep only exception.type (no message or stack); operation spans add reqalm.error_kind (service error code or internal). Raw exception and database text stays in the server log only.
   priority: 10
   iteration: iter-r1
@@ -8059,7 +8084,7 @@ requirement_versions:
 - uid: CAP-DEVENV-SEED-RESET
   base_uid: CAP-DEVENV-SEED-RESET
   version_n: 0
-  status: active
+  status: superseded
   statement: Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction (any load failure rolls back), preserving identities, grants, local accounts, sessions/MFA, OpenBao keys, and append-only audit_events; identities and grants are only inserted when missing, never rewritten or re-activated. Runs only when the environment positively identifies as local devenv (REQALM_MODE=development, .reqalm/devenv.env present, NODE_ENV not production, and DATABASE_URL resolving to 127.0.0.1 or localhost port 5432 including ?host=/?port= overrides); no environment variable relaxes these checks. Requires explicit --confirm; --dry-run prints the plan read-only. Records one devenv.seed.reset business audit event with wipe/load counts and an unverified CLI actor label, attributed to no ReqALM identity. Idempotent second run yields identical DB contents.
   priority: 10
   iteration: iter-r1
@@ -8176,7 +8201,7 @@ requirement_versions:
 - uid: CAP-MFA-QR
   base_uid: CAP-MFA-QR
   version_n: 0
-  status: active
+  status: superseded
   statement: 'MFA enrollment on the sign-in card renders a scannable QR code for the otpauth URI locally in the browser (vendored MIT qr-min matrix encoder to SVG; no external QR service or network fetch). Setup key and manual otpauth URI remain visible for copy/paste. Enrollment JSON responses use Cache-Control: no-store; QR markup is removed from the DOM after successful enrollment. Accessible name on the QR image; CSP-safe (same-origin module, DOM-built SVG, no inline handlers).'
   priority: 10
   iteration: iter-r1
@@ -8507,7 +8532,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: SC-8
-    verification_note: Groomed 2026-10-09; pre-write or UI track.
+    verification_note: Groomed 2026-10-09; pre-write or UI track. V-222602 (CSP) is a partial-fit XSS defence-in-depth claim; output encoding lives elsewhere.
   statement_hash: sha256:0a1496c221be25ae0848d25213ca9232aa0e99c238fc716d9e81e8472a5160eb
   grooming_state: detailed
 - uid: ARCH-WRITE-UOW-AUDIT
@@ -8778,14 +8803,447 @@ requirement_versions:
 - uid: CAP-BROWSE-UI-RELATIONS
   base_uid: CAP-BROWSE-UI-RELATIONS
   version_n: 0
-  status: draft
+  status: active
   statement: 'Read-only Relationships panel on the requirement detail browse screen: loads GET /api/v1/projects/:projectId/requirements/:id/relations and renders outgoing and incoming links grouped by kind. Requirement peers navigate to detail; catalog conforms_to peers show as non-navigating chips with imprint label; trace_suspect shows needs re-check; restricted peers show a muted stub with no peer id. Empty, loading, and error states included.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: Planned until relationships browse UI PR merges.
+    verification_note: 'Shipped with relationships browse UI PR #32 (merge c8272340b67a0e505b63483bd2ef1550accb4635).'
   statement_hash: sha256:57289b6e8e5c549f82773216a035ba5d2a09938d9b76ef3bbc45974ced4c4032
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: ARCH-CP-HIER.1
+  base_uid: ARCH-CP-HIER
+  version_n: 1
+  status: active
+  statement: 'ReqAML organizes work as Client → Project. Projects belong to exactly one client; Client Scoped View
+
+    is assumed for most project operations. UI and API both refuse cross-client project joins.'
+  statement_hash: sha256:ce4c6c1d754ee1aafa8bbd5f2ec79cce37cf2d5f18c4ab2425509943d94df7d2
+  priority: 5
+  iteration: iter-r0
+  security:
+    catalog_ref: AC-3
+    verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+  grooming_state: detailed
+  mint_kind: pin
+- uid: ARCH-VER.1
+  base_uid: ARCH-VER
+  version_n: 1
+  status: active
+  statement: 'Each requirement line has versions with UIDs base_uid or base_uid.N (static append). Children stay on the parent line (parent = base_uid); there is no cascade fork. INVARIANT: ≤1 active version per line. When a new tip is activated (D04), the prior active version is set to superseded IN PLACE in the same transaction (not a new version). Terminal obsolete/withdraw without replacement may be in-place status or a status-only .N (mint_kind=status) — see D05 / ARCH-MINT-KIND / FIX-ALLOW-STATUS-SUPERSEDE.'
+  statement_hash: sha256:83c5a6eddc2dc440b3d73dac3f53c4e3ecf839886d84df36dd3bdffa41bdc811
+  priority: 5
+  iteration: iter-r0
+  security:
+    catalog_ref: AC-3
+    verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+  grooming_state: detailed
+  mint_kind: pin
+- uid: ARCH-AUTH-METADATA.1
+  base_uid: ARCH-AUTH-METADATA
+  version_n: 1
+  status: active
+  statement: 'The AS publishes Authorization Server Metadata (RFC 8414) at /.well-known/oauth-authorization-server, plus OpenID Connect discovery for interop. The metadata issuer is identical to the issuer URL. The MCP server and the API each publish OAuth Protected Resource Metadata (RFC 9728) at /.well-known/oauth-protected-resource, listing the internal AS in authorization_servers and stating their canonical resource URI. A request without a valid token gets 401 with WWW-Authenticate: Bearer resource_metadata="…" so MCP clients can discover the AS.'
+  statement_hash: sha256:5b952a211234774f441329a02b61bd3801512d7200f8df1567cfb8c18fe86df1
+  priority: 5
+  iteration: iter-r1
+  security:
+    catalog_ref: REQALM-SEC-OAUTH
+    verification_note: MCP authorization spec discovery (RFC 8414 / RFC 9728). Interop requirement; no direct NIST pin.
+  grooming_state: detailed
+  mint_kind: pin
+- uid: ARCH-OTEL.1
+  base_uid: ARCH-OTEL
+  version_n: 1
+  status: active
+  statement: 'Security-relevant actions emit structured audit events exported via OTEL (OTLP) for centralized
+
+    review, aligned to NIST AU-2/3/6/9/12. Session teardown destroys session identifiers (V-222578).
+
+    Auditors read via M01/M02; actors cannot alter prior audit rows (AU-9).'
+  statement_hash: sha256:497b0cb8d6e84203a77d95910447799e3bd15df76291b4bbaf767a9c95049e2e
+  priority: 25
+  iteration: iter-r0
+  security:
+    catalog_ref: AU-2
+    verification_note: AU-2/3/6/12. ASD STIG V6R4 V-222578 (session ID destroy complements audit lifecycle).
+  grooming_state: detailed
+  mint_kind: pin
+- uid: CAP-HEALTH-LIVENESS.1
+  base_uid: CAP-HEALTH-LIVENESS
+  version_n: 1
+  status: active
+  statement: 'GET /health is liveness only: it returns 200 with status ok, the app version and mode whenever the process can serve HTTP, and never touches Postgres, OpenBao or client data. Acceptance: /health stays 200 while dependencies are down (OpenBao sealed, Postgres stopped) so orchestrators do not restart a healthy process for a dependency outage.'
+  statement_hash: sha256:4ebc32eba8cffefe6e26ca50ba1712a0be399c4cb6424eb45c58aa4fe9b33246
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: SI-4
+    verification_note: 'No client data in the probe (M04). Verified 2026-10-07: /health 200 throughout the OpenBao-sealed and Postgres-stopped fault tests.'
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-READY-PROBES.1
+  base_uid: CAP-READY-PROBES
+  version_n: 1
+  status: active
+  statement: 'GET /ready live-probes Postgres (SELECT 1), pending migrations, OpenBao (initialized, unsealed, Transit encrypt/decrypt round-trip on reqaml-kek) and each enabled role, caching results for REQAML_READY_CACHE_MS (2 s) and bounding each probe by REQAML_READY_PROBE_TIMEOUT_MS (3 s). It returns 503 with the failing check named and recovers without a restart. Acceptance: sealing OpenBao gives 503 with openbao failing; stopping Postgres gives 503 with database failing; both return to 200 after recovery; the app container is not restarted.'
+  statement_hash: sha256:c678cc166665c2a1d31cbe6695178714d1e28611d74f7905bf528e5a928644e3
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: SI-4
+    verification_note: "Readiness gates traffic on live dependencies (ARCH-DEVENV-HEALTH). Verified 2026-10-07: OpenBao seal → 503 openbao 'sealed', unseal → 200; Postgres stop → 503 database ECONNREFUSED, recovery → 200; app restart count 0; unit tests for cache, database (incl. hung-DB timeout), migrations, openbao, roles. Fail-closed for key operations is R1."
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-DEVENV-STARTUP-BACKOFF.1
+  base_uid: CAP-DEVENV-STARTUP-BACKOFF
+  version_n: 1
+  status: active
+  statement: 'Before migrating or serving, the app waits for Postgres and a usable OpenBao with exponential backoff (1 s start, x1.5, capped at 15 s, up to REQAML_STARTUP_MAX_WAIT_MS = 120 s), then fails with a clear timeout. The pg pool survives server-side disconnects (idle-client errors are logged, not fatal). A dev-marked OpenBao in production is not retried; it goes straight to the self-check refusal. Acceptance: `docker compose restart` brings the stack back healthy with zero app container restarts, even while OpenBao is still sealed.'
+  statement_hash: sha256:22458cf48384f6aff3d72f6d27b6fc020718d673fc1a3aeb8cec633424d4d89a
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: CP-10
+    verification_note: "Recovery without crash-loops. Verified 2026-10-07: docker compose restart → app logged 'waiting for OpenBao: sealed' then healthy, RestartCount 0; unit tests for timeout and the production no-wait path."
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-AUTH-UPSTREAM-SEAM.1
+  base_uid: CAP-AUTH-UPSTREAM-SEAM
+  version_n: 1
+  status: active
+  statement: Upstream federation is not fully implemented in R1; the `UpstreamConnector` interface and `upstream_connectors` table plus read-only listing API document the extension point without token passthrough. OIDC/SAML RP implementations and home-realm discovery are deferred.
+  statement_hash: sha256:1c60bafa0af9a2b69b5439701388213780aa12ceb2513f400ba8193ac4d4dc5d
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-8
+    verification_note: Seam only — no live federation in R1. Verified by code review + typecheck.
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: ARCH-API.1
+  base_uid: ARCH-API
+  version_n: 1
+  status: active
+  statement: 'API is schema-first (Zod + OpenAPI): HTTP adapters validate DTOs, RBAC authorizes, business services
+
+    orchestrate, data providers implement repositories against Postgres. Invalid input never reaches domain
+
+    mutations (SI-10). The same stack serves UI and MCP tools.'
+  statement_hash: sha256:e6a9e2db9df99e40eddb37a1c9651d0175124974ea5bcb5e5ba6f3c480d20183
+  priority: 20
+  iteration: iter-r0
+  security:
+    catalog_ref: AC-3
+    verification_note: Architecture enforces AC-3 via adapters/guards/layers.
+  grooming_state: detailed
+  mint_kind: pin
+- uid: ARCH-AUTH-REVOKE.1
+  base_uid: ARCH-AUTH-REVOKE
+  version_n: 1
+  status: active
+  statement: The AS exposes token revocation (RFC 7009) for refresh and access tokens. Sign-out (A02) revokes the session's refresh tokens and desk attachments. Disabling or deleting an account, or revoking a grant that removes all access, terminates that subject's sessions and token families. Resource servers reject revoked tokens through introspection or short access-token lifetimes plus revocation checks.
+  statement_hash: sha256:a6136ea76f70d80d0f9fd67b3705e695e5f82307a5d8b37c32e498d43b722726
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-12
+    verification_note: AC-12 session termination; ASD V-222549 / V-222578 / V-222391.
+  grooming_state: detailed
+  mint_kind: pin
+  rbac_op: auth:oauth:revoke, auth:signout
+- uid: CAP-AUTH-HARDEN.1
+  base_uid: CAP-AUTH-HARDEN
+  version_n: 1
+  status: active
+  statement: Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF required on every cookie-authenticated mutation, per-IP failed-login throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default (production requires an explicit REQAML_TRUSTED_PROXIES list), auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, JWT signature verify before access-token revocation, normalized usernames.
+  statement_hash: sha256:f5ebe525628150baa5e42b194b775edc62e7f2f69bcf6efb53da28bff7accbb6
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-23
+    verification_note: 'SC-23 session/OAuth hardening. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production
+      refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-MFA-ENROLL.1
+  base_uid: CAP-MFA-ENROLL
+  version_n: 1
+  status: active
+  statement: Privileged roles require MFA in all modes. First login can return `mfa_enrollment_required` with otpauth URI; the sign-in card shows a setup key and the otpauth URI (no QR code) and asks for the 6-digit code. `pnpm devenv:mfa <identity-id>` enrolls dev users inside the app container (or `--interactive` prints the URI + ticket, confirmed with `--ticket=… --confirm=<code>`). TOTP secrets are envelope-encrypted; a code is accepted once (replay of the matched time step is rejected).
+  statement_hash: sha256:ea65e8ae0ed82a9287326222ff49d3f74f6abb901ad5c1cb46050231af545045
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-2
+    verification_note: 'IA-2 MFA enrollment. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused
+      dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.'
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-MFA-QR.1
+  base_uid: CAP-MFA-QR
+  version_n: 1
+  status: active
+  statement: 'MFA enrollment on the sign-in card renders a scannable QR code for the otpauth URI locally in the browser (vendored MIT qr-min matrix encoder to SVG; no external QR service or network fetch). Setup key and manual otpauth URI remain visible for copy/paste. Enrollment JSON responses use Cache-Control: no-store; QR markup is removed from the DOM after successful enrollment. Accessible name on the QR image; CSP-safe (same-origin module, DOM-built SVG, no inline handlers).'
+  statement_hash: sha256:1f58d4c44316d614afed010f3ce6e6d746c2e3fb0f36affd9076d0c16c82edeb
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-2
+    verification_note: 'Shipped with MFA enrollment QR PR #30 (merge c8668b924ba4804e32f4d364aa0d343af60e9f83).'
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-SVC-OPERATION-ROUTE.1
+  base_uid: CAP-SVC-OPERATION-ROUTE
+  version_n: 1
+  status: active
+  statement: Business routes under /api/ register only via defineOperationRoute, which runs authenticate, project scope, permission, parseInput, execute, append-only audit_events, log, in that order. Project scope comes from the :projectId path param, parsed before any input validation; an unparsable id is not_found, identical to a missing or ungranted project, and the validated input must name the same project. parseInput validates params/query/body once (Zod); validation failures, including unreadable bodies, reach only authenticated, in-scope, authorized callers, are audited without input values, and answer Problem Details (application/problem+json); unexpected throws are a 500 without the error message. reqalmSecurity is derived from the operation; registration throws unless the operation declares a permission bound to a project (projectScoped + projectIdFromInput + :projectId path param) or authenticatedOnly.
+  statement_hash: sha256:cfea228399216c9c627f5b3296f033415d7331c9e6d2960bed38b9856d495b09
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until operation-route PR merges.
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-SVC-PROJECT-ID-SLUG.1
+  base_uid: CAP-SVC-PROJECT-ID-SLUG
+  version_n: 1
+  status: active
+  statement: 'The :projectId path param must match ^[a-z0-9][a-z0-9-]{0,63}$ before it becomes project scope. An id that does not (padded, control characters, uppercase, over-long at any length) is not_found after authentication, identical to a missing or ungranted project, and an unauthenticated caller gets the same 401 as for a valid id, before any validation detail. An invalid id is never recorded raw: audit_events.project_id is NULL, no reqalm.project_id span attribute is set, and request logs and exported span URL attributes show the segment as [invalid].'
+  statement_hash: sha256:c10586bc5e566c655aedf7b0282e251524b8bc2aec3f99d2636610bb088070ae
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until route-hardening PR merges.
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-SVC-ROUTE-REGISTRY.1
+  base_uid: CAP-SVC-ROUTE-REGISTRY
+  version_n: 1
+  status: active
+  statement: Every /api /oauth /mcp /health /ready route declares public, authenticated, or permission; test enforces.
+  statement_hash: sha256:0e246e9c7521ba6948753afdf22daef61a78deea25a29ac580de37a68ed27066
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until service-foundation PR merges.
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-SVC-AUDIT-APPEND.1
+  base_uid: CAP-SVC-AUDIT-APPEND
+  version_n: 1
+  status: active
+  statement: Migration 006 + writeBusinessAudit; auth events remain in auth_audit_events.
+  statement_hash: sha256:39e5b2a3ad48fea886782e785db28608dd9abc4099c62eb6b7c2013799fd11bd
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until service-foundation PR merges.
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-SVC-STRUCTURED-LOG.1
+  base_uid: CAP-SVC-STRUCTURED-LOG
+  version_n: 1
+  status: active
+  statement: logOperation + redactForLog; secrets/tokens/password keys redacted in log payloads.
+  statement_hash: sha256:2fc1ca6a12b8846335a0dc84fdbc4fe356d6b45f0f1710b000ae6869b80a1e37
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until service-foundation PR merges.
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-OTEL-SPAN-SAFE-ERRORS.1
+  base_uid: CAP-OTEL-SPAN-SAFE-ERRORS
+  version_n: 1
+  status: active
+  statement: Every exported span (operation, Fastify request and handler, http, pg, undici, OpenBao) reports a failure as ERROR status with the generic message 'operation failed'; exception events keep only exception.type (no message or stack); operation spans add reqalm.error_kind (service error code or internal). Raw exception and database text stays in the server log only.
+  statement_hash: sha256:635744823b336c569e7b8dd84afd57e89243fc9c51df39df6248e0f872d36650
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until route-hardening PR merges.
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-SVC-STATIC-DEP-PATCH.1
+  base_uid: CAP-SVC-STATIC-DEP-PATCH
+  version_n: 1
+  status: active
+  statement: apps/reqalm resolves @fastify/static 10.1.5 both directly (^10.1.5) and through @fastify/swagger-ui 6.1.1 (^10.1.0), with no pnpm override, so GHSA-83w8-p2f5-377r and GHSA-8pvw-jcv7-9cmj (and GHSA-pr96-94w5-mx2h, GHSA-x428-ghpx-8j92) are gone from pnpm audit --prod; the web bundle and /docs still serve, and encoded path-traversal requests never return file contents.
+  statement_hash: sha256:fcf8edc1f030ab9697f6dc66f91b116ade7efd269de7e89bbb1e538b3a038b2f
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until route-hardening PR merges.
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-DEVENV-PERIPHERALS.1
+  base_uid: CAP-DEVENV-PERIPHERALS
+  version_n: 1
+  status: active
+  statement: 'The peripherals Dockerfile target runs Postgres 16 and OpenBao (checksum-verified release binary) in one dev/test container, each with its own named volume (reqaml-pg, reqaml-openbao) plus reqaml-secrets for the generated unseal key and root token. Its healthcheck passes only when Postgres accepts connections and OpenBao is initialized and unsealed. Acceptance: first start initializes both within seconds; restarting the container unseals OpenBao from the stored key and keeps data; production is documented as separate Postgres and OpenBao units.'
+  statement_hash: sha256:6bd12c43e51c7166a832fb74f77627cb9a4d5aa2d4e1a5241f054085f195ae4e
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: SC-12
+    verification_note: 'SC-12 dev key material isolated in its own volume; never committed. Verified 2026-10-07: fresh start healthy; docker compose restart → unsealed and healthy, data kept. Production split (separate units) is a deploy concern not exercised here.'
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-TEST-PROD-BUILD-EXCLUDE.1
+  base_uid: CAP-TEST-PROD-BUILD-EXCLUDE
+  version_n: 1
+  status: active
+  statement: TypeScript production build (`tsconfig.build.json`) excludes `src/test/**` and `src/key/memory-provider.ts`; tests import the in-memory KeyProvider from its own module. Docker `dist/` contains no test harness or fake key files.
+  statement_hash: sha256:ebc7c1b6e62e2f860deefde1c49589918ccd76793042e4b00f3aeb19ddf27c0a
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: 'Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqalm/app 39/39); `pnpm typecheck` pass; `pnpm --filter @reqalm/app build` dist has no `dist/test/**` or `dist/key/memory-provider.js`.'
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: CAP-DEVENV-DOCKERFILE-ROLES.1
+  base_uid: CAP-DEVENV-DOCKERFILE-ROLES
+  version_n: 1
+  status: active
+  statement: 'One multi-stage Dockerfile builds every image: app (Node 22, the deploy target), peripherals (dev/test only) and app-hsm-test. The app container runs one Node process whose roles are toggled by REQAML_ROLES (api, web, mcp, sync); /ready reports per enabled role, and routes for disabled roles are not mounted. Acceptance: the same image started with REQAML_ROLES=sync serves only probes (readiness lists sync only; /api and /mcp return 404) without a rebuild; with all roles it serves API, web, MCP stub and runs sync.'
+  statement_hash: sha256:852e8a3e9b67e790dc34fb6a2d6b770307329cb4f266b36f1293c64144d0b75b
+  priority: 10
+  iteration: iter-r0
+  security:
+    catalog_ref: CM-7
+    verification_note: 'CM-7 least functionality: disabled roles expose no endpoints. Verified 2026-10-07: docker compose build; REQALM_ROLES=sync run → /ready roles=[sync], /api/v1/seed/summary 404, POST /mcp 404, /health 200. Internal OAuth AS role not built yet (R1), so FIX-ALLOW-APP-ROLE-SPLIT is only partly exercised.'
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: ARCH-AUTH-LOCAL.2
+  base_uid: ARCH-AUTH-LOCAL
+  version_n: 2
+  status: active
+  statement: "Local password accounts are an optional capability of the auth profile (ARCH-AUTH-PROFILE), not a baseline. The setting local_accounts takes one of three values: disabled (default for every production profile), breakglass_only (only ARCH-AUTH-LOCAL-BREAKGLASS accounts), or enabled (a profile that explicitly opts in). The development profile uses enabled with seeded dev accounts (ARCH-DEVENV-IDENTITY.1). With disabled: no local credential records exist, the local login route and form are absent, and sign-in is federated only. This keeps A01 / CAP-SSO / REQAML-SEC-SSO ('no local password store; MFA at the IdP') as the default production posture, so A01 is not minted. Where local accounts are enabled, they bind to the same identity rows and grants as federated identities, every local credential is subject to ARCH-CRED-*, account lifecycle is automated and audited, and unnecessary or built-in accounts are disabled. The internal AS and OAuth for MCP are required whatever this setting is (ARCH-AUTH-MCP-REQUIRED)."
+  statement_hash: sha256:6dd5915efef0da70e964b820f8c5e0f09225f2b7d02932c558bc6b403bf9f0ab
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-2
+    verification_note: AC-2 account management; CM-7 local accounts off by default; ASD V-222407 / V-222412 / V-222661.
+  grooming_state: detailed
+  mint_kind: pin
+  rbac_op: auth:local:signin, identity:account:manage
+- uid: ARCH-AUTH-CLIENTREG.1
+  base_uid: ARCH-AUTH-CLIENTREG
+  version_n: 1
+  status: active
+  statement: First-party clients (Web UI, admin-configured ReqAML MCP clients) are pre-registered with exact redirect URIs. Client ID Metadata Documents and Dynamic Client Registration (RFC 7591; deprecated in the MCP 2026-07-28 revision) ship disabled by default. An admin can enable either one per deployment or per client policy, and every registration is audited. When DCR is disabled, registration_endpoint is omitted from AS metadata and registration requests are refused. Confidential-client secrets are stored hashed (ARCH-CRED-TOKENS).
+  statement_hash: sha256:d591d87b7d0c6520ca07d8c7ee1a5aee4cb5afac97ea392baa68b014d47f722a
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-7
+    verification_note: 'CM-7 least functionality: open registration off unless policy enables it.'
+  grooming_state: detailed
+  mint_kind: pin
+  rbac_op: auth:client:register
+- uid: CAP-DEVENV-SEED-RESET.1
+  base_uid: CAP-DEVENV-SEED-RESET
+  version_n: 1
+  status: active
+  statement: Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction (any load failure rolls back), preserving identities, grants, local accounts, sessions/MFA, OpenBao keys, and append-only audit_events; identities and grants are only inserted when missing, never rewritten or re-activated. Runs only when the environment positively identifies as local devenv (REQALM_MODE=development, .reqalm/devenv.env present, NODE_ENV not production, and DATABASE_URL resolving to 127.0.0.1 or localhost port 5432 including ?host=/?port= overrides); no environment variable relaxes these checks. Requires explicit --confirm; --dry-run prints the plan read-only. Records one devenv.seed.reset business audit event with wipe/load counts and an unverified CLI actor label, attributed to no ReqALM identity. Idempotent second run yields identical DB contents.
+  statement_hash: sha256:56d8e59efe88a4aecc881ba6fc7c17e85cf526d364ed7dcf533a0d264fd51f3f
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until seed-reset PR merges and is verified locally.
+  grooming_state: detailed
+  mint_kind: pin
+  verification_outcome: pass
+- uid: ARCH-WRITE-DB-RUNTIME-ROLE
+  base_uid: ARCH-WRITE-DB-RUNTIME-ROLE
+  version_n: 0
+  status: draft
+  statement: The running application shall connect to Postgres as a dedicated runtime login role that owns no schema objects and holds only the table privileges the application needs (SELECT/INSERT/UPDATE/DELETE per table; INSERT and SELECT only on append-only audit tables). The runtime role shall not execute DDL (CREATE, ALTER, DROP), TRUNCATE, or GRANT, and shall be NOSUPERUSER, NOCREATEDB, NOCREATEROLE and NOBYPASSRLS so row-level security on tenant tables cannot be bypassed. Schema migrations shall run as a separate owner role whose credentials are not available to the running application process. In production the app shall refuse to start if its runtime role owns tables, can bypass RLS, or holds DDL or TRUNCATE privilege.
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-6
+    verification_note: Proposed by Cyber control mapping 2026-10-09; claim of applicability, unverified.
+  statement_hash: sha256:e81a13d0f474f2fe6548812712d34244bf2b64c63afa49614a7484700941d798
+  grooming_state: detailed
+- uid: ARCH-SEC-TLS
+  base_uid: ARCH-SEC-TLS
+  version_n: 0
+  status: draft
+  statement: Before any non-127.0.0.1 deployment, the Web UI, API, OAuth AS and MCP endpoints shall be reachable only over TLS 1.2 or later (TLS 1.3 preferred); plaintext HTTP shall be refused or redirected without serving content, and responses shall send Strict-Transport-Security. In production the app shall refuse to start when its issuer or public base URL is not https. Connections from the app to Postgres and OpenBao that leave a single host shall use TLS with server certificate verification.
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: SC-8
+    verification_note: Proposed by Cyber control mapping 2026-10-09; claim of applicability, unverified.
+  statement_hash: sha256:18264abcafce7d0e4fb61a7c93b38beac35706c9a2c9ef16d76cbabce546d7f5
+  grooming_state: detailed
+- uid: ARCH-SUPPLY-VENDORED
+  base_uid: ARCH-SUPPLY-VENDORED
+  version_n: 0
+  status: draft
+  statement: Third-party code committed to the repository (for example apps/reqalm/src/web/public/vendor/qr-min.js) shall be listed in a vendor manifest with package, version, license, source URL, upstream registry integrity and the SHA-256 of the committed bytes. A test in the pnpm test gate shall fail when committed bytes differ from the recorded hash. Vendored browser code shall be served same-origin only.
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: SI-7
+    verification_note: Cyber control mapping 2026-10-09; verified by existing vendor hash test on main (apps/reqalm/src/web/mfa-enroll-ui.test.ts asserts qr-min.js SHA-256; vendor/README.md manifest).
+  statement_hash: sha256:d8b967c9e817f7b2a669bbb9992726f89683fd57b9475954d2f80d9c98f78def
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: ARCH-SUPPLY-DEP-SCAN
+  base_uid: ARCH-SUPPLY-DEP-SCAN
+  version_n: 0
+  status: draft
+  statement: Production dependencies shall be scanned for known vulnerabilities (pnpm audit --prod or equivalent) on every pull request and at least weekly on main. High or critical advisories in production dependencies shall block merge unless a time-limited risk acceptance naming the advisory is recorded; scan results shall be retained with the build.
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: RA-5
+    verification_note: Proposed by Cyber control mapping 2026-10-09; claim of applicability, unverified.
+  statement_hash: sha256:b925beda735a48b3785fd5c615f125f4ba43d2c8a886ce2f488fc6dfcaba9bc4
+  grooming_state: detailed
+- uid: CAP-CYBER-CONTROL-PLACEMENT
+  base_uid: CAP-CYBER-CONTROL-PLACEMENT
+  version_n: 0
+  status: draft
+  statement: 'Documentation-only capability for the Cyber control-placement seed PR: applies the conforms_to add/move/remove table to ARCH/CAP scope, mints pin-kind successors where shipped releases freeze prior version UIDs, adds ARCH-WRITE-DB-RUNTIME-ROLE / ARCH-SEC-TLS / ARCH-SUPPLY-* requirements, and regenerates StrictDoc out/.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned seed-only; no runtime deliverable.
+  statement_hash: sha256:e33849ef8b2f464431389dcb6ff59b8aa21724798dd3218e39e6dd20e5fc8571
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -9991,16 +10449,8 @@ edges:
   to: V-222391
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
-- from: A02
-  to: V-222550
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
 - from: A03
   to: V-222429
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
-- from: A03
-  to: V-222550
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
 - from: A04
@@ -10627,22 +11077,6 @@ edges:
   to: AU-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VER-SUCC
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VER-SUCC
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VER-SUCC
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VER-SUCC
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: E01
   to: AC-3
   kind: conforms_to
@@ -10768,38 +11202,6 @@ edges:
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-CONTRACT
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CONTRACT.1
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CONTRACT.1
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CONTRACT.1
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CONTRACT.1
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CONTRACT-DOC
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CONTRACT-DOC
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CONTRACT-DOC
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CONTRACT-DOC
   to: AU-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
@@ -10960,22 +11362,6 @@ edges:
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: F10
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-RELEASE
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-RELEASE
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-RELEASE
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-RELEASE
   to: AU-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
@@ -11303,18 +11689,6 @@ edges:
   to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-MCP-DESK
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-MCP-DESK
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-MCP-DESK
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-TREE
   to: AC-3
   kind: conforms_to
@@ -11335,32 +11709,8 @@ edges:
   to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-CONTRACT-UI
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-CONTRACT-UI
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-CONTRACT-UI
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-VERSION-UI
   to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-VERSION-UI
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-VERSION-UI
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-VERSION-UI
-  to: AU-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-AUDIT
@@ -11962,35 +12312,11 @@ edges:
   to: H03
   kind: refines
 - from: ARCH-CAT-IMPRINT
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAT-IMPRINT
-  to: CM-5
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAT-PIN
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAT-PIN
   to: CM-5
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-CAT-IMPORT
   to: CM-5
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAT-IMPORT
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAT-DRIFT
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAT-DRIFT
-  to: AU-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-CAT-REACT
@@ -11999,10 +12325,6 @@ edges:
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-CAT-REACT
   to: CM-5
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAT-FREEZE
-  to: AU-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-CAT-SCOPE
@@ -12091,35 +12413,7 @@ edges:
   to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVAL
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVAL
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVAL
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-APPROVAL-VIEW
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVAL-VIEW
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVAL-VIEW
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVAL-VIEW
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CHANGESET
   to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
@@ -12139,64 +12433,12 @@ edges:
   to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CHANGESET-RBAC
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CHANGESET-RBAC
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CHANGESET-RBAC
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-LOCKED
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-LOCKED
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-LOCKED
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-LOCKED
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-CYBER-GATE
   to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CYBER-GATE
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CYBER-GATE
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CYBER-GATE
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-VERIFICATION
   to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VERIFICATION
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VERIFICATION
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VERIFICATION
-  to: AU-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: M05
@@ -12298,86 +12540,6 @@ edges:
 - from: FIX-SAMPLE-WF-CAP
   to: FIX-SAMPLE-WF-REQ
   kind: satisfies
-- from: ARCH-WORKFLOW
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-WORKFLOW
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-WORKFLOW
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-WORKFLOW
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-SUBJECT-KIND
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-SUBJECT-KIND
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-SUBJECT-KIND
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-SUBJECT-KIND
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-REQ-VS-CAP
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-REQ-VS-CAP
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-REQ-VS-CAP
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-REQ-VS-CAP
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVAL-LINE
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVAL-LINE
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVAL-LINE
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVAL-LINE
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-SUCCESSION-HASH
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-SUCCESSION-HASH
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-SUCCESSION-HASH
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-SUCCESSION-HASH
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-HOOK-EVAL
   to: AC-3
   kind: conforms_to
@@ -12394,212 +12556,24 @@ edges:
   to: AU-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-PLANNING-GATES
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-PLANNING-GATES
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-PLANNING-GATES
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-PLANNING-GATES
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-APPROVER-SLOTS
   to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVER-SLOTS
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVER-SLOTS
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-APPROVER-SLOTS
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-LINK
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-LINK
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-LINK
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-LINK
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-APPROVE
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-APPROVE
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-APPROVE
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-APPROVE
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-GATE-MODEL
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-GATE-MODEL
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-GATE-MODEL
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-GATE-MODEL
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VERIFICATION-GATE
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VERIFICATION-GATE
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VERIFICATION-GATE
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-VERIFICATION-GATE
-  to: AU-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-CHANGESET-RETAIN
   to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CHANGESET-RETAIN
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CHANGESET-RETAIN
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CHANGESET-RETAIN
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CHANGESET-CONFLICT
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CHANGESET-CONFLICT
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CHANGESET-CONFLICT
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CHANGESET-CONFLICT
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-WF-ADMIN
   to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-WF-ADMIN
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-WF-ADMIN
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-WF-ADMIN
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-BACKLOG
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-BACKLOG
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-BACKLOG
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-BACKLOG
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-GANTT
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-GANTT
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-GANTT
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-GANTT
-  to: AU-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: UI-APPROVE-LINE
   to: AC-3
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: UI-APPROVE-LINE
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: UI-APPROVE-LINE
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: UI-APPROVE-LINE
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: UI-APPROVE-TREE
   to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: UI-APPROVE-TREE
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: UI-APPROVE-TREE
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: UI-APPROVE-TREE
-  to: AU-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: D13
@@ -12695,38 +12669,6 @@ edges:
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: FIX-DENY-REVERT-NON-LATEST
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: WANT-CHANGESET-FIELD-UNDO
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: WANT-CHANGESET-FIELD-UNDO
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: WANT-CHANGESET-FIELD-UNDO
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: WANT-CHANGESET-FIELD-UNDO
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-MINT-KIND
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-MINT-KIND
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-MINT-KIND
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-MINT-KIND
   to: AU-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
@@ -13020,18 +12962,6 @@ edges:
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-GATE-SIGNOFF
   to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-GATE-SIGNOFF
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-GATE-SIGNOFF
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-GATE-SIGNOFF
-  to: AU-12
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: FIX-DENY-SHIP-UNSIGNED
@@ -15046,34 +14976,14 @@ edges:
 - from: CAP-SVC-REQUEST-CONTEXT
   to: ARCH-API-LAYERS
   kind: satisfies
-- from: CAP-SVC-REQUEST-CONTEXT
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
-- from: CAP-SVC-OPERATION-EXECUTOR
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-OPERATION-EXECUTOR
   to: CAP-RBAC
   kind: satisfies
   trace_suspect: true
   suspect_reason: target line content-succeeded; edge still on superseded .0 (CAP-RBAC)
-- from: CAP-SVC-ROUTE-REGISTRY
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-MODULE-BOOTSTRAP
   to: ARCH-API-LAYERS
   kind: satisfies
-- from: CAP-SVC-PROJECT-READ
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: ARCH-OTEL-TRACE
   to: ARCH-OTEL
   kind: uses
@@ -15102,29 +15012,14 @@ edges:
   to: ARCH-API-LAYERS
   kind: satisfies
 - from: CAP-SVC-OPERATION-ROUTE
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
-- from: CAP-SVC-OPERATION-ROUTE
   to: CAP-SVC-OPERATION-EXECUTOR
   kind: uses
 - from: CAP-SVC-BUSINESS-ROUTE-AUDIT
   to: CAP-SVC-ROUTE-REGISTRY
   kind: satisfies
-- from: CAP-SVC-BUSINESS-ROUTE-AUDIT
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-PROBLEM-JSON
   to: CAP-SVC-RESULT-ENVELOPE
   kind: satisfies
-- from: CAP-SVC-PROJECT-ID-SLUG
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-PROJECT-ID-SLUG
   to: CAP-SVC-OPERATION-ROUTE
   kind: refines
@@ -15143,19 +15038,9 @@ edges:
 - from: CAP-SVC-IMPLICIT-PUBLIC-EXACT
   to: CAP-SVC-BUSINESS-ROUTE-AUDIT
   kind: refines
-- from: CAP-SVC-IMPLICIT-PUBLIC-EXACT
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-SVC-NON-API-AUTH-AUDIT
   to: CAP-SVC-ROUTE-REGISTRY
   kind: refines
-- from: CAP-SVC-NON-API-AUTH-AUDIT
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-DEVENV-SEED-RESET
   to: ARCH-DEVENV-SEED
   kind: satisfies
@@ -15196,11 +15081,6 @@ edges:
   to: D06
   kind: satisfies
 - from: CAP-READ-REQS
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
-- from: CAP-READ-REQS
   to: CAP-SVC-OPERATION-ROUTE
   kind: satisfies
 - from: CAP-READ-REQS
@@ -15226,11 +15106,6 @@ edges:
 - from: CAP-READ-RELEASES
   to: G08
   kind: satisfies
-- from: CAP-READ-RELEASES
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-READ-RELEASES
   to: CAP-SVC-OPERATION-ROUTE
   kind: satisfies
@@ -15260,11 +15135,6 @@ edges:
 - from: CAP-READ-HIERARCHY
   to: C07
   kind: satisfies
-- from: CAP-READ-HIERARCHY
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-READ-HIERARCHY
   to: CAP-READ-REQS
   kind: satisfies
@@ -15303,11 +15173,6 @@ edges:
 - from: CAP-RELATIONS-API
   to: E06
   kind: satisfies
-- from: CAP-RELATIONS-API
-  to: ARCH-API-RBAC
-  kind: satisfies
-  trace_suspect: true
-  suspect_reason: target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)
 - from: CAP-RELATIONS-API
   to: CAP-READ-REQS
   kind: satisfies
@@ -15458,26 +15323,6 @@ edges:
 - to: A02
   kind: satisfies
   from: CAP-SSO.1
-- to: IA-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-SSO.1
-- to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-SSO.1
-- to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-SSO.1
-- to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-SSO.1
-- to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-SSO.1
 - from: CAP-SCOPED-VIEW.1
   to: CAP-SCOPED-VIEW
   kind: refines
@@ -15486,14 +15331,6 @@ edges:
   from: CAP-SCOPED-VIEW.1
 - to: A04
   kind: satisfies
-  from: CAP-SCOPED-VIEW.1
-- to: V-222429
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
-  from: CAP-SCOPED-VIEW.1
-- to: V-222550
-  kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
   from: CAP-SCOPED-VIEW.1
 - to: AC-3
   kind: conforms_to
@@ -15527,26 +15364,10 @@ edges:
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
   from: CAP-RBAC.1
-- to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-RBAC.1
-- to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-RBAC.1
-- to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: CAP-RBAC.1
 - from: ARCH-API-RBAC.1
   to: ARCH-API-RBAC
   kind: refines
 - to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: ARCH-API-RBAC.1
-- to: AC-2
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
   from: ARCH-API-RBAC.1
@@ -15574,22 +15395,6 @@ edges:
 - from: ARCH-SUSPECT.1
   to: ARCH-SUSPECT
   kind: refines
-- to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: ARCH-SUSPECT.1
-- to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: ARCH-SUSPECT.1
-- to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: ARCH-SUSPECT.1
-- to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-  from: ARCH-SUSPECT.1
 - to: ARCH-SUCCESSION-HASH
   kind: uses
   from: ARCH-SUSPECT.1
@@ -15632,6 +15437,506 @@ edges:
   kind: satisfies
 - from: CAP-CATALOGS-API
   to: C08
+  kind: satisfies
+- from: ARCH-CP-HIER.1
+  to: ARCH-CP-HIER
+  kind: refines
+- from: ARCH-CP-HIER.1
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-VER.1
+  to: ARCH-VER
+  kind: refines
+- from: ARCH-AUTH-METADATA.1
+  to: ARCH-AUTH-METADATA
+  kind: refines
+- from: ARCH-OTEL.1
+  to: ARCH-OTEL
+  kind: refines
+- from: ARCH-OTEL.1
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-OTEL.1
+  to: AU-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-OTEL.1
+  to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-OTEL.1
+  to: AU-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-HEALTH-LIVENESS.1
+  to: CAP-HEALTH-LIVENESS
+  kind: refines
+- from: CAP-READY-PROBES.1
+  to: CAP-READY-PROBES
+  kind: refines
+- from: CAP-DEVENV-STARTUP-BACKOFF.1
+  to: CAP-DEVENV-STARTUP-BACKOFF
+  kind: refines
+- from: CAP-AUTH-UPSTREAM-SEAM.1
+  to: CAP-AUTH-UPSTREAM-SEAM
+  kind: refines
+- from: ARCH-OTEL.1
+  to: AU-9
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-API.1
+  to: ARCH-API
+  kind: refines
+- from: ARCH-API.1
+  to: SI-10
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-API.1
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-API.1
+  to: V-222606
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-CP-SCOPE
+  to: V-222425
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-API-RBAC.1
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CHANGESET-RBAC
+  to: AC-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-REVOKE.1
+  to: ARCH-AUTH-REVOKE
+  kind: refines
+- from: ARCH-AUTH-REVOKE.1
+  to: AC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-REVOKE.1
+  to: V-222549
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-REVOKE.1
+  to: V-222578
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-REVOKE.1
+  to: V-222391
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-REVOKE.1
+  to: AC-12.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-SEC-HEADERS
+  to: SC-18
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-SEC-HEADERS
+  to: V-222602
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-SEC-HEADERS
+  to: V-222444
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-WRITE-UOW-AUDIT
+  to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-WRITE-AUDIT-FLOOD
+  to: SC-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-WRITE-AUDIT-FLOOD
+  to: AU-4
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-WRITE-RESERVED-IDS
+  to: SI-10
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-SEC-XPROJ-READ
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-SEC-XPROJ-READ
+  to: SI-11
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SCOPED-VIEW.1
+  to: V-222425
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: CAP-UI-FRAME.1
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-UI-FRAME.1
+  to: V-222603
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: CAP-AUTH-HARDEN.1
+  to: CAP-AUTH-HARDEN
+  kind: refines
+- from: CAP-AUTH-HARDEN.1
+  to: SC-23
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-AUTH-HARDEN.1
+  to: V-222603
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: CAP-MFA-ENROLL.1
+  to: CAP-MFA-ENROLL
+  kind: refines
+- from: CAP-MFA-ENROLL.1
+  to: IA-2.8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-MFA-QR.1
+  to: CAP-MFA-QR
+  kind: refines
+- from: CAP-MFA-QR.1
+  to: SC-18
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-MFA-QR.1
+  to: IA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-OPERATION-ROUTE.1
+  to: CAP-SVC-OPERATION-ROUTE
+  kind: refines
+- from: CAP-SVC-OPERATION-ROUTE.1
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-OPERATION-ROUTE.1
+  to: SI-10
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-OPERATION-ROUTE.1
+  to: V-222606
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: CAP-SVC-OPERATION-ROUTE.1
+  to: SI-11
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-OPERATION-ROUTE.1
+  to: V-222610
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: CAP-SVC-OPERATION-ROUTE.1
+  to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-PROJECT-ID-SLUG.1
+  to: CAP-SVC-PROJECT-ID-SLUG
+  kind: refines
+- from: CAP-SVC-PROJECT-ID-SLUG.1
+  to: SI-10
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-ROUTE-REGISTRY.1
+  to: CAP-SVC-ROUTE-REGISTRY
+  kind: refines
+- from: CAP-SVC-ROUTE-REGISTRY.1
+  to: AC-14
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-AUDIT-APPEND.1
+  to: CAP-SVC-AUDIT-APPEND
+  kind: refines
+- from: CAP-SVC-AUDIT-APPEND.1
+  to: AU-9
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-STRUCTURED-LOG.1
+  to: CAP-SVC-STRUCTURED-LOG
+  kind: refines
+- from: CAP-SVC-STRUCTURED-LOG.1
+  to: V-222444
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: CAP-OTEL-SPAN-SAFE-ERRORS.1
+  to: CAP-OTEL-SPAN-SAFE-ERRORS
+  kind: refines
+- from: CAP-OTEL-SPAN-SAFE-ERRORS.1
+  to: SI-11
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-STATIC-DEP-PATCH.1
+  to: CAP-SVC-STATIC-DEP-PATCH
+  kind: refines
+- from: CAP-SVC-STATIC-DEP-PATCH.1
+  to: SI-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SVC-STATIC-DEP-PATCH.1
+  to: V-222614
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: CAP-DEVENV-PERIPHERALS.1
+  to: CAP-DEVENV-PERIPHERALS
+  kind: refines
+- from: CAP-DEVENV-PERIPHERALS.1
+  to: SC-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-PERIPHERALS.1
+  to: SI-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-TEST-PROD-BUILD-EXCLUDE.1
+  to: CAP-TEST-PROD-BUILD-EXCLUDE
+  kind: refines
+- from: CAP-TEST-PROD-BUILD-EXCLUDE.1
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-DOCKERFILE-ROLES.1
+  to: CAP-DEVENV-DOCKERFILE-ROLES
+  kind: refines
+- from: CAP-DEVENV-DOCKERFILE-ROLES.1
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-DOCKERFILE-ROLES.1
+  to: V-222518
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL.2
+  to: ARCH-AUTH-LOCAL.1
+  kind: refines
+- from: ARCH-AUTH-LOCAL.2
+  to: AC-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL.2
+  to: IA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL.2
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-LOCAL.2
+  to: V-222407
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL.2
+  to: V-222412
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL.2
+  to: V-222661
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-LOCAL.2
+  to: V-222518
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-AUTH-CLIENTREG.1
+  to: ARCH-AUTH-CLIENTREG
+  kind: refines
+- from: ARCH-AUTH-CLIENTREG.1
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-CLIENTREG.1
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-AUTH-CLIENTREG.1
+  to: V-222518
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: CAP-RELATIONS-API
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-AUDIT
+  to: AU-9
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-DEVENV-SEED-RESET.1
+  to: CAP-DEVENV-SEED-RESET
+  kind: refines
+- from: CAP-DEVENV-SEED-RESET.1
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-MFA-ENROLL.1
+  to: IA-2.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-SSO.1
+  to: ARCH-AUTH-FEDERATION
+  kind: satisfies
+- from: ARCH-CHANGESET-RETAIN
+  to: AU-11
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-GATE-SIGNOFF
+  to: AU-10
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-DEVENV-IDENTITY.1
+  to: V-222518
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: FIX-DENY-DEVENV-PROD-LOGIN.1
+  to: V-222518
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-WRITE-DB-RUNTIME-ROLE
+  to: AC-6
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-WRITE-DB-RUNTIME-ROLE
+  to: CM-5.5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-WRITE-DB-RUNTIME-ROLE
+  to: AU-9
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-WRITE-DB-RUNTIME-ROLE
+  to: V-222430
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-WRITE-DB-RUNTIME-ROLE
+  to: ARCH-CP-SCOPE
+  kind: refines
+- from: ARCH-WRITE-TRUNCATE-GUARD
+  to: ARCH-WRITE-DB-RUNTIME-ROLE
+  kind: refines
+- from: ARCH-SEC-TLS
+  to: SC-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-SEC-TLS
+  to: SC-8.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-SEC-TLS
+  to: V-222596
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-SEC-TLS
+  to: ARCH-SEC-HEADERS
+  kind: refines
+- from: ARCH-SUPPLY-VENDORED
+  to: SI-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-SUPPLY-VENDORED
+  to: CM-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-SUPPLY-VENDORED
+  to: SR-4
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-MFA-QR
+  to: ARCH-SUPPLY-VENDORED
+  kind: satisfies
+- from: ARCH-SUPPLY-DEP-SCAN
+  to: RA-5
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-SUPPLY-DEP-SCAN
+  to: SI-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-SUPPLY-DEP-SCAN
+  to: V-222614
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: CAP-SVC-STATIC-DEP-PATCH
+  to: ARCH-SUPPLY-DEP-SCAN
+  kind: satisfies
+- from: CAP-SVC-AUDIT-APPEND
+  to: ARCH-WRITE-UOW-AUDIT
+  kind: satisfies
+- from: CAP-SVC-STRUCTURED-LOG
+  to: ARCH-CRED-AUDIT
+  kind: satisfies
+- from: ARCH-SEC-TLS
+  to: ARCH-SEC-HEADERS
+  kind: satisfies
+- from: CAP-SVC-REQUEST-CONTEXT
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-SVC-OPERATION-EXECUTOR
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-SVC-ROUTE-REGISTRY
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-SVC-PROJECT-READ
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-SVC-OPERATION-ROUTE
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-SVC-PROJECT-ID-SLUG
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-SVC-IMPLICIT-PUBLIC-EXACT
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-SVC-NON-API-AUTH-AUDIT
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-READ-REQS
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-READ-RELEASES
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-READ-HIERARCHY
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: CAP-RELATIONS-API
+  to: ARCH-API-RBAC.1
+  kind: satisfies
+- from: A05
+  to: CAP-RBAC.1
+  kind: satisfies
+- from: A06
+  to: CAP-RBAC.1
+  kind: satisfies
+- from: A07
+  to: CAP-RBAC.1
+  kind: satisfies
+- from: A08
+  to: CAP-RBAC.1
+  kind: satisfies
+- from: A09
+  to: CAP-RBAC.1
+  kind: satisfies
+- from: A10
+  to: CAP-RBAC.1
+  kind: satisfies
+- from: A11
+  to: CAP-RBAC.1
+  kind: satisfies
+- from: CAP-CYBER-CONTROL-PLACEMENT
+  to: ARCH-CAT-PIN
   kind: satisfies
 - from: CAP-BROWSE-UI-RELATIONS
   to: C08
@@ -15711,12 +16016,12 @@ contracts:
   - ARCH-UI
   - ARCH-UI-GUARD
   - ARCH-API
-  - ARCH-API-RBAC
+  - ARCH-API-RBAC.1
   - ARCH-API-LAYERS
   - ARCH-OTEL
-  - CAP-SSO
-  - CAP-SCOPED-VIEW
-  - CAP-RBAC
+  - CAP-SSO.1
+  - CAP-SCOPED-VIEW.1
+  - CAP-RBAC.1
   - CAP-TREE
   - CAP-CONTRACT-UI
   - CAP-VERSION-UI
@@ -15743,12 +16048,12 @@ contracts:
   - A11
   - A12.1
   - ARCH-CP-SCOPE
-  - ARCH-API-RBAC
+  - ARCH-API-RBAC.1
   - ARCH-OTEL
   - ARCH-UI-GUARD
-  - CAP-SSO
-  - CAP-SCOPED-VIEW
-  - CAP-RBAC
+  - CAP-SSO.1
+  - CAP-SCOPED-VIEW.1
+  - CAP-RBAC.1
   - CAP-MCP-DESK
   - CAP-AUDIT
   - MC01.1
@@ -15783,9 +16088,9 @@ contracts:
   - ARCH-API
   - ARCH-API-LAYERS
   - ARCH-UI
-  - CAP-SSO
-  - CAP-SCOPED-VIEW
-  - CAP-RBAC
+  - CAP-SSO.1
+  - CAP-SCOPED-VIEW.1
+  - CAP-RBAC.1
   - CAP-TREE
   - L02
   - M04
@@ -16295,12 +16600,22 @@ releases:
   project_id: reqalm
   name: R1 — browse requirement relationships UI (read-only)
   planned_on: '2026-10-09'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-09'
+  status: shipped
   delivers:
   - CAP-BROWSE-UI-RELATIONS
   cyber_gate: false
-  notes: Relationships panel on requirement detail; two-column graph view deferred.
+  notes: 'PR #32 merged to main as c8272340b67a0e505b63483bd2ef1550accb4635 on 2026-10-09. Relationships panel on requirement detail browse screen.'
+- id: rel-r1-cyber-control-placement
+  project_id: reqalm
+  name: R1-cyber-control-placement
+  planned_on: '2026-10-09'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-CYBER-CONTROL-PLACEMENT
+  cyber_gate: false
+  notes: Seed-only Cyber control-placement mapping @ main 2de51e2. ConformsTo grooming (add/move/remove pins, pin-kind successors on shipped lines); no verification_outcome changes on existing shipped capabilities except ARCH-SUPPLY-VENDORED citing the existing vendor hash test. Not shipped until Security accepts pins.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

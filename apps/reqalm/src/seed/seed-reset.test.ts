@@ -228,7 +228,7 @@ describe("seed reset", () => {
     await loadDogfoodSeed(pg.pool, config, seed);
 
     await pg.pool.query(
-      `UPDATE requirement_versions SET status = 'draft' WHERE uid = 'CAP-DEVENV-SEED-RESET'`,
+      `UPDATE requirement_versions SET status = 'draft' WHERE uid = 'CAP-DEVENV-SEED-RESET.1'`,
     );
     await pg.pool.query(`UPDATE releases SET status = 'planned', shipped_on = NULL WHERE id = 'rel-r1-seed-reset'`);
     await pg.pool.query(
@@ -253,7 +253,7 @@ describe("seed reset", () => {
 
     const cap = await pg.pool.query(
       `SELECT status FROM requirement_versions WHERE uid = $1`,
-      ["CAP-DEVENV-SEED-RESET"],
+      ["CAP-DEVENV-SEED-RESET.1"],
     );
     assert.equal(cap.rows[0]?.status, "active");
 

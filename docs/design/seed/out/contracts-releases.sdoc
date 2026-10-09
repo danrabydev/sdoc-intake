@@ -246,7 +246,7 @@ RELATIONS:
   VALUE: ARCH-API
   ROLE: InScopeOf
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
+  VALUE: ARCH-API-RBAC.1
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: ARCH-API-LAYERS
@@ -255,13 +255,13 @@ RELATIONS:
   VALUE: ARCH-OTEL
   ROLE: InScopeOf
 - TYPE: Parent
-  VALUE: CAP-SSO
+  VALUE: CAP-SSO.1
   ROLE: InScopeOf
 - TYPE: Parent
-  VALUE: CAP-SCOPED-VIEW
+  VALUE: CAP-SCOPED-VIEW.1
   ROLE: InScopeOf
 - TYPE: Parent
-  VALUE: CAP-RBAC
+  VALUE: CAP-RBAC.1
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: CAP-TREE
@@ -294,7 +294,7 @@ KIND: contract
 contract_id: contract-security-package
 client_id: raby-family
 project_id: reqalm
-in_scope_of: A01, A02, A03, A04, A06, A07, A08, A09, A10, A11, A12.1, ARCH-CP-SCOPE, ARCH-API-RBAC, ARCH-OTEL, ARCH-UI-GUARD, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, CAP-MCP-DESK, CAP-AUDIT, MC01.1, MC02, MC03, M01, M02, M03, D11, H06
+in_scope_of: A01, A02, A03, A04, A06, A07, A08, A09, A10, A11, A12.1, ARCH-CP-SCOPE, ARCH-API-RBAC.1, ARCH-OTEL, ARCH-UI-GUARD, CAP-SSO.1, CAP-SCOPED-VIEW.1, CAP-RBAC.1, CAP-MCP-DESK, CAP-AUDIT, MC01.1, MC02, MC03, M01, M02, M03, D11, H06
 in_scope_of_count: 28
 <<<
 RELATIONS:
@@ -337,7 +337,7 @@ RELATIONS:
   VALUE: ARCH-CP-SCOPE
   ROLE: InScopeOf
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
+  VALUE: ARCH-API-RBAC.1
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: ARCH-OTEL
@@ -346,13 +346,13 @@ RELATIONS:
   VALUE: ARCH-UI-GUARD
   ROLE: InScopeOf
 - TYPE: Parent
-  VALUE: CAP-SSO
+  VALUE: CAP-SSO.1
   ROLE: InScopeOf
 - TYPE: Parent
-  VALUE: CAP-SCOPED-VIEW
+  VALUE: CAP-SCOPED-VIEW.1
   ROLE: InScopeOf
 - TYPE: Parent
-  VALUE: CAP-RBAC
+  VALUE: CAP-RBAC.1
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: CAP-MCP-DESK
@@ -397,7 +397,7 @@ KIND: contract
 contract_id: contract-platform-baseline
 client_id: raby-family
 project_id: reqalm
-in_scope_of: A01, A03, B04, B07, B08, C01, C06, D01, D02, D03, D04, ARCH-CP-HIER, ARCH-VER, ARCH-API, ARCH-API-LAYERS, ARCH-UI, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, CAP-TREE, L02, M04, N01
+in_scope_of: A01, A03, B04, B07, B08, C01, C06, D01, D02, D03, D04, ARCH-CP-HIER, ARCH-VER, ARCH-API, ARCH-API-LAYERS, ARCH-UI, CAP-SSO.1, CAP-SCOPED-VIEW.1, CAP-RBAC.1, CAP-TREE, L02, M04, N01
 in_scope_of_count: 23
 <<<
 RELATIONS:
@@ -452,13 +452,13 @@ RELATIONS:
   VALUE: ARCH-UI
   ROLE: InScopeOf
 - TYPE: Parent
-  VALUE: CAP-SSO
+  VALUE: CAP-SSO.1
   ROLE: InScopeOf
 - TYPE: Parent
-  VALUE: CAP-SCOPED-VIEW
+  VALUE: CAP-SCOPED-VIEW.1
   ROLE: InScopeOf
 - TYPE: Parent
-  VALUE: CAP-RBAC
+  VALUE: CAP-RBAC.1
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: CAP-TREE
@@ -1776,17 +1776,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-browse-ui-relations
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — browse requirement relationships UI (read-only)
 STATEMENT: >>>
-ReqALM release `R1 — browse requirement relationships UI (read-only)` (status=planned, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — browse requirement relationships UI (read-only)` (status=shipped, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-browse-ui-relations
 project_id: reqalm
-shipped_on: None
-raw_status: planned
+shipped_on: 2026-10-09
+raw_status: shipped
 delivers: CAP-BROWSE-UI-RELATIONS
 delivers_count: 1
 <<<
@@ -1795,6 +1795,29 @@ RELATIONS:
   VALUE: SEC-RELEASES-EXPORT
 - TYPE: Parent
   VALUE: CAP-BROWSE-UI-RELATIONS
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-cyber-control-placement
+STATUS: Draft
+TITLE: Release R1-cyber-control-placement
+STATEMENT: >>>
+ReqALM release `R1-cyber-control-placement` (status=planned, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-cyber-control-placement
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-CYBER-CONTROL-PLACEMENT
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-CYBER-CONTROL-PLACEMENT
   ROLE: Delivers
 
 [[/SECTION]]
