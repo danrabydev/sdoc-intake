@@ -26,15 +26,10 @@ describe("010_catalog_read migration", () => {
       await db.exec(`INSERT INTO catalog_defs (id, is_standard, project_id) VALUES ('cat-orphan-mig', false, 'ghost-project')`);
       await db.exec(await readFile(path.join(dir, "010_catalog_read.sql"), "utf8"));
       await db.query("INSERT INTO schema_migrations (id) VALUES ('010_catalog_read') ON CONFLICT DO NOTHING");
-      const row = await db.query<{ is_standard: boolean; project_id: string | null }>(
-        `SELECT is_standard, project_id FROM catalog_defs WHERE id = 'cat-orphan-mig'`,
-      );
+      const row = await db.query<{ is_standard: boolean; project_id: string | null }>(`SELECT is_standard, project_id FROM catalog_defs WHERE id = 'cat-orphan-mig'`);
       assert.equal(row.rows[0]?.is_standard, false);
       assert.equal(row.rows[0]?.project_id, null);
-      await assert.rejects(
-        () => db.exec(`INSERT INTO catalog_defs (id, is_standard, project_id) VALUES ('cat-bad-fk', false, 'no-project')`),
-        /catalog_defs_project_id_fkey/i,
-      );
+      await assert.rejects(() => db.exec(`INSERT INTO catalog_defs (id, is_standard, project_id) VALUES ('cat-bad-fk', false, 'no-project')`), /catalog_defs_project_id_fkey/i);
     } finally {
       await db.close();
     }
