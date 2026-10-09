@@ -75,7 +75,8 @@ describe("releases read API", () => {
     assert.equal(planned.data.total, 4);
     assert.equal(planned.data.items.length, 4);
     assert.ok(planned.data.items.every((i) => i.status === "planned"));
-    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-lf-endings"));
+    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-catalogs-api"));
+    assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-lf-endings"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-relations-api"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-mfa-qr"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-browse-ui-tree"));
@@ -85,7 +86,8 @@ describe("releases read API", () => {
     const shipped = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=shipped&limit=100", headers: bearer })
     ).json() as { data: { total: number; items: Array<{ id: string; status: string }> } };
-    assert.equal(shipped.data.total, 22);
+    assert.equal(shipped.data.total, 23);
+    assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-lf-endings"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-relations-api"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-browse-ui-tree"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-mfa-qr"));
@@ -104,7 +106,7 @@ describe("releases read API", () => {
       "rel-r1-core-alm",
       "rel-r1-platform-followups",
       "rel-r0-sequences",
-      "rel-r1-lf-endings",
+      "rel-r1-catalogs-api",
       "rel-r1-relations-api",
     ]);
     for (let i = 1; i < list.data.items.length; i++) {

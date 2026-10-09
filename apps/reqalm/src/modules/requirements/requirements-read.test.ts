@@ -82,7 +82,8 @@ describe("requirements read API", () => {
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-MFA-QR"));
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-BROWSE-UI-TREE"));
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-RELATIONS-API"));
-    assert.ok(draft.data.items.some((i) => i.id === "CAP-DEVENV-LF-ENDINGS"));
+    assert.ok(!draft.data.items.some((i) => i.id === "CAP-DEVENV-LF-ENDINGS"));
+    assert.ok(draft.data.items.some((i) => i.id === "CAP-CATALOGS-API"));
     const uiActive = (
       await inject({
         method: "GET",

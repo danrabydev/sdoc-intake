@@ -186,6 +186,141 @@ paths:
           $ref: "#/components/responses/ProblemForbidden"
         "404":
           $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/catalogs:
+    get:
+      operationId: listProjectCatalogs
+      summary: List catalogs visible at project scope (with imprints)
+      tags: [catalogs]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Catalogs available to the scoped project (standards + owned project catalogs)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ProjectCatalogs"
+                  request_id:
+                    type: string
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "403":
+          $ref: "#/components/responses/ProblemForbidden"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/catalogs/{catalogId}/imprints/{imprintId}/controls:
+    get:
+      operationId: listImprintControls
+      summary: Paged catalog controls with project-scoped conforming counts
+      tags: [catalogs]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: catalogId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: imprintId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+      responses:
+        "200":
+          description: Paged control summaries
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/CatalogControlPage"
+                  request_id:
+                    type: string
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "403":
+          $ref: "#/components/responses/ProblemForbidden"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/catalogs/{catalogId}/imprints/{imprintId}/controls/{controlId}:
+    get:
+      operationId: getImprintControl
+      summary: Catalog control detail with conforming project lines
+      tags: [catalogs]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: catalogId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: imprintId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: controlId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Control text and conforming lines in this project
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/CatalogControlDetail"
+                  request_id:
+                    type: string
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "403":
+          $ref: "#/components/responses/ProblemForbidden"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
   /api/v1/projects/{projectId}/requirements/{requirementId}:
     get:
       operationId: getRequirement
@@ -356,6 +491,112 @@ components:
               description: Set only on visible conforms_to links to a catalog item
             trace_suspect:
               type: boolean
+    CatalogImprintSummary:
+      type: object
+      required: [id, version_label, status]
+      properties:
+        id:
+          type: string
+        version_label:
+          type: string
+        status:
+          type: string
+    CatalogSummary:
+      type: object
+      required: [id, title, is_standard, imprints]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        is_standard:
+          type: boolean
+        imprints:
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogImprintSummary"
+    ProjectCatalogs:
+      type: object
+      required: [project_id, catalogs]
+      properties:
+        project_id:
+          type: string
+        catalogs:
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogSummary"
+    CatalogControlSummary:
+      type: object
+      required: [id, title, family, conforming_count]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        family:
+          type: string
+        conforming_count:
+          type: integer
+          minimum: 0
+    CatalogControlPage:
+      type: object
+      required: [items, limit, offset, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogControlSummary"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+    ConformingLineLink:
+      oneOf:
+        - type: object
+          required: [mode]
+          properties:
+            mode:
+              type: string
+              const: direct
+        - type: object
+          required: [mode, edge_uid]
+          properties:
+            mode:
+              type: string
+              const: via
+            edge_uid:
+              type: string
+    ConformingProjectLine:
+      type: object
+      required: [id, title, status, link]
+      properties:
+        id:
+          type: string
+          description: Requirement line base_uid
+        title:
+          type: [string, "null"]
+        status:
+          type: string
+        link:
+          $ref: "#/components/schemas/ConformingLineLink"
+    CatalogControlDetail:
+      type: object
+      required: [id, title, family, text, conforming_lines]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        family:
+          type: string
+        text:
+          type: [string, "null"]
+        conforming_lines:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConformingProjectLine"
     RequirementRelations:
       type: object
       required: [id, project_id, outgoing, incoming]

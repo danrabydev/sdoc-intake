@@ -2900,6 +2900,7 @@ security.verification_note: Shipped with requirements read API PR #24.
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
+edge: ← satisfies from CAP-CATALOGS-API
 delivered_by_release: R1 — requirements read API
 <<<
 RELATIONS:
@@ -3392,6 +3393,7 @@ edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 edge: ← satisfies from CAP-RELATIONS-API
+edge: ← satisfies from CAP-CATALOGS-API
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -6368,6 +6370,7 @@ iteration: iter-r1
 security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← refines from ARCH-SEC-CAT-FK
+edge: ← satisfies from CAP-CATALOGS-API
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -6576,6 +6579,7 @@ security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
 edge: ← refines from ARCH-CAT-VISIBILITY
 edge: ← refines from ARCH-BROWSE-ROADMAP
+edge: ← satisfies from CAP-CATALOGS-API
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -6863,6 +6867,48 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-CAT-PIN
   ROLE: Refines
+
+[REQUIREMENT]
+UID: CAP-CATALOGS-API
+STATUS: Draft
+TITLE: Read catalogs and controls (catalogs API)
+STATEMENT: >>>
+Grant-scoped read-only catalogs API under /api/v1/projects/:projectId/catalogs: list visible catalogs with imprints (version label, status); paged controls for an imprint (id, title, family, conforming_count scoped to the project); control detail (title, statement text, conforming project lines with direct or version-pin link). Private catalogs 404 like unknown without a grant on the owning project. Dogfood seed loads catalog metadata, imprint labels, and conforms_to trace edges.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-CATALOGS-API
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Planned until catalogs read API PR merges.
+delivered_by_release: R1 — catalogs read API
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CAT
+- TYPE: Parent
+  VALUE: H09
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CAT-SCOPE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-READ-REQS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: C08
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-catalogs-api
+  ROLE: Delivers
 
 [[/SECTION]]
 
@@ -9730,6 +9776,7 @@ edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
 edge: ← refines from ARCH-API-RBAC.1
+edge: ← satisfies from CAP-CATALOGS-API
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -10351,6 +10398,7 @@ edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
+edge: ← satisfies from CAP-CATALOGS-API
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<
 RELATIONS:
@@ -16207,7 +16255,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-DEVENV-LF-ENDINGS
-STATUS: Draft
+STATUS: Active
 TITLE: Git LF line endings for Compose entrypoints
 STATEMENT: >>>
 Repository line endings are enforced for the Compose dev stack: a root .gitattributes keeps shell entrypoints and Docker/Compose context files as LF in Git so Linux containers never see a bash\r shebang when Windows Git checks out with core.autocrlf=true. Documented recovery re-normalizes an existing Windows working tree after pulling the fix.
@@ -16219,7 +16267,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until .gitattributes + dev docs PR merges; verify docker compose up on Windows checkout.
+security.verification_note: Shipped with Git LF line endings PR #35 (merge 5cac83400c5c0fe9b2b4c54db408f5850821c395); Windows core.autocrlf=true checkout test confirms shell entrypoints remain LF.
 delivered_by_release: R1 — Git LF line endings (Compose entrypoints)
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
