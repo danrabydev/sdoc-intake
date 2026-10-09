@@ -545,7 +545,7 @@ release_id: rel-r0-sequences
 project_id: reqalm
 shipped_on: 2026-10-06
 raw_status: shipped
-delivers: A01, A02, A03, A04, A05, A06, A07, A08, ARCH-CP-HIER, ARCH-VER, ARCH-UI, ARCH-API, ARCH-OTEL, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC.1, MC01.1, MC02
+delivers: A01, A02, A03, A04, A05, A06, A07, A08, ARCH-CP-HIER, ARCH-VER, ARCH-UI, ARCH-API, ARCH-OTEL, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, MC01.1, MC02
 delivers_count: 18
 <<<
 RELATIONS:
@@ -597,7 +597,7 @@ RELATIONS:
   VALUE: CAP-SCOPED-VIEW
   ROLE: Delivers
 - TYPE: Parent
-  VALUE: CAP-RBAC.1
+  VALUE: CAP-RBAC
   ROLE: Delivers
 - TYPE: Parent
   VALUE: MC01.1
@@ -846,10 +846,10 @@ RELATIONS:
   VALUE: CAP-OAUTH-AS
   ROLE: Delivers
 - TYPE: Parent
-  VALUE: CAP-RBAC.1
+  VALUE: CAP-RBAC
   ROLE: Delivers
 - TYPE: Parent
-  VALUE: CAP-UI-FRAME.1
+  VALUE: CAP-UI-FRAME
   ROLE: Delivers
 
 [REQUIREMENT]

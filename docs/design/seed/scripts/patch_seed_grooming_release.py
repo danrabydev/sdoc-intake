@@ -379,42 +379,62 @@ def mint_capability_content_n(
             mint_kind="content",
         ),
     )
-    for rel in data.get("releases") or []:
-        delivers = rel.get("delivers") or []
-        rel["delivers"] = [tip if d == base_uid else d for d in delivers]
-
-
-def wire_architecture_edges(data) -> None:
     edges = data.setdefault("edges", [])
-    pairs = [
-        # Acceptance / trace
+    ensure_edge(edges, {"from": tip, "to": base_uid, "kind": "refines"})
+    for e in list(edges):
+        if e.get("from") != base_uid or e.get("kind") not in ("satisfies", "conforms_to"):
+            continue
+        copied = {k: v for k, v in e.items() if k in ("to", "kind", "catalog_imprint_id")}
+        copied["from"] = tip
+        ensure_edge(edges, copied)
+    suspect_reason = (
+        f"target line content-succeeded; edge still on superseded .0 ({base_uid})"
+    )
+    for e in edges:
+        if e.get("to") != base_uid:
+            continue
+        if e.get("from") == tip and e.get("kind") == "refines":
+            continue
+        if not e.get("trace_suspect"):
+            e["trace_suspect"] = True
+            e["suspect_reason"] = suspect_reason
+            stats["versions_updated"] += 1
+
+
+def restore_shipped_release_delivers(data) -> None:
+    """Shipped releases pin historical version UIDs; content mint must not rewrite them to .1."""
+    replacements = {
+        "rel-r0-sequences": {"CAP-RBAC.1": "CAP-RBAC"},
+        "rel-r1-foundation-shell-auth": {
+            "CAP-RBAC.1": "CAP-RBAC",
+            "CAP-UI-FRAME.1": "CAP-UI-FRAME",
+        },
+    }
+    for rel_id, mapping in replacements.items():
+        rel = find(data.get("releases"), "id", rel_id)
+        if not rel:
+            continue
+        rel["delivers"] = [mapping.get(d, d) for d in (rel.get("delivers") or [])]
+
+
+def prune_legacy_grooming_edges(data) -> None:
+    """Drop parent/section noise and stale CAP-RELATIONS satisfies (idempotent re-run)."""
+    edges = data.setdefault("edges", [])
+    noise = [
         ("ARCH-REQ-AC-FACET", "SEC-RL", "refines"),
         ("ARCH-REQ-AC-ROLLUP", "SEC-RL", "refines"),
-        ("ARCH-REQ-AC-ROLLUP", "ARCH-REQ-AC-FACET", "refines"),
         ("ARCH-TRACE-RECHECK", "SEC-EDGE", "refines"),
-        ("ARCH-SUSPECT", "ARCH-TRACE-RECHECK", "uses"),
-        ("ARCH-TRACE-VIEW-RTM", "E06", "refines"),
         ("ARCH-TRACE-VIEW-RTM", "SEC-UI", "refines"),
-        ("ARCH-TRACE-VIEW-CCM", "E06", "refines"),
         ("ARCH-TRACE-VIEW-CCM", "SEC-UI", "refines"),
         ("ARCH-TRACE-LAYOUT-WORKER", "SEC-UI", "refines"),
-        ("ARCH-TRACE-VIEW-RTM", "CAP-UI-KIT-TREE", "uses"),
-        ("ARCH-TRACE-VIEW-CCM", "CAP-UI-KIT-TREE", "uses"),
-        # Catalogs
         ("ARCH-CAT-EXTERNAL", "SEC-CAT", "refines"),
         ("ARCH-CAT-PROJECT-ROLLUP", "SEC-CAT", "refines"),
-        ("ARCH-CAT-PROJECT-ROLLUP", "ARCH-CAT-EXTERNAL", "refines"),
-        ("ARCH-CAT-VISIBILITY", "H09", "refines"),
         ("ARCH-CAT-VISIBILITY", "SEC-CAT", "refines"),
-        # Hierarchy
-        ("ARCH-HIER-REQ-DECOMP", "C01", "refines"),
         ("ARCH-HIER-REQ-DECOMP", "ARCH-CP-HIER", "refines"),
-        ("ARCH-HIER-CAP-PARTOF", "ARCH-CP-HIER", "refines"),
         ("ARCH-HIER-USES-DEP", "SEC-EDGE", "refines"),
         ("ARCH-HIER-SECTION-GROUP", "ARCH-CP-HIER", "refines"),
         ("ARCH-UI-KIT-SHARED", "SEC-UI", "refines"),
         ("ARCH-BROWSE-ROADMAP", "SEC-UI", "refines"),
-        # Security follow-ups (PR #31 / pre-write)
         ("ARCH-SEC-EDGE-DEDUPE-DB", "SEC-EDGE", "refines"),
         ("ARCH-SEC-EDGE-DEDUPE-API", "SEC-EDGE", "refines"),
         ("ARCH-SEC-SEED-INTEGRITY", "SEC-IO", "refines"),
@@ -433,23 +453,42 @@ def wire_architecture_edges(data) -> None:
         ("ARCH-WRITE-RESERVED-IDS", "SEC-API", "refines"),
         ("ARCH-KEY-RUNTIME-CACHE", "ARCH-KEY", "refines"),
         ("ARCH-TEST-HARNESS-TEARDOWN", "SEC-BUILD", "refines"),
-        # Capabilities
+        ("CAP-BROWSE-ROADMAP", "K03", "satisfies"),
+        ("CAP-SEED-GROOMING", "K03", "satisfies"),
+        ("CAP-RELATIONS-API", "ARCH-SEC-EDGE-DEDUPE-DB", "satisfies"),
+        ("CAP-RELATIONS-API", "ARCH-SEC-EDGE-DEDUPE-API", "satisfies"),
+        ("CAP-RELATIONS-API", "ARCH-SEC-XPROJ-READ", "satisfies"),
+        ("CAP-RELATIONS-API", "ARCH-SEC-REL-PAGING", "satisfies"),
+    ]
+    for frm, to, kind in noise:
+        remove_edge(edges, {"from": frm, "to": to, "kind": kind})
+
+
+def wire_architecture_edges(data) -> None:
+    edges = data.setdefault("edges", [])
+    pairs = [
+        ("ARCH-REQ-AC-ROLLUP", "ARCH-REQ-AC-FACET", "refines"),
+        ("ARCH-SUSPECT", "ARCH-TRACE-RECHECK", "uses"),
+        ("ARCH-HIER-USES-DEP", "ARCH-TRACE-RECHECK", "uses"),
+        ("ARCH-TRACE-VIEW-RTM", "E06", "refines"),
+        ("ARCH-TRACE-VIEW-CCM", "E06", "refines"),
+        ("ARCH-CAT-VISIBILITY", "H09", "refines"),
+        ("ARCH-CAT-PROJECT-ROLLUP", "ARCH-CAT-EXTERNAL", "refines"),
+        ("ARCH-HIER-REQ-DECOMP", "C01", "refines"),
+        ("ARCH-HIER-CAP-PARTOF", "ARCH-CP-HIER", "refines"),
+        ("ARCH-TRACE-VIEW-RTM", "CAP-UI-KIT-TREE", "uses"),
+        ("ARCH-TRACE-VIEW-CCM", "CAP-UI-KIT-TREE", "uses"),
         ("CAP-UI-KIT", "ARCH-UI-KIT-SHARED", "satisfies"),
         ("CAP-UI-KIT", "ARCH-UI", "satisfies"),
         ("CAP-UI-KIT", "C07", "satisfies"),
         ("CAP-UI-KIT-TREE", "CAP-UI-KIT", "refines"),
         ("CAP-UI-KIT-TREE", "ARCH-UI-KIT-SHARED", "satisfies"),
         ("CAP-UI-KIT-CHROME", "CAP-UI-KIT", "refines"),
+        ("CAP-UI-KIT-CHROME", "ARCH-UI-KIT-SHARED", "satisfies"),
         ("CAP-BROWSE-ROADMAP", "ARCH-BROWSE-ROADMAP", "satisfies"),
-        ("CAP-BROWSE-ROADMAP", "K03", "satisfies"),
         ("CAP-BROWSE-UI-TREE", "CAP-UI-KIT-TREE", "uses"),
-        ("CAP-SEED-GROOMING", "K03", "satisfies"),
         ("CAP-SEED-GROOMING", "ARCH-BROWSE-ROADMAP", "satisfies"),
-        ("CAP-RELATIONS-API", "ARCH-SEC-EDGE-DEDUPE-DB", "satisfies"),
-        ("CAP-RELATIONS-API", "ARCH-SEC-EDGE-DEDUPE-API", "satisfies"),
-        ("CAP-RELATIONS-API", "ARCH-SEC-XPROJ-READ", "satisfies"),
         ("CAP-RELATIONS-API", "ARCH-SEC-REL-STUB", "satisfies"),
-        ("CAP-RELATIONS-API", "ARCH-SEC-REL-PAGING", "satisfies"),
     ]
     for frm, to, kind in pairs:
         ensure_edge(edges, {"from": frm, "to": to, "kind": kind})
@@ -474,8 +513,7 @@ REQ_RECHECK = (
     "Incomplete means the target was never completed. Re-check shall be represented as trace_suspect (and review queues) "
     "separately from incomplete. Audit-sensitive targets — controls in the AU and AC families plus any target the user "
     "marks audit-sensitive — shall enter re-check when an upstream satisfying or conforming capability changes. A uses "
-    "dependency change shall flag dependents for re-check per ARCH-TRACE-RECHECK without inheriting controls unless "
-    "explicitly modeled."
+    "dependency change shall flag dependents for re-check without inheriting controls unless explicitly modeled."
 )
 REQ_CAT_REP = (
     "Standard and custom catalogs (NIST 800-53, STIG, project REQALM-SEC-*) shall live outside the project "
@@ -552,7 +590,9 @@ SEC_EDGE_DEDUPE_DB = (
 SEC_EDGE_DEDUPE_API = (
     "Trace edge create/update APIs shall treat the dedupe key as "
     "(from_project_id, from_uid, to_project_id, to_uid, kind, catalog_imprint_id) including the peer project id, "
-    "matching the database uniqueness rule in ARCH-SEC-EDGE-DEDUPE-DB."
+    "matching the database uniqueness rule in ARCH-SEC-EDGE-DEDUPE-DB. The grant-scoped GET relations read API shall "
+    "use the same peer-inclusive key when deduplicating edges in responses; requirements-relations.ts on main cb8a8c9 "
+    "still omits the peer project id in its dedupe key — this requirement remains unsatisfied until a follow-up PR."
 )
 SEC_SEED_BASE_UID = (
     "The dogfood seed loader shall reject a base_uid that appears in more than one project and shall reject "
@@ -609,8 +649,9 @@ WRITE_RESERVED_IDS = (
     "Minting requirement or capability ids shall reject reserved path segments defined by the product id policy."
 )
 SEC_KEY_CACHE = (
-    "The runtime shall cache the unwrapped signing key in-process for performance and shall flush OpenTelemetry spans "
-    "on graceful shutdown after draining in-flight token operations."
+    "The runtime shall cache the unwrapped signing key in-process for performance, shall clear that cache on key "
+    "rotation events, and shall flush OpenTelemetry spans on graceful shutdown after draining in-flight token "
+    "operations."
 )
 SEC_TEST_TEARDOWN = (
     "createTestApp (in-process harness) shall close the database pool when setup throws so PGlite/file-backed tests do "
@@ -638,7 +679,7 @@ def main() -> None:
         "ARCH-WRITE-UOW-AUDIT": "AU-9",
         "ARCH-WRITE-AUDIT-FLOOD": "AU-9",
         "ARCH-WRITE-TRUNCATE-GUARD": "CM-6",
-        "ARCH-KEY-RUNTIME-CACHE": "SC-18",
+        "ARCH-KEY-RUNTIME-CACHE": "SC-12",
         "ARCH-TRACE-RECHECK": "AU-9",
     }
     arch_reqs = [
@@ -795,7 +836,7 @@ def main() -> None:
             "hierarchy, security follow-ups), browse roadmap releases, and honesty corrections in dogfood.yaml with "
             "regenerated StrictDoc out/ and HANDOFF.md. No application runtime changes."
         ),
-        satisfies=["K03", "ARCH-BROWSE-ROADMAP"],
+        satisfies=["ARCH-BROWSE-ROADMAP"],
         status="draft",
         verification_note="Planned until seed grooming PR merges.",
     )
@@ -870,6 +911,7 @@ def main() -> None:
         CAP_RBAC_V1_STMT,
         "Partial pass on .1: foundation + read routes verified; full matrix deferred to core-ALM.",
     )
+    restore_shipped_release_delivers(data)
 
     patch_statement(
         "ARCH-API-RBAC",
@@ -887,32 +929,17 @@ def main() -> None:
         CAP_UI_FRAME_V1_STMT,
         "Partial pass on .1: shell + guards verified on PR #13; full UI catalog still planned.",
     )
+    restore_shipped_release_delivers(data)
 
-    patch_statement(
-        "CAP-READ-REQS",
-        "Grant-scoped requirements read APIs: paged list, detail, and version history. listScope enforces "
-        "allowedProjectIds. Trace edges load from dogfood into trace_edges (PR #31 merge on main); relations detail "
-        "is served by CAP-RELATIONS-API (seed release still parallel).",
+    patch_verification(
+        "CAP-RELATIONS-API",
+        None,
+        "Runtime on main (PR #31); rel-r1-relations-api release still planned in a parallel seed PR.",
     )
-
-    rel_api = find(data.get("requirement_versions"), "uid", "CAP-RELATIONS-API")
-    if rel_api:
-        rel_stmt = (
-            "Grant-scoped read-only GET .../requirements/:id/relations with redacted cross-project stubs, catalog "
-            "labels, and suspect flags. Runtime is implemented on main (PR #31 merge cb8a8c9)."
-        )
-        rel_note = (
-            "Code shipped on main; rel-r1-relations-api release remains planned until a dedicated seed PR marks "
-            "shipped — this grooming PR does not flip capability/release status."
-        )
-        patch_statement("CAP-RELATIONS-API", rel_stmt)
-        patch_verification("CAP-RELATIONS-API", None, rel_note)
-        if rel_api.get("status") == "shipped":
-            rel_api["status"] = "active"
-            bump_status_correction()
 
     ensure_r0_sequences_note(data)
     dedupe_seed_grooming_approvals(data)
+    prune_legacy_grooming_edges(data)
     wire_architecture_edges(data)
 
     ar_cp = find(data.get("approval_records"), "id", "ar-browse-ui-cp")
