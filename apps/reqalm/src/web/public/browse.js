@@ -1,9 +1,10 @@
 /** Client-side browse screens (read-only). */
 
-import {
-  fillRequirementRelationsPanel,
-  relationsPanelShell,
-} from "./browse-relations.js";
+import { el } from "./browse-dom.js";
+import { appRequirementHref as coreAppRequirementHref, loadJson as coreLoadJson } from "./browse-core.js";
+import { fillRequirementRelationsPanel, relationsPanelShell } from "./browse-relations.js";
+
+export { el } from "./browse-dom.js";
 
 export const APP_NAV = [
   { href: "/app/clients", label: "Clients" },
@@ -33,7 +34,7 @@ export function appProjectHref(projectId) {
   return `/app/projects/${encodeURIComponent(projectId)}`;
 }
 export function appRequirementHref(projectId, requirementId) {
-  return `/app/projects/${encodeURIComponent(projectId)}/requirements/${encodeURIComponent(requirementId)}`;
+  return coreAppRequirementHref(projectId, requirementId);
 }
 export function appRequirementVersionsHref(projectId, requirementId, offset = 0) {
   const base = `${appRequirementHref(projectId, requirementId)}/versions`;
@@ -192,17 +193,6 @@ export function pagingOffsets(offset, limit, total) {
   return { prevOff, nextOff, showPrev: offset > 0, showNext: nextOff < total };
 }
 
-export function el(tag, props = {}, children = []) {
-  const node = document.createElement(tag);
-  for (const [k, v] of Object.entries(props)) {
-    if (k === "className") node.className = v;
-    else if (k === "text") node.textContent = v;
-    else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2).toLowerCase(), v);
-    else if (v != null) node.setAttribute(k, v);
-  }
-  for (const child of children) if (child != null) node.append(child);
-  return node;
-}
 function excerpt(text, max = 72) {
   if (!text) return "—";
   const t = String(text).trim();
@@ -252,12 +242,7 @@ function dataTable(headers, rows) {
   return table;
 }
 export async function loadJson(apiFn, path) {
-  const res = await apiFn(path);
-  if (!res) return { kind: "auth" };
-  if (res.status === 404) return { kind: "not_found" };
-  if (!res.ok) return { kind: "error", status: res.status };
-  const body = await res.json();
-  return { kind: "ok", data: body.data ?? body };
+  return coreLoadJson(apiFn, path);
 }
 function isPastEnd(page, offset) {
   return (page.total ?? 0) > 0 && (page.offset ?? offset) >= (page.total ?? 0);

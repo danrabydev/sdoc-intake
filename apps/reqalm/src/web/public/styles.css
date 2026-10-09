@@ -433,6 +433,7 @@ pre {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.35rem 0.5rem;
+  min-height: 2.35rem;
   padding: 0.45rem 0.65rem;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -440,6 +441,19 @@ pre {
   font-size: 0.9rem;
   text-decoration: none;
   color: inherit;
+  box-sizing: border-box;
+}
+
+.relation-chip-version {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+}
+
+.relation-show-all {
+  margin-top: 0.35rem;
+  cursor: pointer;
 }
 
 .relation-chip-link:hover {

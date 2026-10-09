@@ -567,6 +567,9 @@ describe("browse UI render (jsdom)", () => {
   });
 
   it("requirement detail relationships panel: links, catalog, restricted, suspect, empty, error", async () => {
+    const xss = '<img src=x onerror=alert(1)>';
+    const encodedId = "A B/C?x#y";
+    const encodedHref = `/app/projects/reqalm/requirements/${encodeURIComponent(encodedId)}`;
     const relPayload = {
       id: "ANCHOR",
       project_id: "reqalm",
@@ -578,7 +581,17 @@ describe("browse UI render (jsdom)", () => {
             self_version_id: "ANCHOR",
             peer_version_id: "PEER-OUT",
             trace_suspect: false,
-            peer: { id: "PEER-OUT", title: "Outgoing peer", kind: "requirement", type: "requirement" },
+            peer: { id: "PEER-OUT", title: xss, kind: "requirement", type: "requirement", project_id: "reqalm" },
+          },
+        ],
+        uses: [
+          {
+            relation_kind: "uses",
+            direction: "outgoing",
+            self_version_id: "ANCHOR",
+            peer_version_id: "USE-TGT",
+            trace_suspect: false,
+            peer: { id: "USE-TGT", title: "Uses target", kind: "requirement", type: "requirement", project_id: "reqalm" },
           },
         ],
         conforms_to: [
@@ -589,7 +602,7 @@ describe("browse UI render (jsdom)", () => {
             peer_version_id: "AC-3",
             catalog_imprint_id: "nist-800-53@rev5-dogfood-20261006",
             trace_suspect: true,
-            peer: { id: "AC-3", title: "Access Enforcement", kind: "control", type: "catalog_control" },
+            peer: { id: "AC-3", title: xss, kind: "control", type: "catalog_control", project_id: "reqalm" },
           },
         ],
       },
@@ -601,32 +614,42 @@ describe("browse UI render (jsdom)", () => {
             self_version_id: "ANCHOR",
             peer_version_id: "PEER-IN",
             trace_suspect: true,
-            peer: { id: "PEER-IN", title: null, kind: "requirement", type: "requirement" },
+            peer: { id: "PEER-IN", title: null, kind: "requirement", type: "requirement", project_id: "reqalm" },
+          },
+          {
+            relation_kind: "refines",
+            direction: "incoming",
+            self_version_id: "ANCHOR",
+            peer_version_id: "TWIN-A01",
+            trace_suspect: false,
+            peer: { id: "A01", title: "Twin A01", kind: "requirement", type: "requirement", project_id: "twin-b" },
+          },
+          {
+            relation_kind: "refines",
+            direction: "incoming",
+            self_version_id: "ANCHOR",
+            peer_version_id: encodedId,
+            trace_suspect: false,
+            peer: { id: encodedId, title: "Encoded id peer", kind: "requirement", type: "requirement", project_id: "reqalm" },
           },
           { restricted: true, relation_kind: "refines", direction: "incoming" },
         ],
       },
     };
+    const detailBody = {
+      id: "ANCHOR",
+      title: "Anchor",
+      kind: "capability",
+      type: "capability",
+      status: "active",
+      version_n: 0,
+      statement: "S",
+      attributes: {},
+    };
     const main = document.createElement("main");
     await renderRequirementDetail(main, {
       apiFn: mockFetch((url) => {
-        if (url === "/api/v1/projects/reqalm/requirements/ANCHOR") {
-          return {
-            status: 200,
-            body: {
-              data: {
-                id: "ANCHOR",
-                title: "Anchor",
-                kind: "capability",
-                type: "capability",
-                status: "active",
-                version_n: 0,
-                statement: "S",
-                attributes: {},
-              },
-            },
-          };
-        }
+        if (url === "/api/v1/projects/reqalm/requirements/ANCHOR") return { status: 200, body: { data: detailBody } };
         if (url === relationsPath("reqalm", "ANCHOR")) return { status: 200, body: { data: relPayload } };
         return { status: 404 };
       }),
@@ -634,26 +657,44 @@ describe("browse UI render (jsdom)", () => {
       requirementId: "ANCHOR",
       listFilters: {},
     });
-    assert.match(main.textContent ?? "", /Relationships/);
-    assert.match(main.textContent ?? "", /Outgoing/);
-    assert.match(main.textContent ?? "", /Incoming/);
-    assert.match(main.textContent ?? "", /satisfies/);
-    assert.match(main.textContent ?? "", /refines/);
-    const outLink = main.querySelector('a.relation-chip-link[href="/app/projects/reqalm/requirements/PEER-OUT"]');
+    assert.equal(main.querySelectorAll("img").length, 0);
+    assert.ok((main.textContent ?? "").includes(xss));
+    const outgoing = main.querySelector('[data-direction="outgoing"]');
+    const incoming = main.querySelector('[data-direction="incoming"]');
+    assert.ok(outgoing?.textContent?.includes("Outgoing"));
+    assert.ok(incoming?.textContent?.includes("Incoming"));
+    assert.match(outgoing?.textContent ?? "", /Satisfies/);
+    assert.match(outgoing?.textContent ?? "", /this → 1 peer/);
+    assert.match(outgoing?.textContent ?? "", /Uses/);
+    assert.match(incoming?.textContent ?? "", /Refines/);
+    assert.match(incoming?.textContent ?? "", /→ this 4 peers/);
+    const outLink = outgoing?.querySelector('a.relation-chip-link[href="/app/projects/reqalm/requirements/PEER-OUT"]');
     assert.ok(outLink);
-    assert.match(outLink?.textContent ?? "", /Outgoing peer/);
-    const inLink = main.querySelector('a.relation-chip-link[href="/app/projects/reqalm/requirements/PEER-IN"]');
+    assert.ok(outgoing?.contains(outLink));
+    assert.ok(!incoming?.contains(outLink));
+    const usesLink = outgoing?.querySelector('a.relation-chip-link[href="/app/projects/reqalm/requirements/USE-TGT"]');
+    assert.ok(usesLink);
+    assert.match(usesLink?.textContent ?? "", /Uses target/);
+    const inLink = incoming?.querySelector('a.relation-chip-link[href="/app/projects/reqalm/requirements/PEER-IN"]');
     assert.ok(inLink);
-    assert.ok(!inLink?.textContent?.includes("null"));
+    assert.equal(inLink?.querySelector(".relation-chip-title"), null);
+    assert.match(inLink?.textContent ?? "", /PEER-IN/);
+    const twinLink = incoming?.querySelector('a.relation-chip-link[href="/app/projects/twin-b/requirements/A01"]');
+    assert.ok(twinLink);
+    assert.equal(incoming?.querySelector(`a[href="/app/projects/reqalm/requirements/A01"]`), null);
+    const encLink = incoming?.querySelector(`a.relation-chip-link[href="${encodedHref}"]`);
+    assert.ok(encLink);
     assert.equal(main.querySelectorAll(".relation-chip-suspect").length, 2);
     const catalog = main.querySelector(".relation-chip-catalog");
     assert.ok(catalog);
-    assert.equal(catalog?.querySelector("a"), null);
+    assert.notEqual(catalog?.tagName, "A");
+    assert.equal(catalog?.getAttribute("href"), null);
     assert.match(catalog?.textContent ?? "", /AC-3/);
     assert.match(catalog?.textContent ?? "", /NIST/);
     const restricted = main.querySelector(".relation-chip-restricted");
     assert.ok(restricted);
-    assert.equal(restricted?.querySelector("a"), null);
+    assert.notEqual(restricted?.tagName, "A");
+    assert.equal(restricted?.getAttribute("href"), null);
     assert.match(restricted?.textContent ?? "", /Restricted/);
     assert.doesNotMatch(restricted?.textContent ?? "", /PEER/);
 
@@ -661,10 +702,7 @@ describe("browse UI render (jsdom)", () => {
     await renderRequirementDetail(errMain, {
       apiFn: mockFetch((url) => {
         if (url === "/api/v1/projects/reqalm/requirements/ERR-1") {
-          return {
-            status: 200,
-            body: { data: { id: "ERR-1", title: "E", kind: "requirement", type: "requirement", status: "active", version_n: 0, statement: "s", attributes: {} } },
-          };
+          return { status: 200, body: { data: { id: "ERR-1", title: "E", kind: "requirement", type: "requirement", status: "active", version_n: 0, statement: "s", attributes: {} } } };
         }
         if (url === relationsPath("reqalm", "ERR-1")) return { status: 500, body: {} };
         return { status: 404 };
@@ -674,15 +712,28 @@ describe("browse UI render (jsdom)", () => {
       listFilters: {},
     });
     assert.ok(errMain.querySelector(".relations-error"));
+    assert.equal(errMain.querySelector(".relations-loading"), null);
+
+    const netMain = document.createElement("main");
+    await renderRequirementDetail(netMain, {
+      apiFn: mockFetch((url) => {
+        if (url === "/api/v1/projects/reqalm/requirements/NET-1") {
+          return { status: 200, body: { data: { id: "NET-1", title: "N", kind: "requirement", type: "requirement", status: "active", version_n: 0, statement: "s", attributes: {} } } };
+        }
+        if (url === relationsPath("reqalm", "NET-1")) throw new Error("network down");
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+      requirementId: "NET-1",
+      listFilters: {},
+    });
+    assert.ok(netMain.querySelector(".relations-error"));
 
     const emptyMain = document.createElement("main");
     await renderRequirementDetail(emptyMain, {
       apiFn: mockFetch((url) => {
         if (url === "/api/v1/projects/reqalm/requirements/EMPTY-1") {
-          return {
-            status: 200,
-            body: { data: { id: "EMPTY-1", title: "E", kind: "requirement", type: "requirement", status: "active", version_n: 0, statement: "s", attributes: {} } },
-          };
+          return { status: 200, body: { data: { id: "EMPTY-1", title: "E", kind: "requirement", type: "requirement", status: "active", version_n: 0, statement: "s", attributes: {} } } };
         }
         if (url === relationsPath("reqalm", "EMPTY-1")) return { status: 200, body: emptyRelationsPayload("EMPTY-1") };
         return { status: 404 };
@@ -696,12 +747,32 @@ describe("browse UI render (jsdom)", () => {
     assert.equal(imprintShortLabel("nist-800-53@rev5"), "NIST");
     const shell = relationsPanelShell();
     assert.ok(shell.querySelector(".relations-loading"));
-    const chipHost = document.createElement("div");
-    chipHost.append(relationPeerChip({ restricted: true, relation_kind: "uses", direction: "outgoing" }, "reqalm"));
-    assert.equal(chipHost.querySelector("a"), null);
+    const restrictedChip = relationPeerChip({ restricted: true, relation_kind: "uses", direction: "outgoing" });
+    assert.notEqual(restrictedChip.tagName, "A");
+    assert.equal(restrictedChip.getAttribute("href"), null);
     const bodyHost = document.createElement("div");
-    bodyHost.append(renderRelationsPanelBody(relPayload, "reqalm"));
-    assert.ok(bodyHost.querySelector(".relations-direction"));
+    bodyHost.append(renderRelationsPanelBody(relPayload));
+    assert.ok(bodyHost.querySelector('[data-direction="outgoing"]'));
+    const verPayload = {
+      id: "X",
+      project_id: "reqalm",
+      outgoing: {},
+      incoming: {
+        refines: [
+          {
+            relation_kind: "refines",
+            direction: "incoming",
+            self_version_id: "X",
+            peer_version_id: "BASE.1",
+            trace_suspect: false,
+            peer: { id: "BASE", title: "Base line", kind: "requirement", type: "requirement", project_id: "reqalm" },
+          },
+        ],
+      },
+    };
+    const verHost = document.createElement("div");
+    verHost.append(renderRelationsPanelBody(verPayload));
+    assert.match(verHost.textContent ?? "", /\.1/);
   });
 
   it("requirement detail breadcrumbs use ancestor order and section vs requirement links", async () => {

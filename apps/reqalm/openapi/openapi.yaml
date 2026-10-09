@@ -447,7 +447,7 @@ components:
           description: Line kind (e.g. section, requirement, capability)
     RelationPeer:
       type: object
-      required: [id, title, kind, type]
+      required: [id, title, kind, type, project_id]
       properties:
         id:
           type: string
@@ -459,6 +459,9 @@ components:
         type:
           type: string
           description: mint_kind or catalog_control
+        project_id:
+          type: string
+          description: Project that owns the peer line (anchor project for standard-catalog controls)
     RelationLink:
       oneOf:
         - type: object

@@ -2,7 +2,7 @@ import { err, ok, type ServiceResult } from "../../core/service-result.js";
 import type { RequestContext } from "../../core/request-context.js";
 import { projectIdsWithPermission } from "../../rbac/enforce.js";
 
-export type RelationPeerDto = { id: string; title: string | null; kind: string; type: string };
+export type RelationPeerDto = { id: string; title: string | null; kind: string; type: string; project_id: string };
 export type VisibleRelationLink = {
   relation_kind: string;
   direction: "incoming" | "outgoing";
@@ -192,13 +192,20 @@ function buildLink(
     if (!allowed.has(peerProject)) return stub();
     const line = linePeers.get(`${peerProject}\0${peerVersionId}`);
     if (!line) {
-      return visible({ id: peerVersionId, title: null, kind: "requirement", type: "requirement" });
+      return visible({
+        id: peerVersionId,
+        title: null,
+        kind: "requirement",
+        type: "requirement",
+        project_id: peerProject,
+      });
     }
     return visible({
       id: line.base_uid,
       title: line.line_title,
       kind: line.line_kind,
       type: line.mint_kind ?? line.line_kind,
+      project_id: line.project_id,
     });
   }
   if (!edge.catalog_imprint_id) return stub();
@@ -209,7 +216,12 @@ function buildLink(
     (meta.is_standard ? allowed.has(anchorProject) : meta.project_id != null && allowed.has(meta.project_id));
   if (!catalogId || !canRead) return stub();
   const title = catalogLabels.get(`${catalogId}\0${peerVersionId}`) ?? null;
-  return visible({ id: peerVersionId, title, kind: "control", type: "catalog_control" }, edge.catalog_imprint_id);
+  const catalogProject =
+    meta.is_standard || meta.project_id == null ? anchorProject : meta.project_id;
+  return visible(
+    { id: peerVersionId, title, kind: "control", type: "catalog_control", project_id: catalogProject },
+    edge.catalog_imprint_id,
+  );
 }
 
 async function loadCatalog(

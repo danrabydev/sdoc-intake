@@ -97,6 +97,9 @@ def main() -> None:
             "catalog_ref": "AC-3",
             "verification_note": f"Shipped with relations read API PR #31 (merge {RELATIONS_MERGE}).",
         }
+    ar_api = find(data.get("approval_records"), "id", "ar-relations-api")
+    if ar_api:
+        ar_api["notes"] = f"Relations read API shipped in PR #31 (merge {RELATIONS_MERGE}); capability active with verification pass."
 
     upsert(
         data.setdefault("requirement_lines", []),

@@ -1,8 +1,17 @@
 /** Requirement detail — trace relations panel (read-only). */
 
-import { el, loadJson, appRequirementHref } from "./browse.js";
+import { el } from "./browse-dom.js";
+import { appRequirementHref, loadJson } from "./browse-core.js";
 
 export const RELATION_KINDS = ["conforms_to", "refines", "satisfies", "uses"];
+export const RELATION_KIND_COLLAPSE = 10;
+
+export const RELATION_KIND_LABELS = {
+  conforms_to: "Conforms to",
+  refines: "Refines",
+  satisfies: "Satisfies",
+  uses: "Uses",
+};
 
 export function requirementsRelationsApiPath(projectId, requirementId) {
   return `/api/v1/projects/${encodeURIComponent(projectId)}/requirements/${encodeURIComponent(requirementId)}/relations`;
@@ -26,10 +35,20 @@ export function isCatalogControlLink(link) {
   return !("restricted" in link) && (link.catalog_imprint_id || link.peer?.type === "catalog_control");
 }
 
+export function peerVersionSuffix(link) {
+  if ("restricted" in link) return null;
+  const pv = link.peer_version_id;
+  const base = link.peer?.id;
+  if (!pv || !base || pv === base) return null;
+  if (pv.startsWith(`${base}.`)) return pv.slice(base.length);
+  return null;
+}
+
 function kindHeading(kind, direction, count) {
   const arrow = direction === "outgoing" ? "this →" : "→ this";
+  const label = RELATION_KIND_LABELS[kind] ?? kind;
   return el("div", { className: "relation-kind-head" }, [
-    el("span", { className: "relation-kind-badge", text: kind }),
+    el("span", { className: "relation-kind-badge", text: label }),
     el("span", { className: "relation-kind-meta muted", text: `${arrow} ${count} peer${count === 1 ? "" : "s"}` }),
   ]);
 }
@@ -59,28 +78,58 @@ function catalogChip(link) {
   return el("div", { className: "relation-chip relation-chip-catalog", role: "listitem" }, parts);
 }
 
-function requirementPeerChip(link, projectId) {
+function requirementPeerChip(link) {
   const peer = link.peer;
-  const href = appRequirementHref(projectId, peer.id);
+  const peerProject = peer.project_id;
+  const href = appRequirementHref(peerProject, peer.id);
   const titleText = peer.title?.trim() ? peer.title : null;
   const inner = [
     el("code", { className: "relation-chip-id", text: peer.id }),
     ...(titleText ? [el("span", { className: "relation-chip-title", text: titleText })] : []),
     peerStatusBadge(peer),
   ];
+  const ver = peerVersionSuffix(link);
+  if (ver) inner.push(el("span", { className: "relation-chip-version", text: ver }));
   if (link.trace_suspect) inner.push(suspectBadge());
   return el("a", { className: "relation-chip relation-chip-link", href, role: "listitem" }, inner);
 }
 
-export function relationPeerChip(link, projectId) {
+export function relationPeerChip(link) {
   if ("restricted" in link) return restrictedChip();
   if (isCatalogControlLink(link)) return catalogChip(link);
-  return requirementPeerChip(link, projectId);
+  return requirementPeerChip(link);
 }
 
-function renderDirectionColumn(title, grouped, projectId) {
+function renderKindBlock(kind, direction, links) {
+  const block = el("div", { className: "relation-kind-block" });
+  block.append(kindHeading(kind, direction, links.length));
+  const list = el("div", { className: "relation-chip-list", role: "list" });
+  if (links.length <= RELATION_KIND_COLLAPSE) {
+    for (const link of links) list.append(relationPeerChip(link));
+    block.append(list);
+    return block;
+  }
+  for (const link of links.slice(0, RELATION_KIND_COLLAPSE)) list.append(relationPeerChip(link));
+  const hidden = el("div", { className: "relation-chip-list relation-chip-list-more", role: "list", hidden: "" });
+  for (const link of links.slice(RELATION_KIND_COLLAPSE)) hidden.append(relationPeerChip(link));
+  block.append(list, hidden);
+  const toggle = el("button", {
+    type: "button",
+    className: "relation-show-all btn-secondary",
+    text: `Show all ${links.length}`,
+  });
+  toggle.addEventListener("click", () => {
+    const open = hidden.hidden;
+    hidden.hidden = !open;
+    toggle.textContent = open ? "Show less" : `Show all ${links.length}`;
+  });
+  block.append(toggle);
+  return block;
+}
+
+function renderDirectionColumn(title, direction, grouped) {
   const total = relationLinkCount(grouped);
-  const col = el("section", { className: "relations-direction" });
+  const col = el("section", { className: "relations-direction", "data-direction": direction });
   const h3 = el("h3", { className: "relations-direction-title" });
   h3.append(document.createTextNode(`${title} `), el("span", { className: "relations-direction-count muted", text: String(total) }));
   col.append(h3);
@@ -93,22 +142,17 @@ function renderDirectionColumn(title, grouped, projectId) {
   for (const kind of RELATION_KINDS) {
     const links = grouped[kind];
     if (!links?.length) continue;
-    const block = el("div", { className: "relation-kind-block" });
-    block.append(kindHeading(kind, title === "Outgoing" ? "outgoing" : "incoming", links.length));
-    const list = el("div", { className: "relation-chip-list", role: "list" });
-    for (const link of links) list.append(relationPeerChip(link, projectId));
-    block.append(list);
-    col.append(block);
+    col.append(renderKindBlock(kind, direction, links));
   }
   return col;
 }
 
-export function renderRelationsPanelBody(relations, projectId) {
+export function renderRelationsPanelBody(relations) {
   const wrap = el("div", { className: "relations-panel-body" });
   const columns = el("div", { className: "relations-columns" });
   columns.append(
-    renderDirectionColumn("Outgoing", relations.outgoing, projectId),
-    renderDirectionColumn("Incoming", relations.incoming, projectId),
+    renderDirectionColumn("Outgoing", "outgoing", relations.outgoing),
+    renderDirectionColumn("Incoming", "incoming", relations.incoming),
   );
   wrap.append(columns);
   return wrap;
@@ -144,5 +188,5 @@ export async function fillRequirementRelationsPanel(panel, { apiFn, projectId, r
     panel.append(relationsPanelEmpty());
     return;
   }
-  panel.append(renderRelationsPanelBody(rel, projectId));
+  panel.append(renderRelationsPanelBody(rel));
 }

@@ -38,6 +38,21 @@ function assertCapReadReqsStable(d: RequirementRelationsDto) {
 }
 
 describe("requirements relations API", () => {
+  it("visible peers include project_id; restricted stubs stay minimal", async () => {
+    const d = dataOf(await inject(REL("reqalm", "CAP-READ-REQS")));
+    for (const link of Object.values(d.outgoing).flat().concat(Object.values(d.incoming).flat())) {
+      if ("restricted" in link) {
+        assert.deepEqual(Object.keys(link).sort(), ["direction", "relation_kind", "restricted"]);
+        continue;
+      }
+      const p = vis(link).peer;
+      assert.equal(typeof p.project_id, "string");
+      assert.ok(p.project_id.length > 0);
+    }
+    const c08 = vis(d.outgoing.satisfies!.find((l) => vis(l).peer.id === "C08")!);
+    assert.equal(c08.peer.project_id, "reqalm");
+  });
+
   it("404 unknown vs foreign-project line; baseline CAP-READ-REQS", async () => {
     assertCapReadReqsStable(dataOf(await inject(REL("reqalm", "CAP-READ-REQS"))));
     const unknown = await inject(REL("reqalm", "NO-SUCH-REQ-XYZ"));
@@ -122,7 +137,10 @@ describe("requirements relations API", () => {
       const twin = dataOf(await inject(REL("twin-b", "CAP-READ-REQS")));
       assert.deepEqual(peerIds(twin.outgoing.satisfies), ["C08"]);
       assert.equal(vis(twin.outgoing.satisfies![0]!).peer.title, "TWIN-C08-TITLE");
-      assert.ok(twin.incoming.refines?.some((l) => vis(l).peer.id === "TWIN-IN-SRC"));
+      assert.equal(vis(twin.outgoing.satisfies![0]!).peer.project_id, "twin-b");
+      const twinIn = twin.incoming.refines?.find((l) => !("restricted" in l) && vis(l).peer.id === "TWIN-IN-SRC");
+      assert.ok(twinIn);
+      assert.equal(vis(twinIn!).peer.project_id, "reqalm");
     } finally {
       await teardown();
     }
@@ -132,6 +150,7 @@ describe("requirements relations API", () => {
     const ac3 = a01.outgoing.conforms_to?.find((l) => vis(l).peer.id === "AC-3")!;
     assert.match(vis(ac3).peer.title!, /Access Enforcement/);
     assert.equal(vis(ac3).catalog_imprint_id, "nist-800-53@rev5-dogfood-20261006");
+    assert.equal(vis(ac3).peer.project_id, "reqalm");
     const refIn = a01.incoming.refines ?? [];
     const devenv = refIn.filter((l) => vis(l).peer.id === "ARCH-DEVENV-IDENTITY");
     assert.deepEqual(devenv.map((l) => [vis(l).peer_version_id, vis(l).peer.id]).sort(), [["ARCH-DEVENV-IDENTITY", "ARCH-DEVENV-IDENTITY"], ["ARCH-DEVENV-IDENTITY.1", "ARCH-DEVENV-IDENTITY"]]);
