@@ -145,10 +145,15 @@ def validate(data: dict[str, Any]) -> list[str]:
                     "not in catalog_imprints"
                 )
 
+    release_ids = {r.get("id") for r in (data.get("releases") or []) if r.get("id")}
+
     for c in data.get("contracts") or []:
         for u in c.get("in_scope_of") or []:
             if u not in ver_uids:
                 errs.append(f"contract {c.get('name')}: in_scope_of {u!r} not a version uid")
+        for rid in c.get("covers_releases") or []:
+            if rid not in release_ids:
+                errs.append(f"contract {c.get('name')}: covers_releases {rid!r} not a release id")
 
     for r in data.get("releases") or []:
         for u in r.get("delivers") or []:
@@ -849,10 +854,14 @@ def write_contracts_releases_sdoc(data: dict[str, Any], path: Path) -> tuple[int
         )
         parts.append("<<<")
         uids = c.get("in_scope_of") or []
+        rel_ids = c.get("covers_releases") or []
         # Flat COMMENT summary (may truncate); full membership is RELATIONS InScopeOf.
         uid_summary = ", ".join(str(u) for u in uids) if uids else "(none)"
         if len(uid_summary) > 240:
             uid_summary = uid_summary[:237] + "..."
+        rel_summary = ", ".join(str(r) for r in rel_ids) if rel_ids else "(none)"
+        if len(rel_summary) > 240:
+            rel_summary = rel_summary[:237] + "..."
         cmt = [
             "KIND: contract",
             f"contract_id: {c.get('id')}",
@@ -860,6 +869,8 @@ def write_contracts_releases_sdoc(data: dict[str, Any], path: Path) -> tuple[int
             f"project_id: {c.get('project_id')}",
             "in_scope_of: " + uid_summary,
             f"in_scope_of_count: {len(uids)}",
+            "covers_releases: " + rel_summary,
+            f"covers_releases_count: {len(rel_ids)}",
         ]
         parts.append(comment_block(cmt).rstrip())
         parts.append("RELATIONS:")
@@ -871,6 +882,10 @@ def write_contracts_releases_sdoc(data: dict[str, Any], path: Path) -> tuple[int
             parts.append("- TYPE: Parent")
             parts.append(f"  VALUE: {u}")
             parts.append("  ROLE: InScopeOf")
+        for rid in rel_ids:
+            parts.append("- TYPE: Parent")
+            parts.append(f"  VALUE: RELEASE-{rid}")
+            parts.append("  ROLE: CoversRelease")
         parts.append("")
 
     parts.append("[[/SECTION]]")

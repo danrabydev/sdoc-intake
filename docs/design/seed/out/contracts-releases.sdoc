@@ -88,6 +88,8 @@ client_id: raby-family
 project_id: reqalm
 in_scope_of: A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, A12.1, B01, B04, B07, B08, C01, C03, C06, C08, D01, D02, D03, D04, D06, E01, E02, E04, F01, F04, F07, F10, G01, G03, G05, G08, H06, H09, I01, I03, ARCH-CP-HIER, ARCH-CP-SCOPE, ARCH-V...
 in_scope_of_count: 63
+covers_releases: (none)
+covers_releases_count: 0
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -296,6 +298,8 @@ client_id: raby-family
 project_id: reqalm
 in_scope_of: A01, A02, A03, A04, A06, A07, A08, A09, A10, A11, A12.1, ARCH-CP-SCOPE, ARCH-API-RBAC, ARCH-OTEL, ARCH-UI-GUARD, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, CAP-MCP-DESK, CAP-AUDIT, MC01.1, MC02, MC03, M01, M02, M03, D11, H06
 in_scope_of_count: 28
+covers_releases: (none)
+covers_releases_count: 0
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -399,6 +403,8 @@ client_id: raby-family
 project_id: reqalm
 in_scope_of: A01, A03, B04, B07, B08, C01, C06, D01, D02, D03, D04, ARCH-CP-HIER, ARCH-VER, ARCH-API, ARCH-API-LAYERS, ARCH-UI, CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, CAP-TREE, L02, M04, N01
 in_scope_of_count: 23
+covers_releases: (none)
+covers_releases_count: 0
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -487,6 +493,8 @@ client_id: raby-family
 project_id: reqalm
 in_scope_of: A01, ARCH-CONTRACT, FIX-SUCC-2HOP.1
 in_scope_of_count: 3
+covers_releases: (none)
+covers_releases_count: 0
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -515,6 +523,8 @@ client_id: raby-family
 project_id: reqalm
 in_scope_of: A01, A02
 in_scope_of_count: 2
+covers_releases: (none)
+covers_releases_count: 0
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -524,6 +534,852 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: A02
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CONTRACT-ctr-reqalm-product
+STATUS: Active
+TITLE: Contract ReqALM product (build)
+STATEMENT: >>>
+ReqALM contract overlay `ReqALM product (build)` (status=active, starts_on=2026-10-01). Links requirement versions via in_scope_of; not a tree parent.
+<<<
+COMMENT: >>>
+KIND: contract
+contract_id: ctr-reqalm-product
+client_id: raby-family
+project_id: reqalm
+in_scope_of: A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, A12.1, ARCH-API, ARCH-API-LAYERS, ARCH-API-RBAC, ARCH-APPROVAL, ARCH-APPROVAL-LINE, ARCH-APPROVER-SLOTS, ARCH-AUTH-AGENT-ATTRIBUTION, ARCH-AUTH-AS, ARCH-AUTH-AUDIENCE, ARCH-AUTH-CLAI...
+in_scope_of_count: 234
+covers_releases: rel-pr11-planning-baseline, rel-pr12-devenv-foundation, rel-r0-sequences, rel-r1-browse-clients-projects, rel-r1-browse-ui-cp, rel-r1-browse-ui-relations, rel-r1-browse-ui-releases, rel-r1-browse-ui-reqs, rel-r1-browse-ui-tree, rel-r1-ca...
+covers_releases_count: 29
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CONTRACTS-EXPORT
+- TYPE: Parent
+  VALUE: A01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A05
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A07
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A08
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A09
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A10
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A11
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: A12.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-API-LAYERS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-APPROVAL
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-APPROVAL-LINE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-APPROVER-SLOTS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AGENT-ATTRIBUTION
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AUDIENCE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-CLAIM-MAP
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-CLIENTREG
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-FEDERATION
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL-BREAKGLASS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-MCP-REQUIRED
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-METADATA
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-PKCE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-PROFILE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-REFRESH
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-REVOKE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-UPSTREAM-CONNECTOR
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-AUTH-UPSTREAM-REVOKE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-BUILD-FOUNDATION
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CHANGESET
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CONTRACT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CONTRACT.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CP-HIER
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CP-SCOPE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CRED
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CRED-AUDIT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CRED-HASH
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CRED-LOCKOUT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CRED-MFA
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CRED-POLICY
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CRED-REAUTH
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CRED-SESSION
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CRED-TOKENS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-CYBER-GATE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-MINIMAL
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-DEPLOY-PERIPHERALS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-CLONE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-COMPOSE.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-HEALTH
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-IDENTITY.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-KEYS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-MODES.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-PARITY.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SECRETS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-GATE-MODEL
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-GATE-SIGNOFF
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-HOOK-EVAL
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-KEY-BREAKGLASS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-KEY-CUSTODIAN
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-KEY-FAILCLOSED
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-KEY-FIPS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-KEY-JWKS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-KEY-LIFECYCLE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-KEY-PROVIDER
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-KEY-SCOPE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-LOCKED
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-MINT-KIND
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-RELEASE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-SUCCESSION-HASH
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-SUSPECT-QUEUE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-SUSPECT.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-VER
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-VER-SUCC
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-VERIFICATION
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-WORKFLOW
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B05
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B07
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: B08
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: C01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: C02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: C03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: C06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: C08
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-AGENT-ACCESS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-API-DOCS-SEED-SUMMARY
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-AUDIT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-AUTH-AUDIT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-AUTH-HARDEN
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-AUTH-UPSTREAM-SEAM
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-BROWSE-CP
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-CP
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-RELATIONS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-RELEASES
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-REQS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-TREE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-CATALOGS-API
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-CONTRACT-UI
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-CRED-STORE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-COMPOSE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-DOCKERFILE-ROLES
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-INIT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-LF-ENDINGS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-MIGRATE-SEED
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-MONOREPO
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-PERIPHERALS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-SEED-RESET
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-SMOKE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-DEVENV-STARTUP-BACKOFF
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-HEALTH-LIVENESS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-KEY-ENVELOPE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-MFA-ENROLL
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-MFA-QR
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-OAUTH-AS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-OTEL-AUDIT-TRACE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-OTEL-EXPORT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-OTEL-KEY-DEP
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-OTEL-OPERATION-SPANS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-OTEL-SDK-BOOTSTRAP
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-OTEL-SPAN-SAFE-ERRORS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-OTEL-TEST-HARNESS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-OTEL-W3C-CONTEXT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-PROD-SELFCHECK
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-READ-HIERARCHY
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-READ-RELEASES
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-READ-REQS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-READY-PROBES
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-RELATIONS-API
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-RENAME-REQALM
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SCOPED-VIEW
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SEED-GROOMING
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SSO
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-AUDIT-APPEND
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-IMPLICIT-PUBLIC-EXACT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-MODULE-BOOTSTRAP
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-NON-API-AUTH-AUDIT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-EXECUTOR
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-PROBLEM-JSON
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-PROJECT-ID-SLUG
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-PROJECT-READ
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-REQUEST-CONTEXT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-RESULT-ENVELOPE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-ROUTE-REGISTRY
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-STATIC-DEP-PATCH
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SVC-STRUCTURED-LOG
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-TEST-AUTH-HYGIENE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-TEST-AUTH-ROUTES
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-TEST-MEMORY-KEYPROVIDER
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-TEST-PGLITE-DB
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-TEST-PNPM-GATE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-TEST-PROD-BUILD-EXCLUDE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-TREE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-UI-FRAME
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-UI-HEADER-NAV
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-VERSION-UI
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D05
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D08
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D09
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D12
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: D13
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: E01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: E02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: E04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: E06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: F01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: F04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: F07
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: F10
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-ALLOW-APPROVE-LINE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-ALLOW-DEVENV-SMOKE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-ALLOW-PIN-REQUEST
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-ALLOW-SECURITY-PIN-APPLY
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-DENY-APPROVE-WITHOUT-SLOT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-DENY-AUTHOR-PIN-APPLY
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-DENY-NOOP-CONTENT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-DENY-PRIORITY-UNAPPROVED
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-DENY-SECOND-ACTIVE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-DENY-SHIP-UNSIGNED
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-GRANDFATHER-SEED-APPROVED
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-PLANNING-BLOCKED-AFTER-CONTENT-N
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-REL-SNAP
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-SUCC-2HOP.2
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: FIX-SUSPECT-ON-CONTENT-N
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: G01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: G03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: G05
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: G08
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: H06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: H09
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: I01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: I03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: J01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: J02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: J07
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: K01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: K03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: K05
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: L01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: L02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: L04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: M01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: M04
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: M05
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: M06
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MC01.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MC02
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MC03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: N01
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: N03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: UI-APPROVE-LINE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: UI-APPROVE-TREE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: RELEASE-rel-pr11-planning-baseline
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-pr12-devenv-foundation
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r0-sequences
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-browse-clients-projects
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-browse-ui-cp
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-browse-ui-relations
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-browse-ui-releases
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-browse-ui-reqs
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-browse-ui-tree
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-catalogs-api
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-core-alm
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-lf-endings
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-mfa-qr
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-otel-tracing
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-platform-followups
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-read-hierarchy
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-read-releases
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-read-requirements
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-relations-api
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-rename-reqalm
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-route-hardening
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-route-helper
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-seed-grooming
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-seed-reset
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-service-foundation
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-test-harness
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-test-hygiene
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-ui-header-nav
+  ROLE: CoversRelease
+
+[REQUIREMENT]
+UID: CONTRACT-ctr-reqalm-maintenance
+STATUS: Active
+TITLE: Contract ReqALM maintenance
+STATEMENT: >>>
+ReqALM contract overlay `ReqALM maintenance` (status=active, starts_on=2026-10-09). Links requirement versions via in_scope_of; not a tree parent.
+<<<
+COMMENT: >>>
+KIND: contract
+contract_id: ctr-reqalm-maintenance
+client_id: raby-family
+project_id: reqalm
+in_scope_of: MAINT-SEC-AUDIT-MONTHLY, MAINT-DEPS-VULN-MONTHLY, MAINT-ACCESS-RECERT-QUARTERLY, MAINT-STIG-NIST-REASSESS, MAINT-AUDIT-LOG-REVIEW
+in_scope_of_count: 5
+covers_releases: (none)
+covers_releases_count: 0
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CONTRACTS-EXPORT
+- TYPE: Parent
+  VALUE: MAINT-SEC-AUDIT-MONTHLY
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MAINT-DEPS-VULN-MONTHLY
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MAINT-ACCESS-RECERT-QUARTERLY
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MAINT-STIG-NIST-REASSESS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: MAINT-AUDIT-LOG-REVIEW
   ROLE: InScopeOf
 
 [[/SECTION]]
@@ -1799,17 +2655,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-ui-header-nav
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — ReqALM header and project navigation
 STATEMENT: >>>
-ReqALM release `R1 — ReqALM header and project navigation` (status=planned, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — ReqALM header and project navigation` (status=shipped, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-ui-header-nav
 project_id: reqalm
-shipped_on: None
-raw_status: planned
+shipped_on: 2026-10-09
+raw_status: shipped
 delivers: CAP-UI-HEADER-NAV
 delivers_count: 1
 <<<
@@ -1818,6 +2674,29 @@ RELATIONS:
   VALUE: SEC-RELEASES-EXPORT
 - TYPE: Parent
   VALUE: CAP-UI-HEADER-NAV
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-reqalm-contracts
+STATUS: Draft
+TITLE: Release R1 — ReqALM product and maintenance contracts (seed)
+STATEMENT: >>>
+ReqALM release `R1 — ReqALM product and maintenance contracts (seed)` (status=planned, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-reqalm-contracts
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-REQALM-CONTRACTS
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-REQALM-CONTRACTS
   ROLE: Delivers
 
 [[/SECTION]]

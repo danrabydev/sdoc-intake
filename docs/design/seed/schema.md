@@ -239,6 +239,8 @@ Junction overlay — **not** a tree parent.
 | `ends_on` | date \| null | no | |
 | `status` | enum | yes | `planned` \| `active` \| `closed` |
 | `in_scope_of` | string[] | yes | requirement **version** UIDs |
+| `covers_releases` | string[] | no | release **ids** this contract owns (same junction overlay model as `in_scope_of`; exported as Parent + `CoversRelease` on `contracts-releases.sdoc`) |
+| `notes` | string | no | |
 
 ## release
 

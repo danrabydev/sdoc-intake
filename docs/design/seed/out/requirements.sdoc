@@ -115,6 +115,7 @@ in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
 in_scope_of_contract: Legacy intake (closed)
 in_scope_of_contract: Fixture doc-walk
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -164,6 +165,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-fixture-doc-walk
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -193,6 +197,7 @@ edge: ← satisfies from CAP-SSO.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Fixture doc-walk
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222578 (pin imprint=asd-stig@v6r4)
@@ -236,6 +241,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-fixture-doc-walk
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -263,6 +271,7 @@ edge: ← satisfies from CAP-SCOPED-VIEW.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -300,6 +309,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -325,6 +337,7 @@ edge: ← satisfies from CAP-SCOPED-VIEW
 edge: ← satisfies from CAP-SCOPED-VIEW.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222578 (pin imprint=asd-stig@v6r4)
@@ -353,6 +366,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -377,6 +393,7 @@ security.verification_note: AC-3 self-read boundary; AU access logging where req
 edge: ← satisfies from CAP-RBAC
 edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to V-222430 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -392,6 +409,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
@@ -422,6 +442,7 @@ edge: ← uses from ARCH-AUTH-CLAIM-MAP
 edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222542 (pin imprint=asd-stig@v6r4)
@@ -462,6 +483,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -490,6 +514,7 @@ edge: ← uses from ARCH-AUTH-CLAIM-MAP
 edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -530,6 +555,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -556,6 +584,7 @@ edge: ← uses from ARCH-AUTH-UPSTREAM-REVOKE
 edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222467 (pin imprint=asd-stig@v6r4)
@@ -596,6 +625,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -621,6 +653,7 @@ edge: ← satisfies from CAP-RBAC
 edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222407 (pin imprint=asd-stig@v6r4)
@@ -657,6 +690,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -681,6 +717,7 @@ edge: ← satisfies from CAP-RBAC
 edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to V-222467 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -717,6 +754,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -742,6 +782,7 @@ edge: ← satisfies from CAP-RBAC
 edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222430 (pin imprint=asd-stig@v6r4)
@@ -764,6 +805,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -814,6 +858,7 @@ security.catalog_ref: AC-6
 security.verification_note: Active deferral record. No rbac_op shipped. Impersonation omitted preserves least privilege (AC-6); ASD STIG V6R4 V-222429 privileged-function prevention by omission.
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222429 (pin imprint=asd-stig@v6r4)
@@ -839,6 +884,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -872,6 +920,7 @@ edge: ← refines from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -926,6 +975,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
@@ -1029,6 +1081,7 @@ edge: ← refines from ARCH-AUTH-PROFILE
 edge: ← refines from ARCH-AUTH-MCP-REQUIRED
 edge: ← satisfies from CAP-OAUTH-AS
 edge: ← satisfies from CAP-AUTH-HARDEN
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1073,6 +1126,9 @@ RELATIONS:
   VALUE: V-222522
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -1100,6 +1156,7 @@ edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
 edge: ← uses from FIX-DENY-PKCE-PLAIN
 edge: ← satisfies from CAP-OAUTH-AS
 edge: ← satisfies from CAP-TEST-AUTH-ROUTES
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2.8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222530 (pin imprint=asd-stig@v6r4)
@@ -1120,6 +1177,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222531
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -1142,6 +1202,7 @@ security.verification_note: MCP authorization spec discovery (RFC 8414 / RFC 972
 edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
 edge: ← uses from FIX-DENY-MCP-WRONG-AUDIENCE
 edge: ← satisfies from CAP-OAUTH-AS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -1157,6 +1218,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SC-23
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -1182,6 +1246,7 @@ edge: ← uses from FIX-DENY-MCP-WRONG-AUDIENCE
 edge: ← uses from ARCH-AUTH-MCP-REQUIRED
 edge: ← satisfies from CAP-OAUTH-AS
 edge: ← satisfies from CAP-TEST-AUTH-HYGIENE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1205,6 +1270,9 @@ RELATIONS:
   VALUE: SC-23
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -1227,6 +1295,7 @@ security.verification_note: SC-23 / IA-5 authenticator protection; replay-resist
 edge: ← uses from FIX-DENY-REFRESH-REUSE
 edge: ← satisfies from CAP-OAUTH-AS
 edge: ← satisfies from CAP-TEST-AUTH-ROUTES
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1246,6 +1315,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: IA-5
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -1270,6 +1342,7 @@ edge: ← uses from FIX-DENY-REVOKED-TOKEN
 edge: ← refines from ARCH-AUTH-UPSTREAM-REVOKE
 edge: ← satisfies from CAP-OAUTH-AS
 edge: ← satisfies from CAP-TEST-AUTH-HYGIENE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222549 (pin imprint=asd-stig@v6r4)
@@ -1298,6 +1371,9 @@ RELATIONS:
   VALUE: V-222391
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -1319,6 +1395,7 @@ security.catalog_ref: CM-7
 security.verification_note: CM-7 least functionality: open registration off unless policy enables it.
 edge: ← uses from FIX-DENY-DCR-DISABLED
 edge: ← satisfies from CAP-OAUTH-AS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1338,6 +1415,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-2
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -1364,6 +1444,7 @@ edge: ← refines from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← refines from ARCH-AUTH-CLAIM-MAP
 edge: ← refines from ARCH-AUTH-UPSTREAM-REVOKE
 edge: ← uses from FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1413,6 +1494,9 @@ RELATIONS:
   VALUE: V-222522
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
@@ -1439,6 +1523,7 @@ security.verification_note: IA-8 non-organizational users / federation; AC-3 ten
 edge: ← uses from ARCH-AUTH-CLAIM-MAP
 edge: ← uses from FIX-DENY-CROSS-TENANT-CONNECTOR
 edge: ← satisfies from CAP-AUTH-UPSTREAM-SEAM
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1496,6 +1581,9 @@ RELATIONS:
   VALUE: V-222560
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -1515,6 +1603,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-2
 security.verification_note: AC-2 account management; AC-6 least privilege; AU-2.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1548,6 +1637,9 @@ RELATIONS:
   VALUE: AU-2
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
@@ -1568,6 +1660,7 @@ iteration: iter-r1
 security.catalog_ref: AC-12
 security.verification_note: AC-12 session termination; AC-2(3); ASD V-222549 / V-222391.
 edge: ← uses from FIX-DENY-UPSTREAM-LOGOUT-PROPAGATED
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1605,6 +1698,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222391
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
@@ -1680,6 +1776,7 @@ edge: ← uses from ARCH-DEVENV-IDENTITY.1
 edge: ← refines from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← uses from FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
 edge: ← satisfies from CAP-CRED-STORE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1725,6 +1822,9 @@ RELATIONS:
   VALUE: V-222661
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -1749,6 +1849,7 @@ iteration: iter-r1
 security.catalog_ref: AC-2.2
 security.verification_note: AC-2(2) emergency accounts; IA-2(1) MFA; AU-2; ASD V-222410 / V-222523.
 edge: ← uses from FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-2.2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1798,6 +1899,9 @@ RELATIONS:
   VALUE: V-222390
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
@@ -1824,6 +1928,7 @@ edge: ← uses from ARCH-AUTH-MCP-REQUIRED
 edge: ← uses from FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-OAUTH-AS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1857,6 +1962,9 @@ RELATIONS:
   VALUE: IA-2
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -1880,6 +1988,7 @@ edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
 edge: ← uses from FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-OAUTH-AS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1921,6 +2030,9 @@ RELATIONS:
   VALUE: V-222522
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -1944,6 +2056,7 @@ edge: ← uses from FIX-ALLOW-AGENT-ATTRIBUTION
 edge: ← satisfies from CAP-AGENT-ACCESS
 edge: ← satisfies from CAP-TEST-AUTH-ROUTES
 edge: ← satisfies from CAP-TEST-AUTH-HYGIENE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1982,6 +2095,9 @@ RELATIONS:
   VALUE: V-222441
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -2002,6 +2118,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
 security.verification_note: IA-2 / SC-23 OAuth beds. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2039,6 +2156,9 @@ RELATIONS:
   VALUE: IA-2
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -2057,6 +2177,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-8
 security.verification_note: Seam only — no live federation in R1. Verified by code review + typecheck.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2069,6 +2190,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: IA-8
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -2089,6 +2213,7 @@ iteration: iter-r1
 security.catalog_ref: IA-2
 security.verification_note: IA-2 MFA enrollment. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
 edge: ← satisfies from CAP-MFA-QR
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2101,6 +2226,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: IA-2
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -2120,6 +2248,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
 security.verification_note: IA-2 agent attribution. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2132,6 +2261,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: IA-2
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -2151,6 +2283,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: SC-23
 security.verification_note: SC-23 session/OAuth hardening. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2166,6 +2299,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SC-23
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -2185,6 +2321,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
 security.verification_note: Regression beds for R1 auth. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqalm/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — in-process test harness (no Docker)
 <<<
 RELATIONS:
@@ -2206,6 +2343,9 @@ RELATIONS:
   VALUE: ARCH-AUTH-AGENT-ATTRIBUTION
   ROLE: Satisfies
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-test-harness
   ROLE: Delivers
 
@@ -2224,6 +2364,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
 security.verification_note: Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqalm/app 39/39 incl. expanded auth.integration.test.ts); `pnpm typecheck` pass.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — test/build hygiene (Docker-free test follow-ups)
 <<<
 RELATIONS:
@@ -2241,6 +2382,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-AUTH-AGENT-ATTRIBUTION
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-test-hygiene
   ROLE: Delivers
@@ -2260,6 +2404,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
 security.verification_note: Shipped with MFA enrollment QR PR #30 (merge c8668b924ba4804e32f4d364aa0d343af60e9f83).
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — MFA enrollment QR (sign-in UI)
 <<<
 RELATIONS:
@@ -2274,6 +2419,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-UI-GUARD
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-mfa-qr
   ROLE: Delivers
@@ -2309,6 +2457,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 client create gated to client admins. AU-2/3/12.
 edge: ← uses from FIX-ALLOW-CLIENT-CREATE
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -2332,6 +2481,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -2421,6 +2573,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -2452,6 +2605,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -2472,6 +2628,7 @@ priority: 40
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -2493,6 +2650,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -2556,6 +2716,7 @@ edge: ← satisfies from CAP-BROWSE-CP
 edge: ← satisfies from CAP-BROWSE-UI-CP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2570,6 +2731,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -2596,6 +2760,7 @@ edge: ← satisfies from CAP-BROWSE-CP
 edge: ← satisfies from CAP-BROWSE-UI-CP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -2627,6 +2792,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -2652,6 +2820,7 @@ edge: ← refines from B04
 edge: ← satisfies from CAP-BROWSE-CP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -2678,6 +2847,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
@@ -2710,6 +2882,7 @@ edge: ← uses from FIX-DENY-CROSS-TENANT-CONNECTOR
 edge: ← refines from ARCH-WRITE-TRUNCATE-GUARD
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → uses to CAP-SCOPED-VIEW (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -2728,6 +2901,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -2822,6 +2998,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with browse-clients-projects PR #22.
 edge: ← satisfies from CAP-BROWSE-UI-CP
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — browse clients and projects (read-only)
 <<<
 RELATIONS:
@@ -2839,6 +3016,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-SVC-PROJECT-READ
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-browse-clients-projects
   ROLE: Delivers
@@ -2858,6 +3038,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with browse UI PR #23.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — browse clients and projects UI (read-only)
 <<<
 RELATIONS:
@@ -2878,6 +3059,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-BROWSE-CP
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-cp
   ROLE: Delivers
@@ -2901,6 +3085,7 @@ edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — requirements read API
 <<<
 RELATIONS:
@@ -2922,6 +3107,9 @@ RELATIONS:
   VALUE: CAP-RBAC
   ROLE: Satisfies
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-read-requirements
   ROLE: Delivers
 
@@ -2942,6 +3130,7 @@ security.catalog_ref: CM-2
 security.verification_note: Shipped with requirements browse UI PR #26.
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
 edge: ← satisfies from CAP-UI-HEADER-NAV
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — browse requirements UI (read-only)
 <<<
 RELATIONS:
@@ -2963,6 +3152,9 @@ RELATIONS:
   VALUE: CAP-READ-REQS
   ROLE: Satisfies
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-reqs
   ROLE: Delivers
 
@@ -2982,6 +3174,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Shipped with releases read API PR #25 (merge eca9090802c415f78697cc8b9d000f7f7d67a702).
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — releases read API
 <<<
 RELATIONS:
@@ -2999,6 +3192,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-RBAC
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-read-releases
   ROLE: Delivers
@@ -3018,6 +3214,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with releases browse UI PR #27 (merge 0d9623815cd17b405c27172f5ffad1e5ae9d1cfb).
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — browse releases UI (read-only)
 <<<
 RELATIONS:
@@ -3039,6 +3236,9 @@ RELATIONS:
   VALUE: CAP-READ-RELEASES
   ROLE: Satisfies
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-releases
   ROLE: Delivers
 
@@ -3057,6 +3257,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with relationships browse UI PR #32 (merge c8272340b67a0e505b63483bd2ef1550accb4635).
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — browse requirement relationships UI (read-only)
 <<<
 RELATIONS:
@@ -3080,6 +3281,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-BROWSE-UI-REQS
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-relations
   ROLE: Delivers
@@ -3118,6 +3322,7 @@ edge: ← satisfies from CAP-TREE
 edge: ← refines from ARCH-HIER-REQ-DECOMP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3146,6 +3351,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -3166,6 +3374,7 @@ priority: 35
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3187,6 +3396,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -3210,6 +3422,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3236,6 +3449,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -3344,6 +3560,7 @@ edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-BROWSE-UI-TREE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3370,6 +3587,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -3440,6 +3660,7 @@ edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3465,6 +3686,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -3488,6 +3712,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3516,6 +3741,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -3541,6 +3769,7 @@ edge: ← satisfies from CAP-VERSION-UI
 edge: ← uses from FIX-ALLOW-SUCCEED
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3572,6 +3801,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -3597,6 +3829,7 @@ edge: ← uses from MC02
 edge: ← uses from FIX-DENY-EDIT-ACTIVE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3623,6 +3856,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -3647,6 +3883,7 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from J02
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3675,6 +3912,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -3694,6 +3934,7 @@ priority: 35
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3718,6 +3959,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -3745,6 +3989,7 @@ edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3768,6 +4013,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -3831,6 +4079,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from K01
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3853,6 +4102,9 @@ RELATIONS:
   VALUE: AU-3
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -3873,6 +4125,7 @@ priority: 30
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3894,6 +4147,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -3987,6 +4243,7 @@ edge: ← uses from FIX-ALLOW-STATUS-SUPERSEDE
 edge: ← refines from ARCH-WRITE-VERSION-UNIQUE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4013,6 +4270,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
@@ -4043,6 +4303,7 @@ edge: ← uses from ARCH-CAT-REACT
 edge: ← uses from ARCH-CAT-MIGRATE
 edge: ← uses from FIX-DENY-SECOND-ACTIVE
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4066,6 +4327,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -4119,6 +4383,7 @@ edge: ← uses from FIX-DENY-APPROVE-WITHOUT-SLOT
 edge: ← uses from FIX-ALLOW-APPROVE-LINE
 edge: ← refines from ARCH-CRED-REAUTH
 edge: ← uses from FIX-DENY-STEPUP-STALE-AUTH
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4141,6 +4406,9 @@ RELATIONS:
   VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -4159,6 +4427,7 @@ priority: 15
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4180,6 +4449,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -4201,6 +4473,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Soft/v1 verification_outcome; Tester sets. Does not block ship unless future policy.
 edge: ← refines from ARCH-REQ-AC-FACET
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4222,6 +4495,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -4243,6 +4519,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← refines from ARCH-CRED-REAUTH
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4265,6 +4542,9 @@ RELATIONS:
   VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -4284,6 +4564,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Shipped with requirement hierarchy read API PR #28 (merge ffd1d5c38ffc6f09c13dd877c82bf0d4bd891764).
 edge: ← satisfies from CAP-BROWSE-UI-TREE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — requirement hierarchy read API
 <<<
 RELATIONS:
@@ -4308,6 +4589,9 @@ RELATIONS:
   VALUE: CAP-RBAC
   ROLE: Satisfies
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-read-hierarchy
   ROLE: Delivers
 
@@ -4326,6 +4610,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with requirements tree browse UI PR #29 (merge ecf5d539cdcb7da35c9469b7e8e5794240de44f9).
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — browse requirements tree UI (read-only)
 <<<
 RELATIONS:
@@ -4346,6 +4631,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-UI-KIT-TREE
   ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-tree
   ROLE: Delivers
@@ -4429,6 +4717,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4454,6 +4743,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -4477,6 +4769,7 @@ edge: ← uses from FIX-DENY-AUTHOR-PIN-APPLY
 edge: ← uses from FIX-ALLOW-PIN-REQUEST
 edge: ← uses from FIX-ALLOW-SECURITY-PIN-APPLY
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4500,6 +4793,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -4564,6 +4860,7 @@ edge: ← refines from I02
 edge: ← refines from ARCH-SEC-EDGE-DEDUPE-DB
 edge: ← refines from ARCH-SEC-EDGE-DEDUPE-API
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → uses to I02 (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4591,6 +4888,9 @@ RELATIONS:
   ROLE: Uses
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -4656,6 +4956,7 @@ edge: ← refines from ARCH-TRACE-VIEW-RTM
 edge: ← refines from ARCH-TRACE-VIEW-CCM
 edge: ← refines from ARCH-TRACE-LAYOUT-WORKER
 edge: ← refines from ARCH-SEC-REL-STUB
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4677,6 +4978,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -4735,6 +5039,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Shipped with requirement relations read API PR #31 (merge cb8a8c97895b651c8f25ce660482e7e5e7ae4454).
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — requirement relations read API
 <<<
 RELATIONS:
@@ -4758,6 +5063,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-SEC-REL-STUB
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-relations-api
   ROLE: Delivers
@@ -4961,6 +5269,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from ARCH-CAT-FREEZE
 in_scope_of_contract: Legacy intake (closed)
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4986,6 +5295,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-legacy-intake-closed
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -5009,7 +5321,9 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from F07
 edge: ← uses from L02
 edge: ← uses from F04
+edge: ← satisfies from CAP-REQALM-CONTRACTS
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → uses to ARCH-CONTRACT-DOC (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5037,6 +5351,9 @@ RELATIONS:
   ROLE: Uses
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -5113,6 +5430,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-CONTRACT-UI
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5136,6 +5454,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -5238,6 +5559,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5264,6 +5586,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -5364,6 +5689,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-CONTRACT-UI
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5393,6 +5719,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -5493,6 +5822,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-CONTRACT-UI
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5518,7 +5848,47 @@ RELATIONS:
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-REQALM-CONTRACTS
+STATUS: Draft
+TITLE: ReqALM product and maintenance contracts (seed)
+STATEMENT: >>>
+Seed-only contract overlay pass: ReqALM product contract (ctr-reqalm-product) covers all reqalm releases via covers_releases and their delivered version snapshots via in_scope_of; maintenance contract (ctr-reqalm-maintenance) holds forward-looking planned MAINT-* recurring obligations with NIST/STIG ConformsTo pins. Regenerates docs/design/seed/out/, schema docs, and HANDOFF.md. No application runtime changes.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-REQALM-CONTRACTS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until ReqALM contracts seed PR merges.
+delivered_by_release: R1 — ReqALM product and maintenance contracts (seed)
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CT
+- TYPE: Parent
+  VALUE: ARCH-CONTRACT.1
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-RELEASE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: MC03
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-reqalm-contracts
   ROLE: Delivers
 
 [[/SECTION]]
@@ -5551,7 +5921,9 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from L04
 edge: ← uses from G03
+edge: ← satisfies from CAP-REQALM-CONTRACTS
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5575,6 +5947,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -5642,6 +6017,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5665,6 +6041,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -5728,6 +6107,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from FIX-DENY-SHIPPED-DELIVERS
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5754,6 +6134,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -5816,6 +6199,7 @@ security.verification_note: Ship is a high-value auditable event (AU-2/3/12).
 edge: ← refines from ARCH-OTEL
 edge: ← refines from ARCH-CRED-REAUTH
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5838,6 +6222,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -5938,6 +6325,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-READ-RELEASES
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5963,6 +6351,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -5983,6 +6374,7 @@ iteration: iter-r1
 security.catalog_ref: CM-3
 security.verification_note: Cyber gate ship: Security sign-off + AO approve. Partial ATO — ship gate only.
 edge: ← uses from ARCH-GATE-SIGNOFF
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -6004,6 +6396,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -6520,6 +6915,7 @@ security.verification_note: Catalog steward gates; standard catalogs imprint-pub
 edge: ← refines from ARCH-CAT-PIN
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -6541,6 +6937,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -6628,6 +7027,7 @@ edge: ← refines from ARCH-CAT-VISIBILITY
 edge: ← refines from ARCH-BROWSE-ROADMAP
 edge: ← satisfies from CAP-CATALOGS-API
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -6643,6 +7043,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -6771,6 +7174,7 @@ priority: 25
 iteration: iter-r1
 security.catalog_ref: CM-3
 security.verification_note: Derived lock; CM-3 change control on in_scope/delivers pins.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -6792,6 +7196,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -6930,6 +7337,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Shipped with catalogs read API PR #33 (merge ed372358fb1a04546ea884c9cbcee69f959517b1).
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — catalogs read API
 <<<
 RELATIONS:
@@ -6953,6 +7361,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: C08
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-catalogs-api
   ROLE: Delivers
@@ -6986,6 +7397,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7009,6 +7421,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -7074,6 +7489,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7097,6 +7513,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -7236,6 +7655,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7273,6 +7693,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -7294,6 +7717,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7328,6 +7752,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -7349,6 +7776,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7383,6 +7811,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -7415,6 +7846,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from K03
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7437,6 +7869,9 @@ RELATIONS:
   VALUE: AU-3
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -7457,6 +7892,7 @@ priority: 25
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7481,6 +7917,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -7655,6 +8094,7 @@ priority: 45
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7676,6 +8116,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -7747,6 +8190,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7771,6 +8215,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -7829,6 +8276,7 @@ priority: 25
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7853,6 +8301,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -7913,6 +8364,7 @@ priority: 35
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -7934,6 +8386,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -8050,6 +8505,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until seed grooming PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — dogfood seed grooming
 <<<
 RELATIONS:
@@ -8058,6 +8514,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-BROWSE-ROADMAP
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-seed-grooming
   ROLE: Delivers
@@ -8091,6 +8550,7 @@ priority: 40
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 scoped export/import; AU-2/3/12 on interchange actions.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8113,6 +8573,9 @@ RELATIONS:
   VALUE: AU-3
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -8134,6 +8597,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 scoped export/import; AU-2/3/12 on interchange actions.
 edge: ← uses from FIX-EXPORT-L02-GOLDEN
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8160,6 +8624,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -8220,6 +8687,7 @@ priority: 40
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 scoped export/import; AU-2/3/12 on interchange actions.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8244,6 +8712,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -8325,6 +8796,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from CAP-AUTH-AUDIT
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8359,6 +8831,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -8381,6 +8856,7 @@ security.catalog_ref: AU-2
 security.verification_note: AU-2/3/6/12 event review.
 edge: ← satisfies from CAP-AUDIT
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8408,6 +8884,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -8511,6 +8990,7 @@ edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-HEALTH-LIVENESS
 edge: ← satisfies from CAP-READY-PROBES
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8537,6 +9017,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
 - TYPE: Child
@@ -8559,6 +9042,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: Hybrid audit via change sets; AU-2/3/12. Per-object history + change-set index.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8580,6 +9064,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -8637,6 +9124,7 @@ priority: 30
 iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 change-set leaf lifecycle.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8659,6 +9147,9 @@ RELATIONS:
   VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -8678,6 +9169,7 @@ priority: 30
 iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 SDLC parent session; Developer denied.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8699,6 +9191,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -8866,6 +9361,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: SI-4
 security.verification_note: No client data in the probe (M04). Verified 2026-10-07: /health 200 throughout the OpenBao-sealed and Postgres-stopped fault tests.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to SI-4 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8878,6 +9374,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SI-4
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -8897,6 +9396,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: SI-4
 security.verification_note: Readiness gates traffic on live dependencies (ARCH-DEVENV-HEALTH). Verified 2026-10-07: OpenBao seal → 503 openbao 'sealed', unseal → 200; Postgres stop → 503 database ECONNREFUSED, recovery → 200; app restart count 0; unit tests for cache, database (incl. hung-DB timeout), migrations, openbao, roles. Fail-closed for key operations is R1.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to SI-4 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8916,6 +9416,9 @@ RELATIONS:
   VALUE: SI-4
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
 
@@ -8934,6 +9437,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: AU-2 / AU-3 / AU-12. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; auth_audit_events rows observed for login success/failure, lockout, token issue/refresh/reuse/revoke, DCR deny and RBAC deny.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8949,6 +9453,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-2
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -8983,6 +9490,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9009,6 +9517,9 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -9070,6 +9581,7 @@ priority: 25
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9094,6 +9606,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -9129,6 +9644,7 @@ edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
 edge: ← satisfies from CAP-UI-HEADER-NAV
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → uses to ARCH-UI-GUARD (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9150,6 +9666,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
@@ -9188,6 +9707,7 @@ edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
 edge: ← satisfies from CAP-UI-HEADER-NAV
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -9202,6 +9722,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
@@ -9299,6 +9822,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9320,6 +9844,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -9340,6 +9867,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9362,6 +9890,9 @@ RELATIONS:
   VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -9381,6 +9912,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 guard enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.
 edge: ← refines from CAP-UI-FRAME.1
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -9396,6 +9928,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AC-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -9649,7 +10184,7 @@ TITLE: Children of CAP-UI-KIT-CHROME
 
 [REQUIREMENT]
 UID: CAP-UI-HEADER-NAV
-STATUS: Draft
+STATUS: Active
 TITLE: ReqALM header and project navigation
 STATEMENT: >>>
 ReqALM /app shell header aligned to product chrome: brand mark, client/project/page breadcrumb with safe text, project-scoped tabs (Requirements with list/tree toggle, Releases; coming-soon stubs for Traceability, Capabilities, Contracts, Audit), minimal Clients/Projects nav outside project context, user initials avatar and sign out. Accessible nav landmarks, aria-current on active items, aria-disabled on stub tabs, visible focus styles. No sidebar.
@@ -9661,7 +10196,8 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until header/nav UI PR merges.
+security.verification_note: Shipped with header/nav UI PR #37 (merge dd43cc1523544d0f6375a628bc9d7d45a31fa738).
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — ReqALM header and project navigation
 <<<
 RELATIONS:
@@ -9679,6 +10215,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-BROWSE-UI-REQS
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-ui-header-nav
   ROLE: Delivers
@@ -9727,6 +10266,7 @@ edge: ← refines from ARCH-WRITE-UOW-AUDIT
 edge: ← refines from ARCH-WRITE-AUDIT-FLOOD
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9765,6 +10305,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -9795,6 +10338,7 @@ edge: ← refines from ARCH-SEC-REL-PAGING
 edge: ← refines from ARCH-SEC-HEADERS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → uses to ARCH-API-RBAC (RELATIONS TYPE: Child; Parent would cycle)
 edge: → uses to ARCH-API-LAYERS (RELATIONS TYPE: Child; Parent would cycle)
@@ -9824,6 +10368,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
@@ -9873,6 +10420,7 @@ edge: ← refines from ARCH-API-RBAC.1
 edge: ← satisfies from CAP-CATALOGS-API
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9899,6 +10447,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
@@ -9971,6 +10522,7 @@ edge: ← satisfies from CAP-SVC-OPERATION-ROUTE
 edge: ← refines from ARCH-WRITE-REPOSITORY-LAYER
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -9985,6 +10537,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
@@ -10007,6 +10562,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: SA-5
 security.verification_note: SA-5 system documentation served from the schema-first spec. Verified 2026-10-07: /docs 200, /docs/json 200, /api/v1/seed/summary 200 with seed counts (smoke asserts it).
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to SA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -10022,6 +10578,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SA-5
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -10042,6 +10601,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
 edge: ← satisfies from CAP-SVC-PROBLEM-JSON
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -10053,6 +10613,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-API-LAYERS
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
@@ -10072,6 +10635,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -10083,6 +10647,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-API-RBAC
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
@@ -10103,6 +10670,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
 edge: ← uses from CAP-SVC-OPERATION-ROUTE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -10114,6 +10682,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-RBAC
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
@@ -10133,11 +10704,15 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
@@ -10157,11 +10732,15 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
@@ -10184,6 +10763,7 @@ security.verification_note: Planned until service-foundation PR merges.
 edge: ← satisfies from CAP-SVC-BUSINESS-ROUTE-AUDIT
 edge: ← refines from CAP-SVC-IMPLICIT-PUBLIC-EXACT
 edge: ← refines from CAP-SVC-NON-API-AUTH-AUDIT
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -10192,6 +10772,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-API-RBAC
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
@@ -10211,6 +10794,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -10219,6 +10803,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-API-LAYERS
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
@@ -10239,6 +10826,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
 edge: ← satisfies from CAP-BROWSE-CP
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -10247,6 +10835,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-API-RBAC
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
@@ -10297,6 +10888,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until OTel tracing PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
 <<<
 RELATIONS:
@@ -10305,6 +10897,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL-TRACE
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-otel-tracing
   ROLE: Delivers
@@ -10324,6 +10919,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until OTel tracing PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
 <<<
 RELATIONS:
@@ -10332,6 +10928,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL-TRACE
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-otel-tracing
   ROLE: Delivers
@@ -10352,6 +10951,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until OTel tracing PR merges.
 edge: ← refines from CAP-OTEL-SPAN-SAFE-ERRORS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
 <<<
 RELATIONS:
@@ -10360,6 +10960,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL-TRACE
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-otel-tracing
   ROLE: Delivers
@@ -10379,6 +10982,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until OTel tracing PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
 <<<
 RELATIONS:
@@ -10387,6 +10991,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL-TRACE
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-otel-tracing
   ROLE: Delivers
@@ -10406,6 +11013,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until OTel tracing PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
 <<<
 RELATIONS:
@@ -10414,6 +11022,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL-TRACE
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-otel-tracing
   ROLE: Delivers
@@ -10433,6 +11044,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until OTel tracing PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
 <<<
 RELATIONS:
@@ -10441,6 +11053,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL-TRACE
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-otel-tracing
   ROLE: Delivers
@@ -10460,6 +11075,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until OTel tracing PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
 <<<
 RELATIONS:
@@ -10468,6 +11084,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL-TRACE
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-otel-tracing
   ROLE: Delivers
@@ -10493,6 +11112,7 @@ edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<
 RELATIONS:
@@ -10507,6 +11127,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-SVC-OPERATION-EXECUTOR
   ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-helper
   ROLE: Delivers
@@ -10527,6 +11150,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until operation-route PR merges.
 edge: ← refines from CAP-SVC-IMPLICIT-PUBLIC-EXACT
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<
 RELATIONS:
@@ -10538,6 +11162,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-API-RBAC
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-helper
   ROLE: Delivers
@@ -10557,6 +11184,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until operation-route PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<
 RELATIONS:
@@ -10565,6 +11193,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-SVC-RESULT-ENVELOPE
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-helper
   ROLE: Delivers
@@ -10584,6 +11215,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until route-hardening PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
 <<<
 RELATIONS:
@@ -10595,6 +11227,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-SVC-OPERATION-ROUTE
   ROLE: Refines
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-hardening
   ROLE: Delivers
@@ -10614,6 +11249,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until route-hardening PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
 <<<
 RELATIONS:
@@ -10622,6 +11258,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-DEPLOY-MINIMAL
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-hardening
   ROLE: Delivers
@@ -10641,6 +11280,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until route-hardening PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
 <<<
 RELATIONS:
@@ -10652,6 +11292,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL-TRACE
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-hardening
   ROLE: Delivers
@@ -10671,6 +11314,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until route-hardening PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
 <<<
 RELATIONS:
@@ -10685,6 +11329,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-API-RBAC
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-hardening
   ROLE: Delivers
@@ -10704,6 +11351,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until route-hardening PR merges.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
 <<<
 RELATIONS:
@@ -10715,6 +11363,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-API-RBAC
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-hardening
   ROLE: Delivers
@@ -10894,6 +11545,7 @@ edge: ← refines from CAP-SSO.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -10933,6 +11585,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
@@ -11010,6 +11665,7 @@ edge: ← refines from CAP-SCOPED-VIEW.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to V-222429 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222550 (pin imprint=asd-stig@v6r4)
@@ -11041,6 +11697,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
@@ -11114,6 +11773,7 @@ edge: ← refines from ARCH-CRED-AUDIT
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-LOCAL.1
 edge: ← satisfies from CAP-CRED-STORE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -11123,6 +11783,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: IA-5
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -11149,6 +11812,7 @@ security.catalog_ref: IA-5.1
 security.verification_note: IA-5(1) password-based auth; ASD V-222542 / V-222543 / V-222554 / V-222571.
 edge: ← uses from FIX-ALLOW-CRED-HASH-ONLY
 edge: ← satisfies from CAP-CRED-STORE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-13 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11185,6 +11849,9 @@ RELATIONS:
   VALUE: V-222571
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -11207,6 +11874,7 @@ security.verification_note: IA-5(1); ASD V-222536..V-222541, V-222544..V-222548,
 edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN.1
 edge: ← uses from ARCH-AUTH-PROFILE
 edge: ← satisfies from CAP-CRED-STORE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222536 (pin imprint=asd-stig@v6r4)
@@ -11268,6 +11936,9 @@ RELATIONS:
   VALUE: V-222662
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -11292,6 +11963,7 @@ edge: ← satisfies from CAP-CRED-STORE
 edge: ← satisfies from CAP-AUTH-HARDEN
 edge: ← satisfies from CAP-TEST-AUTH-ROUTES
 edge: ← satisfies from CAP-TEST-AUTH-HYGIENE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222432 (pin imprint=asd-stig@v6r4)
@@ -11319,6 +11991,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222462
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -11348,6 +12023,7 @@ edge: ← satisfies from CAP-CRED-STORE
 edge: ← satisfies from CAP-MFA-ENROLL
 edge: ← satisfies from CAP-TEST-AUTH-ROUTES
 edge: ← satisfies from CAP-MFA-QR
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222523 (pin imprint=asd-stig@v6r4)
@@ -11372,6 +12048,9 @@ RELATIONS:
   VALUE: V-222527
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -11394,6 +12073,7 @@ edge: ← uses from ARCH-AUTH-REFRESH
 edge: ← uses from ARCH-AUTH-CLIENTREG
 edge: ← uses from FIX-ALLOW-CRED-HASH-ONLY
 edge: ← satisfies from CAP-CRED-STORE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5.6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-28.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11421,6 +12101,9 @@ RELATIONS:
   VALUE: V-222542
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -11444,6 +12127,7 @@ edge: ← uses from FIX-DENY-SESSION-IDLE
 edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← uses from ARCH-AUTH-UPSTREAM-REVOKE
 edge: ← satisfies from CAP-CRED-STORE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2.5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11519,6 +12203,9 @@ RELATIONS:
   VALUE: V-222583
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
@@ -11541,6 +12228,7 @@ security.verification_note: IA-11 re-authentication; ASD V-222520.
 edge: ← uses from FIX-DENY-STEPUP-STALE-AUTH
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← satisfies from CAP-CRED-STORE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to IA-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222520 (pin imprint=asd-stig@v6r4)
@@ -11576,6 +12264,9 @@ RELATIONS:
   VALUE: V-222520
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
@@ -11598,6 +12289,7 @@ edge: ← uses from ARCH-AUTH-AS
 edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← refines from ARCH-AUTH-AGENT-ATTRIBUTION
 edge: ← satisfies from CAP-AUTH-AUDIT
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11646,6 +12338,9 @@ RELATIONS:
   VALUE: V-222467
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -11678,6 +12373,7 @@ edge: ← uses from ARCH-DEPLOY-PERIPHERALS
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from FIX-ALLOW-CRED-HASH-ONLY
 edge: ← satisfies from CAP-KEY-ENVELOPE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-28 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11702,6 +12398,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SC-28.3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -11731,6 +12430,7 @@ edge: ← satisfies from CAP-DEVENV-OPENBAO-BOOTSTRAP
 edge: ← satisfies from CAP-KEY-ENVELOPE
 edge: ← satisfies from CAP-TEST-MEMORY-KEYPROVIDER
 edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11755,6 +12455,9 @@ RELATIONS:
   VALUE: V-222555
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -11777,6 +12480,7 @@ edge: ← uses from ARCH-CRED-MFA
 edge: ← uses from ARCH-CRED-TOKENS
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← satisfies from CAP-KEY-ENVELOPE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-28.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222588 (pin imprint=asd-stig@v6r4)
@@ -11805,6 +12509,9 @@ RELATIONS:
   VALUE: V-222642
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -11827,6 +12534,7 @@ security.verification_note: SC-12(3) asymmetric keys; SC-13; ASD V-222570.
 edge: ← uses from ARCH-AUTH-AS
 edge: ← uses from FIX-JWKS-ROTATION-OVERLAP
 edge: ← satisfies from CAP-KEY-ENVELOPE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-13 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11851,6 +12559,9 @@ RELATIONS:
   VALUE: V-222570
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -11873,6 +12584,7 @@ security.verification_note: SC-12 / SC-12(2) / SC-12(3); AU-2.
 edge: ← uses from FIX-ALLOW-KEK-REWRAP-ONLINE
 edge: ← satisfies from CAP-KEY-ENVELOPE
 edge: ← refines from ARCH-KEY-RUNTIME-CACHE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12.2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11904,6 +12616,9 @@ RELATIONS:
   VALUE: AU-2
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -11926,6 +12641,7 @@ security.verification_note: AC-5 separation of duties; AC-6 least privilege.
 edge: ← uses from ARCH-KEY-LIFECYCLE
 edge: ← uses from ARCH-KEY-BREAKGLASS
 edge: ← uses from FIX-DENY-KEYOP-NO-CUSTODIAN
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to AC-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11949,6 +12665,9 @@ RELATIONS:
   VALUE: AC-6
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
@@ -11969,6 +12688,7 @@ iteration: iter-r1
 security.catalog_ref: SC-12.1
 security.verification_note: SC-12(1) key availability; AC-5 dual control.
 edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to SC-12.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11988,6 +12708,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AC-5
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
@@ -12009,6 +12732,7 @@ security.catalog_ref: SC-13
 security.verification_note: SC-13 cryptographic protection; ASD V-222570 / V-222571 / V-222572 / V-222583.
 edge: ← uses from ARCH-CRED-HASH
 edge: ← uses from ARCH-AUTH-PROFILE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to SC-13 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222570 (pin imprint=asd-stig@v6r4)
@@ -12038,6 +12762,9 @@ RELATIONS:
   VALUE: V-222583
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
@@ -12059,6 +12786,7 @@ security.verification_note: SC-24 fail in known state; SC-12(1).
 edge: ← uses from FIX-DENY-KEK-UNREACHABLE-PROD
 edge: ← satisfies from CAP-READY-PROBES
 edge: ← satisfies from CAP-KEY-ENVELOPE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-24 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -12081,6 +12809,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SC-12.1
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -12125,6 +12856,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-5
 security.verification_note: IA-5 / AC-7 credential controls. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; TOTP secrets envelope-wrapped; replay of the same code within its window rejected.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -12162,6 +12894,9 @@ RELATIONS:
   VALUE: IA-5
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -12180,6 +12915,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: SC-12
 security.verification_note: SC-12 / SC-28(3). Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; `/oauth/jwks` serves Transit-wrapped ES256. FIPS/Transit-sign deferred.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -12208,6 +12944,9 @@ RELATIONS:
   VALUE: SC-12
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -12226,6 +12965,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: SC-12
 security.verification_note: Dev/test only; no production path change.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — in-process test harness (no Docker)
 <<<
 RELATIONS:
@@ -12234,6 +12974,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-KEY-PROVIDER
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-test-harness
   ROLE: Delivers
@@ -12385,6 +13128,7 @@ edge: ← refines from ARCH-AUTH-METADATA
 edge: ← refines from ARCH-AUTH-MCP-REQUIRED
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to SC-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-13 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -12416,6 +13160,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -12443,6 +13190,7 @@ edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
 edge: ← uses from FIX-ALLOW-AGENT-ATTRIBUTION
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
 edge: → conforms_to to V-222567 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -12473,6 +13221,9 @@ RELATIONS:
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -12496,8 +13247,15 @@ security.verification_note: MCP uses same RBAC pack as UI.
 edge: ← satisfies from CAP-MCP-DESK
 edge: ← refines from FIX-DENY-MCP-ESCALATE
 edge: ← refines from ARCH-AUTH-AUDIENCE
+edge: ← refines from MAINT-SEC-AUDIT-MONTHLY
+edge: ← refines from MAINT-DEPS-VULN-MONTHLY
+edge: ← refines from MAINT-ACCESS-RECERT-QUARTERLY
+edge: ← refines from MAINT-STIG-NIST-REASSESS
+edge: ← refines from MAINT-AUDIT-LOG-REVIEW
+edge: ← satisfies from CAP-REQALM-CONTRACTS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -12523,6 +13281,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -12558,6 +13319,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Priority requires stakeholder approval. Pairs FIX-SAMPLE-UNAPPROVED.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -12579,6 +13341,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -12952,6 +13717,7 @@ priority: 30
 iteration: iter-r1
 security.catalog_ref: CM-3
 security.verification_note: Succession immutability / change control (CM-3).
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to CM-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -12964,6 +13730,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-3
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -13046,6 +13815,7 @@ priority: 25
 iteration: iter-r1
 security.catalog_ref: REQALM-SEC-AUDIT
 security.verification_note: R0 freeze immutable; planned backlog may reference obsolete UIDs.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to CM-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13074,6 +13844,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-6
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -13590,6 +14363,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: CM-3
 security.verification_note: CM-3 change control; mint kinds / succession.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13617,6 +14391,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-MINT-KIND
   ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -13677,6 +14454,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: CM-3
 security.verification_note: CM-3 change control; mint kinds / succession.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13702,6 +14480,9 @@ RELATIONS:
   VALUE: ARCH-VER-SUCC
   ROLE: Uses
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -13721,6 +14502,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13746,6 +14528,9 @@ RELATIONS:
   VALUE: ARCH-SUCCESSION-HASH
   ROLE: Uses
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -13765,6 +14550,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13787,6 +14573,9 @@ RELATIONS:
   VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -13806,6 +14595,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 workflow / approval / suspect audit.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13830,6 +14620,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-SUSPECT
   ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -14010,6 +14803,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog/ConformsTo authority; imprint pins. AC-3/CM-5.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14034,6 +14828,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: E02
   ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -14054,6 +14851,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog/ConformsTo authority; imprint pins. AC-3/CM-5.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14078,6 +14876,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: E02
   ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -14098,6 +14899,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog/ConformsTo authority; imprint pins. AC-3/CM-5.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14123,6 +14925,9 @@ RELATIONS:
   VALUE: E02
   ROLE: Uses
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -14142,6 +14947,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14166,6 +14972,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: D12
   ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -14186,6 +14995,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14211,6 +15021,9 @@ RELATIONS:
   VALUE: D12
   ROLE: Uses
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -14230,6 +15043,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 workflow / approval / suspect audit.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14255,6 +15069,9 @@ RELATIONS:
   VALUE: ARCH-GATE-SIGNOFF
   ROLE: Uses
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -14276,6 +15093,7 @@ security.verification_note: FIXTURE / TEST BED for developer environment smoke a
 edge: ← satisfies from CAP-DEVENV-SMOKE
 edge: ← satisfies from CAP-TEST-PNPM-GATE
 edge: ← satisfies from CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14297,6 +15115,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-2
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -14401,6 +15222,7 @@ security.verification_note: FIXTURE / TEST BED for developer environment smoke a
 edge: ← satisfies from CAP-DEVENV-MIGRATE-SEED
 edge: ← satisfies from CAP-DEVENV-SMOKE
 edge: ← satisfies from CAP-DEVENV-SEED-RESET
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14413,6 +15235,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-6
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -15282,6 +16107,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 workflow / approval audit.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15303,6 +16129,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -15398,6 +16227,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15419,6 +16249,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -15444,6 +16277,7 @@ edge: ← uses from FIX-PLANNING-BLOCKED-AFTER-CONTENT-N
 edge: ← uses from ARCH-MINT-KIND
 edge: ← uses from ARCH-SUSPECT
 edge: ← uses from ARCH-SUSPECT.1
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15466,6 +16300,9 @@ RELATIONS:
   VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -15485,6 +16322,7 @@ priority: 15
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15506,6 +16344,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -15563,6 +16404,7 @@ priority: 15
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15584,6 +16426,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -15680,6 +16525,7 @@ priority: 15
 iteration: iter-r0
 security.catalog_ref: CM-3
 security.verification_note: CM-3 change control; gate evaluation.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15701,6 +16547,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -15761,6 +16610,7 @@ security.verification_note: CM-3 change control; mint kinds / succession.
 edge: ← uses from FIX-DENY-NOOP-CONTENT
 edge: ← uses from FIX-ALLOW-PIN-MIGRATE-MINT
 edge: ← refines from ARCH-WRITE-RESERVED-IDS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15785,6 +16635,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-SUCCESSION-HASH
   ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -15849,6 +16702,7 @@ iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: Groomed 2026-10-09; .1 references ARCH-TRACE-RECHECK for re-check vs incomplete semantics.
 edge: ← refines from ARCH-TRACE-RECHECK
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15881,6 +16735,9 @@ RELATIONS:
   VALUE: ARCH-TRACE-RECHECK
   ROLE: Uses
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -15903,6 +16760,7 @@ security.verification_note: AU-2/3/12 workflow / approval / suspect audit.
 edge: ← uses from FIX-ALLOW-SUSPECT-CARRY
 edge: ← uses from FIX-ALLOW-SUSPECT-KEEP-PINNED
 edge: ← uses from FIX-ALLOW-SUSPECT-DROP
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15925,6 +16783,9 @@ RELATIONS:
   VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
 
@@ -15946,6 +16807,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from FIX-DENY-SHIP-UNSIGNED
 edge: ← refines from ARCH-CRED-REAUTH
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15970,6 +16832,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-CYBER-GATE
   ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -16039,6 +16904,7 @@ edge: ← refines from ARCH-DEPLOY-PERIPHERALS
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-DEVENV-COMPOSE
 edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → uses to ARCH-DEPLOY-MINIMAL (RELATIONS TYPE: Child; Parent would cycle)
 edge: → uses to ARCH-DEPLOY-PERIPHERALS (RELATIONS TYPE: Child; Parent would cycle)
@@ -16063,6 +16929,9 @@ RELATIONS:
 - TYPE: Child
   VALUE: ARCH-AUTH-AS
   ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
@@ -16118,6 +16987,7 @@ security.verification_note: CM-2 baseline: one Dockerfile + Compose define the s
 edge: ← uses from ARCH-DEVENV-PARITY.1
 edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
 edge: ← satisfies from CAP-DEVENV-COMPOSE
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16139,6 +17009,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-2
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -16164,6 +17037,7 @@ edge: ← satisfies from CAP-DEVENV-MONOREPO
 edge: ← satisfies from CAP-DEVENV-COMPOSE
 edge: ← satisfies from CAP-API-DOCS-SEED-SUMMARY
 edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16185,6 +17059,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-2
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -16212,6 +17089,7 @@ edge: ← satisfies from CAP-DEVENV-MIGRATE-SEED
 edge: ← satisfies from CAP-DEVENV-SEED-RESET
 edge: ← refines from ARCH-SEC-SEED-INTEGRITY
 edge: ← refines from ARCH-SEC-LOADER-EDGE-SYNC
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → uses to ARCH-DEVENV-CLONE (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -16228,6 +17106,9 @@ RELATIONS:
 - TYPE: Child
   VALUE: ARCH-DEVENV-CLONE
   ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -16279,6 +17160,7 @@ iteration: iter-r0
 security.catalog_ref: CM-2
 security.verification_note: CM-2 baseline: one Dockerfile + Compose define the supported local/deploy baseline.
 edge: ← satisfies from CAP-DEVENV-DOCKERFILE-ROLES
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16304,6 +17186,9 @@ RELATIONS:
   VALUE: CM-2
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
 
@@ -16328,6 +17213,7 @@ edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
 edge: ← uses from ARCH-KEY-FAILCLOSED
 edge: ← satisfies from CAP-READY-PROBES
 edge: ← satisfies from CAP-DEVENV-STARTUP-BACKOFF
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16343,6 +17229,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-6
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -16362,6 +17251,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with Git LF line endings PR #35 (merge 5cac83400c5c0fe9b2b4c54db408f5850821c395); Windows core.autocrlf=true checkout test confirms shell entrypoints remain LF.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — Git LF line endings (Compose entrypoints)
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16383,6 +17273,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-2
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-lf-endings
   ROLE: Delivers
@@ -16451,6 +17344,7 @@ edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN.1
 edge: ← uses from ARCH-AUTH-PROFILE
 edge: ← satisfies from CAP-PROD-SELFCHECK
 edge: ← satisfies from CAP-DEVENV-INIT
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → uses to ARCH-AUTH-LOCAL.1 (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -16500,6 +17394,9 @@ RELATIONS:
   VALUE: ARCH-AUTH-LOCAL.1
   ROLE: Uses
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -16522,6 +17419,7 @@ edge: ← refines from ARCH-KEY
 edge: ← uses from ARCH-KEY-PROVIDER
 edge: ← satisfies from CAP-DEVENV-COMPOSE
 edge: ← satisfies from CAP-DEVENV-INIT
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -16538,6 +17436,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: IA-5
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -16562,6 +17463,7 @@ edge: ← uses from FIX-DENY-DEV-KEK-IN-PROD
 edge: ← satisfies from CAP-DEVENV-PERIPHERALS
 edge: ← satisfies from CAP-PROD-SELFCHECK
 edge: ← satisfies from CAP-DEVENV-OPENBAO-BOOTSTRAP
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222642 (pin imprint=asd-stig@v6r4)
@@ -16581,6 +17483,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222642
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -16609,6 +17514,7 @@ edge: ← uses from FIX-ALLOW-APP-ROLE-SPLIT
 edge: ← satisfies from CAP-DEVENV-DOCKERFILE-ROLES
 edge: ← satisfies from CAP-SVC-STATIC-DEP-PATCH
 edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -16638,6 +17544,9 @@ RELATIONS:
   VALUE: CM-7
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
@@ -16663,6 +17572,7 @@ edge: ← uses from ARCH-DEVENV-PARITY.1
 edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
 edge: ← satisfies from CAP-DEVENV-PERIPHERALS
 edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to SC-28.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -16687,6 +17597,9 @@ RELATIONS:
   VALUE: CP-9
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-platform-followups
   ROLE: Delivers
 
@@ -16705,6 +17618,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: CM-2
 security.verification_note: CM-2 baseline: one lockfile pins the supported toolchain. Verified 2026-10-07: pnpm install --frozen-lockfile; pnpm build:cli OK; editor dev server on :8087; sdoc-intake typecheck + 39/39 tests; @reqalm/app typecheck + tests.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16717,6 +17631,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-2
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -16736,6 +17653,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: CM-7
 security.verification_note: CM-7 least functionality: disabled roles expose no endpoints. Verified 2026-10-07: docker compose build; REQALM_ROLES=sync run → /ready roles=[sync], /api/v1/seed/summary 404, POST /mcp 404, /health 200. Internal OAuth AS role not built yet (R1), so FIX-ALLOW-APP-ROLE-SPLIT is only partly exercised.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16755,6 +17673,9 @@ RELATIONS:
   VALUE: CM-7
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
 
@@ -16773,6 +17694,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: SC-12
 security.verification_note: SC-12 dev key material isolated in its own volume; never committed. Verified 2026-10-07: fresh start healthy; docker compose restart → unsealed and healthy, data kept. Production split (separate units) is a deploy concern not exercised here.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16788,6 +17710,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SC-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -16807,6 +17732,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: CM-2
 security.verification_note: CM-2 / IA-5: no secrets in the repo; Compose is the documented baseline. Verified 2026-10-07: `pnpm devenv:smoke` from clean (no volumes, no .env) passed 2026-10-07; exactly 2 containers; hybrid mode /health, /ready, seed summary OK. Optional hsm-test Compose profile not yet wired.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16832,6 +17758,9 @@ RELATIONS:
   VALUE: CM-2
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
 
@@ -16850,6 +17779,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: CP-10
 security.verification_note: Recovery without crash-loops. Verified 2026-10-07: docker compose restart → app logged 'waiting for OpenBao: sealed' then healthy, RestartCount 0; unit tests for timeout and the production no-wait path.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CP-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16862,6 +17792,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CP-10
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -16881,6 +17814,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: CM-6
 security.verification_note: CM-6 / IA-5: no default credentials in production. Verified 2026-10-07: docker compose run with REQALM_MODE=production → 'Startup self-check failed' (seeded dev accounts; dev-marked OpenBao / Transit mount), exit 1 in ~1 s; `REQALM_MODE=production pnpm reqalm:seed` refused. Dev-account login denial (FIX-DENY-DEVENV-PROD-LOGIN.1 (a)) needs the R1 internal AS.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16903,6 +17837,9 @@ RELATIONS:
   VALUE: CM-6
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
 
@@ -16921,6 +17858,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: SC-12
 security.verification_note: SC-12 / SC-28: dev KEK is dev-marked and refused in production. Verified 2026-10-07: init log 'dev-marked Transit mount, KEK reqaml-kek'; /ready openbao ok via round-trip; seal/unseal and restart tests. The pluggable KeyProvider API for app data (wrap/unwrap DEKs) is R1.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16936,6 +17874,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SC-12
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -16955,6 +17896,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: CM-2
 security.verification_note: Idempotent fixture load (FIX-ALLOW-DEVENV-SEED-IDEMPOTENT). Verified 2026-10-07: devenv smoke re-runs migrate + seed twice → 'Migrations up to date', inserted all 0, unchanged=true.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16970,6 +17912,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-2
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
@@ -16989,6 +17934,7 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: SA-11
 security.verification_note: SA-11 developer testing. Verified 2026-10-07: `pnpm devenv:smoke` from clean (no volumes, no .env) passed 2026-10-07 (exit 0); forced failure (bad COMPOSE_FILE) printed the command stderr plus compose ps/logs.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to SA-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -17008,6 +17954,9 @@ RELATIONS:
   VALUE: SA-11
   ROLE: ConformsTo
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-pr12-devenv-foundation
   ROLE: Delivers
 
@@ -17026,6 +17975,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-5
 security.verification_note: IA-5 dev credential hygiene. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -17041,6 +17991,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: IA-5
   ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -17060,6 +18013,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Isolated WASM DB; no committed secrets.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — in-process test harness (no Docker)
 <<<
 RELATIONS:
@@ -17068,6 +18022,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-BUILD-FOUNDATION
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-test-harness
   ROLE: Delivers
@@ -17087,6 +18044,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Fast feedback without containers. Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass — @reqalm/app 38/38 incl. auth.integration.test.ts (8 in-process Fastify inject cases: PKCE/redirect_uri, refresh reuse, lockout, IP throttle failures-only, TOTP replay, CSRF cookie mutations, agent token roles/TTL/audience); PGlite runs real SQL migrations; createMemoryKeyProvider wrap/unwrap; typecheck pass.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — in-process test harness (no Docker)
 <<<
 RELATIONS:
@@ -17095,6 +18053,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: FIX-ALLOW-DEVENV-SMOKE
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-test-harness
   ROLE: Delivers
@@ -17114,6 +18075,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Verified: 2026-10-07 local Docker (maintainer box): `pnpm devenv:smoke` with COMPOSE_PROJECT_NAME unset used project sdoc-intake-dev (no second stack), logged the overlay, and passed on a reused volume incl. IP throttle 200 -> 401.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — test/build hygiene (Docker-free test follow-ups)
 <<<
 RELATIONS:
@@ -17122,6 +18084,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: FIX-ALLOW-DEVENV-SMOKE
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-test-hygiene
   ROLE: Delivers
@@ -17141,6 +18106,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until seed-reset PR merges and is verified locally.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — dev dogfood seed reset (pnpm devenv:seed:reset)
 <<<
 RELATIONS:
@@ -17152,6 +18118,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-seed-reset
   ROLE: Delivers
@@ -17187,6 +18156,7 @@ edge: ← satisfies from CAP-TEST-PGLITE-DB
 edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE
 edge: ← satisfies from CAP-RENAME-REQALM
 edge: ← refines from ARCH-TEST-HARNESS-TEARDOWN
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -17236,6 +18206,9 @@ RELATIONS:
   VALUE: ARCH-AUTH-PROFILE
   ROLE: Uses
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
@@ -17254,6 +18227,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqalm/app 39/39); `pnpm typecheck` pass; `pnpm --filter @reqalm/app build` dist has no `dist/test/**` or `dist/key/memory-provider.js`.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — test/build hygiene (Docker-free test follow-ups)
 <<<
 RELATIONS:
@@ -17265,6 +18239,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-BUILD-FOUNDATION
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-test-hygiene
   ROLE: Delivers
@@ -17284,6 +18261,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Verified 2026-10-07: offline `pnpm test` 39/39 + 209/209, `pnpm typecheck`, `pnpm build` pass; seed yaml_to_strictdoc --validate pass. Local Docker in-place upgrade of a PR #15 dev stack (same volumes): `pnpm devenv:init` moved .reqaml/ + REQAML_* to .reqalm/ + REQALM_* with byte-identical secret values; migration 005 renamed OAuth client ids, the project id and seeded grant ids; /ready green, 0 restarts; the existing dev password and sam-security MFA secret still sign in; UI says ReqALM; `pnpm devenv:smoke` pass.
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — product rename ReqALM
 <<<
 RELATIONS:
@@ -17292,6 +18270,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-BUILD-FOUNDATION
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-rename-reqalm
   ROLE: Delivers
@@ -17318,5 +18299,178 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-BUILD-FOUNDATION
   ROLE: Refines
+
+[[/SECTION]]
+
+[[SECTION]]
+UID: SEC-REQALM-MAINT
+TITLE: ReqALM maintenance obligations (planned)
+
+[REQUIREMENT]
+UID: MAINT-SEC-AUDIT-MONTHLY
+STATUS: Draft
+TITLE: Monthly security audit (planned)
+STATEMENT: >>>
+PLANNED recurring obligation (not shipped). Perform a documented monthly security audit of the ReqALM deployment: review auth/session anomalies, privileged access use, configuration drift against the approved baseline, and open findings from the prior month. Record results and track remediation.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: MAINT-SEC-AUDIT-MONTHLY
+VERSION_N: 0
+priority: 50
+iteration: iter-r1
+security.catalog_ref: CA-7
+security.verification_note: Planned maintenance obligation — not shipped; no verification outcome.
+in_scope_of_contract: ReqALM maintenance
+edge: → conforms_to to CA-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-REQALM-MAINT
+- TYPE: Parent
+  VALUE: MC03
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CA-7
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-maintenance
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: MAINT-DEPS-VULN-MONTHLY
+STATUS: Draft
+TITLE: Monthly dependency and vulnerability review (planned)
+STATEMENT: >>>
+PLANNED recurring obligation (not shipped). Each month, review application and container dependency manifests for known vulnerabilities (SCA), triage findings by severity, and plan patches or accepted risk with Security approval. No silent deferrals past the next review cycle.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: MAINT-DEPS-VULN-MONTHLY
+VERSION_N: 0
+priority: 50
+iteration: iter-r1
+security.catalog_ref: RA-5
+security.verification_note: Planned maintenance obligation — not shipped; no verification outcome.
+in_scope_of_contract: ReqALM maintenance
+edge: → conforms_to to RA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-REQALM-MAINT
+- TYPE: Parent
+  VALUE: MC03
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: RA-5
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-maintenance
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: MAINT-ACCESS-RECERT-QUARTERLY
+STATUS: Draft
+TITLE: Quarterly access recertification (planned)
+STATEMENT: >>>
+PLANNED recurring obligation (not shipped). Quarterly, Authorizing Official or delegate recertifies project grants and privileged roles for ReqALM: confirm least privilege, remove stale grants, and audit the recertification decision.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: MAINT-ACCESS-RECERT-QUARTERLY
+VERSION_N: 0
+priority: 50
+iteration: iter-r1
+security.catalog_ref: AC-2
+security.verification_note: Planned maintenance obligation — not shipped; no verification outcome.
+in_scope_of_contract: ReqALM maintenance
+edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-2.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-REQALM-MAINT
+- TYPE: Parent
+  VALUE: MC03
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-2.3
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-maintenance
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: MAINT-STIG-NIST-REASSESS
+STATUS: Draft
+TITLE: STIG and NIST control re-assessment (planned)
+STATEMENT: >>>
+PLANNED recurring obligation (not shipped). On a defined cadence (at least annually, or when catalog imprints change), re-assess ReqALM ConformsTo coverage against the pinned NIST imprint and applicable ASD STIG rules; open successor versions or pin updates through the locked migrate workflow.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: MAINT-STIG-NIST-REASSESS
+VERSION_N: 0
+priority: 50
+iteration: iter-r1
+security.catalog_ref: CA-7
+security.verification_note: Planned maintenance obligation — not shipped; no verification outcome.
+in_scope_of_contract: ReqALM maintenance
+edge: → conforms_to to CA-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222515 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-REQALM-MAINT
+- TYPE: Parent
+  VALUE: MC03
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CA-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222515
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-maintenance
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: MAINT-AUDIT-LOG-REVIEW
+STATUS: Draft
+TITLE: Audit log review (planned)
+STATEMENT: >>>
+PLANNED recurring obligation (not shipped). Review exported OTEL/security audit streams for suspicious patterns, failed auth spikes, and privileged mutations; escalate anomalies per incident response policy.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: MAINT-AUDIT-LOG-REVIEW
+VERSION_N: 0
+priority: 50
+iteration: iter-r1
+security.catalog_ref: AU-6
+security.verification_note: Planned maintenance obligation — not shipped; no verification outcome.
+in_scope_of_contract: ReqALM maintenance
+edge: → conforms_to to AU-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-REQALM-MAINT
+- TYPE: Parent
+  VALUE: MC03
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AU-6
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-maintenance
+  ROLE: InScopeOf
 
 [[/SECTION]]

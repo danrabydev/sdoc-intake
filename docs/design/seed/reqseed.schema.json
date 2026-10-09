@@ -683,6 +683,16 @@
           "items": {
             "type": "string"
           }
+        },
+        "covers_releases": {
+          "type": "array",
+          "description": "Release ids this contract owns (junction overlay; complements in_scope_of version UIDs).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
         }
       }
     },

@@ -1,8 +1,8 @@
 # ReqALM / sdoc-intake — handoff for Dan (Cursor)
 
-Last updated for seed grooming on **main @ `cb8a8c9`** (2026-10-09). Application code on main through **PR #31**; this doc tracks how to run the stack and how we slice PRs.
+Last updated for seed **ReqALM contracts** on **main @ `dd43cc1`** (2026-10-09). Application code on main through **PR #37** (header/nav UI); this doc tracks how to run the stack and how we slice PRs.
 
-## What is on main (merged PRs #12–#31, one line each)
+## What is on main (merged PRs #12–#37, one line each)
 
 | PR | Summary |
 |----|---------|
@@ -26,6 +26,10 @@ Last updated for seed grooming on **main @ `cb8a8c9`** (2026-10-09). Application
 | **#29** | Requirements tree browse UI + ancestor breadcrumbs. |
 | **#30** | MFA enrollment QR on sign-in card (client-side otpauth QR). |
 | **#31** | Requirement **relations read API** + `trace_edges` / catalog label seed load (redaction, dedupe, security tests). |
+| **#32** | Browse UI **relationships** panel on requirement detail. |
+| **#33** | **Catalogs read API** (catalogs, imprints, controls). |
+| **#35** | Git **LF line endings** for Compose entrypoints (`.gitattributes`). |
+| **#37** | **Header and project navigation** (breadcrumb, tabs, list/tree toggle). |
 
 ## Dev environment
 
@@ -45,33 +49,33 @@ Last updated for seed grooming on **main @ `cb8a8c9`** (2026-10-09). Application
 7. **Never drop the production approach for test convenience** (prod self-check, no dev OpenBao in prod, etc.).
 8. **Tests use PGlite in-process** with **real SQL migrations**, not mocked schema.
 
-## In-flight / parallel (not owned by seed-grooming PR)
+## In-flight / parallel (not owned by contracts seed PR)
 
 | Track | Release / capability | Notes |
 |-------|----------------------|--------|
-| Relations seed ship | `rel-r1-relations-api` / `CAP-RELATIONS-API` | Code on main (#31); seed release still **planned** until dedicated seed PR marks shipped. |
-| Relations UI | `rel-r1-browse-ui-relations` | Do not edit in grooming; parallel UI PR. |
-| Catalogs API | `rel-r1-catalogs-api` / `CAP-CATALOGS-API` | API PR #33 in flight; roadmap text only in this grooming PR (no release stub). |
+| Seed grooming | `rel-r1-seed-grooming` / `CAP-SEED-GROOMING` | Parallel documentation-only grooming PR. |
+| Browse UI catalogs | `rel-r1-browse-ui-catalogs` | After catalogs API; not in this PR. |
+| LF endings | `rel-r1-lf-endings` | May already be shipped on main via #35 — check seed before duplicate ship PR. |
 
 ## Next-up (ordered)
 
-1. Ship **`rel-r1-relations-api`** seed at #31 merge SHA (parallel seed PR).
-2. **`rel-r1-catalogs-api`** (PR #33) then **`rel-r1-browse-ui-catalogs`** (catalogs / imprints / controls read).
-3. **`rel-r1-browse-ui-relations`** (uses relations API; parallel).
-4. **Planning read** (`rel-r1-read-planning` → browse UI).
-5. **Artifacts, workflow, people/access, audit** read APIs + UIs (see `ARCH-BROWSE-ROADMAP` in seed).
-6. **Two-column trace views** (`rel-r1-browse-ui-trace-views`) after relations UI + worker layout.
-7. **Security follow-ups before first edge write route** (`ARCH-SEC-*` in seed): dedupe index, loader integrity, cross-project read gate, stub design, paging, FK, edge sync, imprint-scoped labels.
-8. **Security headers** (`ARCH-SEC-HEADERS`) before any non-127.0.0.1 bind.
-9. **Write foundation** (`ARCH-WRITE-FOUNDATION`) — UoW, repository layer, TRUNCATE guard + runtime role, audit flood controls, UNIQUE version constraint, reserved id segments.
-10. **Key cache + span flush** (`ARCH-KEY-RUNTIME-CACHE`); **test teardown** (`ARCH-TEST-HARNESS-TEARDOWN`).
+1. **`rel-r1-reqalm-contracts`** (this seed PR) — product + maintenance contract overlays.
+2. **`rel-r1-browse-ui-catalogs`** (uses catalogs API).
+3. **Planning read** (`rel-r1-read-planning` → browse UI).
+4. **Artifacts, workflow, people/access, audit** read APIs + UIs (see `ARCH-BROWSE-ROADMAP` in seed).
+5. **Two-column trace views** (`rel-r1-browse-ui-trace-views`) after relations UI + worker layout.
+6. **Security follow-ups before first edge write route** (`ARCH-SEC-*` in seed).
+7. **Write foundation** (`ARCH-WRITE-FOUNDATION`).
 
-## Seed grooming artifact (this PR)
+## Seed artifact (ReqALM contracts PR)
 
-- **Release:** `rel-r1-seed-grooming` → **`CAP-SEED-GROOMING`** (documentation-only).
-- **Patch (idempotent):** `docs/design/seed/scripts/patch_seed_grooming_release.py`
+- **Ship (parallel):** `rel-r1-ui-header-nav` → **`CAP-UI-HEADER-NAV`** at merge **`dd43cc1523544d0f6375a628bc9d7d45a31fa738`** (2026-10-09), `active` / `pass`.
+- **Release (this PR):** `rel-r1-reqalm-contracts` → **`CAP-REQALM-CONTRACTS`** (seed-only, planned).
+- **Contracts (extended model):**
+  - **`ctr-reqalm-product`** — build contract; `covers_releases` = all reqalm release ids; `in_scope_of` = union of all `release.delivers` version UIDs.
+  - **`ctr-reqalm-maintenance`** — maintenance contract; `covers_releases` empty; `in_scope_of` = planned **`MAINT-*`** recurring obligations (draft, not shipped) with NIST/STIG `conforms_to` where catalog has items.
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_reqalm_contracts_release.py`
+- **Grammar:** `covers_releases` on `contract` (see `schema.md` / `reqseed.schema.json`); exported as Parent + `CoversRelease` on `contracts-releases.sdoc`.
 - **Source of truth:** `docs/design/seed/dogfood.yaml` + regenerated `docs/design/seed/out/`
-- **Honesty (content `.1` mints, v0 byte-identical to main):** **`CAP-RBAC.1`**, **`CAP-UI-FRAME.1`**, **`CAP-SSO.1`**, **`CAP-SCOPED-VIEW.1`**, **`ARCH-API-RBAC.1`**, **`ARCH-SUSPECT.1`**. Only **`CAP-SCOPED-VIEW.1`** sets **`verification_outcome: pending`**; **`CAP-SSO.1`** has no pass outcome (same as v0 on main). **`CAP-RBAC.1`** / **`CAP-UI-FRAME.1`** keep partial pass with PR #13 verification citation. **No** new `conforms_to` pins on `.1` devenv caps.
-- **V-222518:** `conforms_to` pins on **v0** `ARCH-DEVENV-IDENTITY` and `FIX-DENY-DEVENV-PROD-LOGIN` are **restored** (not removed). Whether `.1` devenv versions should also pin V-222518 is a **Dan decision** — this PR does not add them.
 
 When continuing in Cursor: read `dogfood.yaml` releases and `ARCH-BROWSE-ROADMAP` first; pick the next **planned** release; implement; update seed via a dedicated `patch_*_release.py`; validate and test.
