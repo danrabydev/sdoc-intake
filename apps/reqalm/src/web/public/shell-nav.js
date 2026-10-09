@@ -1,5 +1,3 @@
-/** App shell: breadcrumb, minimal nav, and project-scoped tabs. */
-
 import {
   appClientHref,
   appProjectHref,
@@ -91,31 +89,21 @@ export function avatarTooltipLabel(meta) {
   return display || null;
 }
 
+const PAGE_LABELS = {
+  "clients-list": "Clients",
+  "projects-list": "Projects",
+  "project-detail": "Overview",
+  "requirements-list": "Requirements",
+  "requirements-tree": "Requirements",
+  "requirement-versions": "Versions",
+  "releases-list": "Releases",
+};
+
 export function pageLabelForRoute(route) {
-  switch (route.view) {
-    case "clients-list":
-      return "Clients";
-    case "projects-list":
-      return "Projects";
-    case "client-detail":
-      return route.clientId ?? "Client";
-    case "project-detail":
-      return "Overview";
-    case "requirements-list":
-      return "Requirements";
-    case "requirements-tree":
-      return "Requirements";
-    case "requirement-detail":
-      return route.requirementId ?? "Requirement";
-    case "requirement-versions":
-      return "Versions";
-    case "releases-list":
-      return "Releases";
-    case "release-detail":
-      return route.releaseId ?? "Release";
-    default:
-      return "ReqALM";
-  }
+  if (route.view === "client-detail") return route.clientId ?? "Client";
+  if (route.view === "requirement-detail") return route.requirementId ?? "Requirement";
+  if (route.view === "release-detail") return route.releaseId ?? "Release";
+  return PAGE_LABELS[route.view] ?? "ReqALM";
 }
 
 /** @param {{ view: string, projectId?: string, clientId?: string, requirementId?: string, releaseId?: string }} route */

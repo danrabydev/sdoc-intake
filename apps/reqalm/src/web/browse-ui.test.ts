@@ -1437,18 +1437,28 @@ const shellMeta = {
 };
 
 describe("shell-nav helpers", () => {
-  it("initialsFromIdentity uses grapheme clusters and ?? when name is empty", () => {
+  it("initialsFromIdentity, avatarTooltipLabel, breadcrumbSegments, projectTabItems", () => {
     assert.equal(initialsFromIdentity("", ""), "??");
     assert.equal(initialsFromIdentity("", "   "), "??");
+    assert.equal(initialsFromIdentity("   ", ""), "??");
     assert.equal(initialsFromIdentity("", "🎉 Party"), "🎉P");
     assert.notEqual(initialsFromIdentity("", "🎉 Party").length, 1);
     assert.equal(initialsFromIdentity("casey-reader", null), "CR");
-  });
-
-  it("avatarTooltipLabel prefers display name and omits raw identity id", () => {
     assert.equal(avatarTooltipLabel({ identityId: "secret-id", agentName: null }), null);
     assert.equal(avatarTooltipLabel({ agentName: "Dan Raby" }), "Dan Raby");
     assert.equal(avatarTooltipLabel({ displayName: "  Casey  ", agentName: "ignored" }), "Casey");
+    const route = parseAppRoute("/app/projects/reqalm/releases");
+    const segs = breadcrumbSegments(route, shellMeta);
+    assert.deepEqual(
+      segs.map((s) => s.label),
+      ["Dan Raby Dev", "ReqALM Product", "Releases"],
+    );
+    assert.ok(segs[0]?.href?.includes("danrabydev"));
+    assert.ok(segs[1]?.href?.includes("reqalm"));
+    assert.equal(segs[2]?.current, true);
+    const tabs = projectTabItems("reqalm", "/app/projects/reqalm/tree");
+    assert.equal(tabs.filter((t) => t.active).length, 1);
+    assert.equal(tabs.find((t) => t.active)?.id, "requirements");
   });
 });
 
@@ -1459,125 +1469,113 @@ describe("app shell", () => {
     Reflect.deleteProperty(globalThis, "document");
   });
 
-  it("highlights Requirements tab on list and tree routes", () => {
-    for (const path of ["/app/projects/reqalm/requirements", "/app/projects/reqalm/tree"]) {
-      installDom(`http://localhost${path}`);
-      const route = parseAppRoute(path);
-      renderAppShell(path, route, shellMeta);
-      const active = document.querySelector("#project-nav .project-tab-active");
-      assert.equal(active?.textContent, "Requirements", path);
-      assert.equal(document.querySelector("#top-nav"), null);
-    }
-  });
-
-  it("sets aria-current=page on the active live project tab for each route", () => {
-    const liveTabRoutes = [
+  it("live project tabs, minimal nav, and coming-soon tabs", () => {
+    const cases = [
       {
         path: "/app/projects/reqalm/requirements",
         label: "Requirements",
         href: "/app/projects/reqalm/requirements",
+        hideTopNav: true,
+        comingSoon: true,
       },
-      { path: "/app/projects/reqalm/tree", label: "Requirements", href: "/app/projects/reqalm/requirements" },
+      {
+        path: "/app/projects/reqalm/tree",
+        label: "Requirements",
+        href: "/app/projects/reqalm/requirements",
+        hideTopNav: true,
+      },
       { path: "/app/projects/reqalm/releases", label: "Releases", href: "/app/projects/reqalm/releases" },
       {
         path: "/app/projects/reqalm/releases/rel-a",
         label: "Releases",
         href: "/app/projects/reqalm/releases",
+        releaseActiveHref: true,
       },
+      { path: "/app/clients", minNav: true },
     ];
-    for (const { path, label, href } of liveTabRoutes) {
+    for (const { path, label, href, hideTopNav, releaseActiveHref, comingSoon, minNav } of cases) {
       installDom(`http://localhost${path}`);
-      renderAppShell(path, parseAppRoute(path), shellMeta);
+      const meta = minNav ? { identityId: "dan-raby", agentName: null } : shellMeta;
+      renderAppShell(path, parseAppRoute(path), meta);
+      if (minNav) {
+        assert.equal(document.querySelector("#project-nav"), null, path);
+        assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/clients"]'), path);
+        assert.equal(document.querySelectorAll("#project-nav .project-tab-disabled").length, 0, path);
+        continue;
+      }
+      const active = document.querySelector("#project-nav .project-tab-active");
+      assert.equal(active?.textContent, label, path);
+      if (hideTopNav) assert.equal(document.querySelector("#top-nav"), null, path);
       const ariaCurrent = [...document.querySelectorAll('#project-nav a[aria-current="page"]')];
       assert.equal(ariaCurrent.length, 1, path);
       assert.equal(ariaCurrent[0]?.textContent, label, path);
       assert.equal(ariaCurrent[0]?.getAttribute("href"), href, path);
       assert.ok(ariaCurrent[0]?.classList.contains("project-tab-active"), path);
+      if (releaseActiveHref) {
+        assert.ok(
+          document.querySelector('#project-nav a.project-tab-active[href="/app/projects/reqalm/releases"]'),
+          path,
+        );
+      }
+      if (comingSoon) {
+        for (const tabLabel of ["Traceability", "Capabilities", "Contracts", "Audit"]) {
+          const tab = [...document.querySelectorAll("#project-nav .project-tab-disabled")].find(
+            (n) => n.textContent === tabLabel,
+          );
+          assert.ok(tab, tabLabel);
+          assert.equal(tab?.getAttribute("aria-disabled"), "true");
+          assert.equal(tab?.getAttribute("title"), "Coming soon");
+          assert.equal(tab?.tagName, "SPAN");
+        }
+        assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 4);
+      }
     }
   });
 
-  it("highlights Releases tab on release routes", () => {
-    const path = "/app/projects/reqalm/releases/rel-a";
-    renderAppShell(path, parseAppRoute(path), shellMeta);
-    assert.ok(document.querySelector('#project-nav a.project-tab-active[href="/app/projects/reqalm/releases"]'));
-  });
-
-  it("shows minimal nav without project tabs on clients list", () => {
-    installDom("http://localhost/app/clients");
-    renderAppShell("/app/clients", parseAppRoute("/app/clients"), { identityId: "dan-raby", agentName: null });
-    assert.equal(document.querySelector("#project-nav"), null);
-    assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/clients"]'));
-    const disabled = [...document.querySelectorAll("#project-nav .project-tab-disabled")];
-    assert.equal(disabled.length, 0);
-  });
-
-  it("renders breadcrumb links for client and project in project context", () => {
-    renderAppShell("/app/projects/reqalm/requirements", parseAppRoute("/app/projects/reqalm/requirements"), shellMeta);
-    const crumb = document.querySelector(".header-breadcrumb");
-    assert.match(crumb?.textContent ?? "", /Dan Raby Dev/);
-    assert.match(crumb?.textContent ?? "", /ReqALM Product/);
-    assert.match(crumb?.textContent ?? "", /Requirements/);
-    assert.equal(document.querySelector('.header-breadcrumb a[href="/app/clients/danrabydev"]')?.textContent, "Dan Raby Dev");
-    assert.equal(document.querySelector('.header-breadcrumb a[href="/app/projects/reqalm"]')?.textContent, "ReqALM Product");
-    assert.ok(document.querySelector('.header-breadcrumb [aria-current="page"]'));
-  });
-
-  it("renders coming-soon project tabs as non-links", () => {
-    renderAppShell("/app/projects/reqalm/requirements", parseAppRoute("/app/projects/reqalm/requirements"), shellMeta);
-    for (const label of ["Traceability", "Capabilities", "Contracts", "Audit"]) {
-      const tab = [...document.querySelectorAll("#project-nav .project-tab-disabled")].find((n) => n.textContent === label);
-      assert.ok(tab, label);
-      assert.equal(tab?.getAttribute("aria-disabled"), "true");
-      assert.equal(tab?.getAttribute("title"), "Coming soon");
-      assert.equal(tab?.tagName, "SPAN");
-    }
-    assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 4);
-  });
-
-  it("escapes HTML in client and project names in the breadcrumb", () => {
+  it("breadcrumb links and escaped client/project names in project context", () => {
     const evil = "<img src=x onerror=alert(1)>";
-    renderAppShell("/app/projects/reqalm/requirements", parseAppRoute("/app/projects/reqalm/requirements"), {
-      ...shellMeta,
-      client: { id: "danrabydev", name: evil },
-      project: { id: "reqalm", name: evil, client_id: "danrabydev" },
-    });
-    assert.equal(document.querySelector(".header-breadcrumb img"), null);
-    assert.ok(document.querySelector(".header-breadcrumb")?.textContent?.includes("<img"));
+    const cases = [
+      { meta: shellMeta, links: true, escape: false },
+      {
+        meta: {
+          ...shellMeta,
+          client: { id: "danrabydev", name: evil },
+          project: { id: "reqalm", name: evil, client_id: "danrabydev" },
+        },
+        links: false,
+        escape: true,
+      },
+    ];
+    for (const { meta, links, escape } of cases) {
+      renderAppShell("/app/projects/reqalm/requirements", parseAppRoute("/app/projects/reqalm/requirements"), meta);
+      const crumb = document.querySelector(".header-breadcrumb");
+      if (links) {
+        assert.match(crumb?.textContent ?? "", /Dan Raby Dev/);
+        assert.match(crumb?.textContent ?? "", /ReqALM Product/);
+        assert.match(crumb?.textContent ?? "", /Requirements/);
+        assert.equal(document.querySelector('.header-breadcrumb a[href="/app/clients/danrabydev"]')?.textContent, "Dan Raby Dev");
+        assert.equal(document.querySelector('.header-breadcrumb a[href="/app/projects/reqalm"]')?.textContent, "ReqALM Product");
+        assert.ok(document.querySelector('.header-breadcrumb [aria-current="page"]'));
+      }
+      if (escape) {
+        assert.equal(document.querySelector(".header-breadcrumb img"), null);
+        assert.ok(crumb?.textContent?.includes("<img"));
+      }
+    }
   });
 
-  it("breadcrumbSegments builds client/project/page trail", () => {
-    const route = parseAppRoute("/app/projects/reqalm/releases");
-    const segs = breadcrumbSegments(route, shellMeta);
-    assert.deepEqual(
-      segs.map((s) => s.label),
-      ["Dan Raby Dev", "ReqALM Product", "Releases"],
-    );
-    assert.ok(segs[0]?.href?.includes("danrabydev"));
-    assert.ok(segs[1]?.href?.includes("reqalm"));
-    assert.equal(segs[2]?.current, true);
-  });
-
-  it("projectTabItems marks only the matching enabled tab active", () => {
-    const tabs = projectTabItems("reqalm", "/app/projects/reqalm/tree");
-    assert.equal(tabs.filter((t) => t.active).length, 1);
-    assert.equal(tabs.find((t) => t.active)?.id, "requirements");
-  });
-
-  it("shows user initials avatar and sign out", () => {
-    renderAppShell("/app/clients", parseAppRoute("/app/clients"), shellMeta);
-    assert.equal(document.querySelector(".user-avatar")?.textContent, "DR");
-    assert.equal(document.querySelector(".user-avatar")?.getAttribute("title"), "Dan Raby");
+  it("user avatar, sign out, and tooltip policy", () => {
+    for (const { meta, initials, title, forbiddenTitle } of [
+      { meta: shellMeta, initials: "DR", title: "Dan Raby" },
+      { meta: { identityId: "casey-reader", agentName: null }, initials: "CR", title: null, forbiddenTitle: "casey-reader" },
+    ]) {
+      renderAppShell("/app/clients", parseAppRoute("/app/clients"), meta);
+      const avatar = document.querySelector(".user-avatar");
+      assert.equal(avatar?.textContent, initials);
+      assert.equal(avatar?.getAttribute("title"), title);
+      if (forbiddenTitle) assert.notEqual(avatar?.getAttribute("title"), forbiddenTitle);
+    }
     assert.ok(document.getElementById("signout"));
-  });
-
-  it("avatar omits title when no display name is available", () => {
-    renderAppShell("/app/clients", parseAppRoute("/app/clients"), {
-      identityId: "casey-reader",
-      agentName: null,
-    });
-    const avatar = document.querySelector(".user-avatar");
-    assert.equal(avatar?.getAttribute("title"), null);
-    assert.notEqual(avatar?.getAttribute("title"), "casey-reader");
   });
 
   it("breadcrumb skips invalid client slug and loadShellMeta does not fetch client", async () => {
