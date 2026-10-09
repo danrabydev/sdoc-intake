@@ -1,5 +1,10 @@
 /** Client-side browse screens (read-only). */
 
+import {
+  fillRequirementRelationsPanel,
+  relationsPanelShell,
+} from "./browse-relations.js";
+
 export const APP_NAV = [
   { href: "/app/clients", label: "Clients" },
   { href: "/app/projects", label: "Projects" },
@@ -831,13 +836,12 @@ export async function renderRequirementsTree(container, { apiFn, projectId }) {
 
 export async function renderRequirementDetail(container, { apiFn, projectId, requirementId, listFilters }) {
   if (!isValidSlugId(projectId) || !isValidRequirementId(requirementId)) return renderNotFound(container);
-  const res = await loadJson(
-    apiFn,
-    `/api/v1/projects/${encodeURIComponent(projectId)}/requirements/${encodeURIComponent(requirementId)}`,
-  );
+  const detailPath = `/api/v1/projects/${encodeURIComponent(projectId)}/requirements/${encodeURIComponent(requirementId)}`;
+  const res = await loadJson(apiFn, detailPath);
   if (res.kind === "auth") return;
   if (res.kind !== "ok") return renderNotFound(container);
   const req = res.data;
+  const relPanel = relationsPanelShell();
   container.replaceChildren(
     requirementDetailBreadcrumb(projectId, req, listFilters),
     el("h1", { text: req.title || req.id }),
@@ -848,6 +852,7 @@ export async function renderRequirementDetail(container, { apiFn, projectId, req
     el("p", {}, [el("a", { href: appRequirementVersionsHref(projectId, requirementId), text: "Version history" })]),
     el("h2", { text: "Statement" }),
     el("div", { className: "statement-body", text: req.statement }),
+    relPanel,
   );
   const meta = el("dl", { className: "detail-meta" });
   for (const [key, val] of Object.entries(req.attributes ?? {})) {
@@ -855,6 +860,7 @@ export async function renderRequirementDetail(container, { apiFn, projectId, req
     meta.append(el("dt", { text: ATTR_LABELS[key] ?? key }), el("dd", { text: String(val) }));
   }
   if (meta.childNodes.length) container.append(el("h2", { text: "Attributes" }), meta);
+  await fillRequirementRelationsPanel(relPanel, { apiFn, projectId, requirementId });
 }
 
 export async function renderRequirementVersions(container, { apiFn, projectId, requirementId, offset = 0, limit = 20 }) {
