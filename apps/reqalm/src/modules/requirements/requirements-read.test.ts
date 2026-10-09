@@ -68,7 +68,7 @@ describe("requirements read API", () => {
         headers: bearer,
       })
     ).json() as { data: { items: Array<{ kind: string }>; total: number } };
-    assert.equal(cap.data.total, 73);
+    assert.equal(cap.data.total, 78);
     assert.ok(cap.data.items.length > 0);
     assert.ok(cap.data.items.every((i) => i.kind === "capability"));
     const draft = (
@@ -94,7 +94,7 @@ describe("requirements read API", () => {
     const content = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?type=content&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ type: string; id: string }>; total: number } };
-    assert.equal(content.data.total, 7);
+    assert.equal(content.data.total, 13);
     assert.ok(content.data.items.some((i) => i.id === "SEC-DEVENV" && i.type === "content"));
     const combo = (
       await inject({

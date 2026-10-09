@@ -109,6 +109,7 @@ edge: ← uses from FIX-ALLOW-FEDERATED-SSO-VIA-AS
 edge: ← refines from ARCH-AUTH-LOCAL.1
 edge: ← refines from ARCH-AUTH-PROFILE
 edge: ← uses from FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
+edge: ← satisfies from CAP-SSO.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -188,6 +189,7 @@ edge: ← satisfies from CAP-SSO
 edge: ← refines from ARCH-AUTH-REVOKE
 edge: ← refines from ARCH-CRED-SESSION
 edge: ← uses from FIX-DENY-REVOKED-TOKEN
+edge: ← satisfies from CAP-SSO.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Fixture doc-walk
@@ -257,6 +259,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3/AC-6 least privilege via server-bound scope. ASD STIG V6R4 V-222429 / V-222550.
 edge: ← satisfies from CAP-SCOPED-VIEW
 edge: ← uses from B08
+edge: ← satisfies from CAP-SCOPED-VIEW.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -319,6 +322,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement on scope clear/change. ASD STIG V6R4 V-222578 / V-222389.
 edge: ← satisfies from CAP-SCOPED-VIEW
+edge: ← satisfies from CAP-SCOPED-VIEW.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -371,6 +375,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 self-read boundary; AU access logging where required. ASD STIG V6R4 V-222430.
 edge: ← satisfies from CAP-RBAC
+edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R0-sequences
 edge: → conforms_to to V-222430 (pin imprint=asd-stig@v6r4)
@@ -414,6 +419,7 @@ edge: ← satisfies from CAP-RBAC
 edge: ← uses from ARCH-AUTH-FEDERATION
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← uses from ARCH-AUTH-CLAIM-MAP
+edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -481,6 +487,7 @@ edge: ← satisfies from CAP-RBAC
 edge: ← refines from ARCH-CRED-REAUTH
 edge: ← uses from FIX-DENY-PRIV-NO-MFA
 edge: ← uses from ARCH-AUTH-CLAIM-MAP
+edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -546,6 +553,7 @@ security.catalog_ref: AC-2
 security.verification_note: AC-2/AC-3 revoke path; AU-2/3/12. ASD STIG V6R4 V-222467 / V-222407.
 edge: ← satisfies from CAP-RBAC
 edge: ← uses from ARCH-AUTH-UPSTREAM-REVOKE
+edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -610,6 +618,7 @@ iteration: iter-r1
 security.catalog_ref: AC-2
 security.verification_note: AC-2 account management for steward roles; AU-2/3/12. ASD STIG V6R4 V-222407 / V-222467.
 edge: ← satisfies from CAP-RBAC
+edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
@@ -669,6 +678,7 @@ iteration: iter-r1
 security.catalog_ref: AC-2
 security.verification_note: AC-2/AC-3 steward revoke; AU-2/3/12. ASD STIG V6R4 V-222467.
 edge: ← satisfies from CAP-RBAC
+edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
@@ -729,6 +739,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 least disclosure of grant listings; AU optional. ASD STIG V6R4 V-222430.
 edge: ← satisfies from CAP-RBAC
+edge: ← satisfies from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
@@ -835,7 +846,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-RBAC
-STATUS: Active
+STATUS: Draft
 TITLE: RBAC enforcement on API mutations
 STATEMENT: >>>
 API routes enforce project-grant derived permissions (CAP-RBAC matrix subset). `POST /api/v1/projects/:projectId/grants` requires `grant:manage`; Readers receive 403 with audit. MCP `/mcp` requires MCP-audience tokens. Acceptance: auth-flow-smoke RBAC deny for casey-reader.
@@ -857,6 +868,7 @@ edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR
 edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
+edge: ← refines from CAP-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -921,6 +933,69 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-RBAC.1
+STATUS: Active
+TITLE: RBAC enforcement on API mutations
+STATEMENT: >>>
+Capability pack for API RBAC enforcement (subset of the full permission matrix). Shipped foundation covers OAuth routes, defineOperationRoute business reads, and auth-flow-smoke beds — not every ARCH-API-RBAC mutating operation. MCP and grant-management mutators remain planned in core-ALM.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-RBAC
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Partial pass on .1: foundation + read routes verified; full matrix deferred to core-ALM. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes).
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: A05
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A07
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A09
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A10
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A11
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Satisfies
 
 [REQUIREMENT]
 UID: ARCH-AUTH-AS
@@ -2632,6 +2707,7 @@ edge: ← refines from A03
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← uses from FIX-DENY-CROSS-TENANT-CONNECTOR
+edge: ← refines from ARCH-WRITE-TRUNCATE-GUARD
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
@@ -2656,6 +2732,77 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-HIER-REQ-DECOMP
+STATUS: Active
+TITLE: Requirement decomposition rollup
+STATEMENT: >>>
+Requirement lines may have child requirement lines (decomposition). Child requirements shall roll up completeness and status into the parent. Requirements shall nest only under requirements or sections, never under capability lines.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-HIER-REQ-DECOMP
+VERSION_N: 0
+rbac_op: requirement:line:create
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-CP-HIER
+- TYPE: Parent
+  VALUE: C01
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-HIER-CAP-PARTOF
+STATUS: Active
+TITLE: Capability part-of rollup
+STATEMENT: >>>
+Capability lines may have child capability lines (part-of composition). Child capabilities shall roll up operational/verification status into the parent. Child capabilities shall inherit the parent's conforms_to control pins unless a child override capability explicitly replaces them.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-HIER-CAP-PARTOF
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track. rbac_op capability:view proposed for future hierarchy browse.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-CP-HIER
+- TYPE: Parent
+  VALUE: ARCH-CAP-LINK
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-HIER-SECTION-GROUP
+STATUS: Active
+TITLE: Sections group only (no rollup)
+STATEMENT: >>>
+Section lines shall group siblings only. Section placement shall not imply status rollup, control inheritance, or satisfies/conforms_to propagation.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-HIER-SECTION-GROUP
+VERSION_N: 0
+rbac_op: requirement:tree:read
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-CP-HIER
+- TYPE: Parent
+  VALUE: ARCH-SUBJECT-KIND
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -2923,6 +3070,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-TREE
+edge: ← refines from ARCH-HIER-REQ-DECOMP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1-core-ALM
@@ -3199,6 +3347,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-READ-HIERARCHY
+edge: ← satisfies from CAP-UI-KIT
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3787,6 +3936,7 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from ARCH-API
 edge: ← uses from C03
 edge: ← uses from FIX-ALLOW-STATUS-SUPERSEDE
+edge: ← refines from ARCH-WRITE-VERSION-UNIQUE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -4002,6 +4152,7 @@ priority: 25
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Soft/v1 verification_outcome; Tester sets. Does not block ship unless future policy.
+edge: ← refines from ARCH-REQ-AC-FACET
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4144,9 +4295,61 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-READ-HIERARCHY
   ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-KIT-TREE
+  ROLE: Uses
 - TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-tree
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-REQ-AC-FACET
+STATUS: Active
+TITLE: Acceptance criteria facets
+STATEMENT: >>>
+An acceptance criterion (facet) is a verifiable condition attached to exactly one requirement version — not a separate requirement line and not a capability line. Facets shall have no independent trace graph; satisfaction is recorded on the parent requirement. Each facet shall use a testable 'shall' statement. A child requirement line (decomposition) is a distinct concept per ARCH-HIER-REQ-DECOMP.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-REQ-AC-FACET
+VERSION_N: 0
+rbac_op: requirement:tree:read
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← refines from ARCH-REQ-AC-ROLLUP
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RL
+- TYPE: Parent
+  VALUE: ARCH-VERIFICATION
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-REQ-AC-ROLLUP
+STATUS: Active
+TITLE: Roll up completeness from facets
+STATEMENT: >>>
+Requirement completeness shall roll up from acceptance criteria on the parent version: the parent is complete when every attached facet is satisfied; a facet is satisfied when at least one linked capability (or verified implementation) satisfies it. Partial facet satisfaction shall surface as incomplete on the parent.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-REQ-AC-ROLLUP
+VERSION_N: 0
+rbac_op: requirement:tree:read
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RL
+- TYPE: Parent
+  VALUE: ARCH-REQ-AC-FACET
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -4271,6 +4474,7 @@ priority: 30
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from ARCH-HIER-USES-DEP
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4309,6 +4513,8 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← refines from I02
+edge: ← refines from ARCH-SEC-EDGE-DEDUPE-DB
+edge: ← refines from ARCH-SEC-EDGE-DEDUPE-API
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → uses to I02 (RELATIONS TYPE: Child; Parent would cycle)
@@ -4398,6 +4604,10 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-RELATIONS-API
+edge: ← refines from ARCH-TRACE-VIEW-RTM
+edge: ← refines from ARCH-TRACE-VIEW-CCM
+edge: ← refines from ARCH-TRACE-LAYOUT-WORKER
+edge: ← refines from ARCH-SEC-REL-STUB
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4475,7 +4685,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: Planned until relations read API PR merges.
+security.verification_note: Runtime on main (PR #31); rel-r1-relations-api release still planned in a parallel seed PR.
 delivered_by_release: R1 — requirement relations read API
 <<<
 RELATIONS:
@@ -4496,9 +4706,182 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CAP-SVC-OPERATION-ROUTE
   ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-SEC-REL-STUB
+  ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-relations-api
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-TRACE-RECHECK
+STATUS: Active
+TITLE: Needs re-check (look-back completeness)
+STATEMENT: >>>
+Re-check (needs re-check) is a distinct state from incomplete: re-check applies to a criterion, control, or trace target that was previously complete whose conforming capability changed content, lost verification, or regressed. Incomplete means the target was never completed. Re-check shall be represented as trace_suspect (and review queues) separately from incomplete. Audit-sensitive targets — controls in the AU and AC families plus any target the user marks audit-sensitive — shall enter re-check when an upstream satisfying or conforming capability changes. A uses dependency change shall flag dependents for re-check without inheriting controls unless explicitly modeled.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-TRACE-RECHECK
+VERSION_N: 0
+rbac_op: trace:suspect
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-3
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← uses from ARCH-HIER-USES-DEP
+edge: ← uses from ARCH-SUSPECT.1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: ARCH-SUSPECT.1
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-HIER-USES-DEP
+STATUS: Active
+TITLE: Uses dependency without control pass-through
+STATEMENT: >>>
+A uses edge shall model dependency, not ownership: for example a page capability uses a shared header capability. Uses shall not pass conforms_to controls along the edge unless explicitly annotated. When a used capability changes, dependents shall enter re-check per ARCH-TRACE-RECHECK.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-HIER-USES-DEP
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track. rbac_op trace:edit proposed for future trace mutation routes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: ARCH-TRACE-RECHECK
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: E03
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-SEC-EDGE-DEDUPE-DB
+STATUS: Active
+TITLE: Trace edge dedupe index (DB)
+STATEMENT: >>>
+Before the first trace edge write route ships, trace_edges shall enforce a unique index on (from_project_id, from_uid, COALESCE(to_project_id,''), to_uid, kind, catalog_imprint_id) so cross-project peer project ids participate in deduplication at persistence.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SEC-EDGE-DEDUPE-DB
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-6
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: E04
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-SEC-EDGE-DEDUPE-API
+STATUS: Active
+TITLE: Trace edge dedupe key (API)
+STATEMENT: >>>
+Trace edge create/update APIs shall treat the dedupe key as (from_project_id, from_uid, to_project_id, to_uid, kind, catalog_imprint_id) including the peer project id, matching the database uniqueness rule in ARCH-SEC-EDGE-DEDUPE-DB. The grant-scoped GET relations read API shall use the same peer-inclusive key when deduplicating edges in responses; requirements-relations.ts on main cb8a8c9 still omits the peer project id in its dedupe key — this requirement remains unsatisfied until a follow-up PR.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SEC-EDGE-DEDUPE-API
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-4
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: E04
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-SEC-XPROJ-READ
+STATUS: Active
+TITLE: Cross-project link requires target read
+STATEMENT: >>>
+Creating a cross-project trace link shall require requirement:read on the target project. Conflict and dedupe errors shall not reveal edges the caller cannot read.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SEC-XPROJ-READ
+VERSION_N: 0
+rbac_op: requirement:tree:read
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-SEC-REL-STUB
+STATUS: Active
+TITLE: Restricted relation stub shape
+STATEMENT: >>>
+Deliberate design choice: restricted relation stubs from unreadable projects shall reveal the count and kind of links (incoming/outgoing and relation_kind) without revealing peer ids, titles, or project identifiers.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SEC-REL-STUB
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-4
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← satisfies from CAP-RELATIONS-API
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: E06
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-SEC-REL-PAGING
+STATUS: Active
+TITLE: Relations response paging
+STATEMENT: >>>
+Relations read responses shall support paging before large real datasets land (page size caps consistent with other browse APIs).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SEC-REL-PAGING
+VERSION_N: 0
+rbac_op: requirement:tree:read
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -5742,6 +6125,7 @@ security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← uses from ARCH-CAT-PIN
 edge: ← uses from ARCH-CAT-IMPORT
+edge: ← refines from ARCH-CAT-EXTERNAL
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -5781,6 +6165,7 @@ security.verification_note: Catalog steward gates; standard catalogs imprint-pub
 edge: ← uses from ARCH-CAT-REACT
 edge: ← uses from ARCH-CAT-FREEZE
 edge: ← uses from ARCH-CAT-MIGRATE
+edge: ← refines from ARCH-SEC-CAT-LABEL-IMPRINT
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -5982,6 +6367,7 @@ priority: 40
 iteration: iter-r1
 security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
+edge: ← refines from ARCH-SEC-CAT-FK
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -6188,6 +6574,8 @@ priority: 30
 iteration: iter-r0
 security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs read-only. AC-3/CM-5 aligned.
+edge: ← refines from ARCH-CAT-VISIBILITY
+edge: ← refines from ARCH-BROWSE-ROADMAP
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -6356,6 +6744,125 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-CAT-EXTERNAL
+STATUS: Active
+TITLE: Catalogs represented outside project tree
+STATEMENT: >>>
+Standard and custom catalogs (NIST 800-53, STIG, project REQALM-SEC-*) shall live outside the project requirement tree while remaining first-class: imprints, item UIDs, and ConformsTo pins are referenced, not copied, into project data.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CAT-EXTERNAL
+VERSION_N: 0
+rbac_op: catalog:browse
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← refines from ARCH-CAT-PROJECT-ROLLUP
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CAT
+- TYPE: Parent
+  VALUE: ARCH-CAT-IMPRINT
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-CAT-PROJECT-ROLLUP
+STATUS: Active
+TITLE: Catalog control project rollup
+STATEMENT: >>>
+For catalog controls in scope of a project, a control shall show incomplete for the project when any in-scope capability or requirement relying on that control is incomplete or needs re-check. Rollup shall not require duplicating catalog text in the project tree.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CAT-PROJECT-ROLLUP
+VERSION_N: 0
+rbac_op: catalog:browse
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CAT
+- TYPE: Parent
+  VALUE: ARCH-CAT-EXTERNAL
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-CAT-VISIBILITY
+STATUS: Active
+TITLE: User-selected visible catalogs
+STATEMENT: >>>
+The user shall choose which catalogs are visible in browse and trace views per user per project; the selection shall persist in server-side session or profile state keyed by (identity_id, project_id). The default when unset shall be all catalogs that have at least one conforms_to or catalog link in the project. Hidden catalogs shall not appear in control rollups or two-column catalog views until selected.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CAT-VISIBILITY
+VERSION_N: 0
+rbac_op: catalog:browse
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CAT
+- TYPE: Parent
+  VALUE: H09
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-SEC-CAT-FK
+STATUS: Active
+TITLE: catalog_defs.project_id FK
+STATEMENT: >>>
+catalog_defs.project_id shall reference projects(id) with a foreign key when project-scoped catalogs are stored. Parallel PR #33 migration 010 delivers this constraint.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SEC-CAT-FK
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-6
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CAT
+- TYPE: Parent
+  VALUE: ARCH-CAT-SCOPE
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-SEC-CAT-LABEL-IMPRINT
+STATUS: Active
+TITLE: Catalog labels keyed per imprint
+STATEMENT: >>>
+Catalog item labels shall be keyed per imprint (catalog_imprint_id + item_uid), not per catalog id alone, so imprint succession does not collide titles.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SEC-CAT-LABEL-IMPRINT
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-6
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CAT
+- TYPE: Parent
+  VALUE: ARCH-CAT-PIN
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -7412,6 +7919,56 @@ RELATIONS:
   VALUE: AU-12
   ROLE: ConformsTo
 
+[REQUIREMENT]
+UID: CAP-BROWSE-ROADMAP
+STATUS: Draft
+TITLE: Browse roadmap (planned releases queue)
+STATEMENT: >>>
+Tracks the ordered read-only browse program under ARCH-BROWSE-ROADMAP. Each tranche is still one PR = one release (API then UI): rel-r1-catalogs-api (parallel CAP-CATALOGS-API), rel-r1-browse-ui-catalogs, rel-r1-read-planning, rel-r1-browse-ui-planning, rel-r1-read-artifacts, rel-r1-browse-ui-artifacts, rel-r1-read-workflow, rel-r1-browse-ui-workflow, rel-r1-read-access, rel-r1-browse-ui-access, rel-r1-read-audit, rel-r1-browse-ui-audit, rel-r1-browse-ui-relations (parallel), rel-r1-browse-ui-trace-views. This capability is documentation-only until the first tranche PR adds real caps.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-ROADMAP
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned; not shipped on main.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-GROOM
+- TYPE: Parent
+  VALUE: ARCH-BROWSE-ROADMAP
+  ROLE: Satisfies
+
+[REQUIREMENT]
+UID: CAP-SEED-GROOMING
+STATUS: Draft
+TITLE: Dogfood seed grooming (requirements honesty)
+STATEMENT: >>>
+Documentation-only seed pass: refined architecture requirements (acceptance criteria, trace views, hierarchy, security follow-ups), browse roadmap releases, and honesty corrections in dogfood.yaml with regenerated StrictDoc out/ and HANDOFF.md. No application runtime changes.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SEED-GROOMING
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until seed grooming PR merges.
+delivered_by_release: R1 — dogfood seed grooming
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-GROOM
+- TYPE: Parent
+  VALUE: ARCH-BROWSE-ROADMAP
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-seed-grooming
+  ROLE: Delivers
+
 [[/SECTION]]
 
 [[SECTION]]
@@ -7597,6 +8154,52 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-SEC-SEED-INTEGRITY
+STATUS: Active
+TITLE: Seed loader base_uid and delivers integrity
+STATEMENT: >>>
+The dogfood seed loader shall reject a base_uid that appears in more than one project and shall reject release.delivers entries whose requirement version project_id does not match the release's project_id.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SEC-SEED-INTEGRITY
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-6
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IO
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-SEC-LOADER-EDGE-SYNC
+STATUS: Active
+TITLE: Seed loader deletes removed trace edges
+STATEMENT: >>>
+The seed loader shall delete trace_edges removed from the seed document on re-load (sync), not only insert new rows.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SEC-LOADER-EDGE-SYNC
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-6
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IO
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-SEED
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -8426,6 +9029,9 @@ edge: ← satisfies from CAP-BROWSE-UI-CP
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 edge: ← satisfies from CAP-BROWSE-UI-TREE
+edge: ← satisfies from CAP-UI-KIT
+edge: ← refines from ARCH-UI-KIT-SHARED
+edge: ← satisfies from CAP-UI-FRAME.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -8482,6 +9088,7 @@ edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 edge: ← satisfies from CAP-BROWSE-UI-TREE
 edge: ← satisfies from CAP-MFA-QR
+edge: ← satisfies from CAP-UI-FRAME.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -8663,7 +9270,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-UI-FRAME
-STATUS: Active
+STATUS: Draft
 TITLE: UI frame: app shell, layout, guarded routes
 STATEMENT: >>>
 The Web UI frame served by the web role: top navigation, client-scoped sidebar chrome, and route guards that send unauthenticated users to the internal-AS sign-in flow and keep `/app/*` behind a valid API-audience session via HttpOnly SameSite=Lax cookies (BFF) with CSRF on sign-out; API clients use bearer tokens. Sign-out revokes refresh tokens via RFC 7009. Acceptance: unauthenticated `/app` redirects to login; authenticated shell renders `/api/v1/me` grants.
@@ -8676,6 +9283,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 guard enforcement. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass; headless Chrome: `/` and `/app` redirect to sign-in, dev account casey-reader reaches `/app` at localhost:3000 and 127.0.0.1:3000.
+edge: ← refines from CAP-UI-FRAME.1
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8694,6 +9302,250 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-UI-FRAME.1
+STATUS: Active
+TITLE: UI frame: app shell, layout, guarded routes
+STATEMENT: >>>
+Web UI frame: navigation, client-scoped sidebar chrome, and route guards for /app/* via BFF session cookies and CSRF on cookie mutations. Partial: shell and sign-in work; not every ARCH-UI surface is implemented.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-FRAME
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Partial pass on .1: shell + guards verified on PR #13; full UI catalog still planned. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes).
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: CAP-UI-FRAME
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-TRACE-VIEW-RTM
+STATUS: Active
+TITLE: Two-column requirements ↔ capabilities view
+STATEMENT: >>>
+The product shall provide a two-column traceability view with system requirements on the left and capabilities on the right, joined by satisfies edges (and refines where shown). Selecting a row on either column shall highlight the active joined path on both columns.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-TRACE-VIEW-RTM
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: E06
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CAP-UI-KIT-TREE
+  ROLE: Uses
+
+[REQUIREMENT]
+UID: ARCH-TRACE-VIEW-CCM
+STATUS: Active
+TITLE: Two-column controls ↔ capabilities view
+STATEMENT: >>>
+The product shall provide a two-column traceability view with catalog controls on the left and capabilities on the right, joined by conforms_to edges. Selecting a row on either column shall highlight the active joined path on both columns. Direct ConformsTo pins shall render as solid links; inherited or aggregated links shall render dashed. A control shall be treated as heavy when it has more than 25 direct capability links in the current project view; heavy controls shall collapse into bundles by default with an expand affordance.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-TRACE-VIEW-CCM
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: E06
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CAP-UI-KIT-TREE
+  ROLE: Uses
+
+[REQUIREMENT]
+UID: ARCH-TRACE-LAYOUT-WORKER
+STATUS: Active
+TITLE: Off-main-thread trace layout engine
+STATEMENT: >>>
+Layout, link aggregation, and rollup math for trace views shall run behind one small TypeScript interface executed off the main thread (Web Worker). The default implementation shall be plain TypeScript. WebAssembly shall be adopted only when plain TypeScript layout exceeds 50 ms at P95 on a reference project size (full dogfood trace graph).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-TRACE-LAYOUT-WORKER
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: E06
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-UI-KIT-SHARED
+STATUS: Active
+TITLE: UI Kit shared components
+STATEMENT: >>>
+A UI Kit capability shall own shared presentation components (tree, header chrome, badges) as child capabilities (part-of under CAP-UI-KIT). Feature views shall use the shared tree via uses edges. Tree behavior shall meet WCAG 2.2 Level AA and keyboard navigation per the WAI-ARIA tree pattern. Paging label 'showing 100 of N' shall appear when a parent has more than 100 direct children. CAP-BROWSE-UI-TREE (shipped) embeds tree behavior inline today; a later refactor shall extract that implementation into CAP-UI-KIT-TREE without duplicating a11y requirements.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-UI-KIT-SHARED
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← satisfies from CAP-UI-KIT
+edge: ← satisfies from CAP-UI-KIT-TREE
+edge: ← satisfies from CAP-UI-KIT-CHROME
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-BROWSE-ROADMAP
+STATUS: Active
+TITLE: Read-only browse priority order
+STATEMENT: >>>
+The product shall provide read-only views for catalogs/imprints/controls, planning objects (contracts, iterations, change sets), capability artifacts, workflow objects, people/access bindings, and audit events — API first then matching browse UI per tranche. Delivery order and release names are recorded on CAP-BROWSE-ROADMAP. Relationships browse UI remains parallel (rel-r1-browse-ui-relations); do not duplicate here.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-BROWSE-ROADMAP
+VERSION_N: 0
+rbac_op: requirement:tree:read
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← satisfies from CAP-SEED-GROOMING
+edge: ← satisfies from CAP-BROWSE-ROADMAP
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: H09
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: CAP-UI-KIT
+STATUS: Draft
+TITLE: UI Kit (shared chrome and tree)
+STATEMENT: >>>
+Shared UI components for ReqALM browse surfaces: header chrome, badges, and the lazy tree control. Child capabilities hold concrete widgets; feature pages use them via uses edges.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-KIT
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned; not shipped on main.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: ARCH-UI-KIT-SHARED
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: C07
+  ROLE: Satisfies
+
+[[SECTION]]
+UID: CAP-UI-KIT-CHILDREN
+TITLE: Children of CAP-UI-KIT
+
+[REQUIREMENT]
+UID: CAP-UI-KIT-TREE
+STATUS: Draft
+TITLE: Shared lazy tree widget
+STATEMENT: >>>
+Lazy tree with expand/collapse, WCAG 2.2 AA keyboard navigation per WAI-ARIA tree pattern, and parent paging label 'showing 100 of N' when more than 100 direct children exist. Shipped CAP-BROWSE-UI-TREE will be refactored to consume this widget later (see ARCH-UI-KIT-SHARED).
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-KIT-TREE
+VERSION_N: 0
+priority: 12
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned; tree browse exists in CAP-BROWSE-UI-TREE without extracted kit.
+edge: ← uses from ARCH-TRACE-VIEW-RTM
+edge: ← uses from ARCH-TRACE-VIEW-CCM
+edge: ← uses from CAP-BROWSE-UI-TREE
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: CAP-UI-KIT
+- TYPE: Parent
+  VALUE: ARCH-UI-KIT-SHARED
+  ROLE: Satisfies
+
+[REQUIREMENT]
+UID: CAP-UI-KIT-CHROME
+STATUS: Draft
+TITLE: Shared header and badges
+STATEMENT: >>>
+Top/sidebar chrome fragments and status badges reused by browse views; no business logic.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-KIT-CHROME
+VERSION_N: 0
+priority: 12
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned; tree browse exists in CAP-BROWSE-UI-TREE without extracted kit.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: CAP-UI-KIT
+- TYPE: Parent
+  VALUE: ARCH-UI-KIT-SHARED
+  ROLE: Satisfies
+
+[[/SECTION]]
 
 [[/SECTION]]
 
@@ -8731,6 +9583,8 @@ edge: ← uses from ARCH-KEY-LIFECYCLE
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
 edge: ← uses from ARCH-OTEL-TRACE
+edge: ← refines from ARCH-WRITE-UOW-AUDIT
+edge: ← refines from ARCH-WRITE-AUDIT-FLOOD
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -8797,6 +9651,8 @@ edge: ← uses from ARCH-DEPLOY-MINIMAL
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-API-DOCS-SEED-SUMMARY
 edge: ← satisfies from CAP-SVC-RESULT-ENVELOPE
+edge: ← refines from ARCH-SEC-REL-PAGING
+edge: ← refines from ARCH-SEC-HEADERS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -8839,7 +9695,7 @@ TITLE: Children of ARCH-API
 
 [REQUIREMENT]
 UID: ARCH-API-RBAC
-STATUS: Active
+STATUS: Draft
 TITLE: RBAC on every mutating API
 STATEMENT: >>>
 Every mutating business operation checks project_grant (and steward grants where applicable) before
@@ -8873,6 +9729,7 @@ edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
+edge: ← refines from ARCH-API-RBAC.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -8907,6 +9764,48 @@ RELATIONS:
   ROLE: Delivers
 
 [REQUIREMENT]
+UID: ARCH-API-RBAC.1
+STATUS: Active
+TITLE: RBAC on every mutating API
+STATEMENT: >>>
+Every mutating business operation shall check project_grant (and steward grants where applicable) before writes. Denied calls return a consistent unauthorized/forbidden outcome and emit an audit event. CAP-RBAC documents the currently verified enforcement subset; this architecture requirement remains active until all mutators in scope ship.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-API-RBAC
+VERSION_N: 1
+rbac_op: rbac:authorize
+priority: 10
+iteration: iter-r0
+security.catalog_ref: REQALM-SEC-RBAC
+security.verification_note: Maps to ReqALM RBAC catalog item; .1 narrows honesty vs CAP-RBAC enforcement subset.
+edge: ← refines from ARCH-SEC-XPROJ-READ
+edge: ← satisfies from CAP-RBAC.1
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222429 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-API
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-6
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222429
+  ROLE: ConformsTo
+
+[REQUIREMENT]
 UID: ARCH-API-LAYERS
 STATUS: Active
 TITLE: Layering: adapter → service → repository
@@ -8928,6 +9827,7 @@ edge: ← satisfies from CAP-SVC-RESULT-ENVELOPE
 edge: ← satisfies from CAP-SVC-REQUEST-CONTEXT
 edge: ← satisfies from CAP-SVC-MODULE-BOOTSTRAP
 edge: ← satisfies from CAP-SVC-OPERATION-ROUTE
+edge: ← refines from ARCH-WRITE-REPOSITORY-LAYER
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
@@ -9677,6 +10577,144 @@ RELATIONS:
   VALUE: RELEASE-rel-r1-route-hardening
   ROLE: Delivers
 
+[REQUIREMENT]
+UID: ARCH-WRITE-UOW-AUDIT
+STATUS: Active
+TITLE: Write unit-of-work with audit
+STATEMENT: >>>
+Mutating domain operations shall run inside a unit-of-work boundary that appends audit events atomically with business writes.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-WRITE-UOW-AUDIT
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AU-9
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-WRITE-REPOSITORY-LAYER
+STATUS: Active
+TITLE: Repository layer (no SQL in routes)
+STATEMENT: >>>
+HTTP route adapters shall not embed SQL; persistence shall go through a repository layer invoked from the unit-of-work boundary.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-WRITE-REPOSITORY-LAYER
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-API-LAYERS
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-WRITE-TRUNCATE-GUARD
+STATUS: Active
+TITLE: TRUNCATE guard and runtime DB role
+STATEMENT: >>>
+The database shall install a TRUNCATE guard (trigger or equivalent) and the runtime application DB role shall not be table owner, curbing destructive SQL from compromised credentials.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-WRITE-TRUNCATE-GUARD
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-6
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-CP-SCOPE
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-WRITE-AUDIT-FLOOD
+STATUS: Active
+TITLE: Audit append flood controls
+STATEMENT: >>>
+Audit append endpoints shall require authentication or rate limiting so unauthenticated callers cannot flood audit storage.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-WRITE-AUDIT-FLOOD
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AU-9
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-WRITE-VERSION-UNIQUE
+STATUS: Active
+TITLE: Unique requirement version constraint
+STATEMENT: >>>
+The schema shall enforce UNIQUE (project_id, base_uid, version_n) on requirement versions.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-WRITE-VERSION-UNIQUE
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-VER
+  ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-WRITE-RESERVED-IDS
+STATUS: Active
+TITLE: Reject reserved id segments at mint
+STATEMENT: >>>
+Minting requirement or capability ids shall reject reserved path segments defined by the product id policy.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-WRITE-RESERVED-IDS
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-MINT-KIND
+  ROLE: Refines
+
 [[/SECTION]]
 
 [[SECTION]]
@@ -9691,7 +10729,7 @@ Cross-cutting security controls, NIST/STIG alignment notes, and capability packs
 
 [REQUIREMENT]
 UID: CAP-SSO
-STATUS: Active
+STATUS: Draft
 TITLE: Federated SSO session
 STATEMENT: >>>
 Capability pack for federated SSO session establishment and teardown against the enterprise IdP.
@@ -9710,6 +10748,7 @@ catalog_drift: status=flagged class=normative item=AC-3 from=nist-800-53@rev5-do
 edge: ← uses from ARCH-DEVENV-IDENTITY
 edge: ← uses from ARCH-DEVENV-IDENTITY.1
 edge: ← refines from ARCH-AUTH-FEDERATION
+edge: ← refines from CAP-SSO.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -9758,8 +10797,57 @@ RELATIONS:
   ROLE: Delivers
 
 [REQUIREMENT]
-UID: CAP-SCOPED-VIEW
+UID: CAP-SSO.1
 STATUS: Active
+TITLE: Federated SSO session
+STATEMENT: >>>
+Capability pack for enterprise federated SSO session establishment and teardown (ARCH-AUTH-FEDERATION). R0 delivered sequence diagrams and requirements only; runtime today uses the internal OAuth AS with dev local accounts (ARCH-DEVENV-IDENTITY.1), not upstream IdP federation. MFA for production remains at the enterprise IdP when federation ships.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SSO
+VERSION_N: 1
+priority: 10
+iteration: iter-r0
+security.catalog_ref: AC-3
+security.verification_note: R0 design pack; federation not shipped — do not mark pass until ARCH-AUTH-FEDERATION delivers.
+edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: CAP-SSO
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: A01
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A02
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: IA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-3
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: CAP-SCOPED-VIEW
+STATUS: Draft
 TITLE: Client Scoped View binding
 STATEMENT: >>>
 Capability pack for selecting, clearing, and binding Client Scoped View on the server session.
@@ -9776,6 +10864,7 @@ security.catalog_ref: REQALM-SEC-SCOPE
 security.verification_note: Server-bound Client Scoped View. ASD STIG V6R4 V-222429 / V-222550.
 edge: ← uses from ARCH-CP-SCOPE
 edge: ← uses from FIX-DENY-CROSS-CLIENT
+edge: ← refines from CAP-SCOPED-VIEW.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -9814,6 +10903,47 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SCOPED-VIEW.1
+STATUS: Active
+TITLE: Client Scoped View binding
+STATEMENT: >>>
+Capability pack for Client Scoped View: select, clear, and bind clientId on the server session. Partial R1: grant-scoped browse APIs enforce project/client visibility; full A03/A04 UX and MCP parity remain in core-ALM. Scope changes shall be audited when mutating routes exist.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SCOPED-VIEW
+VERSION_N: 1
+priority: 10
+iteration: iter-r0
+security.catalog_ref: REQALM-SEC-SCOPE
+security.verification_note: Partial: browse read scope shipped; full scoped-view mutate UX not complete.
+edge: → conforms_to to V-222429 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222550 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: CAP-SCOPED-VIEW
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: A03
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A04
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: V-222429
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222550
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-CRED
@@ -10600,6 +11730,7 @@ security.catalog_ref: SC-12
 security.verification_note: SC-12 / SC-12(2) / SC-12(3); AU-2.
 edge: ← uses from FIX-ALLOW-KEK-REWRAP-ONLINE
 edge: ← satisfies from CAP-KEY-ENVELOPE
+edge: ← refines from ARCH-KEY-RUNTIME-CACHE
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12.2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -10812,6 +11943,29 @@ RELATIONS:
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
 
+[REQUIREMENT]
+UID: ARCH-KEY-RUNTIME-CACHE
+STATUS: Active
+TITLE: Signing key cache and span flush on shutdown
+STATEMENT: >>>
+The runtime shall cache the unwrapped signing key in-process for performance, shall clear that cache on key rotation events, and shall flush OpenTelemetry spans on graceful shutdown after draining in-flight token operations.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-KEY-RUNTIME-CACHE
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: SC-12
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY-LIFECYCLE
+  ROLE: Refines
+
 [[/SECTION]]
 
 [REQUIREMENT]
@@ -10941,6 +12095,29 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r1-test-harness
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-SEC-HEADERS
+STATUS: Active
+TITLE: Security headers before wide bind
+STATEMENT: >>>
+Before any non-127.0.0.1 deployment, HTTP responses shall send security headers including Content-Security-Policy default-src 'self', frame-ancestors 'none', X-Content-Type-Options nosniff, and Referrer-Policy no-referrer. Request logs shall record the path only (no query strings with secrets).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SEC-HEADERS
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: SC-8
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: Refines
 
 [[/SECTION]]
 
@@ -14004,6 +15181,7 @@ priority: 15
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from ARCH-HIER-SECTION-GROUP
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14123,6 +15301,7 @@ edge: ← uses from FIX-DENY-NOOP-CONTENT
 edge: ← uses from FIX-PLANNING-BLOCKED-AFTER-CONTENT-N
 edge: ← uses from ARCH-MINT-KIND
 edge: ← uses from ARCH-SUSPECT
+edge: ← uses from ARCH-SUSPECT.1
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14283,6 +15462,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from ARCH-HIER-CAP-PARTOF
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14438,6 +15618,7 @@ security.catalog_ref: CM-3
 security.verification_note: CM-3 change control; mint kinds / succession.
 edge: ← uses from FIX-DENY-NOOP-CONTENT
 edge: ← uses from FIX-ALLOW-PIN-MIGRATE-MINT
+edge: ← refines from ARCH-WRITE-RESERVED-IDS
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14468,7 +15649,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: ARCH-SUSPECT
-STATUS: Active
+STATUS: Draft
 TITLE: trace_suspect on edges/junctions after content .N
 STATEMENT: >>>
 When a target line receives a content mint_kind=.N, inbound trace edges (satisfies/refines/uses) and contract in_scope_of / release delivers junctions that pin a prior version of that line are marked trace_suspect=true. Pin-only migrate (mint_kind=pin) updates the ConformsTo pin and does NOT suspect that pin. Generalizes catalog_drift to internal traces (P1-1). Detect bed: edge FIX-CONTRACT-DOC-NOCTX → FIX-SUCC-2HOP.1 (stale uses on superseded UID).
@@ -14484,7 +15665,7 @@ security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 workflow / approval / suspect audit.
 edge: ← uses from FIX-SUSPECT-ON-CONTENT-N
 edge: ← uses from FIX-DENY-SHIP-WITH-OPEN-SUSPECT
-delivered_by_release: R1-core-ALM
+edge: ← refines from ARCH-SUSPECT.1
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14507,6 +15688,55 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Parent
   VALUE: ARCH-SUCCESSION-HASH
+  ROLE: Uses
+
+[REQUIREMENT]
+UID: ARCH-SUSPECT.1
+STATUS: Active
+TITLE: trace_suspect on edges/junctions after content .N
+STATEMENT: >>>
+When a target line receives a content mint_kind=.N, inbound trace edges (satisfies/refines/uses) and contract in_scope_of / release delivers junctions that pin a prior version of that line are marked trace_suspect=true. Pin-only migrate (mint_kind=pin) updates the ConformsTo pin and does NOT suspect that pin. Semantics for re-check vs incomplete and audit-sensitive rollups are defined in ARCH-TRACE-RECHECK; UI and APIs shall surface trace_suspect separately from incomplete. Detect bed: edge FIX-CONTRACT-DOC-NOCTX → FIX-SUCC-2HOP.1 (stale uses on superseded UID).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SUSPECT
+VERSION_N: 1
+rbac_op: trace:suspect
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AU-2
+security.verification_note: Groomed 2026-10-09; .1 references ARCH-TRACE-RECHECK for re-check vs incomplete semantics.
+edge: ← refines from ARCH-TRACE-RECHECK
+delivered_by_release: R1-core-ALM
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → uses to ARCH-TRACE-RECHECK (RELATIONS TYPE: Child; Parent would cycle)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-WF
+- TYPE: Parent
+  VALUE: ARCH-SUSPECT
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-SUCCESSION-HASH
+  ROLE: Uses
+- TYPE: Child
+  VALUE: ARCH-TRACE-RECHECK
   ROLE: Uses
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -14836,6 +16066,8 @@ edge: ← uses from FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
 edge: ← uses from ARCH-DEVENV-IDENTITY.1
 edge: ← satisfies from CAP-DEVENV-MIGRATE-SEED
 edge: ← satisfies from CAP-DEVENV-SEED-RESET
+edge: ← refines from ARCH-SEC-SEED-INTEGRITY
+edge: ← refines from ARCH-SEC-LOADER-EDGE-SYNC
 delivered_by_release: PR #12 — devenv foundation
 edge: → uses to ARCH-DEVENV-CLONE (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15768,6 +17000,7 @@ security.verification_note: SA-8 security engineering: security foundations buil
 edge: ← satisfies from CAP-TEST-PGLITE-DB
 edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE
 edge: ← satisfies from CAP-RENAME-REQALM
+edge: ← refines from ARCH-TEST-HARNESS-TEARDOWN
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -15876,5 +17109,28 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r1-rename-reqalm
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-TEST-HARNESS-TEARDOWN
+STATUS: Active
+TITLE: createTestApp closes DB on setup failure
+STATEMENT: >>>
+createTestApp (in-process harness) shall close the database pool when setup throws so PGlite/file-backed tests do not leak handles between cases.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-TEST-HARNESS-TEARDOWN
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-BUILD
+- TYPE: Parent
+  VALUE: ARCH-BUILD-FOUNDATION
+  ROLE: Refines
 
 [[/SECTION]]
