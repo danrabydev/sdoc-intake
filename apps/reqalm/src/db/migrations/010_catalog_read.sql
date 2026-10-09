@@ -8,6 +8,18 @@ ALTER TABLE catalog_imprints ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAU
 ALTER TABLE catalog_item_labels ADD COLUMN IF NOT EXISTS family TEXT NOT NULL DEFAULT '';
 ALTER TABLE catalog_item_labels ADD COLUMN IF NOT EXISTS statement TEXT;
 
+DO $$
+DECLARE orphan_ids text[];
+BEGIN
+  SELECT array_agg(id ORDER BY id) INTO orphan_ids
+    FROM catalog_defs
+   WHERE project_id IS NOT NULL
+     AND NOT EXISTS (SELECT 1 FROM projects p WHERE p.id = catalog_defs.project_id);
+  IF orphan_ids IS NOT NULL THEN
+    RAISE NOTICE '010_catalog_read: nulled orphan catalog_defs.project_id for ids: %', orphan_ids;
+  END IF;
+END $$;
+
 UPDATE catalog_defs SET project_id = NULL
 WHERE project_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM projects p WHERE p.id = catalog_defs.project_id);

@@ -554,14 +554,11 @@ components:
           type: integer
     ConformingPin:
       type: object
-      required: [edge_uid, version_id, trace_suspect]
+      required: [edge_uid, trace_suspect]
       properties:
         edge_uid:
           type: string
-          description: from_uid on the conforms_to trace edge (version pin endpoint)
-        version_id:
-          type: string
-          description: Same as edge_uid; the pinned requirement version uid on the edge
+          description: from_uid on the conforms_to trace edge (pinned requirement version uid)
         trace_suspect:
           type: boolean
     ConformingProjectLine:

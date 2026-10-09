@@ -27,7 +27,6 @@ export type ControlSummaryDto = {
 
 export type ConformingPinDto = {
   edge_uid: string;
-  version_id: string;
   trace_suspect: boolean;
 };
 
@@ -82,11 +81,7 @@ function groupConformingLines(rows: ResolvedConformRow[]): ConformingLineDto[] {
       line = { id: r.base_uid, title: r.line_title, status: r.line_status, pins: [] };
       byLine.set(r.base_uid, line);
     }
-    line.pins.push({
-      edge_uid: r.from_uid,
-      version_id: r.from_uid,
-      trace_suspect: r.trace_suspect,
-    });
+    line.pins.push({ edge_uid: r.from_uid, trace_suspect: r.trace_suspect });
   }
   return [...byLine.values()].sort((a, b) => a.id.localeCompare(b.id));
 }
