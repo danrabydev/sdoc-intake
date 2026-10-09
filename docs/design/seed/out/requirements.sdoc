@@ -15862,7 +15862,6 @@ security.verification_note: CM-2 baseline: Compose + Dockerfile define the suppo
 edge: ← refines from ARCH-DEVENV-MODES
 edge: ← refines from ARCH-DEVENV-PARITY
 edge: ← refines from ARCH-DEVENV-COMPOSE.1
-edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
@@ -15897,6 +15896,7 @@ edge: ← refines from ARCH-DEPLOY-MINIMAL
 edge: ← refines from ARCH-DEPLOY-PERIPHERALS
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-DEVENV-COMPOSE
+edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → uses to ARCH-DEPLOY-MINIMAL (RELATIONS TYPE: Child; Parent would cycle)
 edge: → uses to ARCH-DEPLOY-PERIPHERALS (RELATIONS TYPE: Child; Parent would cycle)
@@ -16221,6 +16221,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until .gitattributes + dev docs PR merges; verify docker compose up on Windows checkout.
 delivered_by_release: R1 — Git LF line endings (Compose entrypoints)
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -16229,7 +16230,7 @@ RELATIONS:
   VALUE: ARCH-DEVENV-CLONE
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: ARCH-DEVENV-COMPOSE
+  VALUE: ARCH-DEVENV-COMPOSE.1
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: ARCH-DEPLOY-MINIMAL
@@ -16237,6 +16238,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-DEPLOY-PERIPHERALS
   ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-lf-endings
   ROLE: Delivers

@@ -15513,7 +15513,7 @@ edges:
   to: ARCH-DEVENV-CLONE
   kind: satisfies
 - from: CAP-DEVENV-LF-ENDINGS
-  to: ARCH-DEVENV-COMPOSE
+  to: ARCH-DEVENV-COMPOSE.1
   kind: satisfies
 - from: CAP-DEVENV-LF-ENDINGS
   to: ARCH-DEPLOY-MINIMAL
@@ -15521,6 +15521,10 @@ edges:
 - from: CAP-DEVENV-LF-ENDINGS
   to: ARCH-DEPLOY-PERIPHERALS
   kind: satisfies
+- from: CAP-DEVENV-LF-ENDINGS
+  to: CM-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family

@@ -22,6 +22,7 @@ CAP_RELATIONS = "CAP-RELATIONS-API"
 REL_RELATIONS = "rel-r1-relations-api"
 CAP = "CAP-DEVENV-LF-ENDINGS"
 REL = "rel-r1-lf-endings"
+NIST = "nist-800-53@rev5-dogfood-20261006"
 
 yaml = YAML()
 yaml.preserve_quotes = True
@@ -59,8 +60,9 @@ def upsert(seq, key, item):
 
 
 def ensure_edge(edges, edge):
+    key = (edge.get("from"), edge.get("to"), edge.get("kind"), edge.get("catalog_imprint_id"))
     for e in edges:
-        if (e.get("from"), e.get("to"), e.get("kind")) == (edge.get("from"), edge.get("to"), edge.get("kind")):
+        if (e.get("from"), e.get("to"), e.get("kind"), e.get("catalog_imprint_id")) == key:
             return 0
     edges.append(edge)
     return 1
@@ -170,8 +172,12 @@ def main() -> None:
     )
     edges = data.setdefault("edges", [])
     data["edges"] = [e for e in edges if e.get("from") != CAP]
-    for to in ("ARCH-DEVENV-CLONE", "ARCH-DEVENV-COMPOSE", "ARCH-DEPLOY-MINIMAL", "ARCH-DEPLOY-PERIPHERALS"):
+    for to in ("ARCH-DEVENV-CLONE", "ARCH-DEVENV-COMPOSE.1", "ARCH-DEPLOY-MINIMAL", "ARCH-DEPLOY-PERIPHERALS"):
         ensure_edge(data["edges"], {"from": CAP, "to": to, "kind": "satisfies"})
+    ensure_edge(
+        data["edges"],
+        {"from": CAP, "to": "CM-2", "kind": "conforms_to", "catalog_imprint_id": NIST},
+    )
 
     arts = data.setdefault("capability_artifacts", [])
     data["capability_artifacts"] = [a for a in arts if a.get("requirement_version_uid") != CAP]
