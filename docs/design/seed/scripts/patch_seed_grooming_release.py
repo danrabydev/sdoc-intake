@@ -285,25 +285,196 @@ def patch_statement(uid: str, statement: str):
         stats["versions_updated"] += 1
 
 
+def delete_release(data, rel_id: str) -> None:
+    rels = data.get("releases") or []
+    data["releases"] = [r for r in rels if r.get("id") != rel_id]
+
+
+def remove_requirement(data, base_uid: str) -> None:
+    data["requirement_lines"] = [
+        ln for ln in (data.get("requirement_lines") or []) if ln.get("base_uid") != base_uid
+    ]
+    data["requirement_versions"] = [
+        v for v in (data.get("requirement_versions") or []) if v.get("base_uid") != base_uid
+    ]
+
+
+def dedupe_seed_grooming_approvals(data) -> None:
+    arts = data.get("approval_records") or []
+    data["approval_records"] = [a for a in arts if a.get("id") != "ar-cap-seed-grooming"]
+
+
+R0_NOTE_SUFFIX = (
+    "Delivered CAP-* packs here are R0 design/sequence artifacts (diagrams), not runtime verification — "
+    "see CAP-SSO / CAP-SCOPED-VIEW honesty."
+)
+
+
+def ensure_r0_sequences_note(data) -> None:
+    rel = find(data.get("releases"), "id", "rel-r0-sequences")
+    if not rel:
+        return
+    notes = (rel.get("notes") or "").strip()
+    if R0_NOTE_SUFFIX in notes:
+        return
+    rel["notes"] = f"{notes} {R0_NOTE_SUFFIX}".strip() if notes else R0_NOTE_SUFFIX
+
+
+CAP_RBAC_V0_STMT = (
+    "API routes enforce project-grant derived permissions (CAP-RBAC matrix subset). "
+    "`POST /api/v1/projects/:projectId/grants` requires `grant:manage`; Readers receive 403 with audit. "
+    "MCP `/mcp` requires MCP-audience tokens. Acceptance: auth-flow-smoke RBAC deny for casey-reader."
+)
+CAP_RBAC_V0_HASH = "sha256:07904dc523cccd3c24e8ab49deca0a2aa3cbaaf2882a8d8028c24eaf737ea60b"
+CAP_RBAC_V1_STMT = (
+    "Capability pack for API RBAC enforcement (subset of the full permission matrix). Shipped foundation "
+    "covers OAuth routes, defineOperationRoute business reads, and auth-flow-smoke beds — not every ARCH-API-RBAC "
+    "mutating operation. MCP and grant-management mutators remain planned in core-ALM."
+)
+CAP_UI_FRAME_V0_STMT = (
+    "The Web UI frame served by the web role: top navigation, client-scoped sidebar chrome, and route guards that "
+    "send unauthenticated users to the internal-AS sign-in flow and keep `/app/*` behind a valid API-audience session "
+    "via HttpOnly SameSite=Lax cookies (BFF) with CSRF on sign-out; API clients use bearer tokens. Sign-out revokes "
+    "refresh tokens via RFC 7009. Acceptance: unauthenticated `/app` redirects to login; authenticated shell renders "
+    "`/api/v1/me` grants."
+)
+CAP_UI_FRAME_V0_HASH = "sha256:0828332feb654b6ef8c411828750b14e293b41e4400377cb3abf3d6c18aefde6"
+CAP_UI_FRAME_V1_STMT = (
+    "Web UI frame: navigation, client-scoped sidebar chrome, and route guards for /app/* via BFF session cookies "
+    "and CSRF on cookie mutations. Partial: shell and sign-in work; not every ARCH-UI surface is implemented."
+)
+
+
+def mint_capability_content_n(
+    data,
+    base_uid: str,
+    v0_statement: str,
+    v0_hash: str,
+    v1_statement: str,
+    v1_verification_note: str,
+) -> None:
+    v0 = find(data.get("requirement_versions"), "uid", base_uid)
+    if v0:
+        v0["statement"] = v0_statement
+        v0["statement_hash"] = v0_hash
+        v0["status"] = "superseded"
+    tip = f"{base_uid}.1"
+    upsert_version(
+        data,
+        cm(
+            uid=tip,
+            base_uid=base_uid,
+            version_n=1,
+            status="active",
+            statement=v1_statement,
+            priority=v0.get("priority", 10) if v0 else 10,
+            iteration=v0.get("iteration", "iter-r1") if v0 else "iter-r1",
+            security={
+                "catalog_ref": (v0.get("security") or {}).get("catalog_ref", "AC-3") if v0 else "AC-3",
+                "verification_note": v1_verification_note,
+            },
+            statement_hash=statement_hash(v1_statement),
+            grooming_state="detailed",
+            verification_outcome="pass",
+            mint_kind="content",
+        ),
+    )
+    for rel in data.get("releases") or []:
+        delivers = rel.get("delivers") or []
+        rel["delivers"] = [tip if d == base_uid else d for d in delivers]
+
+
+def wire_architecture_edges(data) -> None:
+    edges = data.setdefault("edges", [])
+    pairs = [
+        # Acceptance / trace
+        ("ARCH-REQ-AC-FACET", "SEC-RL", "refines"),
+        ("ARCH-REQ-AC-ROLLUP", "SEC-RL", "refines"),
+        ("ARCH-REQ-AC-ROLLUP", "ARCH-REQ-AC-FACET", "refines"),
+        ("ARCH-TRACE-RECHECK", "SEC-EDGE", "refines"),
+        ("ARCH-SUSPECT", "ARCH-TRACE-RECHECK", "uses"),
+        ("ARCH-TRACE-VIEW-RTM", "E06", "refines"),
+        ("ARCH-TRACE-VIEW-RTM", "SEC-UI", "refines"),
+        ("ARCH-TRACE-VIEW-CCM", "E06", "refines"),
+        ("ARCH-TRACE-VIEW-CCM", "SEC-UI", "refines"),
+        ("ARCH-TRACE-LAYOUT-WORKER", "SEC-UI", "refines"),
+        ("ARCH-TRACE-VIEW-RTM", "CAP-UI-KIT-TREE", "uses"),
+        ("ARCH-TRACE-VIEW-CCM", "CAP-UI-KIT-TREE", "uses"),
+        # Catalogs
+        ("ARCH-CAT-EXTERNAL", "SEC-CAT", "refines"),
+        ("ARCH-CAT-PROJECT-ROLLUP", "SEC-CAT", "refines"),
+        ("ARCH-CAT-PROJECT-ROLLUP", "ARCH-CAT-EXTERNAL", "refines"),
+        ("ARCH-CAT-VISIBILITY", "H09", "refines"),
+        ("ARCH-CAT-VISIBILITY", "SEC-CAT", "refines"),
+        # Hierarchy
+        ("ARCH-HIER-REQ-DECOMP", "C01", "refines"),
+        ("ARCH-HIER-REQ-DECOMP", "ARCH-CP-HIER", "refines"),
+        ("ARCH-HIER-CAP-PARTOF", "ARCH-CP-HIER", "refines"),
+        ("ARCH-HIER-USES-DEP", "SEC-EDGE", "refines"),
+        ("ARCH-HIER-SECTION-GROUP", "ARCH-CP-HIER", "refines"),
+        ("ARCH-UI-KIT-SHARED", "SEC-UI", "refines"),
+        ("ARCH-BROWSE-ROADMAP", "SEC-UI", "refines"),
+        # Security follow-ups (PR #31 / pre-write)
+        ("ARCH-SEC-EDGE-DEDUPE-DB", "SEC-EDGE", "refines"),
+        ("ARCH-SEC-EDGE-DEDUPE-API", "SEC-EDGE", "refines"),
+        ("ARCH-SEC-SEED-INTEGRITY", "SEC-IO", "refines"),
+        ("ARCH-SEC-XPROJ-READ", "SEC-EDGE", "refines"),
+        ("ARCH-SEC-REL-STUB", "SEC-EDGE", "refines"),
+        ("ARCH-SEC-REL-PAGING", "SEC-EDGE", "refines"),
+        ("ARCH-SEC-CAT-FK", "SEC-CAT", "refines"),
+        ("ARCH-SEC-LOADER-EDGE-SYNC", "SEC-IO", "refines"),
+        ("ARCH-SEC-CAT-LABEL-IMPRINT", "SEC-CAT", "refines"),
+        ("ARCH-SEC-HEADERS", "SEC-SEC", "refines"),
+        ("ARCH-WRITE-UOW-AUDIT", "SEC-API", "refines"),
+        ("ARCH-WRITE-REPOSITORY-LAYER", "SEC-API", "refines"),
+        ("ARCH-WRITE-TRUNCATE-GUARD", "SEC-API", "refines"),
+        ("ARCH-WRITE-AUDIT-FLOOD", "SEC-API", "refines"),
+        ("ARCH-WRITE-VERSION-UNIQUE", "SEC-API", "refines"),
+        ("ARCH-WRITE-RESERVED-IDS", "SEC-API", "refines"),
+        ("ARCH-KEY-RUNTIME-CACHE", "ARCH-KEY", "refines"),
+        ("ARCH-TEST-HARNESS-TEARDOWN", "SEC-BUILD", "refines"),
+        # Capabilities
+        ("CAP-UI-KIT", "ARCH-UI-KIT-SHARED", "satisfies"),
+        ("CAP-UI-KIT", "ARCH-UI", "satisfies"),
+        ("CAP-UI-KIT", "C07", "satisfies"),
+        ("CAP-UI-KIT-TREE", "CAP-UI-KIT", "refines"),
+        ("CAP-UI-KIT-TREE", "ARCH-UI-KIT-SHARED", "satisfies"),
+        ("CAP-UI-KIT-CHROME", "CAP-UI-KIT", "refines"),
+        ("CAP-BROWSE-ROADMAP", "ARCH-BROWSE-ROADMAP", "satisfies"),
+        ("CAP-BROWSE-ROADMAP", "K03", "satisfies"),
+        ("CAP-BROWSE-UI-TREE", "CAP-UI-KIT-TREE", "uses"),
+        ("CAP-SEED-GROOMING", "K03", "satisfies"),
+        ("CAP-SEED-GROOMING", "ARCH-BROWSE-ROADMAP", "satisfies"),
+        ("CAP-RELATIONS-API", "ARCH-SEC-EDGE-DEDUPE-DB", "satisfies"),
+        ("CAP-RELATIONS-API", "ARCH-SEC-EDGE-DEDUPE-API", "satisfies"),
+        ("CAP-RELATIONS-API", "ARCH-SEC-XPROJ-READ", "satisfies"),
+        ("CAP-RELATIONS-API", "ARCH-SEC-REL-STUB", "satisfies"),
+        ("CAP-RELATIONS-API", "ARCH-SEC-REL-PAGING", "satisfies"),
+    ]
+    for frm, to, kind in pairs:
+        ensure_edge(edges, {"from": frm, "to": to, "kind": kind})
+
+
 # --- requirement bodies (shall statements) ---
 
 REQ_ACCEPT_FACET = (
-    "A requirement version may decompose into one or more acceptance criteria (facets). Each facet shall be "
-    "a child requirement line under the parent requirement (or section grouping); facets are not capability lines. "
-    "Each facet shall have its own testable 'shall' statement. One or more capabilities or future implementations "
-    "may satisfy a facet via satisfies edges; a requirement is complete only when every facet is satisfied."
+    "An acceptance criterion (facet) is a verifiable condition attached to exactly one requirement version — not a "
+    "separate requirement line and not a capability line. Facets shall have no independent trace graph; satisfaction "
+    "is recorded on the parent requirement. Each facet shall use a testable 'shall' statement. A child requirement "
+    "line (decomposition) is a distinct concept per ARCH-HIER-REQ-DECOMP."
 )
 REQ_ACCEPT_ROLLUP = (
-    "Requirement completeness shall roll up from acceptance criteria: a parent requirement is satisfied when all "
-    "of its facet children are satisfied; a facet is satisfied when at least one linked capability (or verified "
+    "Requirement completeness shall roll up from acceptance criteria on the parent version: the parent is complete "
+    "when every attached facet is satisfied; a facet is satisfied when at least one linked capability (or verified "
     "implementation) satisfies it. Partial facet satisfaction shall surface as incomplete on the parent."
 )
 REQ_RECHECK = (
-    "A criterion, control, or trace target that was satisfied shall enter a distinct needs re-check state when a "
-    "capability that satisfies or conforms to it changes content, loses verification, or is not yet complete. "
-    "Needs re-check shall be represented as trace_suspect (and related review queues) distinct from never-satisfied "
-    "and from satisfied. Security controls and audit-sensitive traces shall re-check when upstream capabilities change. "
-    "A uses dependency change shall flag dependent capabilities for re-check without inheriting controls unless "
+    "Re-check (needs re-check) is a distinct state from incomplete: re-check applies to a criterion, control, or trace "
+    "target that was previously complete whose conforming capability changed content, lost verification, or regressed. "
+    "Incomplete means the target was never completed. Re-check shall be represented as trace_suspect (and review queues) "
+    "separately from incomplete. Audit-sensitive targets — controls in the AU and AC families plus any target the user "
+    "marks audit-sensitive — shall enter re-check when an upstream satisfying or conforming capability changes. A uses "
+    "dependency change shall flag dependents for re-check per ARCH-TRACE-RECHECK without inheriting controls unless "
     "explicitly modeled."
 )
 REQ_CAT_REP = (
@@ -317,23 +488,28 @@ REQ_CAT_ROLLUP = (
     "duplicating catalog text in the project tree."
 )
 REQ_CAT_PICK = (
-    "The user shall choose which catalogs are visible in browse and trace views at the current Scoped View; hidden "
-    "catalogs shall not appear in control rollups or two-column catalog views until selected."
+    "The user shall choose which catalogs are visible in browse and trace views per user per project; the selection "
+    "shall persist in server-side session or profile state keyed by (identity_id, project_id). The default when unset "
+    "shall be all catalogs that have at least one conforms_to or catalog link in the project. Hidden catalogs shall not "
+    "appear in control rollups or two-column catalog views until selected."
 )
 REQ_TRACE_RTM = (
     "The product shall provide a two-column traceability view with system requirements on the left and capabilities "
-    "on the right, joined by satisfies edges (and refines where shown). Selection shall highlight the active path."
+    "on the right, joined by satisfies edges (and refines where shown). Selecting a row on either column shall "
+    "highlight the active joined path on both columns."
 )
 REQ_TRACE_CCM = (
     "The product shall provide a two-column traceability view with catalog controls on the left and capabilities on "
-    "the right, joined by conforms_to edges. Direct ConformsTo pins shall render as solid links; inherited or "
-    "aggregated links shall render dashed. Heavy controls (AC-3, AU-2, AU-3, AU-12) shall collapse into bundles "
-    "by default with expand affordance."
+    "the right, joined by conforms_to edges. Selecting a row on either column shall highlight the active joined path "
+    "on both columns. Direct ConformsTo pins shall render as solid links; inherited or aggregated links shall render "
+    "dashed. A control shall be treated as heavy when it has more than 25 direct capability links in the current "
+    "project view; heavy controls shall collapse into bundles by default with an expand affordance."
 )
 REQ_TRACE_WORKER = (
     "Layout, link aggregation, and rollup math for trace views shall run behind one small TypeScript interface "
-    "executed off the main thread (Web Worker). The default implementation shall be plain TypeScript; WebAssembly "
-    "shall be used only if measured project sizes require it (lean default)."
+    "executed off the main thread (Web Worker). The default implementation shall be plain TypeScript. WebAssembly "
+    "shall be adopted only when plain TypeScript layout exceeds 50 ms at P95 on a reference project size (full "
+    "dogfood trace graph)."
 )
 REQ_HIER_REQ = (
     "Requirement lines may have child requirement lines (decomposition). Child requirements shall roll up "
@@ -343,36 +519,40 @@ REQ_HIER_REQ = (
 REQ_HIER_CAP = (
     "Capability lines may have child capability lines (part-of composition). Child capabilities shall roll up "
     "operational/verification status into the parent. Child capabilities shall inherit the parent's conforms_to "
-    "control pins unless a successor capability explicitly replaces them."
+    "control pins unless a child override capability explicitly replaces them."
 )
 REQ_HIER_USES = (
     "A uses edge shall model dependency, not ownership: for example a page capability uses a shared header "
     "capability. Uses shall not pass conforms_to controls along the edge unless explicitly annotated. When a used "
-    "capability changes, dependents shall be flagged needs re-check (trace_suspect) for trace review."
+    "capability changes, dependents shall enter re-check per ARCH-TRACE-RECHECK."
 )
 REQ_HIER_SEC = (
     "Section lines shall group siblings only. Section placement shall not imply status rollup, control inheritance, "
     "or satisfies/conforms_to propagation."
 )
 REQ_UIKIT = (
-    "A UI Kit capability shall own shared presentation components (tree, header chrome, badges) as child capabilities. "
-    "Feature views (project tree, two-column trace views) shall use the shared tree via uses edges; tree-specific "
-    "requirements (keyboard navigation, paging label 'showing 100 of N' when a parent has more than 100 children, "
-    "and accessibility) shall be stated once on the tree capability, not duplicated per view."
+    "A UI Kit capability shall own shared presentation components (tree, header chrome, badges) as child capabilities "
+    "(part-of under CAP-UI-KIT). Feature views shall use the shared tree via uses edges. Tree behavior shall meet "
+    "WCAG 2.2 Level AA and keyboard navigation per the WAI-ARIA tree pattern. Paging label 'showing 100 of N' shall "
+    "appear when a parent has more than 100 direct children. CAP-BROWSE-UI-TREE (shipped) embeds tree behavior inline "
+    "today; a later refactor shall extract that implementation into CAP-UI-KIT-TREE without duplicating a11y requirements."
 )
 REQ_BROWSE_ROADMAP = (
-    "Read-only browse is the current delivery priority for every object type, API first then UI, in this order: "
-    "(1) catalogs, imprints, and controls — API capability owned by parallel rel-r1-catalogs-api / CAP-CATALOGS-API; "
-    "(2) planning objects: contracts, iterations, change sets; (3) capability artifacts (mocks, OpenAPI, wireframes); "
-    "(4) workflow: profiles, gates, action hooks, approvals and sign-offs; (5) people and access: identities, grants, "
-    "role bindings with need-to-know visibility; (6) audit events (read view). Relationships browse UI is owned by "
-    "parallel rel-r1-browse-ui-relations — do not duplicate here."
+    "The product shall provide read-only views for catalogs/imprints/controls, planning objects (contracts, iterations, "
+    "change sets), capability artifacts, workflow objects, people/access bindings, and audit events — API first then "
+    "matching browse UI per tranche. Delivery order and release names are recorded on CAP-BROWSE-ROADMAP. Relationships "
+    "browse UI remains parallel (rel-r1-browse-ui-relations); do not duplicate here."
 )
 
-SEC_EDGE_DEDUPE = (
-    "Before the first trace edge write route ships, trace_edges shall enforce uniqueness on "
-    "(from_project_id, from_uid, COALESCE(to_project_id,''), to_uid, kind, catalog_imprint_id) so cross-project "
-    "peers participate in deduplication."
+SEC_EDGE_DEDUPE_DB = (
+    "Before the first trace edge write route ships, trace_edges shall enforce a unique index on "
+    "(from_project_id, from_uid, COALESCE(to_project_id,''), to_uid, kind, catalog_imprint_id) so cross-project peer "
+    "project ids participate in deduplication at persistence."
+)
+SEC_EDGE_DEDUPE_API = (
+    "Trace edge create/update APIs shall treat the dedupe key as "
+    "(from_project_id, from_uid, to_project_id, to_uid, kind, catalog_imprint_id) including the peer project id, "
+    "matching the database uniqueness rule in ARCH-SEC-EDGE-DEDUPE-DB."
 )
 SEC_SEED_BASE_UID = (
     "The dogfood seed loader shall reject a base_uid that appears in more than one project and shall reject "
@@ -391,7 +571,8 @@ SEC_REL_PAGE = (
     "other browse APIs)."
 )
 SEC_CAT_FK = (
-    "catalog_defs.project_id shall reference projects(id) with a foreign key when project-scoped catalogs are stored."
+    "catalog_defs.project_id shall reference projects(id) with a foreign key when project-scoped catalogs are stored. "
+    "Parallel PR #33 migration 010 delivers this constraint."
 )
 SEC_LOADER_EDGE_SYNC = (
     "The seed loader shall delete trace_edges removed from the seed document on re-load (sync), not only insert new rows."
@@ -405,11 +586,27 @@ SEC_HEADERS = (
     "default-src 'self', frame-ancestors 'none', X-Content-Type-Options nosniff, and Referrer-Policy no-referrer. "
     "Request logs shall record the path only (no query strings with secrets)."
 )
-SEC_WRITE_FOUNDATION = (
-    "The first mutating domain write foundation shall include: a unit-of-work boundary with audit append, a repository "
-    "layer (no SQL in HTTP adapters), a TRUNCATE trigger plus non-owner runtime DB role to curb destructive SQL, "
-    "rate limiting or auth on audit append to curb unauthenticated audit flooding, UNIQUE (project_id, base_uid, version_n) "
-    "enforcement, and rejection of reserved id segments at mint time."
+WRITE_UOW = (
+    "Mutating domain operations shall run inside a unit-of-work boundary that appends audit events atomically with "
+    "business writes."
+)
+WRITE_REPO = (
+    "HTTP route adapters shall not embed SQL; persistence shall go through a repository layer invoked from the "
+    "unit-of-work boundary."
+)
+WRITE_TRUNCATE = (
+    "The database shall install a TRUNCATE guard (trigger or equivalent) and the runtime application DB role shall "
+    "not be table owner, curbing destructive SQL from compromised credentials."
+)
+WRITE_AUDIT_FLOOD = (
+    "Audit append endpoints shall require authentication or rate limiting so unauthenticated callers cannot flood "
+    "audit storage."
+)
+WRITE_VERSION_UNIQUE = (
+    "The schema shall enforce UNIQUE (project_id, base_uid, version_n) on requirement versions."
+)
+WRITE_RESERVED_IDS = (
+    "Minting requirement or capability ids shall reject reserved path segments defined by the product id policy."
 )
 SEC_KEY_CACHE = (
     "The runtime shall cache the unwrapped signing key in-process for performance and shall flush OpenTelemetry spans "
@@ -427,9 +624,26 @@ def main() -> None:
         data = yaml.load(f)
 
     # --- A: new / refined architecture requirements ---
+    arch_catalog = {
+        "ARCH-SEC-EDGE-DEDUPE-DB": "CM-6",
+        "ARCH-SEC-EDGE-DEDUPE-API": "AC-4",
+        "ARCH-SEC-SEED-INTEGRITY": "CM-6",
+        "ARCH-SEC-XPROJ-READ": "AC-3",
+        "ARCH-SEC-REL-STUB": "AC-4",
+        "ARCH-SEC-REL-PAGING": "AC-3",
+        "ARCH-SEC-CAT-FK": "CM-6",
+        "ARCH-SEC-LOADER-EDGE-SYNC": "CM-6",
+        "ARCH-SEC-CAT-LABEL-IMPRINT": "CM-6",
+        "ARCH-SEC-HEADERS": "SC-8",
+        "ARCH-WRITE-UOW-AUDIT": "AU-9",
+        "ARCH-WRITE-AUDIT-FLOOD": "AU-9",
+        "ARCH-WRITE-TRUNCATE-GUARD": "CM-6",
+        "ARCH-KEY-RUNTIME-CACHE": "SC-18",
+        "ARCH-TRACE-RECHECK": "AU-9",
+    }
     arch_reqs = [
-        ("ARCH-REQ-AC-FACET", "SEC-RL", "Acceptance criteria facets", REQ_ACCEPT_FACET, "requirement:read"),
-        ("ARCH-REQ-AC-ROLLUP", "SEC-RL", "Roll up completeness from facets", REQ_ACCEPT_ROLLUP, "requirement:read"),
+        ("ARCH-REQ-AC-FACET", "SEC-RL", "Acceptance criteria facets", REQ_ACCEPT_FACET, "requirement:tree:read"),
+        ("ARCH-REQ-AC-ROLLUP", "SEC-RL", "Roll up completeness from facets", REQ_ACCEPT_ROLLUP, "requirement:tree:read"),
         ("ARCH-TRACE-RECHECK", "SEC-EDGE", "Needs re-check (look-back completeness)", REQ_RECHECK, "trace:suspect"),
         ("ARCH-CAT-EXTERNAL", "SEC-CAT", "Catalogs represented outside project tree", REQ_CAT_REP, "catalog:browse"),
         ("ARCH-CAT-PROJECT-ROLLUP", "SEC-CAT", "Catalog control project rollup", REQ_CAT_ROLLUP, "catalog:browse"),
@@ -438,25 +652,42 @@ def main() -> None:
         ("ARCH-TRACE-VIEW-CCM", "SEC-UI", "Two-column controls ↔ capabilities view", REQ_TRACE_CCM, None),
         ("ARCH-TRACE-LAYOUT-WORKER", "SEC-UI", "Off-main-thread trace layout engine", REQ_TRACE_WORKER, None),
         ("ARCH-HIER-REQ-DECOMP", "ARCH-CP-HIER", "Requirement decomposition rollup", REQ_HIER_REQ, "requirement:line:create"),
-        ("ARCH-HIER-CAP-PARTOF", "ARCH-CP-HIER", "Capability part-of rollup", REQ_HIER_CAP, "capability:view"),
-        ("ARCH-HIER-USES-DEP", "SEC-EDGE", "Uses dependency without control pass-through", REQ_HIER_USES, "trace:edit"),
-        ("ARCH-HIER-SECTION-GROUP", "ARCH-CP-HIER", "Sections group only (no rollup)", REQ_HIER_SEC, "requirement:read"),
+        (
+            "ARCH-HIER-CAP-PARTOF",
+            "ARCH-CP-HIER",
+            "Capability part-of rollup",
+            REQ_HIER_CAP,
+            None,
+        ),
+        ("ARCH-HIER-USES-DEP", "SEC-EDGE", "Uses dependency without control pass-through", REQ_HIER_USES, None),
+        ("ARCH-HIER-SECTION-GROUP", "ARCH-CP-HIER", "Sections group only (no rollup)", REQ_HIER_SEC, "requirement:tree:read"),
         ("ARCH-UI-KIT-SHARED", "SEC-UI", "UI Kit shared components", REQ_UIKIT, None),
-        ("ARCH-BROWSE-ROADMAP", "SEC-UI", "Read-only browse priority order", REQ_BROWSE_ROADMAP, "requirement:read"),
-        ("ARCH-SEC-EDGE-DEDUPE", "SEC-EDGE", "Trace edge dedupe including cross-project", SEC_EDGE_DEDUPE, None),
+        ("ARCH-BROWSE-ROADMAP", "SEC-UI", "Read-only browse priority order", REQ_BROWSE_ROADMAP, "requirement:tree:read"),
+        ("ARCH-SEC-EDGE-DEDUPE-DB", "SEC-EDGE", "Trace edge dedupe index (DB)", SEC_EDGE_DEDUPE_DB, None),
+        ("ARCH-SEC-EDGE-DEDUPE-API", "SEC-EDGE", "Trace edge dedupe key (API)", SEC_EDGE_DEDUPE_API, None),
         ("ARCH-SEC-SEED-INTEGRITY", "SEC-IO", "Seed loader base_uid and delivers integrity", SEC_SEED_BASE_UID, None),
-        ("ARCH-SEC-XPROJ-READ", "SEC-EDGE", "Cross-project link requires target read", SEC_XPROJ_LINK, "requirement:read"),
+        ("ARCH-SEC-XPROJ-READ", "SEC-EDGE", "Cross-project link requires target read", SEC_XPROJ_LINK, "requirement:tree:read"),
         ("ARCH-SEC-REL-STUB", "SEC-EDGE", "Restricted relation stub shape", SEC_STUB_DESIGN, None),
-        ("ARCH-SEC-REL-PAGING", "SEC-EDGE", "Relations response paging", SEC_REL_PAGE, "requirement:read"),
+        ("ARCH-SEC-REL-PAGING", "SEC-EDGE", "Relations response paging", SEC_REL_PAGE, "requirement:tree:read"),
         ("ARCH-SEC-CAT-FK", "SEC-CAT", "catalog_defs.project_id FK", SEC_CAT_FK, None),
         ("ARCH-SEC-LOADER-EDGE-SYNC", "SEC-IO", "Seed loader deletes removed trace edges", SEC_LOADER_EDGE_SYNC, None),
         ("ARCH-SEC-CAT-LABEL-IMPRINT", "SEC-CAT", "Catalog labels keyed per imprint", SEC_CAT_LABEL_KEY, None),
         ("ARCH-SEC-HEADERS", "SEC-SEC", "Security headers before wide bind", SEC_HEADERS, None),
-        ("ARCH-WRITE-FOUNDATION", "SEC-API", "Mutating write foundation", SEC_WRITE_FOUNDATION, None),
+        ("ARCH-WRITE-UOW-AUDIT", "SEC-API", "Write unit-of-work with audit", WRITE_UOW, None),
+        ("ARCH-WRITE-REPOSITORY-LAYER", "SEC-API", "Repository layer (no SQL in routes)", WRITE_REPO, None),
+        ("ARCH-WRITE-TRUNCATE-GUARD", "SEC-API", "TRUNCATE guard and runtime DB role", WRITE_TRUNCATE, None),
+        ("ARCH-WRITE-AUDIT-FLOOD", "SEC-API", "Audit append flood controls", WRITE_AUDIT_FLOOD, None),
+        ("ARCH-WRITE-VERSION-UNIQUE", "SEC-API", "Unique requirement version constraint", WRITE_VERSION_UNIQUE, None),
+        ("ARCH-WRITE-RESERVED-IDS", "SEC-API", "Reject reserved id segments at mint", WRITE_RESERVED_IDS, None),
         ("ARCH-KEY-RUNTIME-CACHE", "ARCH-KEY", "Signing key cache and span flush on shutdown", SEC_KEY_CACHE, None),
         ("ARCH-TEST-HARNESS-TEARDOWN", "SEC-BUILD", "createTestApp closes DB on setup failure", SEC_TEST_TEARDOWN, None),
     ]
     for base_uid, parent, title, stmt, rbac in arch_reqs:
+        note = "Groomed 2026-10-09; pre-write or UI track."
+        if base_uid == "ARCH-HIER-CAP-PARTOF":
+            note += " rbac_op capability:view proposed for future hierarchy browse."
+        if base_uid == "ARCH-HIER-USES-DEP":
+            note += " rbac_op trace:edit proposed for future trace mutation routes."
         add_requirement(
             data,
             base_uid=base_uid,
@@ -465,22 +696,19 @@ def main() -> None:
             title=title,
             statement=stmt,
             rbac_op=rbac,
-            catalog_ref="AU-2" if base_uid.startswith("ARCH-SEC") else "CM-2",
-            verification_note="Groomed 2026-10-09; pre-write or UI track.",
+            catalog_ref=arch_catalog.get(base_uid, "CM-2"),
+            verification_note=note,
         )
 
-    # Refine ARCH-SUSPECT (extend, do not duplicate ARCH-TRACE-RECHECK)
     patch_statement(
         "ARCH-SUSPECT",
         "When a target line receives a content mint_kind=.N, inbound trace edges (satisfies/refines/uses) and "
         "contract in_scope_of / release delivers junctions that pin a prior version of that line are marked "
-        "trace_suspect=true (needs re-check). Pin-only migrate (mint_kind=pin) updates the ConformsTo pin and "
-        "does NOT suspect that pin. Needs re-check is distinct from never-satisfied: UI and APIs shall surface "
-        "trace_suspect separately from incomplete facets. When a satisfying capability changes or is incomplete, "
-        "downstream satisfies/conforms targets shall re-enter needs re-check per ARCH-TRACE-RECHECK. Detect bed: "
-        "edge FIX-CONTRACT-DOC-NOCTX → FIX-SUCC-2HOP.1 (stale uses on superseded UID).",
+        "trace_suspect=true. Pin-only migrate (mint_kind=pin) updates the ConformsTo pin and does NOT suspect that "
+        "pin. Semantics for re-check vs incomplete and audit-sensitive rollups are defined in ARCH-TRACE-RECHECK; "
+        "UI and APIs shall surface trace_suspect separately from incomplete. Detect bed: edge FIX-CONTRACT-DOC-NOCTX "
+        "→ FIX-SUCC-2HOP.1 (stale uses on superseded UID).",
     )
-    # No new trace edges here — loader tests pin edge count; trace links are documented on versions.
 
     # UI Kit capability tree
     add_capability(
@@ -498,8 +726,9 @@ def main() -> None:
         (
             "CAP-UI-KIT-TREE",
             "Shared lazy tree widget",
-            "Lazy tree with expand/collapse, keyboard navigation, ARIA tree roles, and parent paging label "
-            "'showing 100 of N' when more than 100 direct children exist. Single requirement owner for tree a11y.",
+            "Lazy tree with expand/collapse, WCAG 2.2 AA keyboard navigation per WAI-ARIA tree pattern, and parent "
+            "paging label 'showing 100 of N' when more than 100 direct children exist. Shipped CAP-BROWSE-UI-TREE "
+            "will be refactored to consume this widget later (see ARCH-UI-KIT-SHARED).",
         ),
         (
             "CAP-UI-KIT-CHROME",
@@ -551,15 +780,9 @@ def main() -> None:
         satisfies=[],
     )
 
-    # rel-r1-catalogs-api: reference only (parallel PR owns CAP-CATALOGS-API body)
-    add_planned_release(
-        data,
-        "rel-r1-catalogs-api",
-        "R1 — catalogs read API (parallel PR)",
-        [],
-        "Capability CAP-CATALOGS-API and requirements are owned by the in-flight catalogs API PR — not duplicated "
-        "in this grooming patch. This release row anchors ordering before rel-r1-browse-ui-catalogs.",
-    )
+    delete_release(data, "rel-r1-catalogs-api")
+    remove_requirement(data, "ARCH-WRITE-FOUNDATION")
+    remove_requirement(data, "ARCH-SEC-EDGE-DEDUPE")
 
     # This PR's release + capability
     add_capability(
@@ -608,26 +831,7 @@ def main() -> None:
         f"Seed-only PR on main {MAIN_CB8[:12]}…; regenerates out/ and HANDOFF. Does not ship rel-r1-relations-api.",
     )
 
-    # --- B: honesty / grooming corrections ---
-    remove_edge(
-        data["edges"],
-        {
-            "from": "ARCH-DEVENV-IDENTITY",
-            "to": "V-222518",
-            "kind": "conforms_to",
-            "catalog_imprint_id": "asd-stig@v6r4",
-        },
-    )
-    remove_edge(
-        data["edges"],
-        {
-            "from": "FIX-DENY-DEVENV-PROD-LOGIN",
-            "to": "V-222518",
-            "kind": "conforms_to",
-            "catalog_imprint_id": "asd-stig@v6r4",
-        },
-    )
-
+    # --- B: honesty / grooming corrections (preserve V-222518 conforms_to on v0 devenv caps) ---
     patch_statement(
         "CAP-SSO",
         "Capability pack for enterprise federated SSO session establishment and teardown (ARCH-AUTH-FEDERATION). "
@@ -658,16 +862,13 @@ def main() -> None:
         "Partial: browse read scope shipped; full scoped-view mutate UX not complete.",
     )
 
-    patch_statement(
+    mint_capability_content_n(
+        data,
         "CAP-RBAC",
-        "Capability pack for API RBAC enforcement (subset of the full permission matrix). Shipped foundation "
-        "covers OAuth routes, defineOperationRoute business reads, and auth-flow-smoke beds — not every ARCH-API-RBAC "
-        "mutating operation. MCP and grant-management mutators remain planned in core-ALM.",
-    )
-    patch_verification(
-        "CAP-RBAC",
-        "pass",
-        "Partial pass: foundation + read routes verified; full matrix deferred to core-ALM.",
+        CAP_RBAC_V0_STMT,
+        CAP_RBAC_V0_HASH,
+        CAP_RBAC_V1_STMT,
+        "Partial pass on .1: foundation + read routes verified; full matrix deferred to core-ALM.",
     )
 
     patch_statement(
@@ -678,15 +879,13 @@ def main() -> None:
         "active until all mutators in scope ship.",
     )
 
-    patch_statement(
+    mint_capability_content_n(
+        data,
         "CAP-UI-FRAME",
-        "Web UI frame: navigation, client-scoped sidebar chrome, and route guards for /app/* via BFF session cookies "
-        "and CSRF on cookie mutations. Partial: shell and sign-in work; not every ARCH-UI surface is implemented.",
-    )
-    patch_verification(
-        "CAP-UI-FRAME",
-        "pass",
-        "Partial pass: shell + guards verified on PR #13; full UI catalog still planned.",
+        CAP_UI_FRAME_V0_STMT,
+        CAP_UI_FRAME_V0_HASH,
+        CAP_UI_FRAME_V1_STMT,
+        "Partial pass on .1: shell + guards verified on PR #13; full UI catalog still planned.",
     )
 
     patch_statement(
@@ -696,35 +895,30 @@ def main() -> None:
         "is served by CAP-RELATIONS-API (seed release still parallel).",
     )
 
-    patch_statement(
-        "CAP-RELATIONS-API",
-        "Grant-scoped read-only GET .../requirements/:id/relations with redacted cross-project stubs, catalog labels, "
-        "and suspect flags. Implemented on main (PR #31 merge cb8a8c9); rel-r1-relations-api seed release ships in a "
-        "parallel PR — do not mark this capability shipped here.",
-    )
+    rel_api = find(data.get("requirement_versions"), "uid", "CAP-RELATIONS-API")
+    if rel_api:
+        rel_stmt = (
+            "Grant-scoped read-only GET .../requirements/:id/relations with redacted cross-project stubs, catalog "
+            "labels, and suspect flags. Runtime is implemented on main (PR #31 merge cb8a8c9)."
+        )
+        rel_note = (
+            "Code shipped on main; rel-r1-relations-api release remains planned until a dedicated seed PR marks "
+            "shipped — this grooming PR does not flip capability/release status."
+        )
+        patch_statement("CAP-RELATIONS-API", rel_stmt)
+        patch_verification("CAP-RELATIONS-API", None, rel_note)
+        if rel_api.get("status") == "shipped":
+            rel_api["status"] = "active"
+            bump_status_correction()
 
-    rel_r0 = find(data.get("releases"), "id", "rel-r0-sequences")
-    r0_note_suffix = (
-        "Delivered CAP-* packs here are R0 design/sequence artifacts (diagrams), not runtime verification — "
-        "see CAP-SSO / CAP-SCOPED-VIEW honesty."
-    )
-    if rel_r0:
-        base_notes = (rel_r0.get("notes") or "").split(" Delivered CAP-*")[0].rstrip()
-        desired = f"{base_notes} {r0_note_suffix}".strip() if base_notes else r0_note_suffix
-        if rel_r0.get("notes") != desired:
-            rel_r0["notes"] = desired
-            stats["versions_updated"] += 1
+    ensure_r0_sequences_note(data)
+    dedupe_seed_grooming_approvals(data)
+    wire_architecture_edges(data)
 
     ar_cp = find(data.get("approval_records"), "id", "ar-browse-ui-cp")
     if ar_cp and "Planned for browse UI PR" in (ar_cp.get("notes") or ""):
         ar_cp["notes"] = "Shipped with browse UI PR #23 (merge b5c7b5e9efd48de95e5e0ca5a71e23cb0a640f4a)."
         bump_status_correction()
-
-    pg = find(data.get("requirement_versions"), "uid", "CAP-TEST-PGLITE-DB")
-    if pg:
-        extra = " createTestApp shall close the pool when setup throws (ARCH-TEST-HARNESS-TEARDOWN)."
-        if extra.strip() not in (pg.get("statement") or ""):
-            patch_statement("CAP-TEST-PGLITE-DB", (pg.get("statement") or "").rstrip() + extra)
 
     with DOGFOOD.open("w", encoding="utf-8") as f:
         yaml.dump(data, f)

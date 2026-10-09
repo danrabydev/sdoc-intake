@@ -51,12 +51,12 @@ Last updated for seed grooming on **main @ `cb8a8c9`** (2026-10-09). Application
 |-------|----------------------|--------|
 | Relations seed ship | `rel-r1-relations-api` / `CAP-RELATIONS-API` | Code on main (#31); seed release still **planned** until dedicated seed PR marks shipped. |
 | Relations UI | `rel-r1-browse-ui-relations` | Do not edit in grooming; parallel UI PR. |
-| Catalogs API | `rel-r1-catalogs-api` / `CAP-CATALOGS-API` | API PR in flight; grooming only anchors release row + roadmap order. |
+| Catalogs API | `rel-r1-catalogs-api` / `CAP-CATALOGS-API` | API PR #33 in flight; roadmap text only in this grooming PR (no release stub). |
 
 ## Next-up (ordered)
 
 1. Ship **`rel-r1-relations-api`** seed at #31 merge SHA (parallel seed PR).
-2. **`rel-r1-catalogs-api`** then **`rel-r1-browse-ui-catalogs`** (catalogs / imprints / controls read).
+2. **`rel-r1-catalogs-api`** (PR #33) then **`rel-r1-browse-ui-catalogs`** (catalogs / imprints / controls read).
 3. **`rel-r1-browse-ui-relations`** (uses relations API; parallel).
 4. **Planning read** (`rel-r1-read-planning` → browse UI).
 5. **Artifacts, workflow, people/access, audit** read APIs + UIs (see `ARCH-BROWSE-ROADMAP` in seed).
@@ -71,5 +71,7 @@ Last updated for seed grooming on **main @ `cb8a8c9`** (2026-10-09). Application
 - **Release:** `rel-r1-seed-grooming` → **`CAP-SEED-GROOMING`** (documentation-only).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_seed_grooming_release.py`
 - **Source of truth:** `docs/design/seed/dogfood.yaml` + regenerated `docs/design/seed/out/`
+- **Honesty:** only **`CAP-SCOPED-VIEW`** verification outcome changed (→ `pending`); **`CAP-SSO`** was already without a pass outcome on main. **`CAP-RBAC`** / **`CAP-UI-FRAME`** narrowed statements minted as **`.1`** (v0 superseded, history preserved); **no** new `conforms_to` pins on `.1` for devenv caps.
+- **V-222518:** `conforms_to` pins on **v0** `ARCH-DEVENV-IDENTITY` and `FIX-DENY-DEVENV-PROD-LOGIN` are **restored** (not removed). Whether `.1` devenv versions should also pin V-222518 is a **Dan decision** — this PR does not add them.
 
 When continuing in Cursor: read `dogfood.yaml` releases and `ARCH-BROWSE-ROADMAP` first; pick the next **planned** release; implement; update seed via a dedicated `patch_*_release.py`; validate and test.
