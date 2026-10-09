@@ -2,7 +2,7 @@
 """Ship rel-r1-ui-header-nav (PR #37 @ dd43cc1); add ReqALM product/maintenance contracts.
 
 Adds ctr-reqalm-product / ctr-reqalm-maintenance (covers_releases + in_scope_of),
-planned recurring MAINT-* obligations on the maintenance contract, and
+SYS-CYBER-UPKEEP plus draft CAP-UPKEEP-* capabilities on the maintenance contract, and
 rel-r1-reqalm-contracts / CAP-REQALM-CONTRACTS for this seed PR.
 
 Idempotent. Run: python3 patch_reqalm_contracts_release.py && python3 yaml_to_strictdoc.py --validate
@@ -20,7 +20,6 @@ SEED = Path(__file__).resolve().parent.parent
 DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
 NIST = "nist-800-53@rev5-dogfood-20261006"
-STIG = "asd-stig@v6r4"
 SHIPPED_DATE = "2026-10-09"
 HEADER_MERGE = "dd43cc1523544d0f6375a628bc9d7d45a31fa738"
 CAP_HEADER = "CAP-UI-HEADER-NAV"
@@ -29,7 +28,17 @@ CAP = "CAP-REQALM-CONTRACTS"
 REL = "rel-r1-reqalm-contracts"
 PRODUCT_CONTRACT = "ctr-reqalm-product"
 MAINT_CONTRACT = "ctr-reqalm-maintenance"
-SEC_MAINT = "SEC-REQALM-MAINT"
+SYS_UPKEEP = "SYS-CYBER-UPKEEP"
+LEGACY_MAINT_BASES = frozenset(
+    {
+        "SEC-REQALM-MAINT",
+        "MAINT-SEC-AUDIT-MONTHLY",
+        "MAINT-DEPS-VULN-MONTHLY",
+        "MAINT-ACCESS-RECERT-QUARTERLY",
+        "MAINT-STIG-NIST-REASSESS",
+        "MAINT-AUDIT-LOG-REVIEW",
+    }
+)
 
 yaml = YAML()
 yaml.preserve_quotes = True
@@ -129,63 +138,63 @@ def ship_ui_header_nav(data) -> None:
         ar["approved_statement_hash"] = None
 
 
-MAINT_OBLIGATIONS: list[dict] = [
+SYS_UPKEEP_STMT = (
+    "PLANNED system requirement (not shipped). ReqALM in production shall sustain ongoing cyber upkeep: continuous "
+    "monitoring, vulnerability and flaw remediation, account lifecycle review, and audit log analysis — implemented "
+    "by the draft CAP-UPKEEP-* capability pack and owned under maintenance contract ctr-reqalm-maintenance."
+)
+SYS_UPKEEP_CONTROLS = [("CA-7", NIST), ("RA-5", NIST), ("SI-2", NIST), ("AC-2", NIST), ("AU-6", NIST)]
+
+UPKEEP_CAPABILITIES: list[dict] = [
     {
-        "base_uid": "MAINT-SEC-AUDIT-MONTHLY",
+        "base_uid": "CAP-UPKEEP-MONTHLY-SEC-AUDIT",
         "title": "Monthly security audit (planned)",
         "statement": (
-            "PLANNED recurring obligation (not shipped). Perform a documented monthly security audit of the "
-            "ReqALM deployment: review auth/session anomalies, privileged access use, configuration drift against "
-            "the approved baseline, and open findings from the prior month. Record results and track remediation."
+            "PLANNED capability (not shipped). Each month, Security performs a documented ReqALM security audit: "
+            "auth/session anomalies, privileged use, configuration drift vs approved baseline, and open findings "
+            "from the prior cycle. Results are recorded and remediated."
         ),
         "conforms_to": [("CA-7", NIST)],
+        "approval_id": "ar-upkeep-monthly-sec-audit",
     },
     {
-        "base_uid": "MAINT-DEPS-VULN-MONTHLY",
+        "base_uid": "CAP-UPKEEP-MONTHLY-DEPS-VULN",
         "title": "Monthly dependency and vulnerability review (planned)",
         "statement": (
-            "PLANNED recurring obligation (not shipped). Each month, review application and container dependency "
-            "manifests for known vulnerabilities (SCA), triage findings by severity, and plan patches or accepted "
-            "risk with Security approval. No silent deferrals past the next review cycle."
+            "PLANNED capability (not shipped). Each month, review application and container dependency manifests "
+            "for known vulnerabilities (SCA), triage by severity, and plan patches or Security-approved risk "
+            "acceptance before the next review."
         ),
         "conforms_to": [("RA-5", NIST), ("SI-2", NIST)],
+        "approval_id": "ar-upkeep-monthly-deps-vuln",
     },
     {
-        "base_uid": "MAINT-ACCESS-RECERT-QUARTERLY",
+        "base_uid": "CAP-UPKEEP-QUARTERLY-ACCESS-RECERT",
         "title": "Quarterly access recertification (planned)",
         "statement": (
-            "PLANNED recurring obligation (not shipped). Quarterly, Authorizing Official or delegate recertifies "
-            "project grants and privileged roles for ReqALM: confirm least privilege, remove stale grants, and audit "
-            "the recertification decision."
+            "PLANNED capability (not shipped). Quarterly, an Authorizing Official or delegate recertifies ReqALM "
+            "project grants and privileged roles: confirm least privilege, remove stale grants, audit the decision."
         ),
-        "conforms_to": [("AC-2", NIST), ("AC-2.3", NIST)],
+        "conforms_to": [("AC-2", NIST)],
+        "approval_id": "ar-upkeep-quarterly-access-recert",
     },
     {
-        "base_uid": "MAINT-STIG-NIST-REASSESS",
-        "title": "STIG and NIST control re-assessment (planned)",
-        "statement": (
-            "PLANNED recurring obligation (not shipped). On a defined cadence (at least annually, or when catalog "
-            "imprints change), re-assess ReqALM ConformsTo coverage against the pinned NIST imprint and applicable "
-            "ASD STIG rules; open successor versions or pin updates through the locked migrate workflow."
-        ),
-        "conforms_to": [("CA-7", NIST), ("V-222515", STIG)],
-    },
-    {
-        "base_uid": "MAINT-AUDIT-LOG-REVIEW",
+        "base_uid": "CAP-UPKEEP-AUDIT-LOG-REVIEW",
         "title": "Audit log review (planned)",
         "statement": (
-            "PLANNED recurring obligation (not shipped). Review exported OTEL/security audit streams for suspicious "
-            "patterns, failed auth spikes, and privileged mutations; escalate anomalies per incident response policy."
+            "PLANNED capability (not shipped). Review exported OTEL/security audit streams for suspicious patterns, "
+            "failed auth spikes, and privileged mutations; escalate per incident response policy."
         ),
         "conforms_to": [("AU-6", NIST)],
+        "approval_id": "ar-upkeep-audit-log-review",
     },
 ]
 
 CAP_STMT = (
     "Seed-only contract overlay pass: ReqALM product contract (ctr-reqalm-product) covers all reqalm releases "
     "via covers_releases and their delivered version snapshots via in_scope_of; maintenance contract "
-    "(ctr-reqalm-maintenance) holds forward-looking planned MAINT-* recurring obligations with NIST/STIG ConformsTo "
-    "pins. Regenerates docs/design/seed/out/, schema docs, and HANDOFF.md. No application runtime changes."
+    "(ctr-reqalm-maintenance) owns draft CAP-UPKEEP-* capabilities satisfying SYS-CYBER-UPKEEP. "
+    "Regenerates docs/design/seed/out/, schema docs, and HANDOFF.md. No application runtime changes."
 )
 CAP_ARTIFACTS = [
     f"{REPO}/docs/design/seed/dogfood.yaml",
@@ -197,39 +206,91 @@ CAP_ARTIFACTS = [
 ]
 
 
-def upsert_maintenance_obligations(data) -> list[str]:
+def purge_legacy_maint_entities(data) -> None:
+    data["requirement_lines"] = [
+        ln
+        for ln in data.get("requirement_lines") or []
+        if ln.get("base_uid") not in LEGACY_MAINT_BASES
+    ]
+    data["requirement_versions"] = [
+        ver
+        for ver in data.get("requirement_versions") or []
+        if ver.get("base_uid") not in LEGACY_MAINT_BASES
+    ]
+    edges = data.get("edges") or []
+    data["edges"] = [
+        e
+        for e in edges
+        if e.get("from") not in LEGACY_MAINT_BASES and e.get("to") not in LEGACY_MAINT_BASES
+    ]
+
+
+def upsert_cyber_upkeep_model(data) -> list[str]:
+    """SYS-CYBER-UPKEEP + draft CAP-UPKEEP-*; returns capability UIDs for maintenance contract."""
+    purge_legacy_maint_entities(data)
+    upkeep_cap_bases = [c["base_uid"] for c in UPKEEP_CAPABILITIES]
+    edges = data.setdefault("edges", [])
+    data["edges"] = [
+        e
+        for e in edges
+        if e.get("from") not in upkeep_cap_bases
+        and e.get("from") != SYS_UPKEEP
+        and e.get("to") != SYS_UPKEEP
+    ]
+    edges = data["edges"]
+
     upsert(
         data.setdefault("requirement_lines", []),
         "base_uid",
         cm(
-            base_uid=SEC_MAINT,
+            base_uid=SYS_UPKEEP,
             project_id="reqalm",
-            parent=None,
-            kind="section",
-            title="ReqALM maintenance obligations (planned)",
+            parent="SEC-SEC",
+            kind="requirement",
+            title="Ongoing cyber upkeep (ReqALM operations)",
         ),
     )
-    maint_uids: list[str] = []
-    maint_bases = [ob["base_uid"] for ob in MAINT_OBLIGATIONS]
-    edges = data.setdefault("edges", [])
-    data["edges"] = [e for e in edges if e.get("from") not in maint_bases]
-    edges = data["edges"]
-    mc03 = active_uid(data, "MC03")
-    for ob in MAINT_OBLIGATIONS:
-        bu = ob["base_uid"]
-        maint_uids.append(bu)
+    upsert(
+        data.setdefault("requirement_versions", []),
+        "uid",
+        cm(
+            uid=SYS_UPKEEP,
+            base_uid=SYS_UPKEEP,
+            version_n=0,
+            status="draft",
+            statement=SYS_UPKEEP_STMT,
+            priority=40,
+            iteration="iter-r1",
+            security={
+                "catalog_ref": "CA-7",
+                "verification_note": "Planned system requirement — not shipped; satisfied by draft CAP-UPKEEP-* pack.",
+            },
+            statement_hash=statement_hash(SYS_UPKEEP_STMT),
+            grooming_state="detailed",
+        ),
+    )
+    for ctl, imprint in SYS_UPKEEP_CONTROLS:
+        ensure_edge(
+            edges,
+            {"from": SYS_UPKEEP, "to": ctl, "kind": "conforms_to", "catalog_imprint_id": imprint},
+        )
+
+    cap_uids: list[str] = []
+    for cap in UPKEEP_CAPABILITIES:
+        bu = cap["base_uid"]
+        cap_uids.append(bu)
         upsert(
             data["requirement_lines"],
             "base_uid",
             cm(
                 base_uid=bu,
                 project_id="reqalm",
-                parent=SEC_MAINT,
-                kind="requirement",
-                title=ob["title"],
+                parent="SEC-CAP",
+                kind="capability",
+                title=cap["title"],
             ),
         )
-        stmt = ob["statement"]
+        stmt = cap["statement"]
         upsert(
             data.setdefault("requirement_versions", []),
             "uid",
@@ -242,20 +303,35 @@ def upsert_maintenance_obligations(data) -> list[str]:
                 priority=50,
                 iteration="iter-r1",
                 security={
-                    "catalog_ref": ob["conforms_to"][0][0],
-                    "verification_note": "Planned maintenance obligation — not shipped; no verification outcome.",
+                    "catalog_ref": cap["conforms_to"][0][0],
+                    "verification_note": "Planned upkeep capability — not shipped; no verification outcome.",
                 },
                 statement_hash=statement_hash(stmt),
                 grooming_state="want",
             ),
         )
-        ensure_edge(edges, {"from": bu, "to": mc03, "kind": "refines"})
-        for ctl, imprint in ob["conforms_to"]:
+        upsert(
+            data.setdefault("approval_records", []),
+            "id",
+            cm(
+                id=cap["approval_id"],
+                subject_kind="CapabilityLine",
+                base_uid=bu,
+                status="unapproved",
+                by=None,
+                at=None,
+                notes=f"Planned upkeep capability {bu}.",
+                approved_version_uid=None,
+                approved_statement_hash=None,
+            ),
+        )
+        ensure_edge(edges, {"from": bu, "to": SYS_UPKEEP, "kind": "satisfies"})
+        for ctl, imprint in cap["conforms_to"]:
             ensure_edge(
                 edges,
                 {"from": bu, "to": ctl, "kind": "conforms_to", "catalog_imprint_id": imprint},
             )
-    return maint_uids
+    return cap_uids
 
 
 def upsert_contracts(data, *, product_delivers: list[str], product_releases: list[str], maint_uids: list[str]) -> None:
@@ -295,7 +371,7 @@ def upsert_contracts(data, *, product_delivers: list[str], product_releases: lis
             in_scope_of=maint_uids,
             notes=(
                 "Maintenance contract for operating ReqALM after delivery. No releases owned yet; in_scope_of holds "
-                "planned recurring MAINT-* obligations (draft, not shipped)."
+                "draft CAP-UPKEEP-* capabilities (planned, not shipped) that satisfy SYS-CYBER-UPKEEP."
             ),
         ),
     )
@@ -372,7 +448,7 @@ def upsert_this_release(data) -> None:
             delivers=[CAP],
             cyber_gate=False,
             notes=(
-                "Seed-only: ctr-reqalm-product / ctr-reqalm-maintenance, MAINT-* planned obligations, "
+                "Seed-only: ctr-reqalm-product / ctr-reqalm-maintenance, SYS-CYBER-UPKEEP + CAP-UPKEEP-*, "
                 f"ships rel-r1-ui-header-nav at {HEADER_MERGE}."
             ),
         ),
@@ -385,12 +461,12 @@ def main() -> None:
 
     ship_ui_header_nav(data)
     product_releases, product_delivers = reqalm_release_snapshot(data)
-    maint_uids = upsert_maintenance_obligations(data)
+    maint_cap_uids = upsert_cyber_upkeep_model(data)
     upsert_contracts(
         data,
         product_delivers=product_delivers,
         product_releases=product_releases,
-        maint_uids=maint_uids,
+        maint_uids=maint_cap_uids,
     )
     upsert_this_release(data)
 
@@ -399,7 +475,7 @@ def main() -> None:
     print(
         f"Patched dogfood.yaml: shipped {REL_HEADER}, contracts {PRODUCT_CONTRACT}+{MAINT_CONTRACT}, "
         f"{REL} / {CAP} ({len(product_releases)} releases, {len(product_delivers)} deliver uids, "
-        f"{len(maint_uids)} maint obligations)"
+        f"{len(maint_cap_uids)} upkeep capabilities)"
     )
 
 

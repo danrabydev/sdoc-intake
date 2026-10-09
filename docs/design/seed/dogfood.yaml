@@ -1343,6 +1343,42 @@ approval_records:
   notes: Planned for ReqALM product/maintenance contracts seed PR.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-upkeep-monthly-sec-audit
+  subject_kind: CapabilityLine
+  base_uid: CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  status: unapproved
+  by:
+  at:
+  notes: Planned upkeep capability CAP-UPKEEP-MONTHLY-SEC-AUDIT.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-upkeep-monthly-deps-vuln
+  subject_kind: CapabilityLine
+  base_uid: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  status: unapproved
+  by:
+  at:
+  notes: Planned upkeep capability CAP-UPKEEP-MONTHLY-DEPS-VULN.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-upkeep-quarterly-access-recert
+  subject_kind: CapabilityLine
+  base_uid: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  status: unapproved
+  by:
+  at:
+  notes: Planned upkeep capability CAP-UPKEEP-QUARTERLY-ACCESS-RECERT.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-upkeep-audit-log-review
+  subject_kind: CapabilityLine
+  base_uid: CAP-UPKEEP-AUDIT-LOG-REVIEW
+  status: unapproved
+  by:
+  at:
+  notes: Planned upkeep capability CAP-UPKEEP-AUDIT-LOG-REVIEW.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3469,41 +3505,36 @@ requirement_lines:
   parent: CAP-UI-KIT-CHROME
   kind: capability
   title: ReqALM header and project navigation
-- base_uid: SEC-REQALM-MAINT
-  project_id: reqalm
-  parent:
-  kind: section
-  title: ReqALM maintenance obligations (planned)
-- base_uid: MAINT-SEC-AUDIT-MONTHLY
-  project_id: reqalm
-  parent: SEC-REQALM-MAINT
-  kind: requirement
-  title: Monthly security audit (planned)
-- base_uid: MAINT-DEPS-VULN-MONTHLY
-  project_id: reqalm
-  parent: SEC-REQALM-MAINT
-  kind: requirement
-  title: Monthly dependency and vulnerability review (planned)
-- base_uid: MAINT-ACCESS-RECERT-QUARTERLY
-  project_id: reqalm
-  parent: SEC-REQALM-MAINT
-  kind: requirement
-  title: Quarterly access recertification (planned)
-- base_uid: MAINT-STIG-NIST-REASSESS
-  project_id: reqalm
-  parent: SEC-REQALM-MAINT
-  kind: requirement
-  title: STIG and NIST control re-assessment (planned)
-- base_uid: MAINT-AUDIT-LOG-REVIEW
-  project_id: reqalm
-  parent: SEC-REQALM-MAINT
-  kind: requirement
-  title: Audit log review (planned)
 - base_uid: CAP-REQALM-CONTRACTS
   project_id: reqalm
   parent: SEC-CT
   kind: capability
   title: ReqALM product and maintenance contracts (seed)
+- base_uid: SYS-CYBER-UPKEEP
+  project_id: reqalm
+  parent: SEC-SEC
+  kind: requirement
+  title: Ongoing cyber upkeep (ReqALM operations)
+- base_uid: CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  project_id: reqalm
+  parent: SEC-CAP
+  kind: capability
+  title: Monthly security audit (planned)
+- base_uid: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  project_id: reqalm
+  parent: SEC-CAP
+  kind: capability
+  title: Monthly dependency and vulnerability review (planned)
+- base_uid: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  project_id: reqalm
+  parent: SEC-CAP
+  kind: capability
+  title: Quarterly access recertification (planned)
+- base_uid: CAP-UPKEEP-AUDIT-LOG-REVIEW
+  project_id: reqalm
+  parent: SEC-CAP
+  kind: capability
+  title: Audit log review (planned)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -8859,78 +8890,78 @@ requirement_versions:
   statement_hash: sha256:01eb837e7646e87710859ddba2ebac44706d1be9d1c14ca17a12e71b73d70e30
   grooming_state: detailed
   verification_outcome: pass
-- uid: MAINT-SEC-AUDIT-MONTHLY
-  base_uid: MAINT-SEC-AUDIT-MONTHLY
-  version_n: 0
-  status: draft
-  statement: 'PLANNED recurring obligation (not shipped). Perform a documented monthly security audit of the ReqALM deployment: review auth/session anomalies, privileged access use, configuration drift against the approved baseline, and open findings from the prior month. Record results and track remediation.'
-  priority: 50
-  iteration: iter-r1
-  security:
-    catalog_ref: CA-7
-    verification_note: Planned maintenance obligation — not shipped; no verification outcome.
-  statement_hash: sha256:0d52618203ab8da200e6ca2b0c354f50369e534a599055525ada4faab9f4d315
-  grooming_state: want
-- uid: MAINT-DEPS-VULN-MONTHLY
-  base_uid: MAINT-DEPS-VULN-MONTHLY
-  version_n: 0
-  status: draft
-  statement: PLANNED recurring obligation (not shipped). Each month, review application and container dependency manifests for known vulnerabilities (SCA), triage findings by severity, and plan patches or accepted risk with Security approval. No silent deferrals past the next review cycle.
-  priority: 50
-  iteration: iter-r1
-  security:
-    catalog_ref: RA-5
-    verification_note: Planned maintenance obligation — not shipped; no verification outcome.
-  statement_hash: sha256:34c548faf96e586a854cd6ac3d76db37ecbe27d6e9a8c6e0467cf98e8011b8fc
-  grooming_state: want
-- uid: MAINT-ACCESS-RECERT-QUARTERLY
-  base_uid: MAINT-ACCESS-RECERT-QUARTERLY
-  version_n: 0
-  status: draft
-  statement: 'PLANNED recurring obligation (not shipped). Quarterly, Authorizing Official or delegate recertifies project grants and privileged roles for ReqALM: confirm least privilege, remove stale grants, and audit the recertification decision.'
-  priority: 50
-  iteration: iter-r1
-  security:
-    catalog_ref: AC-2
-    verification_note: Planned maintenance obligation — not shipped; no verification outcome.
-  statement_hash: sha256:2661e33ad53c9b5a9e2cb74646e2bdd107d8939c5444b957057a4aaf203805d8
-  grooming_state: want
-- uid: MAINT-STIG-NIST-REASSESS
-  base_uid: MAINT-STIG-NIST-REASSESS
-  version_n: 0
-  status: draft
-  statement: PLANNED recurring obligation (not shipped). On a defined cadence (at least annually, or when catalog imprints change), re-assess ReqALM ConformsTo coverage against the pinned NIST imprint and applicable ASD STIG rules; open successor versions or pin updates through the locked migrate workflow.
-  priority: 50
-  iteration: iter-r1
-  security:
-    catalog_ref: CA-7
-    verification_note: Planned maintenance obligation — not shipped; no verification outcome.
-  statement_hash: sha256:0fe895f1022fcdb2af5fb207279e634edccc3676546179d247ea406ef06284d0
-  grooming_state: want
-- uid: MAINT-AUDIT-LOG-REVIEW
-  base_uid: MAINT-AUDIT-LOG-REVIEW
-  version_n: 0
-  status: draft
-  statement: PLANNED recurring obligation (not shipped). Review exported OTEL/security audit streams for suspicious patterns, failed auth spikes, and privileged mutations; escalate anomalies per incident response policy.
-  priority: 50
-  iteration: iter-r1
-  security:
-    catalog_ref: AU-6
-    verification_note: Planned maintenance obligation — not shipped; no verification outcome.
-  statement_hash: sha256:8ad0afba86dea406bf46c701239c160ad63bb85491d258641097e9f20610ddbd
-  grooming_state: want
 - uid: CAP-REQALM-CONTRACTS
   base_uid: CAP-REQALM-CONTRACTS
   version_n: 0
   status: draft
-  statement: 'Seed-only contract overlay pass: ReqALM product contract (ctr-reqalm-product) covers all reqalm releases via covers_releases and their delivered version snapshots via in_scope_of; maintenance contract (ctr-reqalm-maintenance) holds forward-looking planned MAINT-* recurring obligations with NIST/STIG ConformsTo pins. Regenerates docs/design/seed/out/, schema docs, and HANDOFF.md. No application runtime changes.'
+  statement: 'Seed-only contract overlay pass: ReqALM product contract (ctr-reqalm-product) covers all reqalm releases via covers_releases and their delivered version snapshots via in_scope_of; maintenance contract (ctr-reqalm-maintenance) owns draft CAP-UPKEEP-* capabilities satisfying SYS-CYBER-UPKEEP. Regenerates docs/design/seed/out/, schema docs, and HANDOFF.md. No application runtime changes.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Planned until ReqALM contracts seed PR merges.
-  statement_hash: sha256:aaf48ed778aee94de75c973080e65d2179a03518bd19f45a0ee0f1287b10677f
+  statement_hash: sha256:4399d1ab485ef9ac9dd4b1bda2f1bc5f6896bb41773eb6452c07c6e10dbdabf5
   grooming_state: detailed
+- uid: SYS-CYBER-UPKEEP
+  base_uid: SYS-CYBER-UPKEEP
+  version_n: 0
+  status: draft
+  statement: 'PLANNED system requirement (not shipped). ReqALM in production shall sustain ongoing cyber upkeep: continuous monitoring, vulnerability and flaw remediation, account lifecycle review, and audit log analysis — implemented by the draft CAP-UPKEEP-* capability pack and owned under maintenance contract ctr-reqalm-maintenance.'
+  priority: 40
+  iteration: iter-r1
+  security:
+    catalog_ref: CA-7
+    verification_note: Planned system requirement — not shipped; satisfied by draft CAP-UPKEEP-* pack.
+  statement_hash: sha256:989ef3a6f1bb29ecdd54eac9b3a232c8117869c19a124a5416aacbdbd8e7c6eb
+  grooming_state: detailed
+- uid: CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  base_uid: CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  version_n: 0
+  status: draft
+  statement: 'PLANNED capability (not shipped). Each month, Security performs a documented ReqALM security audit: auth/session anomalies, privileged use, configuration drift vs approved baseline, and open findings from the prior cycle. Results are recorded and remediated.'
+  priority: 50
+  iteration: iter-r1
+  security:
+    catalog_ref: CA-7
+    verification_note: Planned upkeep capability — not shipped; no verification outcome.
+  statement_hash: sha256:ae18e6d312e452ad9816d744eb1c738af2161f4e727eb6ad5f1c0243116c14ba
+  grooming_state: want
+- uid: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  base_uid: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  version_n: 0
+  status: draft
+  statement: PLANNED capability (not shipped). Each month, review application and container dependency manifests for known vulnerabilities (SCA), triage by severity, and plan patches or Security-approved risk acceptance before the next review.
+  priority: 50
+  iteration: iter-r1
+  security:
+    catalog_ref: RA-5
+    verification_note: Planned upkeep capability — not shipped; no verification outcome.
+  statement_hash: sha256:acb2223244a53ae4358495dda2f3f4a2ba66f937e7cb11c49032029aedf692e5
+  grooming_state: want
+- uid: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  base_uid: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  version_n: 0
+  status: draft
+  statement: 'PLANNED capability (not shipped). Quarterly, an Authorizing Official or delegate recertifies ReqALM project grants and privileged roles: confirm least privilege, remove stale grants, audit the decision.'
+  priority: 50
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-2
+    verification_note: Planned upkeep capability — not shipped; no verification outcome.
+  statement_hash: sha256:92cfb9067f3aad31204b334730f73a1755811239eb8c8e9a5c6022e74491c42a
+  grooming_state: want
+- uid: CAP-UPKEEP-AUDIT-LOG-REVIEW
+  base_uid: CAP-UPKEEP-AUDIT-LOG-REVIEW
+  version_n: 0
+  status: draft
+  statement: PLANNED capability (not shipped). Review exported OTEL/security audit streams for suspicious patterns, failed auth spikes, and privileged mutations; escalate per incident response policy.
+  priority: 50
+  iteration: iter-r1
+  security:
+    catalog_ref: AU-6
+    verification_note: Planned upkeep capability — not shipped; no verification outcome.
+  statement_hash: sha256:fd20427878522fad6d89a049ecf8919dca843ec0209b370d8128ba75c1a21a61
+  grooming_state: want
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -15843,50 +15874,55 @@ edges:
 - from: CAP-UI-HEADER-NAV
   to: CAP-BROWSE-UI-REQS
   kind: satisfies
-- from: MAINT-SEC-AUDIT-MONTHLY
-  to: MC03
-  kind: refines
-- from: MAINT-SEC-AUDIT-MONTHLY
+- from: SYS-CYBER-UPKEEP
   to: CA-7
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: MAINT-DEPS-VULN-MONTHLY
-  to: MC03
-  kind: refines
-- from: MAINT-DEPS-VULN-MONTHLY
+- from: SYS-CYBER-UPKEEP
   to: RA-5
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: MAINT-DEPS-VULN-MONTHLY
+- from: SYS-CYBER-UPKEEP
   to: SI-2
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: MAINT-ACCESS-RECERT-QUARTERLY
-  to: MC03
-  kind: refines
-- from: MAINT-ACCESS-RECERT-QUARTERLY
+- from: SYS-CYBER-UPKEEP
   to: AC-2
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: MAINT-ACCESS-RECERT-QUARTERLY
-  to: AC-2.3
+- from: SYS-CYBER-UPKEEP
+  to: AU-6
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: MAINT-STIG-NIST-REASSESS
-  to: MC03
-  kind: refines
-- from: MAINT-STIG-NIST-REASSESS
+- from: CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  to: SYS-CYBER-UPKEEP
+  kind: satisfies
+- from: CAP-UPKEEP-MONTHLY-SEC-AUDIT
   to: CA-7
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: MAINT-STIG-NIST-REASSESS
-  to: V-222515
+- from: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  to: SYS-CYBER-UPKEEP
+  kind: satisfies
+- from: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  to: RA-5
   kind: conforms_to
-  catalog_imprint_id: asd-stig@v6r4
-- from: MAINT-AUDIT-LOG-REVIEW
-  to: MC03
-  kind: refines
-- from: MAINT-AUDIT-LOG-REVIEW
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-UPKEEP-MONTHLY-DEPS-VULN
+  to: SI-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  to: SYS-CYBER-UPKEEP
+  kind: satisfies
+- from: CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  to: AC-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: CAP-UPKEEP-AUDIT-LOG-REVIEW
+  to: SYS-CYBER-UPKEEP
+  kind: satisfies
+- from: CAP-UPKEEP-AUDIT-LOG-REVIEW
   to: AU-6
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
@@ -16349,12 +16385,11 @@ contracts:
   status: active
   covers_releases: []
   in_scope_of:
-  - MAINT-SEC-AUDIT-MONTHLY
-  - MAINT-DEPS-VULN-MONTHLY
-  - MAINT-ACCESS-RECERT-QUARTERLY
-  - MAINT-STIG-NIST-REASSESS
-  - MAINT-AUDIT-LOG-REVIEW
-  notes: Maintenance contract for operating ReqALM after delivery. No releases owned yet; in_scope_of holds planned recurring MAINT-* obligations (draft, not shipped).
+  - CAP-UPKEEP-MONTHLY-SEC-AUDIT
+  - CAP-UPKEEP-MONTHLY-DEPS-VULN
+  - CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
+  - CAP-UPKEEP-AUDIT-LOG-REVIEW
+  notes: Maintenance contract for operating ReqALM after delivery. No releases owned yet; in_scope_of holds draft CAP-UPKEEP-* capabilities (planned, not shipped) that satisfy SYS-CYBER-UPKEEP.
 releases:
 - id: rel-r0-sequences
   project_id: reqalm
@@ -16862,7 +16897,7 @@ releases:
   delivers:
   - CAP-REQALM-CONTRACTS
   cyber_gate: false
-  notes: 'Seed-only: ctr-reqalm-product / ctr-reqalm-maintenance, MAINT-* planned obligations, ships rel-r1-ui-header-nav at dd43cc1523544d0f6375a628bc9d7d45a31fa738.'
+  notes: 'Seed-only: ctr-reqalm-product / ctr-reqalm-maintenance, SYS-CYBER-UPKEEP + CAP-UPKEEP-*, ships rel-r1-ui-header-nav at dd43cc1523544d0f6375a628bc9d7d45a31fa738.'
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

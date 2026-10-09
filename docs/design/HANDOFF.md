@@ -73,7 +73,8 @@ Last updated for seed **ReqALM contracts** on **main @ `dd43cc1`** (2026-10-09).
 - **Release (this PR):** `rel-r1-reqalm-contracts` → **`CAP-REQALM-CONTRACTS`** (seed-only, planned).
 - **Contracts (extended model):**
   - **`ctr-reqalm-product`** — build contract; `covers_releases` = all reqalm release ids; `in_scope_of` = union of all `release.delivers` version UIDs.
-  - **`ctr-reqalm-maintenance`** — maintenance contract; `covers_releases` empty; `in_scope_of` = planned **`MAINT-*`** recurring obligations (draft, not shipped) with NIST/STIG `conforms_to` where catalog has items.
+  - **`ctr-reqalm-maintenance`** — maintenance contract; `covers_releases` empty; `in_scope_of` = draft **`CAP-UPKEEP-*`** capabilities (planned, not shipped) that **`satisfies` → `SYS-CYBER-UPKEEP`** with per-capability NIST `conforms_to` pins.
+  - **`SYS-CYBER-UPKEEP`** — system requirement under **SEC-SEC** (draft); umbrella `conforms_to` **CA-7, RA-5, SI-2, AC-2, AU-6** @ NIST imprint.
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_reqalm_contracts_release.py`
 - **Grammar:** `covers_releases` on `contract` (see `schema.md` / `reqseed.schema.json`); exported as Parent + `CoversRelease` on `contracts-releases.sdoc`.
 - **Source of truth:** `docs/design/seed/dogfood.yaml` + regenerated `docs/design/seed/out/`
