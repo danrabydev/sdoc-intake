@@ -4,6 +4,7 @@ import {
   parseAppRoute,
 } from "./browse.js";
 import { api } from "./api-client.js";
+import { buildMfaEnrollmentChildren, clearMfaEnrollmentUi } from "./mfa-enroll-ui.js";
 
 function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);
@@ -66,7 +67,11 @@ export async function signOut(apiFn = api, redirect = (url) => {
   redirect("/login");
 }
 
-function renderLogin(h) {
+export function renderLogin(h, options = {}) {
+  const fetchFn = options.fetchFn ?? fetch.bind(globalThis);
+  const redirect = options.redirect ?? ((url) => {
+    window.location.href = url;
+  });
   document.body.replaceChildren();
   const card = el("div", { className: "auth-card" });
   card.append(el("h1", { text: "Sign in to ReqALM" }));
@@ -105,7 +110,7 @@ function renderLogin(h) {
       mfa_code: fd.get("mfa_code") || undefined,
       enrollment_ticket: enrollmentTicket || undefined,
     };
-    const res = await fetch("/api/v1/auth/local/login", {
+    const res = await fetchFn("/api/v1/auth/local/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
@@ -115,17 +120,7 @@ function renderLogin(h) {
     if (data.status === "mfa_enrollment_required") {
       enrollmentTicket = data.enrollment_ticket;
       enrollBox.hidden = false;
-      enrollBox.replaceChildren(
-        el("p", {
-          className: "muted",
-          text: "Add this account to your authenticator app (enter the setup key, or use the otpauth URI), then enter the 6-digit code:",
-        }),
-        el("p", {}, [
-          document.createTextNode("Setup key: "),
-          el("code", { text: new URL(data.otpauth_uri).searchParams.get("secret") || "" }),
-        ]),
-        el("code", { text: data.otpauth_uri }),
-      );
+      enrollBox.replaceChildren(...buildMfaEnrollmentChildren(document, el, data));
       mfaWrap.hidden = false;
       return;
     }
@@ -138,8 +133,10 @@ function renderLogin(h) {
       err.textContent = data.error || "Sign-in failed";
       return;
     }
+    clearMfaEnrollmentUi(enrollBox);
+    enrollmentTicket = null;
     if (data.redirect) {
-      window.location.href = data.redirect;
+      redirect(data.redirect);
     }
   });
 }

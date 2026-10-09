@@ -2013,6 +2013,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
 security.verification_note: IA-2 MFA enrollment. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+edge: ← satisfies from CAP-MFA-QR
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -2167,6 +2168,39 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-test-hygiene
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-MFA-QR
+STATUS: Draft
+TITLE: MFA enrollment QR code (sign-in UI)
+STATEMENT: >>>
+MFA enrollment on the sign-in card renders a scannable QR code for the otpauth URI locally in the browser (vendored MIT qr-min matrix encoder to SVG; no external QR service or network fetch). Setup key and manual otpauth URI remain visible for copy/paste. Enrollment JSON responses use Cache-Control: no-store; QR markup is removed from the DOM after successful enrollment. Accessible name on the QR image; CSP-safe (same-origin module, DOM-built SVG, no inline handlers).
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-MFA-QR
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: Planned until MFA enrollment QR PR merges.
+delivered_by_release: R1 — MFA enrollment QR (sign-in UI)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: CAP-MFA-ENROLL
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CRED-MFA
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-mfa-qr
   ROLE: Delivers
 
 [[/SECTION]]
@@ -4078,7 +4112,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-TREE
-STATUS: Draft
+STATUS: Active
 TITLE: Browse requirements tree UI (read-only)
 STATEMENT: >>>
 Read-only /app requirements tree for a grant-scoped project: lazy-loaded outline at /app/projects/:projectId/tree using GET .../requirements/tree?parent= (roots when omitted). Each node shows kind, uid, title; expanders load children once and cache in memory. Accessible WAI-ARIA tree (roles, aria-expanded/level, keyboard navigation). Requirement detail breadcrumbs from ancestors (sections link to tree). Session/CSRF auth; safe DOM text only.
@@ -4090,7 +4124,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until requirements tree browse UI PR merges.
+security.verification_note: Shipped with requirements tree browse UI PR #29 (merge ecf5d539cdcb7da35c9469b7e8e5794240de44f9).
 delivered_by_release: R1 — browse requirements tree UI (read-only)
 <<<
 RELATIONS:
@@ -8405,6 +8439,7 @@ edge: ← satisfies from CAP-BROWSE-UI-CP
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 edge: ← satisfies from CAP-BROWSE-UI-TREE
+edge: ← satisfies from CAP-MFA-QR
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -9996,6 +10031,7 @@ edge: ← uses from FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
 edge: ← satisfies from CAP-CRED-STORE
 edge: ← satisfies from CAP-MFA-ENROLL
 edge: ← satisfies from CAP-TEST-AUTH-ROUTES
+edge: ← satisfies from CAP-MFA-QR
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222523 (pin imprint=asd-stig@v6r4)

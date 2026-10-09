@@ -1253,6 +1253,15 @@ approval_records:
   notes: Planned for requirements tree browse UI PR.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-mfa-qr
+  subject_kind: CapabilityLine
+  base_uid: CAP-MFA-QR
+  status: unapproved
+  by:
+  at:
+  notes: Planned for MFA enrollment QR PR.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3159,6 +3168,11 @@ requirement_lines:
   parent: SEC-RL
   kind: capability
   title: Browse requirements tree UI (read-only)
+- base_uid: CAP-MFA-QR
+  project_id: reqalm
+  parent: SEC-IA
+  kind: capability
+  title: MFA enrollment QR code (sign-in UI)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -7872,14 +7886,27 @@ requirement_versions:
 - uid: CAP-BROWSE-UI-TREE
   base_uid: CAP-BROWSE-UI-TREE
   version_n: 0
-  status: draft
+  status: active
   statement: 'Read-only /app requirements tree for a grant-scoped project: lazy-loaded outline at /app/projects/:projectId/tree using GET .../requirements/tree?parent= (roots when omitted). Each node shows kind, uid, title; expanders load children once and cache in memory. Accessible WAI-ARIA tree (roles, aria-expanded/level, keyboard navigation). Requirement detail breadcrumbs from ancestors (sections link to tree). Session/CSRF auth; safe DOM text only.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: Planned until requirements tree browse UI PR merges.
+    verification_note: 'Shipped with requirements tree browse UI PR #29 (merge ecf5d539cdcb7da35c9469b7e8e5794240de44f9).'
   statement_hash: sha256:e0707d013ea48aa38a7c56c3cf32d3dc7da612d04d1c58c1527bcf82ccccc69f
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-MFA-QR
+  base_uid: CAP-MFA-QR
+  version_n: 0
+  status: draft
+  statement: 'MFA enrollment on the sign-in card renders a scannable QR code for the otpauth URI locally in the browser (vendored MIT qr-min matrix encoder to SVG; no external QR service or network fetch). Setup key and manual otpauth URI remain visible for copy/paste. Enrollment JSON responses use Cache-Control: no-store; QR markup is removed from the DOM after successful enrollment. Accessible name on the QR image; CSP-safe (same-origin module, DOM-built SVG, no inline handlers).'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: IA-2
+    verification_note: Planned until MFA enrollment QR PR merges.
+  statement_hash: sha256:1f58d4c44316d614afed010f3ce6e6d746c2e3fb0f36affd9076d0c16c82edeb
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -8485,6 +8512,36 @@ capability_artifacts:
 - requirement_version_uid: CAP-BROWSE-UI-TREE
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_browse_ui_tree_release.py
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/mfa-enroll-ui.js
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/qr-min-adapter.js
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/vendor/qr-min.js
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/vendor/README.md
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/index.html
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/app.js
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/styles.css
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../apps/reqalm/src/web/mfa-enroll-ui.test.ts
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../apps/reqalm/src/auth/routes.ts
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_mfa_qr_release.py
 edges:
 - from: CAP-SSO
   to: A01
@@ -14197,6 +14254,15 @@ edges:
 - from: CAP-BROWSE-UI-TREE
   to: CAP-READ-HIERARCHY
   kind: satisfies
+- from: CAP-MFA-QR
+  to: CAP-MFA-ENROLL
+  kind: satisfies
+- from: CAP-MFA-QR
+  to: ARCH-CRED-MFA
+  kind: satisfies
+- from: CAP-MFA-QR
+  to: ARCH-UI-GUARD
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -14780,12 +14846,22 @@ releases:
   project_id: reqalm
   name: R1 — browse requirements tree UI (read-only)
   planned_on: '2026-10-08'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-08'
+  status: shipped
   delivers:
   - CAP-BROWSE-UI-TREE
   cyber_gate: false
   notes: Lazy tree outline in /app; ancestor breadcrumbs on requirement detail.
+- id: rel-r1-mfa-qr
+  project_id: reqalm
+  name: R1 — MFA enrollment QR (sign-in UI)
+  planned_on: '2026-10-08'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-MFA-QR
+  cyber_gate: false
+  notes: Client-side QR for otpauth URI on MFA enrollment; setup key fallback retained.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm
