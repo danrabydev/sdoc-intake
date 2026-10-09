@@ -65,7 +65,8 @@ after(async () => ctx.close());
 
 describe("catalogs read API", () => {
   it("list imprints; CM-3 counts, hop pins, suspect pin", async () => {
-    const cats = dataOf(await inject(CATS("reqalm"))) as { catalogs: { id: string; imprints: { id: string; status: string }[] }[] };
+    const cats = dataOf(await inject(CATS("reqalm"))) as { project_id: string; catalogs: { id: string; imprints: { id: string; status: string }[] }[] };
+    assert.equal(cats.project_id, "reqalm");
     assert.deepEqual(cats.catalogs.map((c) => c.id).sort(), ["cat-nist-global", "cat-reqalm-security", "cat-stig-asd-v6r4"]);
     assert.ok(cats.catalogs.find((c) => c.id === CAT)!.imprints.some((i) => i.id === NIST && i.status === "published"));
     const cm3 = (await detail("reqalm", "CM-3")) as Detail;
@@ -161,7 +162,7 @@ describe("catalogs read API", () => {
     const before = await listCount("reqalm", "AC-3");
     const title0 = (await detail("reqalm", "AC-3")).title;
     await q(`INSERT INTO catalog_defs (id, is_standard, project_id, title) VALUES ('aaa-cat-decoy-label', true, NULL, 'Decoy') ON CONFLICT DO NOTHING`);
-    await q(`INSERT INTO catalog_item_labels (catalog_id, item_uid, title, family) VALUES ('aaa-cat-decoy-label', 'AC-3', 'WRONG AC-3 TITLE', 'AC') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO catalog_item_labels (catalog_id, item_uid, title, family) VALUES ('aaa-cat-decoy-label', 'AC-3', 'WRONG AC-3 TITLE', 'AC'), ('aaa-cat-decoy-label', 'DECOY-ONLY-CTL', 'decoy only', 'AC') ON CONFLICT DO NOTHING`);
     await q(`INSERT INTO requirement_lines (base_uid, project_id, kind, title) VALUES ('CAT-STIG-ONLY', 'reqalm', 'requirement', 'stig only') ON CONFLICT DO NOTHING`);
     await q(`INSERT INTO requirement_versions (uid, base_uid, project_id, version_n, status, statement) VALUES ('CAT-STIG-ONLY', 'CAT-STIG-ONLY', 'reqalm', 0, 'active', 's') ON CONFLICT DO NOTHING`);
     await q(`INSERT INTO trace_edges (from_project_id, from_uid, to_uid, kind, catalog_imprint_id) VALUES ('reqalm', 'CAT-STIG-ONLY', 'AC-3', 'conforms_to', '${STIG}') ON CONFLICT DO NOTHING`);
@@ -169,6 +170,7 @@ describe("catalogs read API", () => {
       assert.equal(await listCount("reqalm", "AC-3"), before);
       assert.equal((await detail("reqalm", "AC-3")).title, title0);
       assert.match(title0, /Access Enforcement/);
+      assert.equal((await inject(CTRL("reqalm", CAT, NIST, "DECOY-ONLY-CTL"))).statusCode, 404);
     } finally {
       await q(`DELETE FROM trace_edges WHERE from_uid = 'CAT-STIG-ONLY' AND catalog_imprint_id = '${STIG}'`);
       await q(`DELETE FROM requirement_versions WHERE uid = 'CAT-STIG-ONLY'`);
@@ -190,6 +192,7 @@ describe("catalogs read API", () => {
     assert.equal((await inject(CTRL("reqalm", CAT, NIST, "NO-SUCH-CONTROL"))).statusCode, 404);
     const p0 = dataOf(await inject(`${CTRLS("reqalm", CAT, NIST)}?limit=2&offset=0`)) as { items: { id: string }[] };
     const p1 = dataOf(await inject(`${CTRLS("reqalm", CAT, NIST)}?limit=2&offset=2`)) as { items: { id: string }[] };
+    assert.equal(p0.items.length, 2);
     assert.notDeepEqual(p0.items.map((i) => i.id), p1.items.map((i) => i.id));
     await inject(CTRLS("reqalm", CAT, NIST), { ...bearer, "x-request-id": "cat-audit-ctrls" });
     await inject(CTRL("reqalm", CAT, NIST, "AC-3"), { ...bearer, "x-request-id": "cat-audit-detail" });
