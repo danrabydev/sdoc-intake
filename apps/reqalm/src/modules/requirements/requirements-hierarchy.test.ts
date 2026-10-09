@@ -130,7 +130,7 @@ describe("requirements tree read API", () => {
     const roots = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements/tree?limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ uid: string; kind: string }>; total: number } };
-    assert.equal(roots.data.total, 20);
+    assert.equal(roots.data.total, 21);
     assert.ok(roots.data.items.every((i) => i.kind === "section"));
     assert.ok(roots.data.items.some((i) => i.uid === "SEC-CP"));
     const secCpKids = (
