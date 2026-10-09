@@ -145,20 +145,6 @@ export function projectTabItems(projectId, currentPath) {
   });
 }
 
-export function requirementsViewMode(currentPath, projectId) {
-  if (!projectId || !isValidSlugId(projectId)) return null;
-  const enc = encodeURIComponent(projectId);
-  const tree = `/app/projects/${enc}/tree`;
-  const req = `/app/projects/${enc}/requirements`;
-  if (currentPath === tree) return "tree";
-  if (currentPath === req || currentPath.startsWith(`${req}/`)) return "list";
-  return null;
-}
-
-export function requirementsViewToggleHref(projectId, mode) {
-  return mode === "tree" ? appTreeHref(projectId) : requirementsListHref(projectId);
-}
-
 export function buildShellHeader(el, route, currentPath, meta) {
   const crumbs = breadcrumbSegments(route, meta);
   const breadcrumbNav = el("nav", { className: "header-breadcrumb", "aria-label": "Breadcrumb" });

@@ -379,6 +379,44 @@ describe("browse UI render (jsdom)", () => {
     assert.match(main.textContent ?? "", /No requirements in this project/);
   });
 
+  it("requirements list/tree toggle sets active link, hrefs, and aria-current", async () => {
+    const emptyReqs = mockFetch(() => ({
+      status: 200,
+      body: { data: { items: [], limit: 20, offset: 0, total: 0 } },
+    }));
+    const listMain = document.createElement("main");
+    await renderRequirementsList(listMain, { apiFn: emptyReqs, projectId: "reqalm", filters: {}, offset: 0 });
+    const listLinks = [...listMain.querySelectorAll(".req-view-toggle a")];
+    assert.deepEqual(
+      listLinks.map((a) => [a.textContent, a.getAttribute("href"), a.getAttribute("aria-current")]),
+      [
+        ["List", "/app/projects/reqalm/requirements", "page"],
+        ["Tree", "/app/projects/reqalm/tree", null],
+      ],
+    );
+    assert.ok(listLinks[0]?.classList.contains("req-view-active"));
+    assert.equal(listLinks[1]?.classList.contains("req-view-active"), false);
+
+    const treeMain = document.createElement("main");
+    await renderRequirementsTree(treeMain, {
+      apiFn: mockFetch(() => ({
+        status: 200,
+        body: { data: { items: [], limit: 100, offset: 0, total: 0 } },
+      })),
+      projectId: "reqalm",
+    });
+    const treeLinks = [...treeMain.querySelectorAll(".req-view-toggle a")];
+    assert.deepEqual(
+      treeLinks.map((a) => [a.textContent, a.getAttribute("href"), a.getAttribute("aria-current")]),
+      [
+        ["List", "/app/projects/reqalm/requirements", null],
+        ["Tree", "/app/projects/reqalm/tree", "page"],
+      ],
+    );
+    assert.equal(treeLinks[0]?.classList.contains("req-view-active"), false);
+    assert.ok(treeLinks[1]?.classList.contains("req-view-active"));
+  });
+
   it("shows projects list empty state and happy path with client link", async () => {
     const emptyMain = document.createElement("main");
     await renderProjectsList(emptyMain, {
@@ -1404,6 +1442,32 @@ describe("app shell", () => {
       const active = document.querySelector("#project-nav .project-tab-active");
       assert.equal(active?.textContent, "Requirements", path);
       assert.equal(document.querySelector("#top-nav"), null);
+    }
+  });
+
+  it("sets aria-current=page on the active live project tab for each route", () => {
+    const liveTabRoutes = [
+      {
+        path: "/app/projects/reqalm/requirements",
+        label: "Requirements",
+        href: "/app/projects/reqalm/requirements",
+      },
+      { path: "/app/projects/reqalm/tree", label: "Requirements", href: "/app/projects/reqalm/requirements" },
+      { path: "/app/projects/reqalm/releases", label: "Releases", href: "/app/projects/reqalm/releases" },
+      {
+        path: "/app/projects/reqalm/releases/rel-a",
+        label: "Releases",
+        href: "/app/projects/reqalm/releases",
+      },
+    ];
+    for (const { path, label, href } of liveTabRoutes) {
+      installDom(`http://localhost${path}`);
+      renderAppShell(path, parseAppRoute(path), shellMeta);
+      const ariaCurrent = [...document.querySelectorAll('#project-nav a[aria-current="page"]')];
+      assert.equal(ariaCurrent.length, 1, path);
+      assert.equal(ariaCurrent[0]?.textContent, label, path);
+      assert.equal(ariaCurrent[0]?.getAttribute("href"), href, path);
+      assert.ok(ariaCurrent[0]?.classList.contains("project-tab-active"), path);
     }
   });
 
