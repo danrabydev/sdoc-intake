@@ -15,6 +15,15 @@ Design source of truth: `docs/design/seed/dogfood.yaml` and `docs/design/c4/ARCH
 
 **Prerequisites:** Node 22+, pnpm 10+, Docker Compose v2.
 
+**Windows (Git `core.autocrlf=true`):** Shell scripts must stay LF in the repo so Linux containers can run Docker entrypoints. After pulling a commit that adds `.gitattributes`, re-normalize your checkout once (this **discards all uncommitted changes**):
+
+```sh
+git rm --cached -r .
+git reset --hard
+```
+
+Fresh clones pick up LF automatically.
+
 ```sh
 git clone <repo-url> sdoc-intake && cd sdoc-intake
 pnpm install

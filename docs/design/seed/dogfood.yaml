@@ -1268,7 +1268,7 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned for requirement relations read API PR.
+  notes: 'Capability active with verification pass after PR #31 merge cb8a8c97895b651c8f25ce660482e7e5e7ae4454; formal approval record not filed in seed.'
   approved_version_uid:
   approved_statement_hash:
 - id: ar-cap-ui-kit
@@ -1296,6 +1296,15 @@ approval_records:
   by:
   at:
   notes: Seed-only grooming PR.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-lf-endings
+  subject_kind: CapabilityLine
+  base_uid: CAP-DEVENV-LF-ENDINGS
+  status: unapproved
+  by:
+  at:
+  notes: Planned for Git LF / Docker entrypoint line-ending PR.
   approved_version_uid:
   approved_statement_hash:
 gate_signoffs:
@@ -3404,6 +3413,11 @@ requirement_lines:
   parent: SEC-GROOM
   kind: capability
   title: Dogfood seed grooming (requirements honesty)
+- base_uid: CAP-DEVENV-LF-ENDINGS
+  project_id: reqalm
+  parent: ARCH-DEVENV-COMPOSE
+  kind: capability
+  title: Git LF line endings for Compose entrypoints
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -8147,15 +8161,16 @@ requirement_versions:
 - uid: CAP-RELATIONS-API
   base_uid: CAP-RELATIONS-API
   version_n: 0
-  status: draft
+  status: active
   statement: 'Grant-scoped read-only relations API: GET /api/v1/projects/:projectId/requirements/:id/relations returns incoming and outgoing trace links grouped by kind (conforms_to, uses, satisfies, refines). Each link resolves the peer end with id, title, kind, and type for in-project lines and readable catalog controls in one response; cross-project and unreadable catalog peers return a non-revealing restricted stub. Dogfood seed loader persists trace_edges plus catalog imprint labels for ConformsTo pins.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: 'Runtime on main (PR #31); rel-r1-relations-api release still planned in a parallel seed PR.'
+    verification_note: 'Shipped with requirement relations read API PR #31 (merge cb8a8c97895b651c8f25ce660482e7e5e7ae4454).'
   statement_hash: sha256:49308d84d521d418a7cd3be6acd8cef23550d2aef39bc6a21bb3e81276a42264
   grooming_state: detailed
+  verification_outcome: pass
 - uid: ARCH-REQ-AC-FACET
   base_uid: ARCH-REQ-AC-FACET
   version_n: 0
@@ -8706,6 +8721,18 @@ requirement_versions:
   grooming_state: detailed
   mint_kind: content
   rbac_op: trace:suspect
+- uid: CAP-DEVENV-LF-ENDINGS
+  base_uid: CAP-DEVENV-LF-ENDINGS
+  version_n: 0
+  status: draft
+  statement: 'Repository line endings are enforced for the Compose dev stack: a root .gitattributes keeps shell entrypoints and Docker/Compose context files as LF in Git so Linux containers never see a bash\r shebang when Windows Git checks out with core.autocrlf=true. Documented recovery re-normalizes an existing Windows working tree after pulling the fix.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until .gitattributes + dev docs PR merges; verify docker compose up on Windows checkout.
+  statement_hash: sha256:0063011a6a82ce2f8761e194946af7cf4f87813a4e8e29e5ff30ab8f0ddf76b6
+  grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -9367,6 +9394,30 @@ capability_artifacts:
 - requirement_version_uid: CAP-SEED-GROOMING
   kind: other
   uri: ../../../docs/design/HANDOFF.md
+- requirement_version_uid: CAP-DEVENV-LF-ENDINGS
+  kind: other
+  uri: ../../../.gitattributes
+- requirement_version_uid: CAP-DEVENV-LF-ENDINGS
+  kind: other
+  uri: ../../../docker/app-entrypoint.sh
+- requirement_version_uid: CAP-DEVENV-LF-ENDINGS
+  kind: other
+  uri: ../../../docker/peripherals/entrypoint.sh
+- requirement_version_uid: CAP-DEVENV-LF-ENDINGS
+  kind: other
+  uri: ../../../docker/peripherals/healthcheck.sh
+- requirement_version_uid: CAP-DEVENV-LF-ENDINGS
+  kind: other
+  uri: ../../../docker/peripherals/openbao-init.sh
+- requirement_version_uid: CAP-DEVENV-LF-ENDINGS
+  kind: other
+  uri: ../../../docker/peripherals/wait-and-init-openbao.sh
+- requirement_version_uid: CAP-DEVENV-LF-ENDINGS
+  kind: other
+  uri: ../../../README.md
+- requirement_version_uid: CAP-DEVENV-LF-ENDINGS
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_lf_endings_release.py
 edges:
 - from: CAP-SSO
   to: A01
@@ -15458,6 +15509,18 @@ edges:
 - from: CAP-RBAC.1
   to: ARCH-API-RBAC.1
   kind: satisfies
+- from: CAP-DEVENV-LF-ENDINGS
+  to: ARCH-DEVENV-CLONE
+  kind: satisfies
+- from: CAP-DEVENV-LF-ENDINGS
+  to: ARCH-DEVENV-COMPOSE
+  kind: satisfies
+- from: CAP-DEVENV-LF-ENDINGS
+  to: ARCH-DEPLOY-MINIMAL
+  kind: satisfies
+- from: CAP-DEVENV-LF-ENDINGS
+  to: ARCH-DEPLOY-PERIPHERALS
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -16062,12 +16125,12 @@ releases:
   project_id: reqalm
   name: R1 — requirement relations read API
   planned_on: '2026-10-09'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-09'
+  status: shipped
   delivers:
   - CAP-RELATIONS-API
   cyber_gate: false
-  notes: Read-only relations endpoint + trace_edges seed load; browse UI graph deferred.
+  notes: 'PR #31 merged to main as cb8a8c97895b651c8f25ce660482e7e5e7ae4454 on 2026-10-09. Read-only relations endpoint + trace_edges seed load; browse UI graph deferred.'
 - id: rel-r1-seed-grooming
   project_id: reqalm
   name: R1 — dogfood seed grooming
@@ -16078,6 +16141,16 @@ releases:
   - CAP-SEED-GROOMING
   cyber_gate: false
   notes: Seed-only PR on main cb8a8c97895b…; regenerates out/ and HANDOFF. Does not ship rel-r1-relations-api.
+- id: rel-r1-lf-endings
+  project_id: reqalm
+  name: R1 — Git LF line endings (Compose entrypoints)
+  planned_on: '2026-10-09'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-DEVENV-LF-ENDINGS
+  cyber_gate: false
+  notes: Root .gitattributes + Windows checkout re-normalize docs; fixes bash\r in Docker on Windows.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

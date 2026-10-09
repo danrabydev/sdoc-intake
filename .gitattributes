@@ -1,0 +1,37 @@
+# Normalize text files to LF in the index and on checkout (Windows core.autocrlf=true safe).
+* text=auto eol=lf
+
+# Shell and container entrypoints (Docker COPY + ENTRYPOINT/CMD/HEALTHCHECK).
+*.sh text eol=lf
+*.bash text eol=lf
+docker-entrypoint* text eol=lf
+
+# Docker build context.
+Dockerfile* text eol=lf
+*.dockerfile text eol=lf
+
+# Compose, env templates, SQL migrations, and common source formats.
+*.yml text eol=lf
+*.yaml text eol=lf
+*.env.example text eol=lf
+*.sql text eol=lf
+*.py text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.json text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.hcl text eol=lf
+
+# Binary assets (do not line-end normalize).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# Vendored third-party bytes (must match upstream tarball exactly; no EOL normalization).
+apps/reqalm/src/web/public/vendor/** -text
