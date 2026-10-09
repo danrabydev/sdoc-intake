@@ -15869,11 +15869,11 @@ edges:
   to: ARCH-UI-GUARD
   kind: satisfies
 - from: CAP-UI-HEADER-NAV
-  to: CAP-UI-KIT-CHROME
-  kind: satisfies
-- from: CAP-UI-HEADER-NAV
   to: CAP-BROWSE-UI-REQS
   kind: satisfies
+- from: CAP-UI-HEADER-NAV
+  to: CAP-UI-KIT-CHROME
+  kind: uses
 - from: SYS-CYBER-UPKEEP
   to: CA-7
   kind: conforms_to

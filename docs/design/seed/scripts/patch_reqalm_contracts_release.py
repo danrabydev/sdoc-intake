@@ -121,6 +121,22 @@ def reqalm_active_cap_and_requirement_uids(data) -> list[str]:
     return sorted(set(uids))
 
 
+def fix_header_nav_ui_kit_edge(data) -> None:
+    """Cyber: header nav depends on UI kit chrome via uses, not satisfies (before/at ship)."""
+    edges = data.setdefault("edges", [])
+    kit = "CAP-UI-KIT-CHROME"
+    data["edges"] = [
+        e
+        for e in edges
+        if not (
+            e.get("from") == CAP_HEADER
+            and e.get("to") == kit
+            and e.get("kind") == "satisfies"
+        )
+    ]
+    ensure_edge(data["edges"], {"from": CAP_HEADER, "to": kit, "kind": "uses"})
+
+
 def ship_ui_header_nav(data) -> None:
     rel = find(data.get("releases"), "id", REL_HEADER)
     if rel:
@@ -472,6 +488,7 @@ def main() -> None:
         data = yaml.load(f)
 
     ship_ui_header_nav(data)
+    fix_header_nav_ui_kit_edge(data)
     product_releases = reqalm_release_ids(data)
     product_scope = reqalm_active_cap_and_requirement_uids(data)
     maint_cap_uids = upsert_cyber_upkeep_model(data)

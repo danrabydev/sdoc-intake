@@ -10685,7 +10685,7 @@ priority: 12
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned; tree browse exists in CAP-BROWSE-UI-TREE without extracted kit.
-edge: ← satisfies from CAP-UI-HEADER-NAV
+edge: ← uses from CAP-UI-HEADER-NAV
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -10730,11 +10730,11 @@ RELATIONS:
   VALUE: ARCH-UI-GUARD
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: CAP-UI-KIT-CHROME
-  ROLE: Satisfies
-- TYPE: Parent
   VALUE: CAP-BROWSE-UI-REQS
   ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-KIT-CHROME
+  ROLE: Uses
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf

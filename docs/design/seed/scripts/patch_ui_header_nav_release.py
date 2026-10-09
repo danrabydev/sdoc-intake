@@ -157,8 +157,9 @@ def main() -> None:
     )
     edges = data.setdefault("edges", [])
     data["edges"] = [e for e in edges if e.get("from") != CAP]
-    for to in ("ARCH-UI", "ARCH-UI-GUARD", "CAP-UI-KIT-CHROME", "CAP-BROWSE-UI-REQS"):
+    for to in ("ARCH-UI", "ARCH-UI-GUARD", "CAP-BROWSE-UI-REQS"):
         ensure_edge(data["edges"], {"from": CAP, "to": to, "kind": "satisfies"})
+    ensure_edge(data["edges"], {"from": CAP, "to": "CAP-UI-KIT-CHROME", "kind": "uses"})
     arts = data.setdefault("capability_artifacts", [])
     data["capability_artifacts"] = [a for a in arts if a.get("requirement_version_uid") != CAP]
     for uri in UI_ARTIFACTS:
