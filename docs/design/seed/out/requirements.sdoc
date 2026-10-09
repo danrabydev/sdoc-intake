@@ -97,19 +97,19 @@ iteration: iter-r0
 security.catalog_ref: IA-2
 security.verification_note: IA-2 / AC-3 / AU-2/3/12. ASD STIG V6R4 V-222536 (password length IdP-delegated); no local passwords; MFA at IdP.
 edge: ← satisfies from CAP-SSO
-edge: ← refines from ARCH-OTEL
 edge: ← refines from MC01.1
 edge: ← refines from ARCH-DEVENV-IDENTITY
 edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN
-edge: ← refines from ARCH-DEVENV-IDENTITY.1
 edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN.1
 edge: ← refines from ARCH-AUTH-AS
 edge: ← refines from ARCH-AUTH-FEDERATION
 edge: ← uses from FIX-ALLOW-FEDERATED-SSO-VIA-AS
-edge: ← refines from ARCH-AUTH-LOCAL.1
 edge: ← refines from ARCH-AUTH-PROFILE
 edge: ← uses from FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
 edge: ← satisfies from CAP-SSO.1
+edge: ← refines from ARCH-AUTH-LOCAL.2
+edge: ← refines from ARCH-DEVENV-IDENTITY.2
+edge: ← refines from ARCH-OTEL.2
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -186,10 +186,10 @@ iteration: iter-r0
 security.catalog_ref: AC-12
 security.verification_note: AC-12 session termination; AU-2/3/12 logout audit. ASD STIG V6R4 V-222578 / V-222391 / V-222550.
 edge: ← satisfies from CAP-SSO
-edge: ← refines from ARCH-AUTH-REVOKE
 edge: ← refines from ARCH-CRED-SESSION
 edge: ← uses from FIX-DENY-REVOKED-TOKEN
 edge: ← satisfies from CAP-SSO.1
+edge: ← refines from ARCH-AUTH-REVOKE.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Fixture doc-walk
@@ -197,7 +197,6 @@ delivered_by_release: R0-sequences
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222578 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222391 (pin imprint=asd-stig@v6r4)
-edge: → conforms_to to V-222550 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -213,9 +212,6 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Parent
   VALUE: V-222391
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: V-222550
   ROLE: ConformsTo
 - TYPE: Parent
   VALUE: AU-12
@@ -267,7 +263,6 @@ delivered_by_release: R0-sequences
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222429 (pin imprint=asd-stig@v6r4)
-edge: → conforms_to to V-222550 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -286,9 +281,6 @@ RELATIONS:
   ROLE: ConformsTo
 - TYPE: Parent
   VALUE: V-222429
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: V-222550
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
@@ -869,9 +861,6 @@ edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← refines from CAP-RBAC.1
-in_scope_of_contract: Design-2026-10
-in_scope_of_contract: Security package
-in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -919,15 +908,6 @@ RELATIONS:
   VALUE: AU-3
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: CONTRACT-contract-design-2026-10
-  ROLE: InScopeOf
-- TYPE: Child
-  VALUE: CONTRACT-contract-security-package
-  ROLE: InScopeOf
-- TYPE: Child
-  VALUE: CONTRACT-contract-platform-baseline
-  ROLE: InScopeOf
-- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 - TYPE: Child
@@ -949,10 +929,10 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Partial pass on .1: foundation + read routes verified; full matrix deferred to core-ALM. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes).
+in_scope_of_contract: Design-2026-10
+in_scope_of_contract: Security package
+in_scope_of_contract: Platform baseline
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -985,17 +965,17 @@ RELATIONS:
   VALUE: AC-3
   ROLE: ConformsTo
 - TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
   VALUE: ARCH-API-RBAC.1
   ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
 
 [REQUIREMENT]
 UID: ARCH-AUTH-AS
@@ -1014,21 +994,21 @@ iteration: iter-r1
 security.catalog_ref: IA-2
 security.verification_note: IA-2/IA-5/IA-8/SC-23; single issuer for UI, API, MCP. ASD V-222522.
 edge: ← refines from ARCH-AUTH-PKCE
-edge: ← refines from ARCH-AUTH-METADATA
 edge: ← refines from ARCH-AUTH-AUDIENCE
 edge: ← refines from ARCH-AUTH-REFRESH
-edge: ← refines from ARCH-AUTH-REVOKE
-edge: ← refines from ARCH-AUTH-CLIENTREG
 edge: ← refines from ARCH-AUTH-FEDERATION
 edge: ← refines from ARCH-AUTH-LOCAL
 edge: ← uses from ARCH-DEVENV-COMPOSE.1
-edge: ← uses from ARCH-DEVENV-IDENTITY.1
 edge: ← uses from ARCH-BUILD-FOUNDATION
-edge: ← refines from ARCH-AUTH-LOCAL.1
 edge: ← refines from ARCH-AUTH-PROFILE
 edge: ← refines from ARCH-AUTH-MCP-REQUIRED
 edge: ← satisfies from CAP-OAUTH-AS
-edge: ← satisfies from CAP-AUTH-HARDEN
+edge: ← refines from ARCH-AUTH-METADATA.1
+edge: ← refines from ARCH-AUTH-REVOKE.1
+edge: ← satisfies from CAP-AUTH-HARDEN.1
+edge: ← refines from ARCH-AUTH-LOCAL.2
+edge: ← refines from ARCH-AUTH-CLIENTREG.1
+edge: ← uses from ARCH-DEVENV-IDENTITY.2
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1126,7 +1106,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: ARCH-AUTH-METADATA
-STATUS: Active
+STATUS: Draft
 TITLE: AS metadata (RFC 8414) + protected resource metadata (RFC 9728)
 STATEMENT: >>>
 The AS publishes Authorization Server Metadata (RFC 8414) at /.well-known/oauth-authorization-server, plus OpenID Connect discovery for interop. The metadata issuer is identical to the issuer URL. The MCP server and the API each publish OAuth Protected Resource Metadata (RFC 9728) at /.well-known/oauth-protected-resource, listing the internal AS in authorization_servers and stating their canonical resource URI. A request without a valid token gets 401 with WWW-Authenticate: Bearer resource_metadata="…" so MCP clients can discover the AS.
@@ -1142,8 +1122,31 @@ security.verification_note: MCP authorization spec discovery (RFC 8414 / RFC 972
 edge: ← uses from FIX-ALLOW-MCP-OAUTH-PKCE
 edge: ← uses from FIX-DENY-MCP-WRONG-AUDIENCE
 edge: ← satisfies from CAP-OAUTH-AS
+edge: ← refines from ARCH-AUTH-METADATA.1
 delivered_by_release: R1 — foundation shell + internal auth
-edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-METADATA.1
+STATUS: Active
+TITLE: AS metadata (RFC 8414) + protected resource metadata (RFC 9728)
+STATEMENT: >>>
+The AS publishes Authorization Server Metadata (RFC 8414) at /.well-known/oauth-authorization-server, plus OpenID Connect discovery for interop. The metadata issuer is identical to the issuer URL. The MCP server and the API each publish OAuth Protected Resource Metadata (RFC 9728) at /.well-known/oauth-protected-resource, listing the internal AS in authorization_servers and stating their canonical resource URI. A request without a valid token gets 401 with WWW-Authenticate: Bearer resource_metadata="…" so MCP clients can discover the AS.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-METADATA
+VERSION_N: 1
+priority: 5
+iteration: iter-r1
+security.catalog_ref: REQALM-SEC-OAUTH
+security.verification_note: MCP authorization spec discovery (RFC 8414 / RFC 9728). Interop requirement; no direct NIST pin.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1155,11 +1158,8 @@ RELATIONS:
   VALUE: MC01.1
   ROLE: Refines
 - TYPE: Parent
-  VALUE: SC-23
-  ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
-  ROLE: Delivers
+  VALUE: ARCH-AUTH-METADATA
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-AUTH-AUDIENCE
@@ -1252,7 +1252,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: ARCH-AUTH-REVOKE
-STATUS: Active
+STATUS: Draft
 TITLE: Token revocation and session-linked teardown
 STATEMENT: >>>
 The AS exposes token revocation (RFC 7009) for refresh and access tokens. Sign-out (A02) revokes the session's refresh tokens and desk attachments. Disabling or deleting an account, or revoking a grant that removes all access, terminates that subject's sessions and token families. Resource servers reject revoked tokens through introspection or short access-token lifetimes plus revocation checks.
@@ -1270,11 +1270,37 @@ edge: ← uses from FIX-DENY-REVOKED-TOKEN
 edge: ← refines from ARCH-AUTH-UPSTREAM-REVOKE
 edge: ← satisfies from CAP-OAUTH-AS
 edge: ← satisfies from CAP-TEST-AUTH-HYGIENE
+edge: ← refines from ARCH-AUTH-REVOKE.1
 delivered_by_release: R1 — foundation shell + internal auth
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-REVOKE.1
+STATUS: Active
+TITLE: Token revocation and session-linked teardown
+STATEMENT: >>>
+The AS exposes token revocation (RFC 7009) for refresh and access tokens. Sign-out (A02) revokes the session's refresh tokens and desk attachments. Disabling or deleting an account, or revoking a grant that removes all access, terminates that subject's sessions and token families. Resource servers reject revoked tokens through introspection or short access-token lifetimes plus revocation checks.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-REVOKE
+VERSION_N: 1
+rbac_op: auth:oauth:revoke, auth:signout
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-12
+security.verification_note: AC-12 session termination; ASD V-222549 / V-222578 / V-222391.
 edge: → conforms_to to AC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222549 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222578 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222391 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to AC-12.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1297,13 +1323,16 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222391
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-REVOKE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-12.1
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-AUTH-CLIENTREG
-STATUS: Active
+STATUS: Draft
 TITLE: Client registration: pre-registered baseline; CIMD/DCR policy-gated
 STATEMENT: >>>
 First-party clients (Web UI, admin-configured ReqAML MCP clients) are pre-registered with exact redirect URIs. Client ID Metadata Documents and Dynamic Client Registration (RFC 7591; deprecated in the MCP 2026-07-28 revision) ship disabled by default. An admin can enable either one per deployment or per client policy, and every registration is audited. When DCR is disabled, registration_endpoint is omitted from AS metadata and registration requests are refused. Confidential-client secrets are stored hashed (ARCH-CRED-TOKENS).
@@ -1319,9 +1348,35 @@ security.catalog_ref: CM-7
 security.verification_note: CM-7 least functionality: open registration off unless policy enables it.
 edge: ← uses from FIX-DENY-DCR-DISABLED
 edge: ← satisfies from CAP-OAUTH-AS
+edge: ← refines from ARCH-AUTH-CLIENTREG.1
 delivered_by_release: R1 — foundation shell + internal auth
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-CLIENTREG.1
+STATUS: Active
+TITLE: Client registration: pre-registered baseline; CIMD/DCR policy-gated
+STATEMENT: >>>
+First-party clients (Web UI, admin-configured ReqAML MCP clients) are pre-registered with exact redirect URIs. Client ID Metadata Documents and Dynamic Client Registration (RFC 7591; deprecated in the MCP 2026-07-28 revision) ship disabled by default. An admin can enable either one per deployment or per client policy, and every registration is audited. When DCR is disabled, registration_endpoint is omitted from AS metadata and registration requests are refused. Confidential-client secrets are stored hashed (ARCH-CRED-TOKENS).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-CLIENTREG
+VERSION_N: 1
+rbac_op: auth:client:register
+priority: 15
+iteration: iter-r1
+security.catalog_ref: CM-7
+security.verification_note: CM-7 least functionality: open registration off unless policy enables it.
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222518 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1338,9 +1393,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-2
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-CLIENTREG
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: V-222518
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-AUTH-FEDERATION
@@ -1364,6 +1422,7 @@ edge: ← refines from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← refines from ARCH-AUTH-CLAIM-MAP
 edge: ← refines from ARCH-AUTH-UPSTREAM-REVOKE
 edge: ← uses from FIX-ALLOW-MCP-OAUTH-FEDERATED-ONLY
+edge: ← satisfies from CAP-SSO.1
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1438,7 +1497,7 @@ security.catalog_ref: IA-8
 security.verification_note: IA-8 non-organizational users / federation; AC-3 tenant isolation; ASD V-222559 / V-222560.
 edge: ← uses from ARCH-AUTH-CLAIM-MAP
 edge: ← uses from FIX-DENY-CROSS-TENANT-CONNECTOR
-edge: ← satisfies from CAP-AUTH-UPSTREAM-SEAM
+edge: ← satisfies from CAP-AUTH-UPSTREAM-SEAM.1
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1627,7 +1686,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-2
 security.verification_note: AC-2 account management; ASD V-222407 / V-222412 / V-222661.
-edge: ← refines from ARCH-AUTH-LOCAL.1
+edge: ← refines from ARCH-AUTH-LOCAL.2
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222407 (pin imprint=asd-stig@v6r4)
@@ -1661,7 +1720,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: ARCH-AUTH-LOCAL.1
-STATUS: Active
+STATUS: Draft
 TITLE: Local accounts: optional per auth profile (off by default in production)
 STATEMENT: >>>
 Local password accounts are an optional capability of the auth profile (ARCH-AUTH-PROFILE), not a baseline. The setting local_accounts takes one of three values: disabled (default for every production profile), breakglass_only (only ARCH-AUTH-LOCAL-BREAKGLASS accounts), or enabled (a profile that explicitly opts in). The development profile uses enabled with seeded dev accounts (ARCH-DEVENV-IDENTITY.1). With disabled: no local credential records exist, the local login route and form are absent, and sign-in is federated only. This keeps A01 / CAP-SSO / REQAML-SEC-SSO ('no local password store; MFA at the IdP') as the default production posture, so A01 is not minted. Where local accounts are enabled, they bind to the same identity rows and grants as federated identities, every local credential is subject to ARCH-CRED-*, account lifecycle is automated and audited, and unnecessary or built-in accounts are disabled. The internal AS and OAuth for MCP are required whatever this setting is (ARCH-AUTH-MCP-REQUIRED).
@@ -1676,17 +1735,43 @@ iteration: iter-r1
 security.catalog_ref: AC-2
 security.verification_note: AC-2 account management; CM-7 local accounts off by default; ASD V-222407 / V-222412 / V-222661.
 edge: ← refines from ARCH-CRED-LOCKOUT
-edge: ← uses from ARCH-DEVENV-IDENTITY.1
 edge: ← refines from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← uses from FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
 edge: ← satisfies from CAP-CRED-STORE
+edge: ← refines from ARCH-AUTH-LOCAL.2
+edge: ← uses from ARCH-DEVENV-IDENTITY.2
 delivered_by_release: R1 — foundation shell + internal auth
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-AUTH-AS
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-AUTH-LOCAL.2
+STATUS: Active
+TITLE: Local accounts: optional per auth profile (off by default in production)
+STATEMENT: >>>
+Local password accounts are an optional capability of the auth profile (ARCH-AUTH-PROFILE), not a baseline. The setting local_accounts takes one of three values: disabled (default for every production profile), breakglass_only (only ARCH-AUTH-LOCAL-BREAKGLASS accounts), or enabled (a profile that explicitly opts in). The development profile uses enabled with seeded dev accounts (ARCH-DEVENV-IDENTITY.1). With disabled: no local credential records exist, the local login route and form are absent, and sign-in is federated only. This keeps A01 / CAP-SSO / REQAML-SEC-SSO ('no local password store; MFA at the IdP') as the default production posture, so A01 is not minted. Where local accounts are enabled, they bind to the same identity rows and grants as federated identities, every local credential is subject to ARCH-CRED-*, account lifecycle is automated and audited, and unnecessary or built-in accounts are disabled. The internal AS and OAuth for MCP are required whatever this setting is (ARCH-AUTH-MCP-REQUIRED).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-AUTH-LOCAL
+VERSION_N: 2
+rbac_op: auth:local:signin, identity:account:manage
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-2
+security.verification_note: AC-2 account management; CM-7 local accounts off by default; ASD V-222407 / V-222412 / V-222661.
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222407 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222412 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222661 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222518 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1724,9 +1809,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222661
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: V-222518
+  ROLE: ConformsTo
 
 [[SECTION]]
 UID: ARCH-AUTH-LOCAL-CHILDREN
@@ -1760,7 +1848,7 @@ edge: → conforms_to to V-222390 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-AUTH-LOCAL.1
+  VALUE: ARCH-AUTH-LOCAL.2
 - TYPE: Parent
   VALUE: ARCH-AUTH-LOCAL.1
   ROLE: Refines
@@ -1819,11 +1907,11 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-6
 security.verification_note: CM-6 configuration settings; CM-7 least functionality (local accounts off by default).
-edge: ← uses from ARCH-AUTH-LOCAL.1
 edge: ← uses from ARCH-AUTH-MCP-REQUIRED
 edge: ← uses from FIX-DENY-LOCAL-LOGIN-PROFILE-OFF
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← satisfies from CAP-OAUTH-AS
+edge: ← uses from ARCH-AUTH-LOCAL.2
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -2044,7 +2132,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-AUTH-UPSTREAM-SEAM
-STATUS: Active
+STATUS: Draft
 TITLE: Pluggable upstream IdP connector seam (stub)
 STATEMENT: >>>
 Upstream federation is not fully implemented in R1; the `UpstreamConnector` interface and `upstream_connectors` table plus read-only listing API document the extension point without token passthrough. OIDC/SAML RP implementations and home-realm discovery are deferred.
@@ -2057,8 +2145,31 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-8
 security.verification_note: Seam only — no live federation in R1. Verified by code review + typecheck.
+edge: ← refines from CAP-AUTH-UPSTREAM-SEAM.1
 delivered_by_release: R1 — foundation shell + internal auth
-edge: → conforms_to to IA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-AUTH-UPSTREAM-SEAM.1
+STATUS: Active
+TITLE: Pluggable upstream IdP connector seam (stub)
+STATEMENT: >>>
+Upstream federation is not fully implemented in R1; the `UpstreamConnector` interface and `upstream_connectors` table plus read-only listing API document the extension point without token passthrough. OIDC/SAML RP implementations and home-realm discovery are deferred.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-AUTH-UPSTREAM-SEAM
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-8
+security.verification_note: Seam only — no live federation in R1. Verified by code review + typecheck.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -2067,15 +2178,12 @@ RELATIONS:
   VALUE: ARCH-AUTH-UPSTREAM-CONNECTOR
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: IA-8
-  ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
-  ROLE: Delivers
+  VALUE: CAP-AUTH-UPSTREAM-SEAM
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: CAP-MFA-ENROLL
-STATUS: Active
+STATUS: Draft
 TITLE: TOTP MFA enrollment (UI + devenv:mfa CLI)
 STATEMENT: >>>
 Privileged roles require MFA in all modes. First login can return `mfa_enrollment_required` with otpauth URI; the sign-in card shows a setup key and the otpauth URI (no QR code) and asks for the 6-digit code. `pnpm devenv:mfa <identity-id>` enrolls dev users inside the app container (or `--interactive` prints the URI + ticket, confirmed with `--ticket=… --confirm=<code>`). TOTP secrets are envelope-encrypted; a code is accepted once (replay of the matched time step is rejected).
@@ -2088,9 +2196,34 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
 security.verification_note: IA-2 MFA enrollment. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
-edge: ← satisfies from CAP-MFA-QR
+edge: ← refines from CAP-MFA-ENROLL.1
+edge: ← satisfies from CAP-MFA-QR.1
 delivered_by_release: R1 — foundation shell + internal auth
-edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-MFA-ENROLL.1
+STATUS: Active
+TITLE: TOTP MFA enrollment (UI + devenv:mfa CLI)
+STATEMENT: >>>
+Privileged roles require MFA in all modes. First login can return `mfa_enrollment_required` with otpauth URI; the sign-in card shows a setup key and the otpauth URI (no QR code) and asks for the 6-digit code. `pnpm devenv:mfa <identity-id>` enrolls dev users inside the app container (or `--interactive` prints the URI + ticket, confirmed with `--ticket=… --confirm=<code>`). TOTP secrets are envelope-encrypted; a code is accepted once (replay of the matched time step is rejected).
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-MFA-ENROLL
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: IA-2 MFA enrollment. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+edge: → conforms_to to IA-2.8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -2099,11 +2232,14 @@ RELATIONS:
   VALUE: ARCH-CRED-MFA
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: IA-2
+  VALUE: CAP-MFA-ENROLL
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: IA-2.8
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: IA-2.1
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: CAP-AGENT-ACCESS
@@ -2138,7 +2274,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-AUTH-HARDEN
-STATUS: Active
+STATUS: Draft
 TITLE: Auth hardening: handoffs, BFF session, throttle, prod issuer
 STATEMENT: >>>
 Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF required on every cookie-authenticated mutation, per-IP failed-login throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default (production requires an explicit REQAML_TRUSTED_PROXIES list), auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, JWT signature verify before access-token revocation, normalized usernames.
@@ -2151,8 +2287,33 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: SC-23
 security.verification_note: SC-23 session/OAuth hardening. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
+edge: ← refines from CAP-AUTH-HARDEN.1
 delivered_by_release: R1 — foundation shell + internal auth
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-AUTH-HARDEN.1
+STATUS: Active
+TITLE: Auth hardening: handoffs, BFF session, throttle, prod issuer
+STATEMENT: >>>
+Server-side OAuth login handoffs (no browser-trusted redirect_uri), HttpOnly web session cookies with CSRF required on every cookie-authenticated mutation, per-IP failed-login throttle alongside account lockout, prod REQAML_ISSUER_URL self-check, trustProxy off by default (production requires an explicit REQAML_TRUSTED_PROXIES list), auth on upstream connector listing, auth code redaction in logs, hashed unknown-usernames on failure audit, JWT signature verify before access-token revocation, normalized usernames.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-AUTH-HARDEN
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: SC-23
+security.verification_note: SC-23 session/OAuth hardening. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes), fresh volumes: `pnpm devenv:init` idempotent (byte-identical rerun), `--rotate` issues new secrets (needs `down -v` for the Postgres volume), secrets files mode 600 and gitignored; `docker compose up --build -d --wait` with and without the hostports overlay (app 127.0.0.1:3000 only; peripherals unpublished without the overlay, loopback-only with it); /ready all green, restart count 0; `pnpm devenv:smoke` pass incl. auth-flow-smoke (server-side OAuth handoffs, PKCE S256, refresh rotation/reuse family revoke, RFC7009 refresh+access revoke, lockout + username normalize, Reader RBAC 403, wrong audience 401 at MCP, upstream connectors 401 unauthenticated, session cookie HttpOnly+SameSite=Lax, cookie mutation without CSRF 401, signout ends session, sam-security MFA login via `devenv:mfa`, TOTP replay rejected (and one wrong code does not lock the account), agent tokens default Reader / Author max / Developer+ refused, TTL <= 1h, agent token revoked 401), auth_audit_events incl. agent-attributed mutation, IP throttle 200 -> 401 after 20 failures, production refused dev accounts/keys, missing REQALM_ISSUER_URL and blanket trustProxy; headless Chrome first-login TOTP enrollment (jamie-ao) then MFA re-login; `@reqalm/app` test 30/30, typecheck pass; seed yaml_to_strictdoc --validate pass.
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222603 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -2166,9 +2327,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SC-23
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-AUTH-HARDEN
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: V-222603
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: CAP-TEST-AUTH-ROUTES
@@ -2247,7 +2411,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-MFA-QR
-STATUS: Active
+STATUS: Draft
 TITLE: MFA enrollment QR code (sign-in UI)
 STATEMENT: >>>
 MFA enrollment on the sign-in card renders a scannable QR code for the otpauth URI locally in the browser (vendored MIT qr-min matrix encoder to SVG; no external QR service or network fetch). Setup key and manual otpauth URI remain visible for copy/paste. Enrollment JSON responses use Cache-Control: no-store; QR markup is removed from the DOM after successful enrollment. Accessible name on the QR image; CSP-safe (same-origin module, DOM-built SVG, no inline handlers).
@@ -2260,7 +2424,36 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: IA-2
 security.verification_note: Shipped with MFA enrollment QR PR #30 (merge c8668b924ba4804e32f4d364aa0d343af60e9f83).
+edge: ← refines from CAP-MFA-QR.1
 delivered_by_release: R1 — MFA enrollment QR (sign-in UI)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: ARCH-SUPPLY-VENDORED
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-mfa-qr
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-MFA-QR.1
+STATUS: Active
+TITLE: MFA enrollment QR code (sign-in UI)
+STATEMENT: >>>
+MFA enrollment on the sign-in card renders a scannable QR code for the otpauth URI locally in the browser (vendored MIT qr-min matrix encoder to SVG; no external QR service or network fetch). Setup key and manual otpauth URI remain visible for copy/paste. Enrollment JSON responses use Cache-Control: no-store; QR markup is removed from the DOM after successful enrollment. Accessible name on the QR image; CSP-safe (same-origin module, DOM-built SVG, no inline handlers).
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-MFA-QR
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: IA-2
+security.verification_note: Shipped with MFA enrollment QR PR #30 (merge c8668b924ba4804e32f4d364aa0d343af60e9f83).
+edge: → conforms_to to SC-18 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -2274,9 +2467,18 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-UI-GUARD
   ROLE: Satisfies
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-mfa-qr
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-MFA-QR
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SC-18
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: IA-5
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-SUPPLY-VENDORED
+  ROLE: Satisfies
 
 [[/SECTION]]
 
@@ -2632,7 +2834,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: ARCH-CP-HIER
-STATUS: Active
+STATUS: Draft
 TITLE: Client → Project hierarchy
 STATEMENT: >>>
 ReqAML organizes work as Client → Project. Projects belong to exactly one client; Client Scoped View
@@ -2650,13 +2852,57 @@ edge: ← uses from ARCH-UI
 edge: ← refines from A03
 edge: ← refines from B04
 edge: ← satisfies from CAP-BROWSE-CP
+edge: ← refines from ARCH-CP-HIER.2
+delivered_by_release: R0-sequences
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Child
+  VALUE: RELEASE-rel-r0-sequences
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-CP-HIER.1
+STATUS: Draft
+TITLE: Client → Project hierarchy
+STATEMENT: >>>
+ReqAML organizes work as Client → Project. Projects belong to exactly one client; Client Scoped View
+is assumed for most project operations. UI and API both refuse cross-client project joins.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CP-HIER
+VERSION_N: 1
+priority: 5
+iteration: iter-r0
+security.catalog_ref: AC-3
+security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from ARCH-CP-HIER.2
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+
+[REQUIREMENT]
+UID: ARCH-CP-HIER.2
+STATUS: Active
+TITLE: Client → Project hierarchy
+STATEMENT: >>>
+ReqAML organizes work as Client → Project. Projects belong to exactly one client; Client Scoped View
+is assumed for most project operations. UI and API both refuse cross-client project joins.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-CP-HIER
+VERSION_N: 2
+priority: 5
+iteration: iter-r0
+security.catalog_ref: AC-3
+security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
-delivered_by_release: R0-sequences
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -2665,23 +2911,17 @@ RELATIONS:
   VALUE: AC-3
   ROLE: ConformsTo
 - TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
+  VALUE: ARCH-CP-HIER
+  ROLE: Refines
 - TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
+  VALUE: ARCH-CP-HIER.1
+  ROLE: Refines
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
-- TYPE: Child
-  VALUE: RELEASE-rel-r0-sequences
-  ROLE: Delivers
 
 [[SECTION]]
 UID: ARCH-CP-HIER-CHILDREN
@@ -2708,17 +2948,22 @@ edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← uses from FIX-DENY-CROSS-TENANT-CONNECTOR
 edge: ← refines from ARCH-WRITE-TRUNCATE-GUARD
+edge: ← refines from ARCH-WRITE-DB-RUNTIME-ROLE
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
 edge: → uses to CAP-SCOPED-VIEW (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222425 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-CP-HIER
+  VALUE: ARCH-CP-HIER.2
 - TYPE: Parent
   VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222425
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CAP-SCOPED-VIEW
@@ -2752,7 +2997,7 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-CP-HIER
+  VALUE: ARCH-CP-HIER.2
 - TYPE: Parent
   VALUE: C01
   ROLE: Refines
@@ -2775,7 +3020,7 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track. rbac_op c
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-CP-HIER
+  VALUE: ARCH-CP-HIER.2
 - TYPE: Parent
   VALUE: ARCH-CAP-LINK
   ROLE: Refines
@@ -2799,7 +3044,7 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-CP-HIER
+  VALUE: ARCH-CP-HIER.2
 - TYPE: Parent
   VALUE: ARCH-SUBJECT-KIND
   ROLE: Refines
@@ -2899,8 +3144,8 @@ security.catalog_ref: CM-2
 security.verification_note: Shipped with requirements read API PR #24.
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-READ-HIERARCHY
-edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
+edge: ← satisfies from CAP-RELATIONS-API.1
 delivered_by_release: R1 — requirements read API
 <<<
 RELATIONS:
@@ -2913,13 +3158,13 @@ RELATIONS:
   VALUE: D06
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
-  ROLE: Satisfies
-- TYPE: Parent
   VALUE: CAP-SVC-OPERATION-ROUTE
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: CAP-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-read-requirements
@@ -2990,13 +3235,13 @@ RELATIONS:
   VALUE: G08
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
-  ROLE: Satisfies
-- TYPE: Parent
   VALUE: CAP-SVC-OPERATION-ROUTE
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: CAP-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-read-releases
@@ -3043,7 +3288,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-RELATIONS
-STATUS: Draft
+STATUS: Active
 TITLE: Browse requirement relationships UI (read-only)
 STATEMENT: >>>
 Read-only Relationships panel on the requirement detail browse screen: loads GET /api/v1/projects/:projectId/requirements/:id/relations and renders outgoing and incoming links grouped by kind. Requirement peers navigate to detail; catalog conforms_to peers show as non-navigating chips with imprint label; trace_suspect shows needs re-check; restricted peers show a muted stub with no peer id. Empty, loading, and error states included.
@@ -3055,7 +3300,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until relationships browse UI PR merges.
+security.verification_note: Shipped with relationships browse UI PR #32 (merge c8272340b67a0e505b63483bd2ef1550accb4635).
 delivered_by_release: R1 — browse requirement relationships UI (read-only)
 <<<
 RELATIONS:
@@ -3435,9 +3680,9 @@ edge: ← uses from N03
 edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
-edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
+edge: ← satisfies from CAP-RELATIONS-API.1
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -3967,7 +4212,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: ARCH-VER
-STATUS: Active
+STATUS: Draft
 TITLE: Line versions; ≤1 active; prior→superseded in-place on activate
 STATEMENT: >>>
 Each requirement line has versions with UIDs base_uid or base_uid.N (static append). Children stay on the parent line (parent = base_uid); there is no cascade fork. INVARIANT: ≤1 active version per line. When a new tip is activated (D04), the prior active version is set to superseded IN PLACE in the same transaction (not a new version). Terminal obsolete/withdraw without replacement may be in-place status or a status-only .N (mint_kind=status) — see D05 / ARCH-MINT-KIND / FIX-ALLOW-STATUS-SUPERSEDE.
@@ -3980,42 +4225,74 @@ priority: 5
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
-edge: ← uses from ARCH-API
 edge: ← uses from C03
 edge: ← uses from FIX-ALLOW-STATUS-SUPERSEDE
 edge: ← refines from ARCH-WRITE-VERSION-UNIQUE
+edge: ← refines from ARCH-VER.2
+edge: ← uses from ARCH-API.2
+delivered_by_release: R0-sequences
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RL
+- TYPE: Child
+  VALUE: RELEASE-rel-r0-sequences
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-VER.1
+STATUS: Draft
+TITLE: Line versions; ≤1 active; prior→superseded in-place on activate
+STATEMENT: >>>
+Each requirement line has versions with UIDs base_uid or base_uid.N (static append). Children stay on the parent line (parent = base_uid); there is no cascade fork. INVARIANT: ≤1 active version per line. When a new tip is activated (D04), the prior active version is set to superseded IN PLACE in the same transaction (not a new version). Terminal obsolete/withdraw without replacement may be in-place status or a status-only .N (mint_kind=status) — see D05 / ARCH-MINT-KIND / FIX-ALLOW-STATUS-SUPERSEDE.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-VER
+VERSION_N: 1
+priority: 5
+iteration: iter-r0
+security.catalog_ref: AC-3
+security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from ARCH-VER.2
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RL
+
+[REQUIREMENT]
+UID: ARCH-VER.2
+STATUS: Active
+TITLE: Line versions; ≤1 active; prior→superseded in-place on activate
+STATEMENT: >>>
+Each requirement line has versions with UIDs base_uid or base_uid.N (static append). Children stay on the parent line (parent = base_uid); there is no cascade fork. INVARIANT: ≤1 active version per line. When a new tip is activated (D04), the prior active version is set to superseded IN PLACE in the same transaction (not a new version). Terminal obsolete/withdraw without replacement may be in-place status or a status-only .N (mint_kind=status) — see D05 / ARCH-MINT-KIND / FIX-ALLOW-STATUS-SUPERSEDE.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-VER
+VERSION_N: 2
+priority: 5
+iteration: iter-r0
+security.catalog_ref: AC-3
+security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
-delivered_by_release: R0-sequences
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-RL
 - TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
+  VALUE: ARCH-VER
+  ROLE: Refines
 - TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
+  VALUE: ARCH-VER.1
+  ROLE: Refines
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
-- TYPE: Child
-  VALUE: RELEASE-rel-r0-sequences
-  ROLE: Delivers
 
 [[SECTION]]
 UID: ARCH-VER-CHILDREN
@@ -4043,26 +4320,10 @@ edge: ← uses from ARCH-CAT-MIGRATE
 edge: ← uses from FIX-DENY-SECOND-ACTIVE
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-VER
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
+  VALUE: ARCH-VER.2
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
@@ -4091,7 +4352,7 @@ edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-VER
+  VALUE: ARCH-VER.2
 - TYPE: Parent
   VALUE: AU-12
   ROLE: ConformsTo
@@ -4160,24 +4421,12 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-RL
 - TYPE: Parent
   VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -4202,24 +4451,12 @@ security.verification_note: Soft/v1 verification_outcome; Tester sets. Does not 
 edge: ← refines from ARCH-REQ-AC-FACET
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-RL
 - TYPE: Parent
   VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -4295,9 +4532,6 @@ RELATIONS:
   VALUE: C07
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
-  ROLE: Satisfies
-- TYPE: Parent
   VALUE: CAP-READ-REQS
   ROLE: Satisfies
 - TYPE: Parent
@@ -4305,6 +4539,9 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: CAP-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-read-hierarchy
@@ -4650,11 +4887,11 @@ priority: 35
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
-edge: ← satisfies from CAP-RELATIONS-API
 edge: ← refines from ARCH-TRACE-VIEW-RTM
 edge: ← refines from ARCH-TRACE-VIEW-CCM
 edge: ← refines from ARCH-TRACE-LAYOUT-WORKER
 edge: ← refines from ARCH-SEC-REL-STUB
+edge: ← satisfies from CAP-RELATIONS-API.1
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -4720,7 +4957,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-RELATIONS-API
-STATUS: Active
+STATUS: Draft
 TITLE: Read requirement relations (trace links API)
 STATEMENT: >>>
 Grant-scoped read-only relations API: GET /api/v1/projects/:projectId/requirements/:id/relations returns incoming and outgoing trace links grouped by kind (conforms_to, uses, satisfies, refines). Each link resolves the peer end with id, title, kind, and type for in-project lines and readable catalog controls in one response; cross-project and unreadable catalog peers return a non-revealing restricted stub. Dogfood seed loader persists trace_edges plus catalog imprint labels for ConformsTo pins.
@@ -4734,7 +4971,32 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Shipped with requirement relations read API PR #31 (merge cb8a8c97895b651c8f25ce660482e7e5e7ae4454).
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
+edge: ← refines from CAP-RELATIONS-API.1
 delivered_by_release: R1 — requirement relations read API
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-EDGE
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-relations-api
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-RELATIONS-API.1
+STATUS: Active
+TITLE: Read requirement relations (trace links API)
+STATEMENT: >>>
+Grant-scoped read-only relations API: GET /api/v1/projects/:projectId/requirements/:id/relations returns incoming and outgoing trace links grouped by kind (conforms_to, uses, satisfies, refines). Each link resolves the peer end with id, title, kind, and type for in-project lines and readable catalog controls in one response; cross-project and unreadable catalog peers return a non-revealing restricted stub. Dogfood seed loader persists trace_edges plus catalog imprint labels for ConformsTo pins.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-RELATIONS-API
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Shipped with requirement relations read API PR #31 (merge cb8a8c97895b651c8f25ce660482e7e5e7ae4454).
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -4746,9 +5008,6 @@ RELATIONS:
   VALUE: E06
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
-  ROLE: Satisfies
-- TYPE: Parent
   VALUE: CAP-READ-REQS
   ROLE: Satisfies
 - TYPE: Parent
@@ -4757,9 +5016,15 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-SEC-REL-STUB
   ROLE: Satisfies
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-relations-api
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-RELATIONS-API
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Satisfies
 
 [REQUIREMENT]
 UID: ARCH-TRACE-RECHECK
@@ -4875,6 +5140,8 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -4882,6 +5149,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-API-RBAC.1
   ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-11
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-SEC-REL-STUB
@@ -4898,7 +5171,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AC-4
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
-edge: ← satisfies from CAP-RELATIONS-API
+edge: ← satisfies from CAP-RELATIONS-API.1
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -5011,26 +5284,10 @@ edge: ← uses from F04
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → uses to ARCH-CONTRACT-DOC (RELATIONS TYPE: Child; Parent would cycle)
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-CT
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
 - TYPE: Child
   VALUE: ARCH-CONTRACT-DOC
   ROLE: Uses
@@ -5067,26 +5324,10 @@ edge: ← refines from F07
 edge: ← refines from FIX-CONTRACT-DOC-NOCTX
 edge: ← refines from FIX-CONTRACT-DOC-CTX
 in_scope_of_contract: Design-2026-10
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-CONTRACT.1
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
@@ -5552,26 +5793,10 @@ edge: ← uses from L04
 edge: ← uses from G03
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-REL
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
@@ -5812,8 +6037,8 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: Ship is a high-value auditable event (AU-2/3/12).
-edge: ← refines from ARCH-OTEL
 edge: ← refines from ARCH-CRED-REAUTH
+edge: ← refines from ARCH-OTEL.2
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5984,24 +6209,12 @@ security.verification_note: Cyber gate ship: Security sign-off + AO approve. Par
 edge: ← uses from ARCH-GATE-SIGNOFF
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-REL
 - TYPE: Parent
   VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -6023,26 +6236,10 @@ priority: 25
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-REL
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 
 [[/SECTION]]
 
@@ -6174,7 +6371,6 @@ security.verification_note: Catalog steward gates; standard catalogs imprint-pub
 edge: ← uses from ARCH-CAT-PIN
 edge: ← uses from ARCH-CAT-IMPORT
 edge: ← refines from ARCH-CAT-EXTERNAL
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
@@ -6183,9 +6379,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: H03
   ROLE: Refines
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
 - TYPE: Parent
   VALUE: CM-5
   ROLE: ConformsTo
@@ -6214,8 +6407,7 @@ edge: ← uses from ARCH-CAT-REACT
 edge: ← uses from ARCH-CAT-FREEZE
 edge: ← uses from ARCH-CAT-MIGRATE
 edge: ← refines from ARCH-SEC-CAT-LABEL-IMPRINT
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: ← satisfies from CAP-CYBER-CONTROL-PLACEMENT
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -6226,12 +6418,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-CAT-IMPRINT
   ROLE: Uses
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: CM-5
-  ROLE: ConformsTo
 
 [[SECTION]]
 UID: ARCH-CAT-PIN-CHILDREN
@@ -6254,7 +6440,6 @@ iteration: iter-r0
 security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← uses from ARCH-CAT-MIGRATE
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -6268,9 +6453,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-CONTRACT
   ROLE: Uses
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 
 [[/SECTION]]
 
@@ -6293,7 +6475,6 @@ security.verification_note: Catalog steward gates; standard catalogs imprint-pub
 edge: ← uses from ARCH-CAT-DRIFT
 edge: ← uses from ARCH-CAT-MIGRATE
 edge: → conforms_to to CM-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -6306,9 +6487,6 @@ RELATIONS:
   ROLE: Uses
 - TYPE: Parent
   VALUE: CM-5
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
   ROLE: ConformsTo
 
 [[SECTION]]
@@ -6333,8 +6511,6 @@ security.catalog_ref: REQALM-SEC-CATALOG
 security.verification_note: Catalog steward gates; standard catalogs imprint-published read-only. AC-3/CM-5 aligned. Pins are (imprint_id, item_uid).
 edge: ← uses from ARCH-CAT-REACT
 edge: ← uses from ARCH-CAT-MIGRATE
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -6342,12 +6518,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-CAT-IMPORT
   ROLE: Uses
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
 
 [[SECTION]]
 UID: ARCH-CAT-DRIFT-CHILDREN
@@ -6771,26 +6941,10 @@ iteration: iter-r1
 security.catalog_ref: CM-3
 security.verification_note: Derived lock; CM-3 change control on in_scope/delivers pins.
 delivered_by_release: R1-core-ALM
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-CAT
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -6954,6 +7108,33 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-catalogs-api
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-CYBER-CONTROL-PLACEMENT
+STATUS: Draft
+TITLE: Cyber control-placement seed pass
+STATEMENT: >>>
+Documentation-only capability for the Cyber control-placement seed PR: applies the conforms_to add/move/remove table to ARCH/CAP scope, mints pin-kind successors where shipped releases freeze prior version UIDs, adds ARCH-WRITE-DB-RUNTIME-ROLE / ARCH-SEC-TLS / ARCH-SUPPLY-* requirements, and regenerates StrictDoc out/.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-CYBER-CONTROL-PLACEMENT
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned seed-only; no runtime deliverable.
+delivered_by_release: R1-cyber-control-placement
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CAT
+- TYPE: Parent
+  VALUE: ARCH-CAT-PIN
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-cyber-control-placement
   ROLE: Delivers
 
 [[/SECTION]]
@@ -7295,9 +7476,6 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -7313,15 +7491,6 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
@@ -7350,9 +7519,6 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 in_scope_of_contract: Design-2026-10
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -7368,15 +7534,6 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
@@ -7990,26 +8147,10 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-GROOM
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: CAP-BROWSE-ROADMAP
@@ -8326,9 +8467,7 @@ edge: ← uses from CAP-AUTH-AUDIT
 in_scope_of_contract: Security package
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -8346,13 +8485,7 @@ RELATIONS:
   VALUE: AC-3
   ROLE: ConformsTo
 - TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
+  VALUE: AU-9
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
@@ -8507,8 +8640,8 @@ edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
 edge: ← uses from ARCH-KEY-FAILCLOSED
 edge: ← uses from ARCH-DEPLOY-MINIMAL
 edge: ← uses from ARCH-BUILD-FOUNDATION
-edge: ← satisfies from CAP-HEALTH-LIVENESS
-edge: ← satisfies from CAP-READY-PROBES
+edge: ← satisfies from CAP-HEALTH-LIVENESS.1
+edge: ← satisfies from CAP-READY-PROBES.1
 in_scope_of_contract: Platform baseline
 delivered_by_release: PR #12 — devenv foundation
 delivered_by_release: R1-core-ALM
@@ -8559,7 +8692,6 @@ iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: Hybrid audit via change sets; AU-2/3/12. Per-object history + change-set index.
 delivered_by_release: R1-core-ALM
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8567,9 +8699,6 @@ edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-AUDIT
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
 - TYPE: Parent
   VALUE: AU-2
   ROLE: ConformsTo
@@ -8600,9 +8729,7 @@ iteration: iter-r1
 security.catalog_ref: AC-6
 security.verification_note: AC-6 least privilege; Developer leaf-only per permission-tree (flat matrix SDLC W for Developer overridden).
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -8611,13 +8738,7 @@ RELATIONS:
   VALUE: AC-3
   ROLE: ConformsTo
 - TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
+  VALUE: AC-6
   ROLE: ConformsTo
 
 [REQUIREMENT]
@@ -8756,9 +8877,7 @@ iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 workflow / approval audit.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -8767,13 +8886,7 @@ RELATIONS:
   VALUE: AC-3
   ROLE: ConformsTo
 - TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
+  VALUE: AU-11
   ROLE: ConformsTo
 
 [REQUIREMENT]
@@ -8792,26 +8905,10 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 workflow / approval audit.
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-AUDIT
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: WANT-CHANGESET-FIELD-UNDO
@@ -8829,30 +8926,14 @@ priority: 40
 iteration: iter-r2
 security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 revert / change-set audit.
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-AUDIT
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: CAP-HEALTH-LIVENESS
-STATUS: Active
+STATUS: Draft
 TITLE: /health liveness probe with version
 STATEMENT: >>>
 GET /health is liveness only: it returns 200 with status ok, the app version and mode whenever the process can serve HTTP, and never touches Postgres, OpenBao or client data. Acceptance: /health stays 200 while dependencies are down (OpenBao sealed, Postgres stopped) so orchestrators do not restart a healthy process for a dependency outage.
@@ -8865,8 +8946,31 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: SI-4
 security.verification_note: No client data in the probe (M04). Verified 2026-10-07: /health 200 throughout the OpenBao-sealed and Postgres-stopped fault tests.
+edge: ← refines from CAP-HEALTH-LIVENESS.1
 delivered_by_release: PR #12 — devenv foundation
-edge: → conforms_to to SI-4 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-AUDIT
+- TYPE: Child
+  VALUE: RELEASE-rel-pr12-devenv-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-HEALTH-LIVENESS.1
+STATUS: Active
+TITLE: /health liveness probe with version
+STATEMENT: >>>
+GET /health is liveness only: it returns 200 with status ok, the app version and mode whenever the process can serve HTTP, and never touches Postgres, OpenBao or client data. Acceptance: /health stays 200 while dependencies are down (OpenBao sealed, Postgres stopped) so orchestrators do not restart a healthy process for a dependency outage.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-HEALTH-LIVENESS
+VERSION_N: 1
+priority: 10
+iteration: iter-r0
+security.catalog_ref: SI-4
+security.verification_note: No client data in the probe (M04). Verified 2026-10-07: /health 200 throughout the OpenBao-sealed and Postgres-stopped fault tests.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -8875,15 +8979,12 @@ RELATIONS:
   VALUE: M04
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: SI-4
-  ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-pr12-devenv-foundation
-  ROLE: Delivers
+  VALUE: CAP-HEALTH-LIVENESS
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: CAP-READY-PROBES
-STATUS: Active
+STATUS: Draft
 TITLE: /ready live peripheral and per-role checks (cached, time-boxed)
 STATEMENT: >>>
 GET /ready live-probes Postgres (SELECT 1), pending migrations, OpenBao (initialized, unsealed, Transit encrypt/decrypt round-trip on reqaml-kek) and each enabled role, caching results for REQAML_READY_CACHE_MS (2 s) and bounding each probe by REQAML_READY_PROBE_TIMEOUT_MS (3 s). It returns 503 with the failing check named and recovers without a restart. Acceptance: sealing OpenBao gives 503 with openbao failing; stopping Postgres gives 503 with database failing; both return to 200 after recovery; the app container is not restarted.
@@ -8896,8 +8997,31 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: SI-4
 security.verification_note: Readiness gates traffic on live dependencies (ARCH-DEVENV-HEALTH). Verified 2026-10-07: OpenBao seal → 503 openbao 'sealed', unseal → 200; Postgres stop → 503 database ECONNREFUSED, recovery → 200; app restart count 0; unit tests for cache, database (incl. hung-DB timeout), migrations, openbao, roles. Fail-closed for key operations is R1.
+edge: ← refines from CAP-READY-PROBES.1
 delivered_by_release: PR #12 — devenv foundation
-edge: → conforms_to to SI-4 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-AUDIT
+- TYPE: Child
+  VALUE: RELEASE-rel-pr12-devenv-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-READY-PROBES.1
+STATUS: Active
+TITLE: /ready live peripheral and per-role checks (cached, time-boxed)
+STATEMENT: >>>
+GET /ready live-probes Postgres (SELECT 1), pending migrations, OpenBao (initialized, unsealed, Transit encrypt/decrypt round-trip on reqaml-kek) and each enabled role, caching results for REQAML_READY_CACHE_MS (2 s) and bounding each probe by REQAML_READY_PROBE_TIMEOUT_MS (3 s). It returns 503 with the failing check named and recovers without a restart. Acceptance: sealing OpenBao gives 503 with openbao failing; stopping Postgres gives 503 with database failing; both return to 200 after recovery; the app container is not restarted.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-READY-PROBES
+VERSION_N: 1
+priority: 10
+iteration: iter-r0
+security.catalog_ref: SI-4
+security.verification_note: Readiness gates traffic on live dependencies (ARCH-DEVENV-HEALTH). Verified 2026-10-07: OpenBao seal → 503 openbao 'sealed', unseal → 200; Postgres stop → 503 database ECONNREFUSED, recovery → 200; app restart count 0; unit tests for cache, database (incl. hung-DB timeout), migrations, openbao, roles. Fail-closed for key operations is R1.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -8912,11 +9036,8 @@ RELATIONS:
   VALUE: ARCH-KEY-FAILCLOSED
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: SI-4
-  ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-pr12-devenv-foundation
-  ROLE: Delivers
+  VALUE: CAP-READY-PROBES
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: CAP-AUTH-AUDIT
@@ -9180,9 +9301,9 @@ edge: ← satisfies from CAP-BROWSE-UI-CP
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 edge: ← satisfies from CAP-BROWSE-UI-TREE
-edge: ← satisfies from CAP-MFA-QR
 edge: ← satisfies from CAP-UI-FRAME.1
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
+edge: ← satisfies from CAP-MFA-QR.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -9223,24 +9344,12 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-UI
 - TYPE: Parent
   VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
   ROLE: ConformsTo
 
 [REQUIREMENT]
@@ -9260,24 +9369,12 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-UI
 - TYPE: Parent
   VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
   ROLE: ConformsTo
 
 [REQUIREMENT]
@@ -9298,24 +9395,12 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-UI
 - TYPE: Parent
   VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -9339,24 +9424,12 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-UI
 - TYPE: Parent
   VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -9413,6 +9486,8 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Partial pass on .1: shell + guards verified on PR #13; full UI catalog still planned. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes).
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222603 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -9428,6 +9503,12 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-23
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222603
   ROLE: ConformsTo
 
 [REQUIREMENT]
@@ -9655,7 +9736,7 @@ Node API layers HTTP adapters, RBAC, business services, audit, and schema-first 
 
 [REQUIREMENT]
 UID: ARCH-OTEL
-STATUS: Active
+STATUS: Draft
 TITLE: OTEL audit trail
 STATEMENT: >>>
 Security-relevant actions emit structured audit events exported via OTEL (OTLP) for centralized
@@ -9679,14 +9760,63 @@ edge: ← uses from ARCH-AUTH-AGENT-ATTRIBUTION
 edge: ← uses from ARCH-OTEL-TRACE
 edge: ← refines from ARCH-WRITE-UOW-AUDIT
 edge: ← refines from ARCH-WRITE-AUDIT-FLOOD
+edge: ← refines from ARCH-OTEL.2
+delivered_by_release: R0-sequences
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Child
+  VALUE: RELEASE-rel-r0-sequences
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-OTEL.1
+STATUS: Draft
+TITLE: OTEL audit trail
+STATEMENT: >>>
+Security-relevant actions emit structured audit events exported via OTEL (OTLP) for centralized
+review, aligned to NIST AU-2/3/6/9/12. Session teardown destroys session identifiers (V-222578).
+Auditors read via M01/M02; actors cannot alter prior audit rows (AU-9).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-OTEL
+VERSION_N: 1
+priority: 25
+iteration: iter-r0
+security.catalog_ref: AU-2
+security.verification_note: AU-2/3/6/12. ASD STIG V6R4 V-222578 (session ID destroy complements audit lifecycle).
+edge: ← refines from ARCH-OTEL.2
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+
+[REQUIREMENT]
+UID: ARCH-OTEL.2
+STATUS: Active
+TITLE: OTEL audit trail
+STATEMENT: >>>
+Security-relevant actions emit structured audit events exported via OTEL (OTLP) for centralized
+review, aligned to NIST AU-2/3/6/9/12. Session teardown destroys session identifiers (V-222578).
+Auditors read via M01/M02; actors cannot alter prior audit rows (AU-9).
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-OTEL
+VERSION_N: 2
+priority: 25
+iteration: iter-r0
+security.catalog_ref: AU-2
+security.verification_note: AU-2/3/6/12. ASD STIG V6R4 V-222578 (session ID destroy complements audit lifecycle).
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
-delivered_by_release: R0-sequences
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to V-222578 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to AU-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -9707,24 +9837,27 @@ RELATIONS:
   VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Parent
-  VALUE: V-222578
-  ROLE: ConformsTo
-- TYPE: Parent
   VALUE: AU-6
   ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-OTEL
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AU-9
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-OTEL.1
+  ROLE: Refines
 - TYPE: Child
   VALUE: CONTRACT-contract-design-2026-10
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
   ROLE: InScopeOf
-- TYPE: Child
-  VALUE: RELEASE-rel-r0-sequences
-  ROLE: Delivers
 
 [REQUIREMENT]
 UID: ARCH-API
-STATUS: Active
+STATUS: Draft
 TITLE: HTTP → business → data, OpenAPI schema-first
 STATEMENT: >>>
 API is schema-first (Zod + OpenAPI): HTTP adapters validate DTOs, RBAC authorizes, business services
@@ -9747,13 +9880,63 @@ edge: ← satisfies from CAP-API-DOCS-SEED-SUMMARY
 edge: ← satisfies from CAP-SVC-RESULT-ENVELOPE
 edge: ← refines from ARCH-SEC-REL-PAGING
 edge: ← refines from ARCH-SEC-HEADERS
+edge: ← refines from ARCH-API.2
+delivered_by_release: R0-sequences
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Child
+  VALUE: RELEASE-rel-r0-sequences
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-API.1
+STATUS: Draft
+TITLE: HTTP → business → data, OpenAPI schema-first
+STATEMENT: >>>
+API is schema-first (Zod + OpenAPI): HTTP adapters validate DTOs, RBAC authorizes, business services
+orchestrate, data providers implement repositories against Postgres. Invalid input never reaches domain
+mutations (SI-10). The same stack serves UI and MCP tools.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-API
+VERSION_N: 1
+priority: 20
+iteration: iter-r0
+security.catalog_ref: AC-3
+security.verification_note: Architecture enforces AC-3 via adapters/guards/layers.
+edge: ← refines from ARCH-API.2
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+
+[REQUIREMENT]
+UID: ARCH-API.2
+STATUS: Active
+TITLE: HTTP → business → data, OpenAPI schema-first
+STATEMENT: >>>
+API is schema-first (Zod + OpenAPI): HTTP adapters validate DTOs, RBAC authorizes, business services
+orchestrate, data providers implement repositories against Postgres. Invalid input never reaches domain
+mutations (SI-10). The same stack serves UI and MCP tools.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-API
+VERSION_N: 2
+priority: 20
+iteration: iter-r0
+security.catalog_ref: AC-3
+security.verification_note: Architecture enforces AC-3 via adapters/guards/layers.
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
-delivered_by_release: R0-sequences
 edge: → uses to ARCH-API-RBAC (RELATIONS TYPE: Child; Parent would cycle)
 edge: → uses to ARCH-API-LAYERS (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to SI-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222606 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -9767,6 +9950,15 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AC-3
   ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: V-222606
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API.1
+  ROLE: Refines
 - TYPE: Child
   VALUE: ARCH-API-RBAC
   ROLE: Uses
@@ -9779,9 +9971,6 @@ RELATIONS:
 - TYPE: Child
   VALUE: CONTRACT-contract-platform-baseline
   ROLE: InScopeOf
-- TYPE: Child
-  VALUE: RELEASE-rel-r0-sequences
-  ROLE: Delivers
 
 [[SECTION]]
 UID: ARCH-API-CHILDREN
@@ -9804,29 +9993,14 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: REQALM-SEC-RBAC
 security.verification_note: Maps to ReqALM RBAC catalog item.
-edge: ← uses from ARCH-API
 edge: ← satisfies from CAP-RBAC
 edge: ← uses from ARCH-AUTH-AUDIENCE
 edge: ← uses from ARCH-KEY-CUSTODIAN
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-CLAIM-MAP
-edge: ← satisfies from CAP-SVC-REQUEST-CONTEXT
-edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR
-edge: ← satisfies from CAP-SVC-ROUTE-REGISTRY
-edge: ← satisfies from CAP-SVC-PROJECT-READ
-edge: ← satisfies from CAP-SVC-OPERATION-ROUTE
-edge: ← satisfies from CAP-SVC-BUSINESS-ROUTE-AUDIT
-edge: ← satisfies from CAP-SVC-PROJECT-ID-SLUG
-edge: ← satisfies from CAP-SVC-IMPLICIT-PUBLIC-EXACT
-edge: ← satisfies from CAP-SVC-NON-API-AUTH-AUDIT
-edge: ← satisfies from CAP-READ-REQS
-edge: ← satisfies from CAP-READ-RELEASES
-edge: ← satisfies from CAP-READ-HIERARCHY
-edge: ← satisfies from CAP-RELATIONS-API
 edge: ← refines from ARCH-API-RBAC.1
 edge: ← satisfies from CAP-CATALOGS-API
-in_scope_of_contract: Design-2026-10
-in_scope_of_contract: Security package
+edge: ← uses from ARCH-API.2
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9835,7 +10009,7 @@ edge: → conforms_to to V-222429 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-API
+  VALUE: ARCH-API.2
 - TYPE: Parent
   VALUE: AC-3
   ROLE: ConformsTo
@@ -9848,12 +10022,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222429
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: CONTRACT-contract-design-2026-10
-  ROLE: InScopeOf
-- TYPE: Child
-  VALUE: CONTRACT-contract-security-package
-  ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
@@ -9876,14 +10044,29 @@ security.catalog_ref: REQALM-SEC-RBAC
 security.verification_note: Maps to ReqALM RBAC catalog item; .1 narrows honesty vs CAP-RBAC enforcement subset.
 edge: ← refines from ARCH-SEC-XPROJ-READ
 edge: ← satisfies from CAP-RBAC.1
+edge: ← satisfies from CAP-SVC-REQUEST-CONTEXT
+edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR
+edge: ← satisfies from CAP-SVC-ROUTE-REGISTRY.1
+edge: ← satisfies from CAP-SVC-PROJECT-READ
+edge: ← satisfies from CAP-SVC-OPERATION-ROUTE.1
+edge: ← satisfies from CAP-SVC-BUSINESS-ROUTE-AUDIT
+edge: ← satisfies from CAP-SVC-PROJECT-ID-SLUG.1
+edge: ← satisfies from CAP-SVC-IMPLICIT-PUBLIC-EXACT
+edge: ← satisfies from CAP-SVC-NON-API-AUTH-AUDIT
+edge: ← satisfies from CAP-READ-REQS
+edge: ← satisfies from CAP-READ-RELEASES
+edge: ← satisfies from CAP-READ-HIERARCHY
+edge: ← satisfies from CAP-RELATIONS-API.1
+in_scope_of_contract: Design-2026-10
+in_scope_of_contract: Security package
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222429 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-API
+  VALUE: ARCH-API.2
 - TYPE: Parent
   VALUE: ARCH-API-RBAC
   ROLE: Refines
@@ -9891,14 +10074,20 @@ RELATIONS:
   VALUE: AC-3
   ROLE: ConformsTo
 - TYPE: Parent
-  VALUE: AC-2
-  ROLE: ConformsTo
-- TYPE: Parent
   VALUE: AC-6
   ROLE: ConformsTo
 - TYPE: Parent
   VALUE: V-222429
   ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
 
 [REQUIREMENT]
 UID: ARCH-API-LAYERS
@@ -9917,12 +10106,12 @@ priority: 20
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: Architecture enforces AC-3 via adapters/guards/layers.
-edge: ← uses from ARCH-API
 edge: ← satisfies from CAP-SVC-RESULT-ENVELOPE
 edge: ← satisfies from CAP-SVC-REQUEST-CONTEXT
 edge: ← satisfies from CAP-SVC-MODULE-BOOTSTRAP
-edge: ← satisfies from CAP-SVC-OPERATION-ROUTE
 edge: ← refines from ARCH-WRITE-REPOSITORY-LAYER
+edge: ← satisfies from CAP-SVC-OPERATION-ROUTE.1
+edge: ← uses from ARCH-API.2
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
@@ -9930,7 +10119,7 @@ edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ARCH-API
+  VALUE: ARCH-API.2
 - TYPE: Parent
   VALUE: AC-3
   ROLE: ConformsTo
@@ -10035,7 +10224,7 @@ RELATIONS:
   VALUE: ARCH-API-LAYERS
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
+  VALUE: ARCH-API-RBAC.1
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
@@ -10056,17 +10245,17 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
-edge: ← uses from CAP-SVC-OPERATION-ROUTE
+edge: ← uses from CAP-SVC-OPERATION-ROUTE.1
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
+  VALUE: CAP-RBAC
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: CAP-RBAC
+  VALUE: ARCH-API-RBAC.1
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
@@ -10074,7 +10263,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-AUDIT-APPEND
-STATUS: Active
+STATUS: Draft
 TITLE: Append-only business audit_events table
 STATEMENT: >>>
 Migration 006 + writeBusinessAudit; auth events remain in auth_audit_events.
@@ -10087,6 +10276,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+edge: ← refines from CAP-SVC-AUDIT-APPEND.1
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -10097,8 +10287,38 @@ RELATIONS:
   ROLE: Delivers
 
 [REQUIREMENT]
-UID: CAP-SVC-STRUCTURED-LOG
+UID: CAP-SVC-AUDIT-APPEND.1
 STATUS: Active
+TITLE: Append-only business audit_events table
+STATEMENT: >>>
+Migration 006 + writeBusinessAudit; auth events remain in auth_audit_events.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-AUDIT-APPEND
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until service-foundation PR merges.
+edge: → conforms_to to AU-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: CAP-SVC-AUDIT-APPEND
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AU-9
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-WRITE-UOW-AUDIT
+  ROLE: Satisfies
+
+[REQUIREMENT]
+UID: CAP-SVC-STRUCTURED-LOG
+STATUS: Draft
 TITLE: Structured operation logging with redaction
 STATEMENT: >>>
 logOperation + redactForLog; secrets/tokens/password keys redacted in log payloads.
@@ -10111,6 +10331,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+edge: ← refines from CAP-SVC-STRUCTURED-LOG.1
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -10121,8 +10342,38 @@ RELATIONS:
   ROLE: Delivers
 
 [REQUIREMENT]
-UID: CAP-SVC-ROUTE-REGISTRY
+UID: CAP-SVC-STRUCTURED-LOG.1
 STATUS: Active
+TITLE: Structured operation logging with redaction
+STATEMENT: >>>
+logOperation + redactForLog; secrets/tokens/password keys redacted in log payloads.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-STRUCTURED-LOG
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until service-foundation PR merges.
+edge: → conforms_to to V-222444 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: CAP-SVC-STRUCTURED-LOG
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: V-222444
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-CRED-AUDIT
+  ROLE: Satisfies
+
+[REQUIREMENT]
+UID: CAP-SVC-ROUTE-REGISTRY
+STATUS: Draft
 TITLE: Fail-closed API route security registration
 STATEMENT: >>>
 Every /api /oauth /mcp /health /ready route declares public, authenticated, or permission; test enforces.
@@ -10138,17 +10389,45 @@ security.verification_note: Planned until service-foundation PR merges.
 edge: ← satisfies from CAP-SVC-BUSINESS-ROUTE-AUDIT
 edge: ← refines from CAP-SVC-IMPLICIT-PUBLIC-EXACT
 edge: ← refines from CAP-SVC-NON-API-AUTH-AUDIT
+edge: ← refines from CAP-SVC-ROUTE-REGISTRY.1
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
-- TYPE: Parent
-  VALUE: ARCH-API-RBAC
-  ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-ROUTE-REGISTRY.1
+STATUS: Active
+TITLE: Fail-closed API route security registration
+STATEMENT: >>>
+Every /api /oauth /mcp /health /ready route declares public, authenticated, or permission; test enforces.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-ROUTE-REGISTRY
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until service-foundation PR merges.
+edge: → conforms_to to AC-14 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: CAP-SVC-ROUTE-REGISTRY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-14
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Satisfies
 
 [REQUIREMENT]
 UID: CAP-SVC-MODULE-BOOTSTRAP
@@ -10199,7 +10478,7 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
+  VALUE: ARCH-API-RBAC.1
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-service-foundation
@@ -10227,7 +10506,7 @@ edge: ← satisfies from CAP-OTEL-KEY-DEP
 edge: ← satisfies from CAP-OTEL-AUDIT-TRACE
 edge: ← satisfies from CAP-OTEL-EXPORT
 edge: ← satisfies from CAP-OTEL-TEST-HARNESS
-edge: ← satisfies from CAP-OTEL-SPAN-SAFE-ERRORS
+edge: ← satisfies from CAP-OTEL-SPAN-SAFE-ERRORS.1
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -10305,7 +10584,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until OTel tracing PR merges.
-edge: ← refines from CAP-OTEL-SPAN-SAFE-ERRORS
+edge: ← refines from CAP-OTEL-SPAN-SAFE-ERRORS.1
 delivered_by_release: R1 — OpenTelemetry tracing (W3C, operation + dependency spans)
 <<<
 RELATIONS:
@@ -10428,7 +10707,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-OPERATION-ROUTE
-STATUS: Active
+STATUS: Draft
 TITLE: defineOperationRoute — single pipeline for /api/ business routes
 STATEMENT: >>>
 Business routes under /api/ register only via defineOperationRoute, which runs authenticate, project scope, permission, parseInput, execute, append-only audit_events, log, in that order. Project scope comes from the :projectId path param, parsed before any input validation; an unparsable id is not_found, identical to a missing or ungranted project, and the validated input must name the same project. parseInput validates params/query/body once (Zod); validation failures, including unreadable bodies, reach only authenticated, in-scope, authorized callers, are audited without input values, and answer Problem Details (application/problem+json); unexpected throws are a 500 without the error message. reqalmSecurity is derived from the operation; registration throws unless the operation declares a permission bound to a project (projectScoped + projectIdFromInput + :projectId path param) or authenticatedOnly.
@@ -10441,13 +10720,43 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until operation-route PR merges.
-edge: ← refines from CAP-SVC-PROJECT-ID-SLUG
 edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
-edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
+edge: ← refines from CAP-SVC-OPERATION-ROUTE.1
+edge: ← refines from CAP-SVC-PROJECT-ID-SLUG.1
+edge: ← satisfies from CAP-RELATIONS-API.1
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-route-helper
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-OPERATION-ROUTE.1
+STATUS: Active
+TITLE: defineOperationRoute — single pipeline for /api/ business routes
+STATEMENT: >>>
+Business routes under /api/ register only via defineOperationRoute, which runs authenticate, project scope, permission, parseInput, execute, append-only audit_events, log, in that order. Project scope comes from the :projectId path param, parsed before any input validation; an unparsable id is not_found, identical to a missing or ungranted project, and the validated input must name the same project. parseInput validates params/query/body once (Zod); validation failures, including unreadable bodies, reach only authenticated, in-scope, authorized callers, are audited without input values, and answer Problem Details (application/problem+json); unexpected throws are a 500 without the error message. reqalmSecurity is derived from the operation; registration throws unless the operation declares a permission bound to a project (projectScoped + projectIdFromInput + :projectId path param) or authenticatedOnly.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-OPERATION-ROUTE
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until operation-route PR merges.
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222606 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to SI-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222610 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -10456,14 +10765,32 @@ RELATIONS:
   VALUE: ARCH-API-LAYERS
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
-  ROLE: Satisfies
-- TYPE: Parent
   VALUE: CAP-SVC-OPERATION-EXECUTOR
   ROLE: Uses
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-route-helper
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222606
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-11
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222610
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Satisfies
 
 [REQUIREMENT]
 UID: CAP-SVC-BUSINESS-ROUTE-AUDIT
@@ -10490,7 +10817,7 @@ RELATIONS:
   VALUE: CAP-SVC-ROUTE-REGISTRY
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
+  VALUE: ARCH-API-RBAC.1
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-helper
@@ -10525,7 +10852,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-PROJECT-ID-SLUG
-STATUS: Active
+STATUS: Draft
 TITLE: Project id path param slug validation
 STATEMENT: >>>
 The :projectId path param must match ^[a-z0-9][a-z0-9-]{0,63}$ before it becomes project scope. An id that does not (padded, control characters, uppercase, over-long at any length) is not_found after authentication, identical to a missing or ungranted project, and an unauthenticated caller gets the same 401 as for a valid id, before any validation detail. An invalid id is never recorded raw: audit_events.project_id is NULL, no reqalm.project_id span attribute is set, and request logs and exported span URL attributes show the segment as [invalid].
@@ -10538,24 +10865,52 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until route-hardening PR merges.
+edge: ← refines from CAP-SVC-PROJECT-ID-SLUG.1
 delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
-- TYPE: Parent
-  VALUE: ARCH-API-RBAC
-  ROLE: Satisfies
-- TYPE: Parent
-  VALUE: CAP-SVC-OPERATION-ROUTE
-  ROLE: Refines
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-hardening
   ROLE: Delivers
 
 [REQUIREMENT]
-UID: CAP-SVC-STATIC-DEP-PATCH
+UID: CAP-SVC-PROJECT-ID-SLUG.1
 STATUS: Active
+TITLE: Project id path param slug validation
+STATEMENT: >>>
+The :projectId path param must match ^[a-z0-9][a-z0-9-]{0,63}$ before it becomes project scope. An id that does not (padded, control characters, uppercase, over-long at any length) is not_found after authentication, identical to a missing or ungranted project, and an unauthenticated caller gets the same 401 as for a valid id, before any validation detail. An invalid id is never recorded raw: audit_events.project_id is NULL, no reqalm.project_id span attribute is set, and request logs and exported span URL attributes show the segment as [invalid].
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-PROJECT-ID-SLUG
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until route-hardening PR merges.
+edge: → conforms_to to SI-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CAP-SVC-PROJECT-ID-SLUG
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SI-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Satisfies
+
+[REQUIREMENT]
+UID: CAP-SVC-STATIC-DEP-PATCH
+STATUS: Draft
 TITLE: Production @fastify/static dependency patch
 STATEMENT: >>>
 apps/reqalm resolves @fastify/static 10.1.5 both directly (^10.1.5) and through @fastify/swagger-ui 6.1.1 (^10.1.0), with no pnpm override, so GHSA-83w8-p2f5-377r and GHSA-8pvw-jcv7-9cmj (and GHSA-pr96-94w5-mx2h, GHSA-x428-ghpx-8j92) are gone from pnpm audit --prod; the web bundle and /docs still serve, and encoded path-traversal requests never return file contents.
@@ -10568,7 +10923,36 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until route-hardening PR merges.
+edge: ← refines from CAP-SVC-STATIC-DEP-PATCH.1
 delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: ARCH-SUPPLY-DEP-SCAN
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-route-hardening
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-STATIC-DEP-PATCH.1
+STATUS: Active
+TITLE: Production @fastify/static dependency patch
+STATEMENT: >>>
+apps/reqalm resolves @fastify/static 10.1.5 both directly (^10.1.5) and through @fastify/swagger-ui 6.1.1 (^10.1.0), with no pnpm override, so GHSA-83w8-p2f5-377r and GHSA-8pvw-jcv7-9cmj (and GHSA-pr96-94w5-mx2h, GHSA-x428-ghpx-8j92) are gone from pnpm audit --prod; the web bundle and /docs still serve, and encoded path-traversal requests never return file contents.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-STATIC-DEP-PATCH
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until route-hardening PR merges.
+edge: → conforms_to to SI-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222614 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -10576,13 +10960,22 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-DEPLOY-MINIMAL
   ROLE: Satisfies
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-route-hardening
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-SVC-STATIC-DEP-PATCH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SI-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222614
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-SUPPLY-DEP-SCAN
+  ROLE: Satisfies
 
 [REQUIREMENT]
 UID: CAP-OTEL-SPAN-SAFE-ERRORS
-STATUS: Active
+STATUS: Draft
 TITLE: Span errors without raw exception text
 STATEMENT: >>>
 Every exported span (operation, Fastify request and handler, http, pg, undici, OpenBao) reports a failure as ERROR status with the generic message 'operation failed'; exception events keep only exception.type (no message or stack); operation spans add reqalm.error_kind (service error code or internal). Raw exception and database text stays in the server log only.
@@ -10595,7 +10988,32 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until route-hardening PR merges.
+edge: ← refines from CAP-OTEL-SPAN-SAFE-ERRORS.1
 delivered_by_release: R1 — route helper hardening (Cyber/QA follow-up)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-route-hardening
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-OTEL-SPAN-SAFE-ERRORS.1
+STATUS: Active
+TITLE: Span errors without raw exception text
+STATEMENT: >>>
+Every exported span (operation, Fastify request and handler, http, pg, undici, OpenBao) reports a failure as ERROR status with the generic message 'operation failed'; exception events keep only exception.type (no message or stack); operation spans add reqalm.error_kind (service error code or internal). Raw exception and database text stays in the server log only.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-OTEL-SPAN-SAFE-ERRORS
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until route-hardening PR merges.
+edge: → conforms_to to SI-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -10606,9 +11024,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL-TRACE
   ROLE: Satisfies
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-route-hardening
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-OTEL-SPAN-SAFE-ERRORS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SI-11
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: CAP-SVC-IMPLICIT-PUBLIC-EXACT
@@ -10637,7 +11058,7 @@ RELATIONS:
   VALUE: CAP-SVC-BUSINESS-ROUTE-AUDIT
   ROLE: Refines
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
+  VALUE: ARCH-API-RBAC.1
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-hardening
@@ -10667,7 +11088,7 @@ RELATIONS:
   VALUE: CAP-SVC-ROUTE-REGISTRY
   ROLE: Refines
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
+  VALUE: ARCH-API-RBAC.1
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-route-hardening
@@ -10688,6 +11109,8 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AU-9
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← satisfies from CAP-SVC-AUDIT-APPEND.1
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -10695,6 +11118,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL
   ROLE: Refines
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-WRITE-REPOSITORY-LAYER
@@ -10741,6 +11167,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-CP-SCOPE
   ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-WRITE-DB-RUNTIME-ROLE
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: ARCH-WRITE-AUDIT-FLOOD
@@ -10757,6 +11186,8 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AU-9
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: → conforms_to to SC-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-4 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -10764,6 +11195,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-OTEL
   ROLE: Refines
+- TYPE: Parent
+  VALUE: SC-5
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-4
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-WRITE-VERSION-UNIQUE
@@ -10803,12 +11240,56 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: → conforms_to to SI-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-API
 - TYPE: Parent
   VALUE: ARCH-MINT-KIND
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SI-10
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-WRITE-DB-RUNTIME-ROLE
+STATUS: Draft
+TITLE: Runtime DB role is least-privilege non-owner
+STATEMENT: >>>
+The running application shall connect to Postgres as a dedicated runtime login role that owns no schema objects and holds only the table privileges the application needs (SELECT/INSERT/UPDATE/DELETE per table; INSERT and SELECT only on append-only audit tables). The runtime role shall not execute DDL (CREATE, ALTER, DROP), TRUNCATE, or GRANT, and shall be NOSUPERUSER, NOCREATEDB, NOCREATEROLE and NOBYPASSRLS so row-level security on tenant tables cannot be bypassed. Schema migrations shall run as a separate owner role whose credentials are not available to the running application process. In production the app shall refuse to start if its runtime role owns tables, can bypass RLS, or holds DDL or TRUNCATE privilege.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-WRITE-DB-RUNTIME-ROLE
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: AC-6
+security.verification_note: Proposed by Cyber control mapping 2026-10-09; claim of applicability, unverified.
+edge: ← refines from ARCH-WRITE-TRUNCATE-GUARD
+edge: → conforms_to to AC-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CM-5.5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222430 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-API
+- TYPE: Parent
+  VALUE: AC-6
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CM-5.5
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-9
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222430
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-CP-SCOPE
   ROLE: Refines
 
 [[/SECTION]]
@@ -10842,12 +11323,9 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 catalog_drift: status=flagged class=normative item=AC-3 from=nist-800-53@rev5-dogfood-20261006 to=nist-800-53@rev5-dogfood-20261006
 edge: ← uses from ARCH-DEVENV-IDENTITY
-edge: ← uses from ARCH-DEVENV-IDENTITY.1
 edge: ← refines from ARCH-AUTH-FEDERATION
 edge: ← refines from CAP-SSO.1
-in_scope_of_contract: Design-2026-10
-in_scope_of_contract: Security package
-in_scope_of_contract: Platform baseline
+edge: ← uses from ARCH-DEVENV-IDENTITY.2
 delivered_by_release: R0-sequences
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -10880,15 +11358,6 @@ RELATIONS:
   VALUE: AU-3
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: CONTRACT-contract-design-2026-10
-  ROLE: InScopeOf
-- TYPE: Child
-  VALUE: CONTRACT-contract-security-package
-  ROLE: InScopeOf
-- TYPE: Child
-  VALUE: CONTRACT-contract-platform-baseline
-  ROLE: InScopeOf
-- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -10907,11 +11376,9 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: R0 design pack; federation not shipped — do not mark pass until ARCH-AUTH-FEDERATION delivers.
-edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+in_scope_of_contract: Design-2026-10
+in_scope_of_contract: Security package
+in_scope_of_contract: Platform baseline
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -10926,20 +11393,17 @@ RELATIONS:
   VALUE: A02
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: IA-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
+  VALUE: ARCH-AUTH-FEDERATION
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
 
 [REQUIREMENT]
 UID: CAP-SCOPED-VIEW
@@ -10961,9 +11425,6 @@ security.verification_note: Server-bound Client Scoped View. ASD STIG V6R4 V-222
 edge: ← uses from ARCH-CP-SCOPE
 edge: ← uses from FIX-DENY-CROSS-CLIENT
 edge: ← refines from CAP-SCOPED-VIEW.1
-in_scope_of_contract: Design-2026-10
-in_scope_of_contract: Security package
-in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
 edge: → conforms_to to V-222429 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222550 (pin imprint=asd-stig@v6r4)
@@ -10988,15 +11449,6 @@ RELATIONS:
   VALUE: AC-3
   ROLE: ConformsTo
 - TYPE: Child
-  VALUE: CONTRACT-contract-design-2026-10
-  ROLE: InScopeOf
-- TYPE: Child
-  VALUE: CONTRACT-contract-security-package
-  ROLE: InScopeOf
-- TYPE: Child
-  VALUE: CONTRACT-contract-platform-baseline
-  ROLE: InScopeOf
-- TYPE: Child
   VALUE: RELEASE-rel-r0-sequences
   ROLE: Delivers
 
@@ -11015,9 +11467,11 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: REQALM-SEC-SCOPE
 security.verification_note: Partial: browse read scope shipped; full scoped-view mutate UX not complete.
-edge: → conforms_to to V-222429 (pin imprint=asd-stig@v6r4)
-edge: → conforms_to to V-222550 (pin imprint=asd-stig@v6r4)
+in_scope_of_contract: Design-2026-10
+in_scope_of_contract: Security package
+in_scope_of_contract: Platform baseline
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222425 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -11032,14 +11486,20 @@ RELATIONS:
   VALUE: A04
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: V-222429
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: V-222550
-  ROLE: ConformsTo
-- TYPE: Parent
   VALUE: AC-3
   ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222425
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-contract-design-2026-10
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-contract-security-package
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: CONTRACT-contract-platform-baseline
+  ROLE: InScopeOf
 
 [REQUIREMENT]
 UID: ARCH-CRED
@@ -11066,8 +11526,8 @@ edge: ← refines from ARCH-CRED-SESSION
 edge: ← refines from ARCH-CRED-REAUTH
 edge: ← refines from ARCH-CRED-AUDIT
 edge: ← uses from ARCH-BUILD-FOUNDATION
-edge: ← uses from ARCH-AUTH-LOCAL.1
 edge: ← satisfies from CAP-CRED-STORE
+edge: ← uses from ARCH-AUTH-LOCAL.2
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -11243,9 +11703,9 @@ security.catalog_ref: AC-7
 security.verification_note: AC-7 unsuccessful logon attempts; ASD V-222432 / V-222433 / V-222462.
 edge: ← uses from FIX-DENY-LOCKOUT
 edge: ← satisfies from CAP-CRED-STORE
-edge: ← satisfies from CAP-AUTH-HARDEN
 edge: ← satisfies from CAP-TEST-AUTH-ROUTES
 edge: ← satisfies from CAP-TEST-AUTH-HYGIENE
+edge: ← satisfies from CAP-AUTH-HARDEN.1
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AC-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222432 (pin imprint=asd-stig@v6r4)
@@ -11299,9 +11759,9 @@ edge: ← uses from FIX-DENY-PRIV-NO-MFA
 edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← uses from FIX-ALLOW-BREAKGLASS-LOCAL-ADMIN
 edge: ← satisfies from CAP-CRED-STORE
-edge: ← satisfies from CAP-MFA-ENROLL
 edge: ← satisfies from CAP-TEST-AUTH-ROUTES
-edge: ← satisfies from CAP-MFA-QR
+edge: ← satisfies from CAP-MFA-ENROLL.1
+edge: ← satisfies from CAP-MFA-QR.1
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-2.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222523 (pin imprint=asd-stig@v6r4)
@@ -11345,9 +11805,9 @@ iteration: iter-r1
 security.catalog_ref: IA-5.6
 security.verification_note: IA-5(6) protection of authenticators; SC-28(1); ASD V-222542 / V-222588.
 edge: ← uses from ARCH-AUTH-REFRESH
-edge: ← uses from ARCH-AUTH-CLIENTREG
 edge: ← uses from FIX-ALLOW-CRED-HASH-ONLY
 edge: ← satisfies from CAP-CRED-STORE
+edge: ← uses from ARCH-AUTH-CLIENTREG.1
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-5.6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-28.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11552,6 +12012,7 @@ edge: ← uses from ARCH-AUTH-AS
 edge: ← uses from ARCH-AUTH-LOCAL-BREAKGLASS
 edge: ← refines from ARCH-AUTH-AGENT-ATTRIBUTION
 edge: ← satisfies from CAP-AUTH-AUDIT
+edge: ← satisfies from CAP-SVC-STRUCTURED-LOG.1
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11684,7 +12145,7 @@ edge: ← refines from ARCH-DEVENV-KEYS
 edge: ← satisfies from CAP-DEVENV-OPENBAO-BOOTSTRAP
 edge: ← satisfies from CAP-KEY-ENVELOPE
 edge: ← satisfies from CAP-TEST-MEMORY-KEYPROVIDER
-edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE
+edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE.1
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -12011,8 +12472,8 @@ iteration: iter-r1
 security.catalog_ref: SC-24
 security.verification_note: SC-24 fail in known state; SC-12(1).
 edge: ← uses from FIX-DENY-KEK-UNREACHABLE-PROD
-edge: ← satisfies from CAP-READY-PROBES
 edge: ← satisfies from CAP-KEY-ENVELOPE
+edge: ← satisfies from CAP-READY-PROBES.1
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-24 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -12206,13 +12667,61 @@ VERSION_N: 0
 priority: 15
 iteration: iter-r1
 security.catalog_ref: SC-8
-security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+security.verification_note: Groomed 2026-10-09; pre-write or UI track. V-222602 (CSP) is a partial-fit XSS defence-in-depth claim; output encoding lives elsewhere.
+edge: ← refines from ARCH-SEC-TLS
+edge: → conforms_to to SC-18 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222602 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222444 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-SEC
 - TYPE: Parent
   VALUE: ARCH-API
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SC-18
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222602
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222444
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-SEC-TLS
+STATUS: Draft
+TITLE: TLS for all non-loopback traffic
+STATEMENT: >>>
+Before any non-127.0.0.1 deployment, the Web UI, API, OAuth AS and MCP endpoints shall be reachable only over TLS 1.2 or later (TLS 1.3 preferred); plaintext HTTP shall be refused or redirected without serving content, and responses shall send Strict-Transport-Security. In production the app shall refuse to start when its issuer or public base URL is not https. Connections from the app to Postgres and OpenBao that leave a single host shall use TLS with server certificate verification.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SEC-TLS
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: SC-8
+security.verification_note: Proposed by Cyber control mapping 2026-10-09; claim of applicability, unverified.
+edge: → conforms_to to SC-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-8.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222596 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: SC-8
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-8.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222596
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-SEC-HEADERS
   ROLE: Refines
 
 [[/SECTION]]
@@ -12248,9 +12757,6 @@ edge: ← uses from ARCH-DEPLOY-MINIMAL
 edge: ← refines from ARCH-AUTH-MCP-REQUIRED
 in_scope_of_contract: Security package
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -12266,15 +12772,6 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Parent
   VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-contract-security-package
@@ -12335,8 +12832,8 @@ security.catalog_ref: SC-8
 security.verification_note: Draft successor refining desk-seal wording. ASD STIG V6R4 V-222567 / V-222396.
 edge: ← satisfies from CAP-MCP-DESK
 edge: ← refines from ARCH-AUTH-AS
-edge: ← refines from ARCH-AUTH-METADATA
 edge: ← refines from ARCH-AUTH-MCP-REQUIRED
+edge: ← refines from ARCH-AUTH-METADATA.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R0-sequences
@@ -14311,6 +14808,7 @@ edge: ← satisfies from CAP-PROD-SELFCHECK
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222662 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222661 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222518 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -14336,6 +14834,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222661
   ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222518
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
@@ -14354,7 +14855,7 @@ security.catalog_ref: CM-6
 security.verification_note: FIXTURE / TEST BED for developer environment smoke and prod-disable.
 edge: ← satisfies from CAP-DEVENV-MIGRATE-SEED
 edge: ← satisfies from CAP-DEVENV-SMOKE
-edge: ← satisfies from CAP-DEVENV-SEED-RESET
+edge: ← satisfies from CAP-DEVENV-SEED-RESET.1
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -14981,7 +15482,7 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: CM-7
 security.verification_note: Pairs ARCH-DEPLOY-MINIMAL; roles not enabled are not exposed.
-edge: ← satisfies from CAP-DEVENV-DOCKERFILE-ROLES
+edge: ← satisfies from CAP-DEVENV-DOCKERFILE-ROLES.1
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
@@ -15237,26 +15738,10 @@ iteration: iter-r0
 security.catalog_ref: AU-2
 security.verification_note: AU-2/3/12 workflow / approval audit.
 delivered_by_release: R1-core-ALM
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -15278,26 +15763,10 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← refines from ARCH-HIER-SECTION-GROUP
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-REQ-VS-CAP
@@ -15315,26 +15784,10 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-APPROVAL-LINE
@@ -15353,26 +15806,10 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 delivered_by_release: R1-core-ALM
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -15399,26 +15836,10 @@ edge: ← uses from ARCH-MINT-KIND
 edge: ← uses from ARCH-SUSPECT
 edge: ← uses from ARCH-SUSPECT.1
 delivered_by_release: R1-core-ALM
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -15480,26 +15901,10 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-APPROVER-SLOTS
@@ -15519,24 +15924,12 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
 - TYPE: Parent
   VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
   ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
@@ -15559,26 +15952,10 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← refines from ARCH-HIER-CAP-PARTOF
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-CAP-APPROVE
@@ -15597,26 +15974,10 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← refines from ARCH-CRED-REAUTH
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-GATE-MODEL
@@ -15635,26 +15996,10 @@ iteration: iter-r0
 security.catalog_ref: CM-3
 security.verification_note: CM-3 change control; gate evaluation.
 delivered_by_release: R1-core-ALM
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -15675,26 +16020,10 @@ priority: 20
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-MINT-KIND
@@ -15716,26 +16045,10 @@ edge: ← uses from FIX-DENY-NOOP-CONTENT
 edge: ← uses from FIX-ALLOW-PIN-MIGRATE-MINT
 edge: ← refines from ARCH-WRITE-RESERVED-IDS
 delivered_by_release: R1-core-ALM
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: SEC-WF
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 - TYPE: Parent
   VALUE: ARCH-SUCCESSION-HASH
   ROLE: Uses
@@ -15804,10 +16117,6 @@ security.catalog_ref: AU-2
 security.verification_note: Groomed 2026-10-09; .1 references ARCH-TRACE-RECHECK for re-check vs incomplete semantics.
 edge: ← refines from ARCH-TRACE-RECHECK
 delivered_by_release: R1-core-ALM
-edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → uses to ARCH-TRACE-RECHECK (RELATIONS TYPE: Child; Parent would cycle)
 <<<
 RELATIONS:
@@ -15816,18 +16125,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-SUSPECT
   ROLE: Refines
-- TYPE: Parent
-  VALUE: AC-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
 - TYPE: Parent
   VALUE: ARCH-SUCCESSION-HASH
   ROLE: Uses
@@ -15902,9 +16199,7 @@ edge: ← uses from FIX-DENY-SHIP-UNSIGNED
 edge: ← refines from ARCH-CRED-REAUTH
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
-edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -15913,17 +16208,11 @@ RELATIONS:
   VALUE: AC-3
   ROLE: ConformsTo
 - TYPE: Parent
-  VALUE: AU-2
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-3
-  ROLE: ConformsTo
-- TYPE: Parent
-  VALUE: AU-12
-  ROLE: ConformsTo
-- TYPE: Parent
   VALUE: ARCH-CYBER-GATE
   ROLE: Uses
+- TYPE: Parent
+  VALUE: AU-10
+  ROLE: ConformsTo
 - TYPE: Child
   VALUE: RELEASE-rel-r1-core-alm
   ROLE: Delivers
@@ -16161,11 +16450,11 @@ security.verification_note: CM-6 configuration settings via Compose + .env; no s
 edge: ← uses from ARCH-DEVENV-CLONE
 edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
 edge: ← uses from FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
-edge: ← uses from ARCH-DEVENV-IDENTITY.1
 edge: ← satisfies from CAP-DEVENV-MIGRATE-SEED
-edge: ← satisfies from CAP-DEVENV-SEED-RESET
 edge: ← refines from ARCH-SEC-SEED-INTEGRITY
 edge: ← refines from ARCH-SEC-LOADER-EDGE-SYNC
+edge: ← satisfies from CAP-DEVENV-SEED-RESET.1
+edge: ← uses from ARCH-DEVENV-IDENTITY.2
 delivered_by_release: PR #12 — devenv foundation
 edge: → uses to ARCH-DEVENV-CLONE (RELATIONS TYPE: Child; Parent would cycle)
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -16232,7 +16521,7 @@ priority: 20
 iteration: iter-r0
 security.catalog_ref: CM-2
 security.verification_note: CM-2 baseline: one Dockerfile + Compose define the supported local/deploy baseline.
-edge: ← satisfies from CAP-DEVENV-DOCKERFILE-ROLES
+edge: ← satisfies from CAP-DEVENV-DOCKERFILE-ROLES.1
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16280,8 +16569,8 @@ security.verification_note: CM-6 configuration settings via Compose + .env; no s
 edge: ← uses from ARCH-DEVENV-CLONE
 edge: ← uses from FIX-ALLOW-DEVENV-SMOKE
 edge: ← uses from ARCH-KEY-FAILCLOSED
-edge: ← satisfies from CAP-READY-PROBES
-edge: ← satisfies from CAP-DEVENV-STARTUP-BACKOFF
+edge: ← satisfies from CAP-READY-PROBES.1
+edge: ← satisfies from CAP-DEVENV-STARTUP-BACKOFF.1
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -16360,7 +16649,7 @@ iteration: iter-r0
 security.catalog_ref: CM-7
 security.verification_note: CM-7 least functionality: local identity stub is non-essential and disabled in production.
 edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN
-edge: ← refines from ARCH-DEVENV-IDENTITY.1
+edge: ← refines from ARCH-DEVENV-IDENTITY.2
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222518 (pin imprint=asd-stig@v6r4)
@@ -16386,7 +16675,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: ARCH-DEVENV-IDENTITY.1
-STATUS: Active
+STATUS: Draft
 TITLE: Seeded dev accounts on the internal AS; none in production
 STATEMENT: >>>
 Local development signs in through ReqAML's internal OAuth AS (ARCH-AUTH-AS) with seeded dev local accounts mapped to the dogfood seed identities, so A01/A02 sessions, grants, Scoped View, and MCP authorization can be exercised offline. Dev account credentials are never committed: they come from the local env file or are generated at first seed and shown locally. Seeded dev accounts and the dev seed loader are dev-only. Production builds and configs ship no seeded dev accounts and no default credentials, and the seed loader refuses to create accounts in production mode. In production, enterprise SSO federates through the same AS (ARCH-AUTH-FEDERATION). This replaces the earlier third-party local OIDC stub idea.
@@ -16405,14 +16694,39 @@ edge: ← uses from FIX-DENY-DEVENV-PROD-LOGIN.1
 edge: ← uses from ARCH-AUTH-PROFILE
 edge: ← satisfies from CAP-PROD-SELFCHECK
 edge: ← satisfies from CAP-DEVENV-INIT
+edge: ← refines from ARCH-DEVENV-IDENTITY.2
 delivered_by_release: R1 — foundation shell + internal auth
-edge: → uses to ARCH-AUTH-LOCAL.1 (RELATIONS TYPE: Child; Parent would cycle)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-foundation-shell-auth
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-DEVENV-IDENTITY.2
+STATUS: Active
+TITLE: Seeded dev accounts on the internal AS; none in production
+STATEMENT: >>>
+Local development signs in through ReqAML's internal OAuth AS (ARCH-AUTH-AS) with seeded dev local accounts mapped to the dogfood seed identities, so A01/A02 sessions, grants, Scoped View, and MCP authorization can be exercised offline. Dev account credentials are never committed: they come from the local env file or are generated at first seed and shown locally. Seeded dev accounts and the dev seed loader are dev-only. Production builds and configs ship no seeded dev accounts and no default credentials, and the seed loader refuses to create accounts in production mode. In production, enterprise SSO federates through the same AS (ARCH-AUTH-FEDERATION). This replaces the earlier third-party local OIDC stub idea.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-DEVENV-IDENTITY
+VERSION_N: 2
+rbac_op: auth:signin
+priority: 10
+iteration: iter-r0
+security.catalog_ref: CM-7
+security.verification_note: CM-7 least functionality; IA-5 default authenticators; ASD V-222662 / V-222661 / V-222642.
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222662 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222661 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222642 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222518 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -16428,6 +16742,9 @@ RELATIONS:
   ROLE: Refines
 - TYPE: Parent
   VALUE: ARCH-AUTH-AS
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-AUTH-LOCAL.1
   ROLE: Uses
 - TYPE: Parent
   VALUE: ARCH-DEVENV-SEED
@@ -16450,12 +16767,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222642
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: ARCH-AUTH-LOCAL.1
-  ROLE: Uses
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-foundation-shell-auth
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: ARCH-DEVENV-IDENTITY.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: V-222518
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-DEVENV-SECRETS
@@ -16513,9 +16830,9 @@ security.catalog_ref: CM-7
 security.verification_note: CM-7 least functionality; dev key path non-essential in prod. ASD V-222642.
 edge: ← uses from ARCH-DEVENV-MODES.1
 edge: ← uses from FIX-DENY-DEV-KEK-IN-PROD
-edge: ← satisfies from CAP-DEVENV-PERIPHERALS
 edge: ← satisfies from CAP-PROD-SELFCHECK
 edge: ← satisfies from CAP-DEVENV-OPENBAO-BOOTSTRAP
+edge: ← satisfies from CAP-DEVENV-PERIPHERALS.1
 delivered_by_release: PR #12 — devenv foundation
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222642 (pin imprint=asd-stig@v6r4)
@@ -16560,9 +16877,9 @@ edge: ← uses from ARCH-DEVENV-PARITY.1
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
 edge: ← uses from FIX-ALLOW-APP-ROLE-SPLIT
-edge: ← satisfies from CAP-DEVENV-DOCKERFILE-ROLES
-edge: ← satisfies from CAP-SVC-STATIC-DEP-PATCH
 edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
+edge: ← satisfies from CAP-SVC-STATIC-DEP-PATCH.1
+edge: ← satisfies from CAP-DEVENV-DOCKERFILE-ROLES.1
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -16615,8 +16932,8 @@ edge: ← uses from ARCH-DEVENV-COMPOSE.1
 edge: ← uses from ARCH-DEVENV-MODES.1
 edge: ← uses from ARCH-DEVENV-PARITY.1
 edge: ← uses from FIX-ALLOW-DEVENV-MIN-CONTAINERS
-edge: ← satisfies from CAP-DEVENV-PERIPHERALS
 edge: ← satisfies from CAP-DEVENV-LF-ENDINGS
+edge: ← satisfies from CAP-DEVENV-PERIPHERALS.1
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to SC-28.3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -16677,7 +16994,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-DEVENV-DOCKERFILE-ROLES
-STATUS: Active
+STATUS: Draft
 TITLE: Single Dockerfile; one app container with REQALM_ROLES toggles
 STATEMENT: >>>
 One multi-stage Dockerfile builds every image: app (Node 22, the deploy target), peripherals (dev/test only) and app-hsm-test. The app container runs one Node process whose roles are toggled by REQAML_ROLES (api, web, mcp, sync); /ready reports per enabled role, and routes for disabled roles are not mounted. Acceptance: the same image started with REQAML_ROLES=sync serves only probes (readiness lists sync only; /api and /mcp return 404) without a rebuild; with all roles it serves API, web, MCP stub and runs sync.
@@ -16690,8 +17007,33 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: CM-7
 security.verification_note: CM-7 least functionality: disabled roles expose no endpoints. Verified 2026-10-07: docker compose build; REQALM_ROLES=sync run → /ready roles=[sync], /api/v1/seed/summary 404, POST /mcp 404, /health 200. Internal OAuth AS role not built yet (R1), so FIX-ALLOW-APP-ROLE-SPLIT is only partly exercised.
+edge: ← refines from CAP-DEVENV-DOCKERFILE-ROLES.1
 delivered_by_release: PR #12 — devenv foundation
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Child
+  VALUE: RELEASE-rel-pr12-devenv-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-DEVENV-DOCKERFILE-ROLES.1
+STATUS: Active
+TITLE: Single Dockerfile; one app container with REQALM_ROLES toggles
+STATEMENT: >>>
+One multi-stage Dockerfile builds every image: app (Node 22, the deploy target), peripherals (dev/test only) and app-hsm-test. The app container runs one Node process whose roles are toggled by REQAML_ROLES (api, web, mcp, sync); /ready reports per enabled role, and routes for disabled roles are not mounted. Acceptance: the same image started with REQAML_ROLES=sync serves only probes (readiness lists sync only; /api and /mcp return 404) without a rebuild; with all roles it serves API, web, MCP stub and runs sync.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-DEVENV-DOCKERFILE-ROLES
+VERSION_N: 1
+priority: 10
+iteration: iter-r0
+security.catalog_ref: CM-7
+security.verification_note: CM-7 least functionality: disabled roles expose no endpoints. Verified 2026-10-07: docker compose build; REQALM_ROLES=sync run → /ready roles=[sync], /api/v1/seed/summary 404, POST /mcp 404, /health 200. Internal OAuth AS role not built yet (R1), so FIX-ALLOW-APP-ROLE-SPLIT is only partly exercised.
 edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222518 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -16708,13 +17050,16 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CM-7
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-pr12-devenv-foundation
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-DEVENV-DOCKERFILE-ROLES
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: V-222518
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: CAP-DEVENV-PERIPHERALS
-STATUS: Active
+STATUS: Draft
 TITLE: Dev peripherals container: Postgres + OpenBao
 STATEMENT: >>>
 The peripherals Dockerfile target runs Postgres 16 and OpenBao (checksum-verified release binary) in one dev/test container, each with its own named volume (reqaml-pg, reqaml-openbao) plus reqaml-secrets for the generated unseal key and root token. Its healthcheck passes only when Postgres accepts connections and OpenBao is initialized and unsealed. Acceptance: first start initializes both within seconds; restarting the container unseals OpenBao from the stored key and keeps data; production is documented as separate Postgres and OpenBao units.
@@ -16727,8 +17072,33 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: SC-12
 security.verification_note: SC-12 dev key material isolated in its own volume; never committed. Verified 2026-10-07: fresh start healthy; docker compose restart → unsealed and healthy, data kept. Production split (separate units) is a deploy concern not exercised here.
+edge: ← refines from CAP-DEVENV-PERIPHERALS.1
 delivered_by_release: PR #12 — devenv foundation
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Child
+  VALUE: RELEASE-rel-pr12-devenv-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-DEVENV-PERIPHERALS.1
+STATUS: Active
+TITLE: Dev peripherals container: Postgres + OpenBao
+STATEMENT: >>>
+The peripherals Dockerfile target runs Postgres 16 and OpenBao (checksum-verified release binary) in one dev/test container, each with its own named volume (reqaml-pg, reqaml-openbao) plus reqaml-secrets for the generated unseal key and root token. Its healthcheck passes only when Postgres accepts connections and OpenBao is initialized and unsealed. Acceptance: first start initializes both within seconds; restarting the container unseals OpenBao from the stored key and keeps data; production is documented as separate Postgres and OpenBao units.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-DEVENV-PERIPHERALS
+VERSION_N: 1
+priority: 10
+iteration: iter-r0
+security.catalog_ref: SC-12
+security.verification_note: SC-12 dev key material isolated in its own volume; never committed. Verified 2026-10-07: fresh start healthy; docker compose restart → unsealed and healthy, data kept. Production split (separate units) is a deploy concern not exercised here.
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -16742,9 +17112,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SC-12
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-pr12-devenv-foundation
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-DEVENV-PERIPHERALS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SI-7
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: CAP-DEVENV-COMPOSE
@@ -16791,7 +17164,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-DEVENV-STARTUP-BACKOFF
-STATUS: Active
+STATUS: Draft
 TITLE: Startup backoff waiting for Postgres and OpenBao
 STATEMENT: >>>
 Before migrating or serving, the app waits for Postgres and a usable OpenBao with exponential backoff (1 s start, x1.5, capped at 15 s, up to REQAML_STARTUP_MAX_WAIT_MS = 120 s), then fails with a clear timeout. The pg pool survives server-side disconnects (idle-client errors are logged, not fatal). A dev-marked OpenBao in production is not retried; it goes straight to the self-check refusal. Acceptance: `docker compose restart` brings the stack back healthy with zero app container restarts, even while OpenBao is still sealed.
@@ -16804,8 +17177,31 @@ priority: 10
 iteration: iter-r0
 security.catalog_ref: CP-10
 security.verification_note: Recovery without crash-loops. Verified 2026-10-07: docker compose restart → app logged 'waiting for OpenBao: sealed' then healthy, RestartCount 0; unit tests for timeout and the production no-wait path.
+edge: ← refines from CAP-DEVENV-STARTUP-BACKOFF.1
 delivered_by_release: PR #12 — devenv foundation
-edge: → conforms_to to CP-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Child
+  VALUE: RELEASE-rel-pr12-devenv-foundation
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-DEVENV-STARTUP-BACKOFF.1
+STATUS: Active
+TITLE: Startup backoff waiting for Postgres and OpenBao
+STATEMENT: >>>
+Before migrating or serving, the app waits for Postgres and a usable OpenBao with exponential backoff (1 s start, x1.5, capped at 15 s, up to REQAML_STARTUP_MAX_WAIT_MS = 120 s), then fails with a clear timeout. The pg pool survives server-side disconnects (idle-client errors are logged, not fatal). A dev-marked OpenBao in production is not retried; it goes straight to the self-check refusal. Acceptance: `docker compose restart` brings the stack back healthy with zero app container restarts, even while OpenBao is still sealed.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-DEVENV-STARTUP-BACKOFF
+VERSION_N: 1
+priority: 10
+iteration: iter-r0
+security.catalog_ref: CP-10
+security.verification_note: Recovery without crash-loops. Verified 2026-10-07: docker compose restart → app logged 'waiting for OpenBao: sealed' then healthy, RestartCount 0; unit tests for timeout and the production no-wait path.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -16814,11 +17210,8 @@ RELATIONS:
   VALUE: ARCH-DEVENV-HEALTH
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: CP-10
-  ROLE: ConformsTo
-- TYPE: Child
-  VALUE: RELEASE-rel-pr12-devenv-foundation
-  ROLE: Delivers
+  VALUE: CAP-DEVENV-STARTUP-BACKOFF
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: CAP-PROD-SELFCHECK
@@ -17082,7 +17475,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-DEVENV-SEED-RESET
-STATUS: Active
+STATUS: Draft
 TITLE: Dev-only dogfood seed reset (pnpm devenv:seed:reset)
 STATEMENT: >>>
 Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction (any load failure rolls back), preserving identities, grants, local accounts, sessions/MFA, OpenBao keys, and append-only audit_events; identities and grants are only inserted when missing, never rewritten or re-activated. Runs only when the environment positively identifies as local devenv (REQALM_MODE=development, .reqalm/devenv.env present, NODE_ENV not production, and DATABASE_URL resolving to 127.0.0.1 or localhost port 5432 including ?host=/?port= overrides); no environment variable relaxes these checks. Requires explicit --confirm; --dry-run prints the plan read-only. Records one devenv.seed.reset business audit event with wipe/load counts and an unverified CLI actor label, attributed to no ReqALM identity. Idempotent second run yields identical DB contents.
@@ -17095,7 +17488,32 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until seed-reset PR merges and is verified locally.
+edge: ← refines from CAP-DEVENV-SEED-RESET.1
 delivered_by_release: R1 — dev dogfood seed reset (pnpm devenv:seed:reset)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-DEVENV
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-seed-reset
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-DEVENV-SEED-RESET.1
+STATUS: Active
+TITLE: Dev-only dogfood seed reset (pnpm devenv:seed:reset)
+STATEMENT: >>>
+Development-only command `pnpm devenv:seed:reset --confirm` wipes ReqALM project fixture rows (requirement lines/versions, releases and delivers) and reloads them from docs/design/seed/dogfood.yaml in one transaction (any load failure rolls back), preserving identities, grants, local accounts, sessions/MFA, OpenBao keys, and append-only audit_events; identities and grants are only inserted when missing, never rewritten or re-activated. Runs only when the environment positively identifies as local devenv (REQALM_MODE=development, .reqalm/devenv.env present, NODE_ENV not production, and DATABASE_URL resolving to 127.0.0.1 or localhost port 5432 including ?host=/?port= overrides); no environment variable relaxes these checks. Requires explicit --confirm; --dry-run prints the plan read-only. Records one devenv.seed.reset business audit event with wipe/load counts and an unverified CLI actor label, attributed to no ReqALM identity. Idempotent second run yields identical DB contents.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-DEVENV-SEED-RESET
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until seed-reset PR merges and is verified locally.
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -17106,9 +17524,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
   ROLE: Satisfies
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-seed-reset
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-DEVENV-SEED-RESET
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
 
 [[/SECTION]]
 
@@ -17138,9 +17559,9 @@ iteration: iter-r1
 security.catalog_ref: SA-8
 security.verification_note: SA-8 security engineering: security foundations built first.
 edge: ← satisfies from CAP-TEST-PGLITE-DB
-edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE
 edge: ← satisfies from CAP-RENAME-REQALM
 edge: ← refines from ARCH-TEST-HARNESS-TEARDOWN
+edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE.1
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SA-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -17195,7 +17616,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-TEST-PROD-BUILD-EXCLUDE
-STATUS: Active
+STATUS: Draft
 TITLE: Production build excludes test harness modules
 STATEMENT: >>>
 TypeScript production build (`tsconfig.build.json`) excludes `src/test/**` and `src/key/memory-provider.ts`; tests import the in-memory KeyProvider from its own module. Docker `dist/` contains no test harness or fake key files.
@@ -17208,7 +17629,32 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqalm/app 39/39); `pnpm typecheck` pass; `pnpm --filter @reqalm/app build` dist has no `dist/test/**` or `dist/key/memory-provider.js`.
+edge: ← refines from CAP-TEST-PROD-BUILD-EXCLUDE.1
 delivered_by_release: R1 — test/build hygiene (Docker-free test follow-ups)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-BUILD
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-test-hygiene
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-TEST-PROD-BUILD-EXCLUDE.1
+STATUS: Active
+TITLE: Production build excludes test harness modules
+STATEMENT: >>>
+TypeScript production build (`tsconfig.build.json`) excludes `src/test/**` and `src/key/memory-provider.ts`; tests import the in-memory KeyProvider from its own module. Docker `dist/` contains no test harness or fake key files.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-TEST-PROD-BUILD-EXCLUDE
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Verified: 2026-10-07 cloud agent VM (no Docker): `pnpm test` pass (@reqalm/app 39/39); `pnpm typecheck` pass; `pnpm --filter @reqalm/app build` dist has no `dist/test/**` or `dist/key/memory-provider.js`.
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -17219,9 +17665,12 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-BUILD-FOUNDATION
   ROLE: Satisfies
-- TYPE: Child
-  VALUE: RELEASE-rel-r1-test-hygiene
-  ROLE: Delivers
+- TYPE: Parent
+  VALUE: CAP-TEST-PROD-BUILD-EXCLUDE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: CAP-RENAME-REQALM
@@ -17272,5 +17721,73 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-BUILD-FOUNDATION
   ROLE: Refines
+
+[REQUIREMENT]
+UID: ARCH-SUPPLY-VENDORED
+STATUS: Active
+TITLE: Vendored third-party code is inventoried and hash-pinned
+STATEMENT: >>>
+Third-party code committed to the repository (for example apps/reqalm/src/web/public/vendor/qr-min.js) shall be listed in a vendor manifest with package, version, license, source URL, upstream registry integrity and the SHA-256 of the committed bytes. A test in the pnpm test gate shall fail when committed bytes differ from the recorded hash. Vendored browser code shall be served same-origin only.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SUPPLY-VENDORED
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: SI-7
+security.verification_note: Cyber control mapping 2026-10-09; verified by existing vendor hash test on main (apps/reqalm/src/web/mfa-enroll-ui.test.ts asserts qr-min.js SHA-256; vendor/README.md manifest).
+edge: ← satisfies from CAP-MFA-QR
+edge: ← satisfies from CAP-MFA-QR.1
+edge: → conforms_to to SI-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CM-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SR-4 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-BUILD
+- TYPE: Parent
+  VALUE: SI-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CM-8
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SR-4
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-SUPPLY-DEP-SCAN
+STATUS: Draft
+TITLE: Dependency vulnerability scanning gate
+STATEMENT: >>>
+Production dependencies shall be scanned for known vulnerabilities (pnpm audit --prod or equivalent) on every pull request and at least weekly on main. High or critical advisories in production dependencies shall block merge unless a time-limited risk acceptance naming the advisory is recorded; scan results shall be retained with the build.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-SUPPLY-DEP-SCAN
+VERSION_N: 0
+priority: 15
+iteration: iter-r1
+security.catalog_ref: RA-5
+security.verification_note: Proposed by Cyber control mapping 2026-10-09; claim of applicability, unverified.
+edge: ← satisfies from CAP-SVC-STATIC-DEP-PATCH
+edge: ← satisfies from CAP-SVC-STATIC-DEP-PATCH.1
+edge: → conforms_to to RA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222614 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-BUILD
+- TYPE: Parent
+  VALUE: RA-5
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222614
+  ROLE: ConformsTo
 
 [[/SECTION]]

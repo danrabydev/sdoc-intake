@@ -165,7 +165,7 @@ describe("catalogs read API", () => {
   });
 
   it("paging, STIG family, statement, imprint/control 404, full audits", async () => {
-    assert.equal((dataOf(await inject(`${CTRLS("reqalm", CAT, NIST)}?limit=5`)) as { total: number }).total, 49);
+    assert.equal((dataOf(await inject(`${CTRLS("reqalm", CAT, NIST)}?limit=5`)) as { total: number }).total, 61);
     assert.match((await detail("reqalm", "AC-3")).text ?? "", /Enforce approved authorizations/);
     const stig = dataOf(await inject(`${CTRLS("reqalm", STIG_CAT, STIG)}?limit=100`)) as { items: { id: string; family: string }[] };
     const allowed = new Set((await q(`SELECT item_uid FROM catalog_item_labels WHERE catalog_id = '${STIG_CAT}'`)).rows.map((r) => r.item_uid as string));

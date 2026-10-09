@@ -1,0 +1,4034 @@
+meta:
+  repo: danrabydev/sdoc-intake
+  main_sha: 2de51e2c6cacf1826401b820138f0d544b512bae
+  seed: docs/design/seed/dogfood.yaml
+  catalogs:
+    nist-800-53@rev5-dogfood-20261006: catalog/nist-800-53.sdoc (1216 UIDs; enhancements as AC-2.1)
+    asd-stig@v6r4: catalog/asd-stig-v6r4.sdoc (286 rules)
+  note: Claims of applicability only. No verification_outcome changes proposed. Superseded versions delivered by shipped releases keep their historical pins.
+add_links:
+- from_uid: ARCH-OTEL
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-9
+  control_title: AU-9 Protection of Audit Information
+  rationale: 'Statement: "actors cannot alter prior audit rows (AU-9)" - cited in text but never pinned.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r0-sequences
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: ARCH-API
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222606
+  control_title: The application must validate all input.
+  rationale: 'Statement: "HTTP adapters validate DTOs ... Invalid input never reaches domain mutations (SI-10)" = STIG validate-all-input counterpart of the existing
+    SI-10 pin.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r0-sequences
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: ARCH-CP-SCOPE
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222425
+  control_title: The application must enforce approved authorizations for logical access to information and system resources in accordance with applicable access
+    control policies.
+  rationale: 'Statement: data layer enforces mandatory client_id/RLS on every query; "cannot be bypassed by crafting URLs" = enforce approved authorizations for logical
+    access.'
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+- from_uid: ARCH-API-RBAC.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: 'Statement: "Denied calls ... emit an audit event" - names authorization denials as an audited event type.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: ARCH-CHANGESET-RBAC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-6
+  control_title: AC-6 Least Privilege
+  rationale: Statement restricts who may open/close/revert (Developer leaf-only; Reader/AO/Auditor cannot open) = least privilege; catalog_ref already AC-6 but no
+    pin.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: ARCH-AUTH-REVOKE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-12.1
+  control_title: AC-12(1) User-initiated Logouts
+  rationale: 'Statement: "Sign-out (A02) revokes the session''s refresh tokens" = user-initiated logout (pairs existing V-222391).'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-foundation-shell-auth
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: ARCH-SEC-HEADERS
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SC-18
+  control_title: SC-18 Mobile Code
+  rationale: 'Statement: CSP default-src ''self'' (with frame-ancestors none) restricts which script/mobile code the browser will run.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: ARCH-SEC-HEADERS
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222602
+  control_title: The application must protect from Cross-Site Scripting (XSS) vulnerabilities.
+  rationale: 'Statement: CSP default-src ''self'' is the XSS defence-in-depth layer the STIG rule asks for (claim is partial: output encoding lives elsewhere).'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: ARCH-SEC-HEADERS
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222444
+  control_title: The application must not write sensitive data into the application logs.
+  rationale: 'Statement: "Request logs shall record the path only (no query strings with secrets)" = no sensitive data in application logs.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: ARCH-WRITE-UOW-AUDIT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: 'Statement: mutating operations "append audit events atomically with business writes" = audit record generation guaranteed for every mutation.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: ARCH-WRITE-AUDIT-FLOOD
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SC-5
+  control_title: SC-5 Denial-of-service Protection
+  rationale: 'Statement: unauthenticated callers "cannot flood audit storage" = denial-of-service protection on the audit append path.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: ARCH-WRITE-AUDIT-FLOOD
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-4
+  control_title: AU-4 Audit Log Storage Capacity
+  rationale: 'Statement: authentication/rate limit on audit append protects audit log storage capacity from exhaustion.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: ARCH-WRITE-RESERVED-IDS
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SI-10
+  control_title: SI-10 Information Input Validation
+  rationale: 'Statement: minting "shall reject reserved path segments" = input validation of identifiers at the write boundary.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: ARCH-SEC-XPROJ-READ
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: 'Statement: "Creating a cross-project trace link shall require requirement:read on the target project" = access enforcement; catalog_ref AC-3 but no
+    pin.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: ARCH-SEC-XPROJ-READ
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SI-11
+  control_title: SI-11 Error Handling
+  rationale: 'Statement: "Conflict and dedupe errors shall not reveal edges the caller cannot read" = non-revealing error handling.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: CAP-SCOPED-VIEW.1
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222425
+  control_title: The application must enforce approved authorizations for logical access to information and system resources in accordance with applicable access
+    control policies.
+  rationale: 'Statement: "grant-scoped browse APIs enforce project/client visibility"; replaces mis-mapped V-222429/V-222550 (see moves/removes). Capability has its
+    own verification_outcome (pending).'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: CAP-UI-FRAME.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SC-23
+  control_title: SC-23 Session Authenticity
+  rationale: 'Statement: route guards via "BFF session cookies and CSRF on cookie mutations" = session authenticity; vo=pass makes this the verification point.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: CAP-UI-FRAME.1
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222603
+  control_title: The application must protect from Cross-Site Request Forgery (CSRF) vulnerabilities.
+  rationale: 'Statement: "CSRF on cookie mutations" = CSRF protection.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: CAP-AUTH-HARDEN
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222603
+  control_title: The application must protect from Cross-Site Request Forgery (CSRF) vulnerabilities.
+  rationale: 'Statement: "CSRF required on every cookie-authenticated mutation"; vo=pass verification point (existing SC-23 pin is the NIST side).'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-foundation-shell-auth
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-MFA-ENROLL
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: IA-2.8
+  control_title: IA-2(8) Access to Accounts — Replay Resistant
+  rationale: 'Statement: "a code is accepted once (replay of the matched time step is rejected)" = replay-resistant authentication.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-foundation-shell-auth
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-MFA-QR
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SC-18
+  control_title: SC-18 Mobile Code
+  rationale: 'Statement: QR rendered locally, "no external QR service or network fetch", "CSP-safe (same-origin module, DOM-built SVG, no inline handlers)" = controlled
+    mobile code.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-mfa-qr
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-MFA-QR
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: IA-5
+  control_title: IA-5 Authenticator Management
+  rationale: 'Statement: enrollment responses "Cache-Control: no-store" and "QR markup is removed from the DOM after successful enrollment" = protecting authenticator
+    (TOTP seed) content.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-mfa-qr
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-AGENT-ACCESS
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-6
+  control_title: AC-6 Least Privilege
+  rationale: 'Statement: each agent token "carries one role (default Reader), roles above Author or not granted are refused" = least privilege for agent principals.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-foundation-shell-auth
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-OPERATION-ROUTE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: 'Statement: every /api/ business route runs "authenticate, project scope, permission" before execute; single enforcement pipeline, vo=pass.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-route-helper
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-OPERATION-ROUTE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SI-10
+  control_title: SI-10 Information Input Validation
+  rationale: 'Statement: "parseInput validates params/query/body once (Zod)" before execute.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-route-helper
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-OPERATION-ROUTE
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222606
+  control_title: The application must validate all input.
+  rationale: STIG counterpart of SI-10 for the same parseInput text.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-route-helper
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-OPERATION-ROUTE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SI-11
+  control_title: SI-11 Error Handling
+  rationale: 'Statement: unparsable id "is not_found, identical to a missing or ungranted project"; validation failures only reach authorized callers; "unexpected
+    throws are a 500 without the error message".'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-route-helper
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-OPERATION-ROUTE
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222610
+  control_title: The application must generate error messages that provide information necessary for corrective actions without revealing information that could be
+    exploited by adversaries.
+  rationale: STIG counterpart of SI-11 for the same non-revealing error text.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-route-helper
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-OPERATION-ROUTE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: 'Statement: pipeline step "append-only audit_events" runs for every operation route.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-route-helper
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-PROJECT-ID-SLUG
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SI-10
+  control_title: SI-10 Information Input Validation
+  rationale: 'Statement: ":projectId ... must match ^[a-z0-9][a-z0-9-]{0,63}$ before it becomes project scope" = path-param allowlist; specific to this capability.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-route-hardening
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-ROUTE-REGISTRY
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-14
+  control_title: AC-14 Permitted Actions Without Identification or Authentication
+  rationale: 'Statement: every /api /oauth /mcp /health /ready route "declares public, authenticated, or permission; test enforces" = explicit inventory of actions
+    permitted without authentication.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-service-foundation
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-AUDIT-APPEND
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-9
+  control_title: AU-9 Protection of Audit Information
+  rationale: Capability is the "Append-only business audit_events table" (migration 006 + writeBusinessAudit) = audit information protected from modification/deletion.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-service-foundation
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-STRUCTURED-LOG
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222444
+  control_title: The application must not write sensitive data into the application logs.
+  rationale: 'Statement: "redactForLog; secrets/tokens/password keys redacted in log payloads".'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-service-foundation
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-OTEL-SPAN-SAFE-ERRORS
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SI-11
+  control_title: SI-11 Error Handling
+  rationale: 'Statement: exported spans carry only "operation failed" and exception.type; "Raw exception and database text stays in the server log only".'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-route-hardening
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-STATIC-DEP-PATCH
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SI-2
+  control_title: SI-2 Flaw Remediation
+  rationale: 'Statement: dependency bumped so named GHSA advisories "are gone from pnpm audit --prod" = flaw remediation.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-route-hardening
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-SVC-STATIC-DEP-PATCH
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222614
+  control_title: Security-relevant software updates and patches must be kept up to date.
+  rationale: 'Same text: security-relevant dependency update applied.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-route-hardening
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-DEVENV-PERIPHERALS
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SI-7
+  control_title: SI-7 Software, Firmware, and Information Integrity
+  rationale: 'Statement: OpenBao is a "checksum-verified release binary" = software integrity verification.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-pr12-devenv-foundation
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-TEST-PNPM-GATE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SA-11
+  control_title: SA-11 Developer Testing and Evaluation
+  rationale: 'Statement: root `pnpm test` (unit + in-process auth harness) is run "before push" = developer testing gate.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-test-harness
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-TEST-AUTH-ROUTES
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SA-11
+  control_title: SA-11 Developer Testing and Evaluation
+  rationale: 'Statement: Fastify inject exercises OAuth authorize/token, local login, CSRF, client_credentials = developer security testing.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-test-harness
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-TEST-AUTH-HYGIENE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SA-11
+  control_title: SA-11 Developer Testing and Evaluation
+  rationale: 'Statement: regression beds for lockout windows, audience accept/reject, token revocation = developer security testing.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-test-hygiene
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-TEST-PROD-BUILD-EXCLUDE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: CM-7
+  control_title: CM-7 Least Functionality
+  rationale: 'Statement: production build "excludes src/test/** and src/key/memory-provider.ts"; dist has "no test harness or fake key files" = least functionality.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-test-hygiene
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-DEVENV-DOCKERFILE-ROLES
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222518
+  control_title: The application must be configured to disable non-essential capabilities.
+  rationale: 'Statement: "routes for disabled roles are not mounted"; verified (REQALM_ROLES=sync -> /api and /mcp 404).'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-pr12-devenv-foundation
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: ARCH-AUTH-LOCAL.1
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222518
+  control_title: The application must be configured to disable non-essential capabilities.
+  rationale: 'Statement: with local_accounts=disabled "the local login route and form are absent".'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-foundation-shell-auth
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: ARCH-AUTH-CLIENTREG
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222518
+  control_title: The application must be configured to disable non-essential capabilities.
+  rationale: 'Statement: CIMD and DCR "ship disabled by default ... registration_endpoint is omitted ... requests are refused".'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-foundation-shell-auth
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid: CAP-RELATIONS-API
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: 'Statement: "cross-project and unreadable catalog peers return a non-revealing restricted stub" = cross-project access enforcement specific to this API.'
+  from_status: draft
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid: CAP-AUDIT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-9
+  control_title: AU-9 Protection of Audit Information
+  rationale: 'Statement: audit reads limited to Auditor audit:client:read within granted clients, cross-client denied, Ops configures sinks "without granting domain
+    write" = access protection of audit information.'
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+- from_uid: CAP-DEVENV-SEED-RESET
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: CM-7
+  control_title: CM-7 Least Functionality
+  rationale: 'Statement: destructive reset "Runs only when the environment positively identifies as local devenv ... no environment variable relaxes these checks".'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-seed-reset
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+move_links:
+- from_uid_old: ARCH-DEVENV-IDENTITY
+  control_old: V-222518
+  from_uid_new: ARCH-DEVENV-IDENTITY.1
+  control_new: V-222518
+  reason: 'v0 is superseded and unlocked (no release/contract). .1 still covers the rule subject: "Seeded dev accounts and the dev seed loader are dev-only ... the
+    seed loader refuses to create accounts in production mode". Pin was dropped at the .1 mint.'
+  old_status: superseded
+  old_locked: false
+  new_locked: true
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid_old: FIX-DENY-DEVENV-PROD-LOGIN
+  control_old: V-222518
+  from_uid_new: FIX-DENY-DEVENV-PROD-LOGIN.1
+  control_new: V-222518
+  reason: v0 superseded/unlocked; .1 (b) "running the dev seed loader in production mode -> refused" still tests a disabled non-essential capability.
+  old_status: superseded
+  old_locked: false
+  new_locked: false
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid_old: CAP-MFA-ENROLL
+  control_old: IA-2
+  from_uid_new: CAP-MFA-ENROLL
+  control_new: IA-2.1
+  reason: Statement is specifically "Privileged roles require MFA in all modes"; IA-2(1) is the precise control. Base IA-2 is carried by ARCH-AUTH-AS / CAP-OAUTH-AS.
+  old_status: active
+  old_locked: true
+  new_locked: true
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+- from_uid_old: CAP-SCOPED-VIEW.1
+  control_old: V-222429
+  from_uid_new: CAP-SCOPED-VIEW.1
+  control_new: V-222425
+  reason: V-222429 is "prevent non-privileged users from executing privileged functions"; .1 statement is about client/project visibility, which is V-222425 (logical
+    access authorization). Leave v0 (shipped in R0) untouched.
+  old_status: active
+  old_locked: false
+  new_locked: false
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid_old: CAP-SSO.1
+  control_old: IA-2
+  from_uid_new: CAP-SSO.1
+  control_new: (inherit via new satisfies -> ARCH-AUTH-FEDERATION)
+  reason: .1 is an unverified R0 design pack ("do not mark pass until ARCH-AUTH-FEDERATION delivers") and names ARCH-AUTH-FEDERATION, which already pins IA-2/IA-8.
+    Add trace edge CAP-SSO.1 satisfies ARCH-AUTH-FEDERATION, then drop the direct IA-2. Do only after the edge exists.
+  old_status: active
+  old_locked: false
+  new_locked: false
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid_old: ARCH-CHANGESET-RETAIN
+  control_old: AU-2/AU-3/AU-12
+  from_uid_new: ARCH-CHANGESET-RETAIN
+  control_new: AU-11
+  reason: Statement is about retention ("retained forever for audit - no TTL deletion"), i.e. AU-11, not event selection/content/generation. Keep AC-3 ("Authorized
+    roles (M07) may revert").
+  old_status: active
+  old_locked: false
+  new_locked: false
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+- from_uid_old: ARCH-GATE-SIGNOFF
+  control_old: AU-2/AU-3/AU-12
+  from_uid_new: ARCH-GATE-SIGNOFF
+  control_new: AU-10
+  reason: gate_signoff stores identity_id, decision, at for cyber ship / locked migrate = binding an approver to a decision (non-repudiation). It is a domain record,
+    not the audit log. Judgment call.
+  old_status: active
+  old_locked: true
+  new_locked: true
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+- from_uid_old: CAP-AUDIT
+  control_old: AU-2/AU-3/AU-12
+  from_uid_new: (inherit from ARCH-OTEL)
+  control_new: '-'
+  reason: CAP-AUDIT satisfies ARCH-OTEL which pins AU-2/AU-3/AU-12/AU-6; CAP-AUDIT is a read/export pack (no own verification outcome). Replace duplicates with the
+    specific AU-9 add.
+  old_status: active
+  old_locked: true
+  new_locked: null
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+remove_links:
+- from_uid: ARCH-CP-HIER
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r0-sequences
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CP-HIER
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r0-sequences
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CP-HIER
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r0-sequences
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VER
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r0-sequences
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VER
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r0-sequences
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VER
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r0-sequences
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VER-SUCC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VER-SUCC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VER-SUCC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CONTRACT.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CONTRACT.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CONTRACT.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CONTRACT-DOC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CONTRACT-DOC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CONTRACT-DOC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-RELEASE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-RELEASE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-RELEASE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: CAP-SSO.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: CAP-SSO.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: CAP-SSO.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: CAP-RBAC.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: CAP-RBAC.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: CAP-RBAC.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: CAP-MCP-DESK
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: draft
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: CAP-MCP-DESK
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: draft
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: CAP-MCP-DESK
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: draft
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: CAP-CONTRACT-UI
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: CAP-CONTRACT-UI
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: CAP-CONTRACT-UI
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: CAP-VERSION-UI
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: CAP-VERSION-UI
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: CAP-VERSION-UI
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVAL
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVAL
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVAL
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVAL-VIEW
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVAL-VIEW
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVAL-VIEW
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CHANGESET-RBAC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CHANGESET-RBAC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CHANGESET-RBAC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-LOCKED
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-LOCKED
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-LOCKED
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CYBER-GATE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CYBER-GATE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CYBER-GATE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VERIFICATION
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VERIFICATION
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VERIFICATION
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-WORKFLOW
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-WORKFLOW
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-WORKFLOW
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-SUBJECT-KIND
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-SUBJECT-KIND
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-SUBJECT-KIND
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-REQ-VS-CAP
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-REQ-VS-CAP
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-REQ-VS-CAP
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVAL-LINE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVAL-LINE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVAL-LINE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-SUCCESSION-HASH
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-SUCCESSION-HASH
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-SUCCESSION-HASH
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-PLANNING-GATES
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-PLANNING-GATES
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-PLANNING-GATES
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVER-SLOTS
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVER-SLOTS
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-APPROVER-SLOTS
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CAP-LINK
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CAP-LINK
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CAP-LINK
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CAP-APPROVE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CAP-APPROVE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CAP-APPROVE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-GATE-MODEL
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-GATE-MODEL
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-GATE-MODEL
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VERIFICATION-GATE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VERIFICATION-GATE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VERIFICATION-GATE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CHANGESET-CONFLICT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CHANGESET-CONFLICT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CHANGESET-CONFLICT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: WANT-CHANGESET-FIELD-UNDO
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: WANT-CHANGESET-FIELD-UNDO
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: WANT-CHANGESET-FIELD-UNDO
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-WF-ADMIN
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-WF-ADMIN
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-WF-ADMIN
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-BACKLOG
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-BACKLOG
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-BACKLOG
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-GANTT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-GANTT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-GANTT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: UI-APPROVE-LINE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: UI-APPROVE-LINE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: UI-APPROVE-LINE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: UI-APPROVE-TREE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: UI-APPROVE-TREE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: UI-APPROVE-TREE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-MINT-KIND
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-MINT-KIND
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-MINT-KIND
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-SUSPECT.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-SUSPECT.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-SUSPECT.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Boilerplate from promote_security_conforms_to.py expanding the note "AU-2/3/12 where mutating"; statement defines no audit event, content, or generation.
+    Audit for these mutations is carried by ARCH-OTEL / ARCH-CHANGESET / ARCH-HOOK-EVAL / ARCH-WRITE-UOW-AUDIT.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CAT-IMPORT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: Import diff/classification; no audit event defined in statement (migrate audit is on ARCH-CAT-MIGRATE).
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CAT-DRIFT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-2
+  control_title: AU-2 Event Logging
+  rationale: catalog_drift is a review flag on versions, not an audit record.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CAT-DRIFT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-3
+  control_title: AU-3 Content of Audit Records
+  rationale: 'Same: drift fields are not audit record content.'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-CAT-FREEZE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AU-12
+  control_title: AU-12 Audit Record Generation
+  rationale: Retaining historical pins on frozen versions is not audit record generation.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: A-audit-boilerplate
+- from_uid: ARCH-VER
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r0-sequences
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-VER-SUCC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-CONTRACT.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-CONTRACT-DOC
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-RELEASE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-CAT-IMPRINT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-CAT-PIN
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: CAP-SSO.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-CHANGESET
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-LOCKED
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-WORKFLOW
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-SUBJECT-KIND
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-REQ-VS-CAP
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-APPROVAL-LINE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-SUCCESSION-HASH
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-PLANNING-GATES
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-CAP-LINK
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-CAP-APPROVE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-GATE-MODEL
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-VERIFICATION-GATE
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-CHANGESET-CONFLICT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: WANT-CHANGESET-FIELD-UNDO
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-BACKLOG
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-GANTT
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-MINT-KIND
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-SUSPECT.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-3
+  control_title: AC-3 Access Enforcement
+  rationale: Boilerplate "AC-3 access enforcement" note; statement is a data-model / workflow rule with no subject, permission, or deny decision. Access enforcement
+    for these operations is pinned on ARCH-API-RBAC.1, ARCH-HOOK-EVAL, ARCH-CP-SCOPE.
+  from_status: active
+  locked: true
+  shipped_in: []
+  apply: 'locked (planned release delivers / contract in_scope): pin-kind successor .N per ARCH-CAT-MIGRATE(2), or apply in place as pre-ship seed grooming if Security
+    accepts'
+  group: B-ac3-boilerplate
+- from_uid: ARCH-CAT-PIN
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: CM-5
+  control_title: CM-5 Access Restrictions for Change
+  rationale: Statement only defines pin shape (imprint_id, item_uid); no change-access restriction.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: B-ac3-boilerplate
+- from_uid: CAP-SCOPED-VIEW.1
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222550
+  control_title: The application, when utilizing PKI-based authentication, must validate certificates by constructing a certification path (which includes status
+    information) to an accepted trust anchor.
+  rationale: 'V-222550 is PKI certificate-path validation; nothing in the statement involves PKI. Origin: verification_note typo carried from v0. (Also on A02/A03/v0
+    - out of scope here; see side findings.)'
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: C-mismap
+- from_uid: ARCH-API-RBAC.1
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: AC-2
+  control_title: AC-2 Account Management
+  rationale: AC-2 is account management; statement only checks project_grant before writes (AC-3/AC-6). Came from REQALM-SEC-RBAC alias. AC-2 stays on ARCH-AUTH-LOCAL.1
+    / ARCH-AUTH-CLAIM-MAP where accounts are managed.
+  from_status: active
+  locked: false
+  shipped_in: []
+  apply: 'unlocked: apply in place (conformance_pin_request -> Security apply)'
+  group: C-mismap
+- from_uid: ARCH-AUTH-METADATA
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SC-23
+  control_title: SC-23 Session Authenticity
+  rationale: Own verification_note says "Interop requirement; no direct NIST pin"; RFC 8414/9728 discovery does not protect session authenticity. SC-23 is on ARCH-AUTH-AS/AUDIENCE/REFRESH.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-foundation-shell-auth
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: C-mismap
+- from_uid: ARCH-OTEL
+  catalog_id: cat-stig-asd-v6r4
+  catalog_imprint_id: asd-stig@v6r4
+  control: V-222578
+  control_title: The application must destroy the session ID value and/or cookie on logoff or browser close.
+  rationale: Session-ID destruction is implemented and pinned at ARCH-AUTH-REVOKE (and ARCH-CRED-SESSION covers teardown); misplaced in the audit requirement.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r0-sequences
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: C-mismap
+- from_uid: CAP-HEALTH-LIVENESS
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SI-4
+  control_title: SI-4 System Monitoring
+  rationale: Liveness probe is availability plumbing, not security monitoring; an assessor would not accept it as SI-4 evidence.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-pr12-devenv-foundation
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: C-mismap
+- from_uid: CAP-READY-PROBES
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: SI-4
+  control_title: SI-4 System Monitoring
+  rationale: Readiness probes are not security monitoring; the security-relevant part (OpenBao sealed -> 503) is covered via satisfies ARCH-KEY-FAILCLOSED (SC-24).
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-pr12-devenv-foundation
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: C-mismap
+- from_uid: CAP-DEVENV-STARTUP-BACKOFF
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: CP-10
+  control_title: CP-10 System Recovery and Reconstitution
+  rationale: Startup retry/backoff is not system recovery and reconstitution.
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-pr12-devenv-foundation
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: C-mismap
+- from_uid: CAP-AUTH-UPSTREAM-SEAM
+  catalog_id: cat-nist-global
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  control: IA-8
+  control_title: IA-8 Identification and Authentication (Non-organizational Users)
+  rationale: 'Statement: "Upstream federation is not fully implemented ... OIDC/SAML RP implementations ... deferred". A direct IA-8 pin on a vo=pass stub overstates
+    federation; inherit IA-8 from ARCH-AUTH-UPSTREAM-CONNECTOR instead.'
+  from_status: active
+  locked: true
+  shipped_in:
+  - rel-r1-foundation-shell-auth
+  apply: 'shipped+locked: do not rewrite frozen version; apply via pin-kind successor .N (ARCH-MINT-KIND/ARCH-CAT-REACT) or defer to next content successor'
+  group: C-mismap
+new_requirements:
+- base_uid: ARCH-WRITE-DB-RUNTIME-ROLE
+  uid: ARCH-WRITE-DB-RUNTIME-ROLE
+  version_n: 0
+  parent: SEC-API
+  kind: requirement
+  title: Runtime DB role is least-privilege non-owner
+  status: draft
+  statement: The running application shall connect to Postgres as a dedicated runtime login role that owns no schema objects and holds only the table privileges the
+    application needs (SELECT/INSERT/UPDATE/DELETE per table; INSERT and SELECT only on append-only audit tables). The runtime role shall not execute DDL (CREATE,
+    ALTER, DROP), TRUNCATE, or GRANT, and shall be NOSUPERUSER, NOCREATEDB, NOCREATEROLE and NOBYPASSRLS so row-level security on tenant tables cannot be bypassed.
+    Schema migrations shall run as a separate owner role whose credentials are not available to the running application process. In production the app shall refuse
+    to start if its runtime role owns tables, can bypass RLS, or holds DDL or TRUNCATE privilege.
+  security:
+    catalog_ref: AC-6
+    verification_note: Proposed by Cyber control mapping 2026-10-09; claim of applicability, unverified.
+  conforms_to:
+  - control: AC-6
+    catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+    control_title: AC-6 Least Privilege
+    rationale: Runtime role limited to required DML; no DDL/TRUNCATE/GRANT; migrations use a separate owner role.
+  - control: CM-5.5
+    catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+    control_title: CM-5(5) Privilege Limitation for Production and Operation
+    rationale: Privilege to change the production schema is held only by the migration owner role, not the operational runtime.
+  - control: AU-9
+    catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+    control_title: AU-9 Protection of Audit Information
+    rationale: Runtime role has INSERT/SELECT only on append-only audit tables, so a compromised app credential cannot modify or delete audit records.
+  - control: V-222430
+    catalog_imprint_id: asd-stig@v6r4
+    control_title: The application must execute without excessive account permissions.
+    rationale: '"The application must execute without excessive account permissions" - direct match for the runtime DB role.'
+  trace_edges:
+  - from_uid: ARCH-WRITE-DB-RUNTIME-ROLE
+    kind: refines
+    to: ARCH-CP-SCOPE
+    why: RLS non-bypass is the enforcement half of the mandatory client_id/RLS requirement.
+  - from_uid: ARCH-WRITE-TRUNCATE-GUARD
+    kind: refines
+    to: ARCH-WRITE-DB-RUNTIME-ROLE
+    why: TRUNCATE guard is defence-in-depth under the runtime-role requirement (retarget its current refines ARCH-CP-SCOPE edge here, or keep both).
+  notes: 'TRUNCATE-GUARD (unshipped, unlocked) already says "runtime application DB role shall not be table owner"; that clause now duplicates this requirement. Optional:
+    content-mint ARCH-WRITE-TRUNCATE-GUARD.1 limited to the trigger guard, and change its catalog_ref CM-6 -> AC-6. Suggested test bed: FIX-DENY-RUNTIME-ROLE-DDL
+    (runtime role: TRUNCATE/ALTER/SET row_security=off all fail; migration role succeeds).'
+- base_uid: ARCH-SEC-TLS
+  uid: ARCH-SEC-TLS
+  version_n: 0
+  parent: SEC-SEC
+  kind: requirement
+  title: TLS for all non-loopback traffic
+  status: draft
+  statement: Before any non-127.0.0.1 deployment, the Web UI, API, OAuth AS and MCP endpoints shall be reachable only over TLS 1.2 or later (TLS 1.3 preferred); plaintext
+    HTTP shall be refused or redirected without serving content, and responses shall send Strict-Transport-Security. In production the app shall refuse to start when
+    its issuer or public base URL is not https. Connections from the app to Postgres and OpenBao that leave a single host shall use TLS with server certificate verification.
+  security:
+    catalog_ref: SC-8
+    verification_note: Proposed by Cyber control mapping 2026-10-09; claim of applicability, unverified.
+  conforms_to:
+  - control: SC-8
+    catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+    control_title: SC-8 Transmission Confidentiality and Integrity
+    rationale: Confidentiality and integrity of all transmitted information for UI, API, AS and MCP.
+  - control: SC-8.1
+    catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+    control_title: SC-8(1) Cryptographic Protection
+    rationale: Protection is cryptographic (TLS), including app-to-database and app-to-KeyProvider links off-host.
+  - control: V-222596
+    catalog_imprint_id: asd-stig@v6r4
+    control_title: The application must protect the confidentiality and integrity of transmitted information.
+    rationale: '"The application must protect the confidentiality and integrity of transmitted information."'
+  trace_edges:
+  - from_uid: ARCH-SEC-TLS
+    kind: refines
+    to: ARCH-SEC-HEADERS
+    why: Same "before any non-127.0.0.1 deployment" gate; HSTS sits with the other headers.
+  notes: 'Checked first: no ARCH/CAP requirement states TLS for the product as a whole. Only ARCH-CRED-HASH ("passwords travel only over TLS"), SEC-MCP/MC02/CAP-MCP-DESK
+    ("mutate via HTTPS") and A01 (SC-8 pin with no TLS text) touch it. ARCH-CRED-SESSION requires Secure cookies, which presumes HTTPS.'
+- base_uid: ARCH-SUPPLY-VENDORED
+  uid: ARCH-SUPPLY-VENDORED
+  version_n: 0
+  parent: SEC-BUILD
+  kind: requirement
+  title: Vendored third-party code is inventoried and hash-pinned
+  status: draft
+  statement: Third-party code committed to the repository (for example apps/reqalm/src/web/public/vendor/qr-min.js) shall be listed in a vendor manifest with package,
+    version, license, source URL, upstream registry integrity and the SHA-256 of the committed bytes. A test in the pnpm test gate shall fail when committed bytes
+    differ from the recorded hash. Vendored browser code shall be served same-origin only.
+  security:
+    catalog_ref: SI-7
+    verification_note: Proposed by Cyber control mapping 2026-10-09; claim of applicability, unverified.
+  conforms_to:
+  - control: SI-7
+    catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+    control_title: SI-7 Software, Firmware, and Information Integrity
+    rationale: Test-enforced SHA-256 pin detects unauthorized changes to vendored code.
+  - control: CM-8
+    catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+    control_title: CM-8 System Component Inventory
+    rationale: Vendor manifest is the component inventory for code not tracked by the lockfile.
+  - control: SR-4
+    catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+    control_title: SR-4 Provenance
+    rationale: Manifest records origin (source URL, tag, registry integrity) of each vendored component.
+  trace_edges:
+  - from_uid: CAP-MFA-QR
+    kind: satisfies
+    to: ARCH-SUPPLY-VENDORED
+    why: qr-min is the vendored component; README.md manifest and the sha256 test in mfa-enroll-ui.test.ts already exist on main.
+  notes: Practice already exists on main (apps/reqalm/src/web/public/vendor/README.md records npm integrity + SHA-256; mfa-enroll-ui.test.ts asserts the hash), but
+    no requirement states it, so SI-7/CM-8 cannot be pinned to a statement today. Do not mark pass on the new requirement until a Tester records it, though evidence
+    exists.
+- base_uid: ARCH-SUPPLY-DEP-SCAN
+  uid: ARCH-SUPPLY-DEP-SCAN
+  version_n: 0
+  parent: SEC-BUILD
+  kind: requirement
+  title: Dependency vulnerability scanning gate
+  status: draft
+  statement: Production dependencies shall be scanned for known vulnerabilities (pnpm audit --prod or equivalent) on every pull request and at least weekly on main.
+    High or critical advisories in production dependencies shall block merge unless a time-limited risk acceptance naming the advisory is recorded; scan results shall
+    be retained with the build.
+  security:
+    catalog_ref: RA-5
+    verification_note: Proposed by Cyber control mapping 2026-10-09; claim of applicability, unverified.
+  conforms_to:
+  - control: RA-5
+    catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+    control_title: RA-5 Vulnerability Monitoring and Scanning
+    rationale: Recurring automated vulnerability scanning of components.
+  - control: SI-2
+    catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+    control_title: SI-2 Flaw Remediation
+    rationale: Findings drive flaw remediation with a blocking threshold.
+  - control: V-222614
+    catalog_imprint_id: asd-stig@v6r4
+    control_title: Security-relevant software updates and patches must be kept up to date.
+    rationale: '"Security-relevant software updates and patches must be kept up to date."'
+  trace_edges:
+  - from_uid: CAP-SVC-STATIC-DEP-PATCH
+    kind: satisfies
+    to: ARCH-SUPPLY-DEP-SCAN
+    why: One-off remediation driven by pnpm audit --prod findings.
+  notes: CAP-SVC-STATIC-DEP-PATCH is a one-time patch; nothing in the seed requires ongoing scanning. Lower priority than the DB-role and TLS requirements.
+checked_existing:
+  security headers / CSP before non-localhost release: ARCH-SEC-HEADERS (present; add SC-18/V-222602 pins)
+  request-log query trimming: ARCH-SEC-HEADERS sentence 2 (present; add V-222444)
+  reserved id rejection at mint: ARCH-WRITE-RESERVED-IDS (present; add SI-10)
+  cross-project link authz: ARCH-SEC-XPROJ-READ (present; add AC-3, SI-11)
+  mutation tests (SA-11): Not in seed and no Stryker/mutation tooling on main - not proposed (would be a new practice, not missing traceability).
+trace_edge_recommendations:
+- from_uid: CAP-SSO.1
+  kind: satisfies
+  to: ARCH-AUTH-FEDERATION
+  why: Enables IA-2/IA-8 inheritance (see move).
+- from_uid: CAP-SVC-AUDIT-APPEND
+  kind: satisfies
+  to: ARCH-WRITE-UOW-AUDIT
+  why: Capability has no outgoing edges (violates ARCH-CAP-LINK "no orphan caps"); inherits AU-12 via this edge.
+- from_uid: CAP-SVC-STRUCTURED-LOG
+  kind: satisfies
+  to: ARCH-CRED-AUDIT
+  why: Orphan capability; redaction implements "Secrets, tokens, and password material never appear in audit payloads".
+- from_uid: (13 caps)
+  kind: satisfies
+  to: ARCH-API-RBAC -> ARCH-API-RBAC.1
+  why: CAP-SVC-REQUEST-CONTEXT/-OPERATION-EXECUTOR/-ROUTE-REGISTRY/-PROJECT-READ/-OPERATION-ROUTE/-BUSINESS-ROUTE-AUDIT/-PROJECT-ID-SLUG/-IMPLICIT-PUBLIC-EXACT/-NON-API-AUTH-AUDIT,
+    CAP-READ-REQS/-RELEASES/-HIERARCHY, CAP-RELATIONS-API still satisfy superseded v0 (trace_suspect=true). Carry-forward to .1 so AC-3/AC-6/V-222429 inheritance
+    resolves to the active tip. Same for satisfies CAP-RBAC -> CAP-RBAC.1.
+- from_uid: ARCH-WRITE-DB-RUNTIME-ROLE
+  kind: refines
+  to: ARCH-CP-SCOPE
+  why: RLS non-bypass is the enforcement half of the mandatory client_id/RLS requirement.
+- from_uid: ARCH-WRITE-TRUNCATE-GUARD
+  kind: refines
+  to: ARCH-WRITE-DB-RUNTIME-ROLE
+  why: TRUNCATE guard is defence-in-depth under the runtime-role requirement (retarget its current refines ARCH-CP-SCOPE edge here, or keep both).
+- from_uid: ARCH-SEC-TLS
+  kind: refines
+  to: ARCH-SEC-HEADERS
+  why: Same "before any non-127.0.0.1 deployment" gate; HSTS sits with the other headers.
+- from_uid: CAP-MFA-QR
+  kind: satisfies
+  to: ARCH-SUPPLY-VENDORED
+  why: qr-min is the vendored component; README.md manifest and the sha256 test in mfa-enroll-ui.test.ts already exist on main.
+- from_uid: CAP-SVC-STATIC-DEP-PATCH
+  kind: satisfies
+  to: ARCH-SUPPLY-DEP-SCAN
+  why: One-off remediation driven by pnpm audit --prod findings.
+inherit_table:
+- capability: CAP-SSO.1
+  status: active
+  verification_outcome: null
+  parents:
+  - A01
+  - A02
+  - ARCH-AUTH-FEDERATION
+  direct_after: []
+  inherited:
+  - AC-12
+  - AC-3
+  - AU-12
+  - AU-2
+  - AU-3
+  - IA-2
+  - IA-8
+  - SC-8
+  - V-222391
+  - V-222400
+  - V-222401
+  - V-222403
+  - V-222404
+  - V-222522
+  - V-222536
+  - V-222550
+  - V-222578
+  decision: inherit
+  reason: 'inherit: unverified R0 design pack; inherit IA-2/IA-8 from ARCH-AUTH-FEDERATION once satisfies edge added.'
+- capability: CAP-SCOPED-VIEW.1
+  status: active
+  verification_outcome: pending
+  parents:
+  - A03
+  - A04
+  direct_after:
+  - AC-3
+  - V-222425
+  inherited:
+  - AC-12
+  - AC-6
+  - V-222389
+  - V-222429
+  - V-222550
+  - V-222578
+  decision: direct
+  reason: 'direct: own verification_outcome=pending; scope enforcement is its subject.'
+- capability: CAP-RBAC.1
+  status: active
+  verification_outcome: pass
+  parents:
+  - A05
+  - A06
+  - A07
+  - A08
+  - A09
+  - A10
+  - A11
+  - ARCH-API-RBAC.1
+  direct_after:
+  - AC-3
+  inherited:
+  - AC-2
+  - AC-6
+  - AU-12
+  - AU-2
+  - AU-3
+  - CM-5
+  - IA-2
+  - V-222407
+  - V-222429
+  - V-222430
+  - V-222467
+  - V-222542
+  decision: direct (dup of inherited)
+  reason: 'direct: own verification_outcome=pass (auth-flow-smoke RBAC deny bed); AC-3 kept, AU triplet dropped (not in .1 text).'
+- capability: CAP-MCP-DESK
+  status: draft
+  verification_outcome: null
+  parents:
+  - MC01.1
+  - MC02
+  - MC03
+  direct_after:
+  - AC-3
+  inherited:
+  - AC-2
+  - AC-6
+  - CM-3
+  - SC-13
+  - SC-8
+  - V-222396
+  - V-222429
+  - V-222567
+  decision: direct (dup of inherited)
+  reason: 'direct AC-3 (statement: same RBAC pack); SC-8/V-222567 inherited from MC01.1/MC03.'
+- capability: CAP-TREE
+  status: active
+  verification_outcome: null
+  parents:
+  - C01
+  - C06
+  - C08
+  direct_after:
+  - AC-3
+  - AU-12
+  - AU-2
+  - AU-3
+  inherited: []
+  decision: direct (dup of inherited)
+  reason: 'direct (unverified, vo=None): kept existing AC-3 + AU triplet because its statement itself requires Reader limits and per-mutation actor/base_uid audit.'
+- capability: CAP-CONTRACT-UI
+  status: active
+  verification_outcome: null
+  parents:
+  - F01
+  - F07
+  - F10
+  direct_after:
+  - AC-3
+  inherited:
+  - AU-12
+  - AU-2
+  - AU-3
+  decision: direct (dup of inherited)
+  reason: 'direct AC-3 (statement: Readers read-only); AU triplet dropped.'
+- capability: CAP-VERSION-UI
+  status: active
+  verification_outcome: null
+  parents:
+  - D02
+  - D06
+  - D07
+  direct_after:
+  - AC-3
+  inherited:
+  - AU-12
+  - AU-2
+  - AU-3
+  decision: direct (dup of inherited)
+  reason: 'direct AC-3 (statement: only Authors create successors); AU triplet dropped.'
+- capability: CAP-AUDIT
+  status: active
+  verification_outcome: null
+  parents:
+  - ARCH-OTEL
+  - M01
+  - M02
+  direct_after:
+  - AC-3
+  - AU-9
+  inherited:
+  - AU-12
+  - AU-2
+  - AU-3
+  - AU-6
+  decision: direct
+  reason: 'direct AU-9 only (specific: access to audit data); AU-2/3/12/6 inherited from ARCH-OTEL.'
+- capability: FIX-SAMPLE-WF-CAP
+  status: active
+  verification_outcome: null
+  parents:
+  - FIX-SAMPLE-WF-REQ
+  direct_after:
+  - AC-3
+  - AU-12
+  - AU-2
+  - AU-3
+  inherited: []
+  decision: direct (dup of inherited)
+  reason: 'direct: control specific to statement; overlaps inherited set - acceptable only as verification point'
+- capability: CAP-DEVENV-MONOREPO
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEVENV-CLONE
+  direct_after:
+  - CM-2
+  inherited: []
+  decision: direct (dup of inherited)
+  reason: 'direct: verification point (vo=pass); overlaps inherited set - acceptable only as verification point'
+- capability: CAP-DEVENV-DOCKERFILE-ROLES
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEPLOY-MINIMAL
+  - ARCH-DEVENV-PARITY.1
+  - FIX-ALLOW-APP-ROLE-SPLIT
+  direct_after:
+  - CM-7
+  - V-222518
+  inherited:
+  - CM-2
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-DEVENV-PERIPHERALS
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEPLOY-PERIPHERALS
+  - ARCH-DEVENV-KEYS
+  direct_after:
+  - SC-12
+  - SI-7
+  inherited:
+  - CM-7
+  - CP-9
+  - SC-28.3
+  - V-222642
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-DEVENV-COMPOSE
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEVENV-CLONE
+  - ARCH-DEVENV-COMPOSE.1
+  - ARCH-DEVENV-MODES.1
+  - ARCH-DEVENV-SECRETS
+  - FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  direct_after:
+  - CM-2
+  inherited:
+  - CM-6
+  - IA-5
+  decision: direct (dup of inherited)
+  reason: 'direct: verification point (vo=pass); overlaps inherited set - acceptable only as verification point'
+- capability: CAP-HEALTH-LIVENESS
+  status: active
+  verification_outcome: pass
+  parents:
+  - M04
+  direct_after: []
+  inherited:
+  - AC-3
+  - AU-12
+  - AU-2
+  - AU-3
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-READY-PROBES
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEVENV-HEALTH
+  - ARCH-KEY-FAILCLOSED
+  - M04
+  direct_after: []
+  inherited:
+  - AC-3
+  - AU-12
+  - AU-2
+  - AU-3
+  - CM-6
+  - SC-12.1
+  - SC-24
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-DEVENV-STARTUP-BACKOFF
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEVENV-HEALTH
+  direct_after: []
+  inherited:
+  - CM-6
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-PROD-SELFCHECK
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEVENV-IDENTITY.1
+  - ARCH-DEVENV-KEYS
+  - FIX-DENY-DEV-KEK-IN-PROD
+  - FIX-DENY-DEVENV-PROD-LOGIN.1
+  direct_after:
+  - CM-6
+  inherited:
+  - CM-7
+  - IA-2
+  - IA-5
+  - V-222518
+  - V-222642
+  - V-222661
+  - V-222662
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-DEVENV-OPENBAO-BOOTSTRAP
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEVENV-KEYS
+  - ARCH-KEY-PROVIDER
+  direct_after:
+  - SC-12
+  inherited:
+  - CM-7
+  - IA-7
+  - V-222555
+  - V-222642
+  decision: direct (dup of inherited)
+  reason: 'direct: verification point (vo=pass); overlaps inherited set - acceptable only as verification point'
+- capability: CAP-DEVENV-MIGRATE-SEED
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEVENV-SEED
+  - FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  direct_after:
+  - CM-2
+  inherited:
+  - CM-6
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-API-DOCS-SEED-SUMMARY
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API
+  - ARCH-DEVENV-CLONE
+  direct_after:
+  - SA-5
+  inherited:
+  - AC-3
+  - CM-2
+  - SI-10
+  - V-222606
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-DEVENV-SMOKE
+  status: active
+  verification_outcome: pass
+  parents:
+  - FIX-ALLOW-DEVENV-MIN-CONTAINERS
+  - FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  - FIX-ALLOW-DEVENV-SMOKE
+  direct_after:
+  - SA-11
+  inherited:
+  - CM-2
+  - CM-6
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-UI-FRAME.1
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-UI
+  - ARCH-UI-GUARD
+  direct_after:
+  - AC-3
+  - SC-23
+  - V-222603
+  inherited: []
+  decision: direct
+  reason: 'direct: vo=pass and BFF cookie/CSRF is specific to the frame.'
+- capability: CAP-OAUTH-AS
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-AUTH-AS
+  - ARCH-AUTH-AUDIENCE
+  - ARCH-AUTH-CLIENTREG
+  - ARCH-AUTH-MCP-REQUIRED
+  - ARCH-AUTH-METADATA
+  - ARCH-AUTH-PKCE
+  - ARCH-AUTH-PROFILE
+  - ARCH-AUTH-REFRESH
+  - ARCH-AUTH-REVOKE
+  direct_after:
+  - IA-2
+  inherited:
+  - AC-12
+  - AC-12.1
+  - AC-3
+  - AU-2
+  - CM-6
+  - CM-7
+  - IA-2.8
+  - IA-5
+  - IA-8
+  - SC-23
+  - V-222391
+  - V-222518
+  - V-222522
+  - V-222530
+  - V-222531
+  - V-222549
+  - V-222578
+  decision: direct (dup of inherited)
+  reason: 'direct: verification point (vo=pass); overlaps inherited set - acceptable only as verification point'
+- capability: CAP-CRED-STORE
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-AUTH-LOCAL.1
+  - ARCH-CRED
+  - ARCH-CRED-HASH
+  - ARCH-CRED-LOCKOUT
+  - ARCH-CRED-MFA
+  - ARCH-CRED-POLICY
+  - ARCH-CRED-REAUTH
+  - ARCH-CRED-SESSION
+  - ARCH-CRED-TOKENS
+  direct_after:
+  - IA-5
+  inherited:
+  - AC-10
+  - AC-12
+  - AC-2
+  - AC-2.5
+  - AC-7
+  - CM-7
+  - IA-11
+  - IA-2
+  - IA-2.1
+  - IA-5.1
+  - IA-5.6
+  - SC-13
+  - SC-23
+  - SC-23.3
+  - SC-28.1
+  - V-222387
+  - V-222389
+  - V-222390
+  - V-222407
+  - V-222412
+  - V-222432
+  - V-222433
+  - V-222462
+  - V-222518
+  - V-222520
+  - V-222523
+  - V-222527
+  - V-222536
+  - V-222537
+  - V-222538
+  - V-222539
+  - V-222540
+  - V-222541
+  - V-222542
+  - V-222543
+  - V-222544
+  - V-222545
+  - V-222546
+  - V-222547
+  - V-222548
+  - V-222554
+  - V-222571
+  - V-222575
+  - V-222576
+  - V-222577
+  - V-222579
+  - V-222581
+  - V-222582
+  - V-222583
+  - V-222661
+  - V-222662
+  decision: direct (dup of inherited)
+  reason: 'direct: verification point (vo=pass); overlaps inherited set - acceptable only as verification point'
+- capability: CAP-KEY-ENVELOPE
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-KEY
+  - ARCH-KEY-FAILCLOSED
+  - ARCH-KEY-JWKS
+  - ARCH-KEY-LIFECYCLE
+  - ARCH-KEY-PROVIDER
+  - ARCH-KEY-SCOPE
+  direct_after:
+  - SC-12
+  inherited:
+  - AU-2
+  - IA-7
+  - SC-12.1
+  - SC-12.2
+  - SC-12.3
+  - SC-13
+  - SC-24
+  - SC-28
+  - SC-28.1
+  - SC-28.3
+  - V-222555
+  - V-222570
+  - V-222588
+  - V-222589
+  - V-222642
+  decision: direct (dup of inherited)
+  reason: 'direct: verification point (vo=pass); overlaps inherited set - acceptable only as verification point'
+- capability: CAP-AUTH-AUDIT
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-CRED-AUDIT
+  direct_after:
+  - AU-2
+  inherited:
+  - AU-12
+  - AU-3
+  - V-222441
+  - V-222442
+  - V-222443
+  - V-222445
+  - V-222462
+  - V-222467
+  decision: direct (dup of inherited)
+  reason: 'direct: verification point (vo=pass); overlaps inherited set - acceptable only as verification point'
+- capability: CAP-AUTH-UPSTREAM-SEAM
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-AUTH-UPSTREAM-CONNECTOR
+  direct_after: []
+  inherited:
+  - AC-3
+  - IA-2
+  - IA-8
+  - V-222400
+  - V-222401
+  - V-222403
+  - V-222404
+  - V-222559
+  - V-222560
+  decision: inherit
+  reason: 'inherit: stub seam; IA-8 from ARCH-AUTH-UPSTREAM-CONNECTOR.'
+- capability: CAP-DEVENV-INIT
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEVENV-IDENTITY.1
+  - ARCH-DEVENV-SECRETS
+  direct_after:
+  - IA-5
+  inherited:
+  - CM-6
+  - CM-7
+  - IA-2
+  - V-222518
+  - V-222642
+  - V-222661
+  - V-222662
+  decision: direct (dup of inherited)
+  reason: 'direct: verification point (vo=pass); overlaps inherited set - acceptable only as verification point'
+- capability: CAP-MFA-ENROLL
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-CRED-MFA
+  direct_after:
+  - IA-2.1
+  - IA-2.8
+  inherited:
+  - V-222523
+  - V-222527
+  decision: direct
+  reason: 'direct: vo=pass; IA-2(1)/IA-2(8) specific to enrollment/TOTP behaviour.'
+- capability: CAP-AGENT-ACCESS
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-AUTH-AGENT-ATTRIBUTION
+  direct_after:
+  - AC-6
+  - IA-2
+  inherited:
+  - AU-10
+  - AU-3
+  - V-222438
+  - V-222441
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-AUTH-HARDEN
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-AUTH-AS
+  - ARCH-CRED-LOCKOUT
+  direct_after:
+  - SC-23
+  - V-222603
+  inherited:
+  - AC-7
+  - IA-2
+  - IA-5
+  - IA-8
+  - V-222432
+  - V-222433
+  - V-222462
+  - V-222522
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-TEST-MEMORY-KEYPROVIDER
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-KEY-PROVIDER
+  direct_after: []
+  inherited:
+  - IA-7
+  - SC-12
+  - V-222555
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-TEST-PGLITE-DB
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-BUILD-FOUNDATION
+  direct_after: []
+  inherited:
+  - SA-8
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-TEST-AUTH-ROUTES
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-AUTH-AGENT-ATTRIBUTION
+  - ARCH-AUTH-PKCE
+  - ARCH-AUTH-REFRESH
+  - ARCH-CRED-LOCKOUT
+  - ARCH-CRED-MFA
+  direct_after:
+  - SA-11
+  inherited:
+  - AC-7
+  - AU-10
+  - AU-3
+  - IA-2
+  - IA-2.1
+  - IA-2.8
+  - IA-5
+  - SC-23
+  - V-222432
+  - V-222433
+  - V-222438
+  - V-222441
+  - V-222462
+  - V-222523
+  - V-222527
+  - V-222530
+  - V-222531
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-TEST-PNPM-GATE
+  status: active
+  verification_outcome: pass
+  parents:
+  - FIX-ALLOW-DEVENV-SMOKE
+  direct_after:
+  - SA-11
+  inherited:
+  - CM-2
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-TEST-PROD-BUILD-EXCLUDE
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-BUILD-FOUNDATION
+  - ARCH-KEY-PROVIDER
+  direct_after:
+  - CM-7
+  inherited:
+  - IA-7
+  - SA-8
+  - SC-12
+  - V-222555
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-TEST-AUTH-HYGIENE
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-AUTH-AGENT-ATTRIBUTION
+  - ARCH-AUTH-AUDIENCE
+  - ARCH-AUTH-REVOKE
+  - ARCH-CRED-LOCKOUT
+  direct_after:
+  - SA-11
+  inherited:
+  - AC-12
+  - AC-12.1
+  - AC-3
+  - AC-7
+  - AU-10
+  - AU-3
+  - IA-2
+  - SC-23
+  - V-222391
+  - V-222432
+  - V-222433
+  - V-222438
+  - V-222441
+  - V-222462
+  - V-222549
+  - V-222578
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-DEVENV-SMOKE-COMPOSE-ISOLATION
+  status: active
+  verification_outcome: pass
+  parents:
+  - FIX-ALLOW-DEVENV-SMOKE
+  direct_after: []
+  inherited:
+  - CM-2
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-RENAME-REQALM
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-BUILD-FOUNDATION
+  direct_after: []
+  inherited:
+  - SA-8
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-SVC-RESULT-ENVELOPE
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API
+  - ARCH-API-LAYERS
+  direct_after: []
+  inherited:
+  - AC-3
+  - SI-10
+  - V-222606
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-SVC-REQUEST-CONTEXT
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-LAYERS
+  - ARCH-API-RBAC.1
+  direct_after: []
+  inherited:
+  - AC-3
+  - AC-6
+  - AU-2
+  - V-222429
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-SVC-OPERATION-EXECUTOR
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-RBAC.1
+  - CAP-RBAC.1
+  direct_after: []
+  inherited:
+  - AC-3
+  - AC-6
+  - AU-2
+  - V-222429
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-SVC-AUDIT-APPEND
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-WRITE-UOW-AUDIT
+  direct_after:
+  - AU-9
+  inherited:
+  - AU-12
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-SVC-STRUCTURED-LOG
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-CRED-AUDIT
+  direct_after:
+  - V-222444
+  inherited:
+  - AU-12
+  - AU-2
+  - AU-3
+  - V-222441
+  - V-222442
+  - V-222443
+  - V-222445
+  - V-222462
+  - V-222467
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-SVC-ROUTE-REGISTRY
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-RBAC.1
+  direct_after:
+  - AC-14
+  inherited:
+  - AC-3
+  - AC-6
+  - AU-2
+  - V-222429
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-SVC-MODULE-BOOTSTRAP
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-LAYERS
+  direct_after: []
+  inherited:
+  - AC-3
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-SVC-PROJECT-READ
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-RBAC.1
+  direct_after: []
+  inherited:
+  - AC-3
+  - AC-6
+  - AU-2
+  - V-222429
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-OTEL-SDK-BOOTSTRAP
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-OTEL-TRACE
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: 'none: tracing plumbing; parent ARCH-OTEL-TRACE (draft) carries no pins.'
+- capability: CAP-OTEL-W3C-CONTEXT
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-OTEL-TRACE
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: 'none: request-id validation is hygiene, not a control claim.'
+- capability: CAP-OTEL-OPERATION-SPANS
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-OTEL-TRACE
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: 'none: "no secrets in attributes" is covered by CAP-OTEL-SPAN-SAFE-ERRORS (SI-11) and CAP-SVC-STRUCTURED-LOG (V-222444).'
+- capability: CAP-OTEL-KEY-DEP
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-OTEL-TRACE
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: none.
+- capability: CAP-OTEL-AUDIT-TRACE
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-OTEL-TRACE
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: 'none: trace_id on audit rows aids correlation; AU-3 claim would be a stretch.'
+- capability: CAP-OTEL-EXPORT
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-OTEL-TRACE
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: none.
+- capability: CAP-OTEL-TEST-HARNESS
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-OTEL-TRACE
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: none.
+- capability: CAP-SVC-OPERATION-ROUTE
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-LAYERS
+  - ARCH-API-RBAC.1
+  direct_after:
+  - AC-3
+  - AU-12
+  - SI-10
+  - SI-11
+  - V-222606
+  - V-222610
+  inherited:
+  - AC-6
+  - AU-2
+  - V-222429
+  decision: direct
+  reason: 'direct: the single enforcement pipeline and its tests; read caps inherit from it.'
+- capability: CAP-SVC-BUSINESS-ROUTE-AUDIT
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-RBAC.1
+  - CAP-SVC-ROUTE-REGISTRY
+  direct_after: []
+  inherited:
+  - AC-14
+  - AC-3
+  - AC-6
+  - AU-2
+  - V-222429
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-SVC-PROBLEM-JSON
+  status: active
+  verification_outcome: pass
+  parents:
+  - CAP-SVC-RESULT-ENVELOPE
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: 'none direct: Problem Details format only; SI-11 (non-revealing errors) is pinned where the behaviour is stated (CAP-SVC-OPERATION-ROUTE). Optional trace:
+    satisfies CAP-SVC-OPERATION-ROUTE.'
+- capability: CAP-SVC-PROJECT-ID-SLUG
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-RBAC.1
+  - CAP-SVC-OPERATION-ROUTE
+  direct_after:
+  - SI-10
+  inherited:
+  - AC-3
+  - AC-6
+  - AU-12
+  - AU-2
+  - SI-11
+  - V-222429
+  - V-222606
+  - V-222610
+  decision: direct (dup of inherited)
+  reason: 'direct: verification point (vo=pass); overlaps inherited set - acceptable only as verification point'
+- capability: CAP-SVC-STATIC-DEP-PATCH
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEPLOY-MINIMAL
+  - ARCH-SUPPLY-DEP-SCAN
+  direct_after:
+  - SI-2
+  - V-222614
+  inherited:
+  - CM-2
+  - CM-7
+  - RA-5
+  decision: direct (dup of inherited)
+  reason: 'direct: verification point (vo=pass); overlaps inherited set - acceptable only as verification point'
+- capability: CAP-OTEL-SPAN-SAFE-ERRORS
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-OTEL-TRACE
+  - CAP-OTEL-OPERATION-SPANS
+  direct_after:
+  - SI-11
+  inherited: []
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-SVC-IMPLICIT-PUBLIC-EXACT
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-RBAC.1
+  - CAP-SVC-BUSINESS-ROUTE-AUDIT
+  - CAP-SVC-ROUTE-REGISTRY
+  direct_after: []
+  inherited:
+  - AC-14
+  - AC-3
+  - AC-6
+  - AU-2
+  - V-222429
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-SVC-NON-API-AUTH-AUDIT
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-RBAC.1
+  - CAP-SVC-ROUTE-REGISTRY
+  direct_after: []
+  inherited:
+  - AC-14
+  - AC-3
+  - AC-6
+  - AU-2
+  - V-222429
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-DEVENV-SEED-RESET
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-DEVENV-SEED
+  - FIX-ALLOW-DEVENV-SEED-IDEMPOTENT
+  direct_after:
+  - CM-7
+  inherited:
+  - CM-6
+  decision: direct
+  reason: 'direct: verification point (vo=pass)'
+- capability: CAP-BROWSE-CP
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-CP-HIER
+  - B07
+  - B08
+  - CAP-SVC-PROJECT-READ
+  direct_after: []
+  inherited:
+  - AC-3
+  - AU-12
+  - AU-2
+  - AU-3
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-BROWSE-UI-CP
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-UI
+  - ARCH-UI-GUARD
+  - B07
+  - B08
+  - CAP-BROWSE-CP
+  direct_after: []
+  inherited:
+  - AC-3
+  - AU-12
+  - AU-2
+  - AU-3
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-READ-REQS
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-RBAC.1
+  - C08
+  - CAP-RBAC.1
+  - CAP-SVC-OPERATION-ROUTE
+  - D06
+  direct_after: []
+  inherited:
+  - AC-3
+  - AC-6
+  - AU-12
+  - AU-2
+  - AU-3
+  - SI-10
+  - SI-11
+  - V-222429
+  - V-222606
+  - V-222610
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-BROWSE-UI-REQS
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-UI
+  - ARCH-UI-GUARD
+  - C08
+  - CAP-READ-REQS
+  - D06
+  direct_after: []
+  inherited:
+  - AC-3
+  - AU-12
+  - AU-2
+  - AU-3
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-READ-RELEASES
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-RBAC.1
+  - CAP-RBAC.1
+  - CAP-SVC-OPERATION-ROUTE
+  - G08
+  direct_after: []
+  inherited:
+  - AC-3
+  - AC-6
+  - AU-12
+  - AU-2
+  - AU-3
+  - SI-10
+  - SI-11
+  - V-222429
+  - V-222606
+  - V-222610
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-BROWSE-UI-RELEASES
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-UI
+  - ARCH-UI-GUARD
+  - C08
+  - CAP-READ-RELEASES
+  - D06
+  direct_after: []
+  inherited:
+  - AC-3
+  - AU-12
+  - AU-2
+  - AU-3
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-READ-HIERARCHY
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-API-RBAC.1
+  - C06
+  - C07
+  - CAP-RBAC.1
+  - CAP-READ-REQS
+  - CAP-SVC-OPERATION-ROUTE
+  direct_after: []
+  inherited:
+  - AC-3
+  - AC-6
+  - AU-12
+  - AU-2
+  - AU-3
+  - SI-10
+  - SI-11
+  - V-222429
+  - V-222606
+  - V-222610
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-BROWSE-UI-TREE
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-UI
+  - ARCH-UI-GUARD
+  - C06
+  - CAP-READ-HIERARCHY
+  direct_after: []
+  inherited:
+  - AC-3
+  - AU-12
+  - AU-2
+  - AU-3
+  decision: inherit
+  reason: inherit via satisfies/refines; no own control-specific text
+- capability: CAP-MFA-QR
+  status: active
+  verification_outcome: pass
+  parents:
+  - ARCH-CRED-MFA
+  - ARCH-SUPPLY-VENDORED
+  - ARCH-UI-GUARD
+  - CAP-MFA-ENROLL
+  direct_after:
+  - IA-5
+  - SC-18
+  inherited:
+  - AC-3
+  - CM-8
+  - IA-2.1
+  - IA-2.8
+  - SI-7
+  - SR-4
+  - V-222523
+  - V-222527
+  decision: direct
+  reason: 'direct: CSP-safe local rendering and no-store are specific to this cap; IA-2(1) inherited via CAP-MFA-ENROLL.'
+- capability: CAP-RELATIONS-API
+  status: draft
+  verification_outcome: null
+  parents:
+  - ARCH-API-RBAC.1
+  - ARCH-SEC-REL-STUB
+  - C08
+  - CAP-READ-REQS
+  - CAP-SVC-OPERATION-ROUTE
+  - E06
+  direct_after:
+  - AC-3
+  inherited:
+  - AC-6
+  - AU-12
+  - AU-2
+  - AU-3
+  - SI-10
+  - SI-11
+  - V-222429
+  - V-222606
+  - V-222610
+  decision: direct (dup of inherited)
+  reason: 'direct: control specific to statement; overlaps inherited set - acceptable only as verification point'
+- capability: CAP-UI-KIT
+  status: draft
+  verification_outcome: null
+  parents:
+  - ARCH-UI
+  - ARCH-UI-KIT-SHARED
+  - C07
+  direct_after: []
+  inherited:
+  - AC-3
+  - AU-12
+  - AU-2
+  - AU-3
+  decision: inherit
+  reason: 'none of its own: presentation-only UI Kit. Listed inheritance comes from ARCH-UI/C07 satisfies and is navigation context only; do not pin.'
+- capability: CAP-UI-KIT-TREE
+  status: draft
+  verification_outcome: null
+  parents:
+  - ARCH-UI-KIT-SHARED
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: 'none: WCAG/keyboard tree widget; no security subject. uses edges do not pass controls (ARCH-HIER-USES-DEP).'
+- capability: CAP-UI-KIT-CHROME
+  status: draft
+  verification_outcome: null
+  parents:
+  - ARCH-UI-KIT-SHARED
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: 'none: header/badges, "no business logic".'
+- capability: CAP-BROWSE-ROADMAP
+  status: draft
+  verification_outcome: null
+  parents:
+  - ARCH-BROWSE-ROADMAP
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: no security control applicable to statement
+- capability: CAP-SEED-GROOMING
+  status: draft
+  verification_outcome: null
+  parents:
+  - ARCH-BROWSE-ROADMAP
+  direct_after: []
+  inherited: []
+  decision: none
+  reason: no security control applicable to statement
+v222518:
+  rule: V-222518
+  title: The application must be configured to disable non-essential capabilities.
+  severity: Medium (CAT II)
+  stig_comment: SV-222518r960963_rule
+  nist_counterpart: CM-7
+  currently_linked_by:
+  - from_uid: ARCH-DEVENV-IDENTITY
+    status: superseded
+    catalog_imprint_id: asd-stig@v6r4
+    trace_suspect: false
+    locked: false
+  - from_uid: FIX-DENY-DEVENV-PROD-LOGIN
+    status: superseded
+    catalog_imprint_id: asd-stig@v6r4
+    trace_suspect: false
+    locked: false
+  supersede_pairs_34:
+  - uid: CAP-SSO
+    status: superseded
+    links_V_222518: false
+    shipped_in:
+    - rel-r0-sequences
+  - uid: CAP-SSO.1
+    status: active
+    links_V_222518: false
+    shipped_in: []
+  - uid: CAP-SCOPED-VIEW
+    status: superseded
+    links_V_222518: false
+    shipped_in:
+    - rel-r0-sequences
+  - uid: CAP-SCOPED-VIEW.1
+    status: active
+    links_V_222518: false
+    shipped_in: []
+  - uid: ARCH-API-RBAC
+    status: superseded
+    links_V_222518: false
+    shipped_in:
+    - rel-r1-foundation-shell-auth
+  - uid: ARCH-API-RBAC.1
+    status: active
+    links_V_222518: false
+    shipped_in: []
+  - uid: CAP-RBAC
+    status: superseded
+    links_V_222518: false
+    shipped_in:
+    - rel-r0-sequences
+    - rel-r1-foundation-shell-auth
+  - uid: CAP-RBAC.1
+    status: active
+    links_V_222518: false
+    shipped_in: []
+  - uid: CAP-UI-FRAME
+    status: superseded
+    links_V_222518: false
+    shipped_in:
+    - rel-r1-foundation-shell-auth
+  - uid: CAP-UI-FRAME.1
+    status: active
+    links_V_222518: false
+    shipped_in: []
+  - uid: ARCH-SUSPECT
+    status: superseded
+    links_V_222518: false
+    shipped_in: []
+  - uid: ARCH-SUSPECT.1
+    status: active
+    links_V_222518: false
+    shipped_in: []
+  recommendation:
+    pairs_34: 'None of the six #34 v0/.1 pairs link V-222518 on either version, and none of the .1 statements cover disabling non-essential capabilities. Do not add
+      it to any of them.'
+    relink:
+    - from_uid: ARCH-DEVENV-IDENTITY.1
+      why: '.1 keeps the rule subject: dev accounts and dev seed loader are dev-only; prod ships none and the seed loader refuses in production. Pin was lost when
+        v0 was superseded.'
+    - from_uid: FIX-DENY-DEVENV-PROD-LOGIN.1
+      why: Test bed (b) proves the dev seed loader is refused in production.
+    leave_on_v0: Keep the v0 pins as history (v0s are superseded, unlocked; removing them is optional cleanup).
+    additional_direct:
+    - 'CAP-DEVENV-DOCKERFILE-ROLES (verified: disabled roles not mounted)'
+    - ARCH-AUTH-LOCAL.1 (local login route absent when disabled)
+    - ARCH-AUTH-CLIENTREG (DCR/CIMD off by default)
+    per_pair:
+      CAP-SSO: no - .1 is federated SSO session establishment; nothing about disabling capabilities
+      CAP-SCOPED-VIEW: no - .1 is client scope binding/visibility
+      ARCH-API-RBAC: no - .1 is permission checks on mutators
+      CAP-RBAC: no - .1 is RBAC enforcement subset
+      CAP-UI-FRAME: no - .1 is shell/guards/CSRF
+      ARCH-SUSPECT: no - .1 is trace_suspect semantics

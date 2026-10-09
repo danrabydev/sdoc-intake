@@ -152,18 +152,26 @@ describe("requirements relations API", () => {
     assert.equal(vis(ac3).peer.project_id, "reqalm");
     const refIn = a01.incoming.refines ?? [];
     const devenv = refIn.filter((l) => vis(l).peer.id === "ARCH-DEVENV-IDENTITY");
-    assert.deepEqual(devenv.map((l) => [vis(l).peer_version_id, vis(l).peer.id]).sort(), [["ARCH-DEVENV-IDENTITY", "ARCH-DEVENV-IDENTITY"], ["ARCH-DEVENV-IDENTITY.1", "ARCH-DEVENV-IDENTITY"]]);
-    await q(`UPDATE requirement_versions SET title = 'LATEST-DEVENV-TITLE' WHERE uid = 'ARCH-DEVENV-IDENTITY.1'`);
+    assert.deepEqual(devenv.map((l) => [vis(l).peer_version_id, vis(l).peer.id]).sort(), [
+      ["ARCH-DEVENV-IDENTITY", "ARCH-DEVENV-IDENTITY"],
+      ["ARCH-DEVENV-IDENTITY.2", "ARCH-DEVENV-IDENTITY"],
+    ]);
+    await q(
+      `UPDATE requirement_versions SET title = 'LATEST-DEVENV-TITLE' WHERE uid IN ('ARCH-DEVENV-IDENTITY.1', 'ARCH-DEVENV-IDENTITY.2')`,
+    );
     try {
       const dev2 = (dataOf(await inject(REL("reqalm", "A01"))).incoming.refines ?? []).filter((l) => vis(l).peer.id === "ARCH-DEVENV-IDENTITY");
       assert.ok(dev2.every((l) => vis(l).peer.title === "LATEST-DEVENV-TITLE"));
     } finally {
-      await q(`UPDATE requirement_versions SET title = NULL WHERE uid = 'ARCH-DEVENV-IDENTITY.1'`);
+      await q(`UPDATE requirement_versions SET title = NULL WHERE uid IN ('ARCH-DEVENV-IDENTITY.1', 'ARCH-DEVENV-IDENTITY.2')`);
     }
-    for (const id of ["ARCH-AUTH-LOCAL.1", "MC01.1"]) {
-      const l = refIn.find((x) => vis(x).peer_version_id === id)!;
+    for (const [versionId, baseId] of [
+      ["ARCH-AUTH-LOCAL.2", "ARCH-AUTH-LOCAL"],
+      ["MC01.1", "MC01"],
+    ] as const) {
+      const l = refIn.find((x) => vis(x).peer_version_id === versionId || vis(x).peer.id === baseId)!;
       assert.equal(vis(l).relation_kind, "refines");
-      assert.equal(vis(l).peer.id, id.replace(/\.1$/, ""));
+      assert.equal(vis(l).peer.id, baseId);
       assert.ok(vis(l).peer.title);
     }
     await q(`INSERT INTO requirement_lines (base_uid, project_id, kind, title) VALUES ('DEDUP-PEER', 'reqalm', 'requirement', 'd'), ('SUS-PEER', 'reqalm', 'requirement', 's'), ('SUS2-PEER', 'reqalm', 'requirement', 's2') ON CONFLICT DO NOTHING`);

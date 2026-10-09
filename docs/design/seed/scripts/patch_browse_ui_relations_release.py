@@ -14,6 +14,7 @@ DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
 SHIPPED_DATE = "2026-10-09"
 CATALOGS_MERGE = "ed372358fb1a04546ea884c9cbcee69f959517b1"
+RELATIONS_UI_MERGE = "c8272340b67a0e505b63483bd2ef1550accb4635"
 CAP_CAT = "CAP-CATALOGS-API"
 REL_CAT = "rel-r1-catalogs-api"
 CAP_UI = "CAP-BROWSE-UI-RELATIONS"
@@ -110,7 +111,38 @@ def ship_catalogs_api(data) -> None:
         ar["approved_statement_hash"] = None
 
 
+def ship_browse_ui_relations(data) -> None:
+    rel = find(data.get("releases"), "id", REL_UI)
+    if rel:
+        rel["status"] = "shipped"
+        rel["shipped_on"] = SHIPPED_DATE
+        rel["notes"] = (
+            f"PR #32 merged to main as {RELATIONS_UI_MERGE} on {SHIPPED_DATE}. "
+            "Relationships panel on requirement detail browse screen."
+        )
+    ver = find(data.get("requirement_versions"), "uid", CAP_UI)
+    if ver:
+        catalog_ref = (ver.get("security") or {}).get("catalog_ref", "CM-2")
+        ver["status"] = "active"
+        ver["verification_outcome"] = "pass"
+        ver["security"] = {
+            "catalog_ref": catalog_ref,
+            "verification_note": f"Shipped with relationships browse UI PR #32 (merge {RELATIONS_UI_MERGE}).",
+        }
+    ar = find(data.get("approval_records"), "id", "ar-browse-ui-relations")
+    if ar:
+        ar["status"] = "unapproved"
+        ar["notes"] = (
+            f"Capability active with verification pass after PR #32 merge {RELATIONS_UI_MERGE}; "
+            "formal approval record not filed in seed."
+        )
+        ar["approved_version_uid"] = None
+        ar["approved_statement_hash"] = None
+
+
 def add_browse_ui_relations(data) -> None:
+    rel_existing = find(data.get("releases"), "id", REL_UI)
+    ui_shipped = rel_existing and rel_existing.get("status") == "shipped"
     upsert(
         data.setdefault("requirement_lines", []),
         "base_uid",
@@ -122,22 +154,26 @@ def add_browse_ui_relations(data) -> None:
             title="Browse requirement relationships UI (read-only)",
         ),
     )
-    upsert(
-        data.setdefault("requirement_versions", []),
-        "uid",
-        cm(
-            uid=CAP_UI,
-            base_uid=CAP_UI,
-            version_n=0,
-            status="draft",
-            statement=UI_STMT,
-            priority=10,
-            iteration="iter-r1",
-            security={"catalog_ref": "CM-2", "verification_note": "Planned until relationships browse UI PR merges."},
-            statement_hash=statement_hash(UI_STMT),
-            grooming_state="detailed",
-        ),
-    )
+    if not ui_shipped:
+        upsert(
+            data.setdefault("requirement_versions", []),
+            "uid",
+            cm(
+                uid=CAP_UI,
+                base_uid=CAP_UI,
+                version_n=0,
+                status="draft",
+                statement=UI_STMT,
+                priority=10,
+                iteration="iter-r1",
+                security={
+                    "catalog_ref": "CM-2",
+                    "verification_note": "Planned until relationships browse UI PR merges.",
+                },
+                statement_hash=statement_hash(UI_STMT),
+                grooming_state="detailed",
+            ),
+        )
     upsert(
         data.setdefault("approval_records", []),
         "id",
@@ -154,28 +190,34 @@ def add_browse_ui_relations(data) -> None:
         ),
     )
     edges = data.setdefault("edges", [])
-    data["edges"] = [e for e in edges if e.get("from") != CAP_UI]
-    for to in ("C08", "D06", "ARCH-UI", "ARCH-UI-GUARD", "CAP-RELATIONS-API", "CAP-BROWSE-UI-REQS"):
-        ensure_edge(data["edges"], {"from": CAP_UI, "to": to, "kind": "satisfies"})
+    targets = ("C08", "D06", "ARCH-UI", "ARCH-UI-GUARD", "CAP-RELATIONS-API", "CAP-BROWSE-UI-REQS")
+    if ui_shipped:
+        for to in targets:
+            ensure_edge(edges, {"from": CAP_UI, "to": to, "kind": "satisfies"})
+    else:
+        data["edges"] = [e for e in edges if e.get("from") != CAP_UI]
+        for to in targets:
+            ensure_edge(data["edges"], {"from": CAP_UI, "to": to, "kind": "satisfies"})
     arts = data.setdefault("capability_artifacts", [])
     data["capability_artifacts"] = [a for a in arts if a.get("requirement_version_uid") != CAP_UI]
     for uri in UI_ARTIFACTS:
         data["capability_artifacts"].append({"requirement_version_uid": CAP_UI, "kind": "other", "uri": uri})
-    upsert(
-        data.setdefault("releases", []),
-        "id",
-        cm(
-            id=REL_UI,
-            project_id="reqalm",
-            name="R1 — browse requirement relationships UI (read-only)",
-            planned_on=SHIPPED_DATE,
-            shipped_on=None,
-            status="planned",
-            delivers=[CAP_UI],
-            cyber_gate=False,
-            notes="Relationships panel on requirement detail; two-column graph view deferred.",
-        ),
-    )
+    if not ui_shipped:
+        upsert(
+            data.setdefault("releases", []),
+            "id",
+            cm(
+                id=REL_UI,
+                project_id="reqalm",
+                name="R1 — browse requirement relationships UI (read-only)",
+                planned_on=SHIPPED_DATE,
+                shipped_on=None,
+                status="planned",
+                delivers=[CAP_UI],
+                cyber_gate=False,
+                notes="Relationships panel on requirement detail; two-column graph view deferred.",
+            ),
+        )
 
 
 def main() -> None:
@@ -184,10 +226,13 @@ def main() -> None:
 
     ship_catalogs_api(data)
     add_browse_ui_relations(data)
+    ship_browse_ui_relations(data)
 
     with DOGFOOD.open("w", encoding="utf-8") as f:
         yaml.dump(data, f)
-    print(f"Patched dogfood.yaml: shipped {REL_CAT}, {REL_UI} / {CAP_UI}")
+    print(
+        f"Patched dogfood.yaml: shipped {REL_CAT}, shipped {REL_UI} / {CAP_UI} @ {RELATIONS_UI_MERGE}"
+    )
 
 
 if __name__ == "__main__":
