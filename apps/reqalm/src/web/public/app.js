@@ -1,22 +1,12 @@
 import {
   mountBrowseView,
-  navItemsForRoute,
   parseAppRoute,
+  el,
+  loadJson,
 } from "./browse.js";
 import { api } from "./api-client.js";
 import { buildMfaEnrollmentChildren, clearMfaEnrollmentUi } from "./mfa-enroll-ui.js";
-
-function el(tag, props = {}, children = []) {
-  const node = document.createElement(tag);
-  for (const [k, v] of Object.entries(props)) {
-    if (k === "className") node.className = v;
-    else if (k === "text") node.textContent = v;
-    else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2).toLowerCase(), v);
-    else node.setAttribute(k, v);
-  }
-  for (const child of children) node.append(child);
-  return node;
-}
+import { buildShellHeader } from "./shell-nav.js";
 
 export function rootRedirectPath(sessionOk) {
   return sessionOk ? "/app/clients" : "/login";
@@ -29,26 +19,42 @@ async function sessionOk() {
   return body.authenticated === true;
 }
 
-function navLink(item) {
-  const a = el("a", { href: item.href, text: item.label });
-  if (item.active) a.classList.add("nav-active");
-  return a;
+export async function loadShellMeta(route, apiFn = api) {
+  const meta = { identityId: "", agentName: null, client: undefined, project: undefined };
+  const meRes = await loadJson(apiFn, "/api/v1/me");
+  if (meRes.kind === "ok") {
+    meta.identityId = meRes.data.identity_id ?? "";
+    meta.agentName = meRes.data.agent_name ?? null;
+  }
+  if (route.projectId) {
+    const projRes = await loadJson(apiFn, `/api/v1/projects/${encodeURIComponent(route.projectId)}`);
+    if (projRes.kind === "ok") {
+      meta.project = {
+        id: projRes.data.id,
+        name: projRes.data.name,
+        client_id: projRes.data.client_id,
+      };
+      const clientRes = await loadJson(apiFn, `/api/v1/clients/${encodeURIComponent(projRes.data.client_id)}`);
+      if (clientRes.kind === "ok") {
+        meta.client = { id: clientRes.data.id, name: clientRes.data.name };
+      } else {
+        meta.client = { id: projRes.data.client_id, name: projRes.data.client_id };
+      }
+    }
+  } else if (route.clientId) {
+    const clientRes = await loadJson(apiFn, `/api/v1/clients/${encodeURIComponent(route.clientId)}`);
+    if (clientRes.kind === "ok") {
+      meta.client = { id: clientRes.data.id, name: clientRes.data.name };
+    }
+  }
+  return meta;
 }
 
-export function renderAppShell(currentPath, route) {
+export function renderAppShell(currentPath, route, meta) {
   document.body.replaceChildren();
   const content = el("main", { className: "content", id: "app-content" });
-  const nav = navItemsForRoute(route, currentPath);
   const shell = el("div", { className: "shell" }, [
-    el("header", { className: "topbar" }, [
-      el("div", { className: "brand", text: "ReqALM" }),
-      el("nav", { id: "top-nav" }, nav.map(navLink)),
-      el("button", { id: "signout", type: "button", text: "Sign out" }),
-    ]),
-    el("aside", { className: "sidebar" }, [
-      el("p", { className: "muted", text: "Grant-scoped browse" }),
-      el("p", { className: "muted", text: "Lists reflect your project roles." }),
-    ]),
+    buildShellHeader(el, route, currentPath, meta),
     content,
   ]);
   document.body.append(shell);
@@ -148,7 +154,8 @@ async function bootApp() {
     return;
   }
   const route = parseAppRoute(currentPath);
-  const content = renderAppShell(currentPath, route);
+  const meta = await loadShellMeta(route);
+  const content = renderAppShell(currentPath, route, meta);
   await mountBrowseView(content, route, {
     apiFn: api,
     search: window.location.search,

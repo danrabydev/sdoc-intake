@@ -2941,6 +2941,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with requirements browse UI PR #26.
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
+edge: ← satisfies from CAP-UI-HEADER-NAV
 delivered_by_release: R1 — browse requirements UI (read-only)
 <<<
 RELATIONS:
@@ -3043,7 +3044,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-RELATIONS
-STATUS: Draft
+STATUS: Active
 TITLE: Browse requirement relationships UI (read-only)
 STATEMENT: >>>
 Read-only Relationships panel on the requirement detail browse screen: loads GET /api/v1/projects/:projectId/requirements/:id/relations and renders outgoing and incoming links grouped by kind. Requirement peers navigate to detail; catalog conforms_to peers show as non-navigating chips with imprint label; trace_suspect shows needs re-check; restricted peers show a muted stub with no peer id. Empty, loading, and error states included.
@@ -3055,7 +3056,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until relationships browse UI PR merges.
+security.verification_note: Shipped with relationships browse UI PR #32 (merge c8272340b67a0e505b63483bd2ef1550accb4635).
 delivered_by_release: R1 — browse requirement relationships UI (read-only)
 <<<
 RELATIONS:
@@ -9125,6 +9126,7 @@ edge: ← satisfies from CAP-UI-KIT
 edge: ← refines from ARCH-UI-KIT-SHARED
 edge: ← satisfies from CAP-UI-FRAME.1
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
+edge: ← satisfies from CAP-UI-HEADER-NAV
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 delivered_by_release: R0-sequences
@@ -9183,6 +9185,7 @@ edge: ← satisfies from CAP-BROWSE-UI-TREE
 edge: ← satisfies from CAP-MFA-QR
 edge: ← satisfies from CAP-UI-FRAME.1
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
+edge: ← satisfies from CAP-UI-HEADER-NAV
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -9631,6 +9634,7 @@ priority: 12
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned; tree browse exists in CAP-BROWSE-UI-TREE without extracted kit.
+edge: ← satisfies from CAP-UI-HEADER-NAV
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -9638,6 +9642,48 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-UI-KIT-SHARED
   ROLE: Satisfies
+
+[[SECTION]]
+UID: CAP-UI-KIT-CHROME-CHILDREN
+TITLE: Children of CAP-UI-KIT-CHROME
+
+[REQUIREMENT]
+UID: CAP-UI-HEADER-NAV
+STATUS: Draft
+TITLE: ReqALM header and project navigation
+STATEMENT: >>>
+ReqALM /app shell header aligned to product chrome: brand mark, client/project/page breadcrumb with safe text, project-scoped tabs (Requirements with list/tree toggle, Releases; coming-soon stubs for Traceability, Capabilities, Contracts, Audit), minimal Clients/Projects nav outside project context, user initials avatar and sign out. Accessible nav landmarks, aria-current on active items, aria-disabled on stub tabs, visible focus styles. No sidebar.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-HEADER-NAV
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until header/nav UI PR merges.
+delivered_by_release: R1 — ReqALM header and project navigation
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: CAP-UI-KIT-CHROME
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-KIT-CHROME
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-REQS
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-ui-header-nav
+  ROLE: Delivers
+
+[[/SECTION]]
 
 [[/SECTION]]
 

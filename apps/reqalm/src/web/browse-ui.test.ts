@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 import { describe, it, beforeEach, afterEach } from "node:test";
 import { JSDOM } from "jsdom";
 import {
-  APP_NAV,
   SLUG_MAX_LENGTH,
   appClientHref,
   appProjectHref,
@@ -25,7 +24,6 @@ import {
   readPageOffset,
   readRequirementsFilters,
   pagingOffsets,
-  navItemsForRoute,
   renderClientsList,
   renderClientDetail,
   renderProjectsList,
@@ -49,6 +47,12 @@ import {
   requirementsRelationsApiPath,
   renderKindBlock,
 } from "./public/browse-relations.js";
+import {
+  APP_MIN_NAV,
+  breadcrumbSegments,
+  projectTabItems,
+  PROJECT_TABS,
+} from "./public/shell-nav.js";
 import { api, setUnauthorizedRedirect, clearUnauthorizedRedirect } from "./public/api-client.js";
 import { rootRedirectPath, renderAppShell, signOut } from "./public/app.js";
 import { pathGetsWebSpaShell } from "./spa-shell-paths.js";
@@ -100,7 +104,7 @@ describe("browse routes and helpers", () => {
     });
     assert.deepEqual(parseAppRoute("/app/projects/reqalm/tree"), { view: "requirements-tree", projectId: "reqalm" });
     assert.equal(parseAppRoute("/app/nope").view, "unknown");
-    assert.deepEqual(APP_NAV.map((n) => n.label), ["Clients", "Projects"]);
+    assert.deepEqual(APP_MIN_NAV.map((n) => n.label), ["Clients", "Projects"]);
   });
 
   it("validates slug and requirement ids", () => {
@@ -1378,6 +1382,13 @@ describe("browse UI render (jsdom)", () => {
   });
 });
 
+const shellMeta = {
+  identityId: "dan-raby",
+  agentName: "Dan Raby",
+  client: { id: "danrabydev", name: "Dan Raby Dev" },
+  project: { id: "reqalm", name: "ReqALM Product", client_id: "danrabydev" },
+};
+
 describe("app shell", () => {
   beforeEach(() => installDom("http://localhost/app/projects/reqalm/requirements"));
   afterEach(() => {
@@ -1385,27 +1396,128 @@ describe("app shell", () => {
     Reflect.deleteProperty(globalThis, "document");
   });
 
-  it("shows Clients, Projects, and project Requirements nav", () => {
-    const route = parseAppRoute("/app/projects/reqalm/requirements");
-    renderAppShell("/app/projects/reqalm/requirements", route);
-    const texts = [...document.querySelectorAll("#top-nav a")].map((a) => a.textContent);
-    assert.deepEqual(texts, ["Clients", "Projects", "Requirements", "Tree", "Releases"]);
-    assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm/requirements"]'));
+  it("highlights Requirements tab on list and tree routes", () => {
+    for (const path of ["/app/projects/reqalm/requirements", "/app/projects/reqalm/tree"]) {
+      installDom(`http://localhost${path}`);
+      const route = parseAppRoute(path);
+      renderAppShell(path, route, shellMeta);
+      const active = document.querySelector("#project-nav .project-tab-active");
+      assert.equal(active?.textContent, "Requirements", path);
+      assert.equal(document.querySelector("#top-nav"), null);
+    }
   });
 
-  it("shows Tree nav active on tree route", () => {
-    const route = parseAppRoute("/app/projects/reqalm/tree");
-    renderAppShell("/app/projects/reqalm/tree", route);
-    const activeNav = [...document.querySelectorAll("#top-nav a.nav-active")];
-    assert.equal(activeNav.length, 1);
-    assert.equal(activeNav[0]?.getAttribute("href"), "/app/projects/reqalm/tree");
-    assert.equal(document.querySelector('#top-nav a.nav-active[href="/app/projects"]'), null);
+  it("highlights Releases tab on release routes", () => {
+    const path = "/app/projects/reqalm/releases/rel-a";
+    renderAppShell(path, parseAppRoute(path), shellMeta);
+    assert.ok(document.querySelector('#project-nav a.project-tab-active[href="/app/projects/reqalm/releases"]'));
   });
 
-  it("shows Releases nav active on releases routes", () => {
-    const route = parseAppRoute("/app/projects/reqalm/releases/rel-a");
-    renderAppShell("/app/projects/reqalm/releases/rel-a", route);
-    assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/projects/reqalm/releases"]'));
+  it("shows minimal nav without project tabs on clients list", () => {
+    installDom("http://localhost/app/clients");
+    renderAppShell("/app/clients", parseAppRoute("/app/clients"), { identityId: "dan-raby", agentName: null });
+    assert.equal(document.querySelector("#project-nav"), null);
+    assert.ok(document.querySelector('#top-nav a.nav-active[href="/app/clients"]'));
+    const disabled = [...document.querySelectorAll("#project-nav .project-tab-disabled")];
+    assert.equal(disabled.length, 0);
+  });
+
+  it("renders breadcrumb links for client and project in project context", () => {
+    renderAppShell("/app/projects/reqalm/requirements", parseAppRoute("/app/projects/reqalm/requirements"), shellMeta);
+    const crumb = document.querySelector(".header-breadcrumb");
+    assert.match(crumb?.textContent ?? "", /Dan Raby Dev/);
+    assert.match(crumb?.textContent ?? "", /ReqALM Product/);
+    assert.match(crumb?.textContent ?? "", /Requirements/);
+    assert.equal(document.querySelector('.header-breadcrumb a[href="/app/clients/danrabydev"]')?.textContent, "Dan Raby Dev");
+    assert.equal(document.querySelector('.header-breadcrumb a[href="/app/projects/reqalm"]')?.textContent, "ReqALM Product");
+    assert.ok(document.querySelector('.header-breadcrumb [aria-current="page"]'));
+  });
+
+  it("renders coming-soon project tabs as non-links", () => {
+    renderAppShell("/app/projects/reqalm/requirements", parseAppRoute("/app/projects/reqalm/requirements"), shellMeta);
+    for (const label of ["Traceability", "Capabilities", "Contracts", "Audit"]) {
+      const tab = [...document.querySelectorAll("#project-nav .project-tab-disabled")].find((n) => n.textContent === label);
+      assert.ok(tab, label);
+      assert.equal(tab?.getAttribute("aria-disabled"), "true");
+      assert.equal(tab?.getAttribute("title"), "Coming soon");
+      assert.equal(tab?.tagName, "SPAN");
+    }
+    assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 4);
+  });
+
+  it("escapes HTML in client and project names in the breadcrumb", () => {
+    const evil = "<img src=x onerror=alert(1)>";
+    renderAppShell("/app/projects/reqalm/requirements", parseAppRoute("/app/projects/reqalm/requirements"), {
+      ...shellMeta,
+      client: { id: "danrabydev", name: evil },
+      project: { id: "reqalm", name: evil, client_id: "danrabydev" },
+    });
+    assert.equal(document.querySelector(".header-breadcrumb img"), null);
+    assert.ok(document.querySelector(".header-breadcrumb")?.textContent?.includes("<img"));
+  });
+
+  it("breadcrumbSegments builds client/project/page trail", () => {
+    const route = parseAppRoute("/app/projects/reqalm/releases");
+    const segs = breadcrumbSegments(route, shellMeta);
+    assert.deepEqual(
+      segs.map((s) => s.label),
+      ["Dan Raby Dev", "ReqALM Product", "Releases"],
+    );
+    assert.ok(segs[0]?.href?.includes("danrabydev"));
+    assert.ok(segs[1]?.href?.includes("reqalm"));
+    assert.equal(segs[2]?.current, true);
+  });
+
+  it("projectTabItems marks only the matching enabled tab active", () => {
+    const tabs = projectTabItems("reqalm", "/app/projects/reqalm/tree");
+    assert.equal(tabs.filter((t) => t.active).length, 1);
+    assert.equal(tabs.find((t) => t.active)?.id, "requirements");
+  });
+
+  it("shows user initials avatar and sign out", () => {
+    renderAppShell("/app/clients", parseAppRoute("/app/clients"), shellMeta);
+    assert.equal(document.querySelector(".user-avatar")?.textContent, "DR");
+    assert.ok(document.getElementById("signout"));
+  });
+
+  it("requirement detail relationships panel renders under project header tabs", async () => {
+    const path = "/app/projects/reqalm/requirements/CAP-1";
+    installDom(`http://localhost${path}`);
+    const route = parseAppRoute(path);
+    const content = renderAppShell(path, route, shellMeta);
+    await mountBrowseView(content, route, {
+      apiFn: mockFetch((url) => {
+        if (url === "/api/v1/projects/reqalm/requirements/CAP-1") {
+          return {
+            status: 200,
+            body: {
+              data: {
+                id: "CAP-1",
+                title: "Cap one",
+                kind: "capability",
+                type: "capability",
+                status: "active",
+                version_n: 0,
+                statement: "S",
+                attributes: {},
+              },
+            },
+          };
+        }
+        if (url === relationsPath("reqalm", "CAP-1")) {
+          return {
+            status: 200,
+            body: {
+              data: { id: "CAP-1", project_id: "reqalm", outgoing: {}, incoming: {} },
+            },
+          };
+        }
+        return { status: 404 };
+      }),
+    });
+    assert.ok(document.querySelector('#project-nav a.project-tab-active[aria-current="page"]'));
+    assert.ok(content.querySelector(".relations-panel"));
+    assert.ok(content.querySelector("#relations-heading"));
   });
 
   it("root redirect targets clients or login", () => {

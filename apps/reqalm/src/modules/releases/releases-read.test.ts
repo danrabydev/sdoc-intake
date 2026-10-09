@@ -72,10 +72,11 @@ describe("releases read API", () => {
     const planned = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=planned&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ status: string; id: string }>; total: number } };
-    assert.equal(planned.data.total, 4);
-    assert.equal(planned.data.items.length, 4);
+    assert.equal(planned.data.total, 5);
+    assert.equal(planned.data.items.length, 5);
     assert.ok(planned.data.items.every((i) => i.status === "planned"));
-    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-browse-ui-relations"));
+    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-ui-header-nav"));
+    assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-browse-ui-relations"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-catalogs-api"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-lf-endings"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-relations-api"));
@@ -87,7 +88,8 @@ describe("releases read API", () => {
     const shipped = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=shipped&limit=100", headers: bearer })
     ).json() as { data: { total: number; items: Array<{ id: string; status: string }> } };
-    assert.equal(shipped.data.total, 24);
+    assert.equal(shipped.data.total, 25);
+    assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-browse-ui-relations"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-catalogs-api"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-lf-endings"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-relations-api"));

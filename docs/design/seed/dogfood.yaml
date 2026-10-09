@@ -1322,7 +1322,16 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned for relationships browse UI PR.
+  notes: 'Capability active with verification pass after PR #32 merge c8272340b67a0e505b63483bd2ef1550accb4635; formal approval record not filed in seed.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-ui-header-nav
+  subject_kind: CapabilityLine
+  base_uid: CAP-UI-HEADER-NAV
+  status: unapproved
+  by:
+  at:
+  notes: Planned for header and project tab navigation PR.
   approved_version_uid:
   approved_statement_hash:
 gate_signoffs:
@@ -3446,6 +3455,11 @@ requirement_lines:
   parent: SEC-CP
   kind: capability
   title: Browse requirement relationships UI (read-only)
+- base_uid: CAP-UI-HEADER-NAV
+  project_id: reqalm
+  parent: CAP-UI-KIT-CHROME
+  kind: capability
+  title: ReqALM header and project navigation
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -8778,14 +8792,27 @@ requirement_versions:
 - uid: CAP-BROWSE-UI-RELATIONS
   base_uid: CAP-BROWSE-UI-RELATIONS
   version_n: 0
-  status: draft
+  status: active
   statement: 'Read-only Relationships panel on the requirement detail browse screen: loads GET /api/v1/projects/:projectId/requirements/:id/relations and renders outgoing and incoming links grouped by kind. Requirement peers navigate to detail; catalog conforms_to peers show as non-navigating chips with imprint label; trace_suspect shows needs re-check; restricted peers show a muted stub with no peer id. Empty, loading, and error states included.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: Planned until relationships browse UI PR merges.
+    verification_note: 'Shipped with relationships browse UI PR #32 (merge c8272340b67a0e505b63483bd2ef1550accb4635).'
   statement_hash: sha256:57289b6e8e5c549f82773216a035ba5d2a09938d9b76ef3bbc45974ced4c4032
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-UI-HEADER-NAV
+  base_uid: CAP-UI-HEADER-NAV
+  version_n: 0
+  status: draft
+  statement: 'ReqALM /app shell header aligned to product chrome: brand mark, client/project/page breadcrumb with safe text, project-scoped tabs (Requirements with list/tree toggle, Releases; coming-soon stubs for Traceability, Capabilities, Contracts, Audit), minimal Clients/Projects nav outside project context, user initials avatar and sign out. Accessible nav landmarks, aria-current on active items, aria-disabled on stub tabs, visible focus styles. No sidebar.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until header/nav UI PR merges.
+  statement_hash: sha256:01eb837e7646e87710859ddba2ebac44706d1be9d1c14ca17a12e71b73d70e30
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -9508,6 +9535,24 @@ capability_artifacts:
 - requirement_version_uid: CAP-BROWSE-UI-RELATIONS
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_browse_ui_relations_release.py
+- requirement_version_uid: CAP-UI-HEADER-NAV
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/app.js
+- requirement_version_uid: CAP-UI-HEADER-NAV
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/browse.js
+- requirement_version_uid: CAP-UI-HEADER-NAV
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/shell-nav.js
+- requirement_version_uid: CAP-UI-HEADER-NAV
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/styles.css
+- requirement_version_uid: CAP-UI-HEADER-NAV
+  kind: other
+  uri: ../../../apps/reqalm/src/web/browse-ui.test.ts
+- requirement_version_uid: CAP-UI-HEADER-NAV
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_ui_header_nav_release.py
 edges:
 - from: CAP-SSO
   to: A01
@@ -15651,6 +15696,18 @@ edges:
 - from: CAP-BROWSE-UI-RELATIONS
   to: CAP-BROWSE-UI-REQS
   kind: satisfies
+- from: CAP-UI-HEADER-NAV
+  to: ARCH-UI
+  kind: satisfies
+- from: CAP-UI-HEADER-NAV
+  to: ARCH-UI-GUARD
+  kind: satisfies
+- from: CAP-UI-HEADER-NAV
+  to: CAP-UI-KIT-CHROME
+  kind: satisfies
+- from: CAP-UI-HEADER-NAV
+  to: CAP-BROWSE-UI-REQS
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -16295,12 +16352,22 @@ releases:
   project_id: reqalm
   name: R1 — browse requirement relationships UI (read-only)
   planned_on: '2026-10-09'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-09'
+  status: shipped
   delivers:
   - CAP-BROWSE-UI-RELATIONS
   cyber_gate: false
-  notes: Relationships panel on requirement detail; two-column graph view deferred.
+  notes: 'PR #32 merged to main as c8272340b67a0e505b63483bd2ef1550accb4635 on 2026-10-09. Relationships panel on requirement detail browse screen.'
+- id: rel-r1-ui-header-nav
+  project_id: reqalm
+  name: R1 — ReqALM header and project navigation
+  planned_on: '2026-10-09'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-UI-HEADER-NAV
+  cyber_gate: false
+  notes: Top bar breadcrumb, project tabs, list/tree toggle under Requirements; no new routes.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm
