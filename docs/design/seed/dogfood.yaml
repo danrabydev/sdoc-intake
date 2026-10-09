@@ -8517,7 +8517,16 @@ capability_artifacts:
   uri: ../../../apps/reqalm/src/web/public/mfa-enroll-ui.js
 - requirement_version_uid: CAP-MFA-QR
   kind: other
+  uri: ../../../apps/reqalm/src/web/public/qr-min-adapter.js
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
   uri: ../../../apps/reqalm/src/web/public/vendor/qr-min.js
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/vendor/README.md
+- requirement_version_uid: CAP-MFA-QR
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/index.html
 - requirement_version_uid: CAP-MFA-QR
   kind: other
   uri: ../../../apps/reqalm/src/web/public/app.js

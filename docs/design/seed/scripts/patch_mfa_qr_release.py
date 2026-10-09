@@ -100,7 +100,10 @@ QR_STMT = (
 )
 QR_ARTIFACTS = [
     f"{REPO}/apps/reqalm/src/web/public/mfa-enroll-ui.js",
+    f"{REPO}/apps/reqalm/src/web/public/qr-min-adapter.js",
     f"{REPO}/apps/reqalm/src/web/public/vendor/qr-min.js",
+    f"{REPO}/apps/reqalm/src/web/public/vendor/README.md",
+    f"{REPO}/apps/reqalm/src/web/public/index.html",
     f"{REPO}/apps/reqalm/src/web/public/app.js",
     f"{REPO}/apps/reqalm/src/web/public/styles.css",
     f"{REPO}/apps/reqalm/src/web/mfa-enroll-ui.test.ts",
