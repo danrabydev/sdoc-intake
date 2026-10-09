@@ -16380,10 +16380,6 @@ contracts:
   - CAP-UI-KIT
   - CAP-UI-KIT-CHROME
   - CAP-UI-KIT-TREE
-  - CAP-UPKEEP-AUDIT-LOG-REVIEW
-  - CAP-UPKEEP-MONTHLY-DEPS-VULN
-  - CAP-UPKEEP-MONTHLY-SEC-AUDIT
-  - CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
   - CAP-VERSION-UI
   - D01
   - D02
@@ -16543,11 +16539,10 @@ contracts:
   - N01
   - N02
   - N03
-  - SYS-CYBER-UPKEEP
   - UI-APPROVE-LINE
   - UI-APPROVE-TREE
   - WANT-CHANGESET-FIELD-UNDO
-  notes: 'Umbrella build contract for the ReqALM project: covers_releases lists every reqalm release id; in_scope_of pins the active version UID of each reqalm capability and requirement line (not historical release.delivers snapshots). Distinct from legacy overlay fixtures (Design-2026-10, …).'
+  notes: 'Umbrella build contract for the ReqALM project: covers_releases lists every reqalm release id; in_scope_of pins each reqalm capability/requirement at active tip or newest non-superseded draft (excludes ctr-reqalm-maintenance upkeep caps and SYS-CYBER-UPKEEP). Distinct from legacy overlays.'
 - id: ctr-reqalm-maintenance
   client_id: raby-family
   project_id: reqalm

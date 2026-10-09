@@ -95,6 +95,28 @@ def active_uid(data, base_uid: str) -> str:
     return max(vers, key=lambda v: v.get("version_n", 0))["uid"]
 
 
+def product_scope_uid(data, base_uid: str) -> str | None:
+    """Product contract pin: active tip if any; else newest non-superseded (draft build work OK)."""
+    vers = [v for v in data.get("requirement_versions") or [] if v.get("base_uid") == base_uid]
+    if not vers:
+        return base_uid
+    active = [v for v in vers if v.get("status") == "active"]
+    if active:
+        return max(active, key=lambda v: v.get("version_n", 0))["uid"]
+    non_superseded = [v for v in vers if v.get("status") != "superseded"]
+    if not non_superseded:
+        return None
+    return max(non_superseded, key=lambda v: v.get("version_n", 0))["uid"]
+
+
+def upkeep_cap_base_uids() -> frozenset[str]:
+    return frozenset(c["base_uid"] for c in UPKEEP_CAPABILITIES)
+
+
+def product_scope_exclude_bases() -> frozenset[str]:
+    return upkeep_cap_base_uids() | {SYS_UPKEEP}
+
+
 def reqalm_release_ids(data) -> list[str]:
     rel_ids: list[str] = []
     for r in data.get("releases") or []:
@@ -106,8 +128,9 @@ def reqalm_release_ids(data) -> list[str]:
     return sorted(rel_ids)
 
 
-def reqalm_active_cap_and_requirement_uids(data) -> list[str]:
-    """Active tip UID for every reqalm capability and requirement line (not release snapshot pins)."""
+def reqalm_product_contract_scope(data, *, maint_in_scope: set[str]) -> list[str]:
+    """Reqalm cap/requirement pins for ctr-reqalm-product (excludes maintenance-owned lines)."""
+    exclude = product_scope_exclude_bases()
     uids: list[str] = []
     for ln in data.get("requirement_lines") or []:
         if ln.get("project_id") != "reqalm":
@@ -115,9 +138,11 @@ def reqalm_active_cap_and_requirement_uids(data) -> list[str]:
         if ln.get("kind") not in ("requirement", "capability"):
             continue
         bu = ln.get("base_uid")
-        if not bu:
+        if not bu or bu in exclude:
             continue
-        uids.append(active_uid(data, bu))
+        uid = product_scope_uid(data, bu)
+        if uid and uid not in maint_in_scope:
+            uids.append(uid)
     return sorted(set(uids))
 
 
@@ -379,8 +404,8 @@ def upsert_contracts(data, *, product_delivers: list[str], product_releases: lis
             in_scope_of=product_delivers,
             notes=(
                 "Umbrella build contract for the ReqALM project: covers_releases lists every reqalm release id; "
-                "in_scope_of pins the active version UID of each reqalm capability and requirement line (not "
-                "historical release.delivers snapshots). Distinct from legacy overlay fixtures (Design-2026-10, …)."
+                "in_scope_of pins each reqalm capability/requirement at active tip or newest non-superseded draft "
+                "(excludes ctr-reqalm-maintenance upkeep caps and SYS-CYBER-UPKEEP). Distinct from legacy overlays."
             ),
         ),
     )
@@ -490,8 +515,8 @@ def main() -> None:
     ship_ui_header_nav(data)
     fix_header_nav_ui_kit_edge(data)
     product_releases = reqalm_release_ids(data)
-    product_scope = reqalm_active_cap_and_requirement_uids(data)
     maint_cap_uids = upsert_cyber_upkeep_model(data)
+    product_scope = reqalm_product_contract_scope(data, maint_in_scope=set(maint_cap_uids))
     upsert_contracts(
         data,
         product_delivers=product_scope,

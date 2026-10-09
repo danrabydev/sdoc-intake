@@ -8084,7 +8084,6 @@ priority: 50
 iteration: iter-r1
 security.catalog_ref: CA-7
 security.verification_note: Planned upkeep capability — not shipped; no verification outcome.
-in_scope_of_contract: ReqALM product (build)
 in_scope_of_contract: ReqALM maintenance
 edge: → conforms_to to CA-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8097,9 +8096,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: CA-7
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-maintenance
   ROLE: InScopeOf
@@ -8119,7 +8115,6 @@ priority: 50
 iteration: iter-r1
 security.catalog_ref: RA-5
 security.verification_note: Planned upkeep capability — not shipped; no verification outcome.
-in_scope_of_contract: ReqALM product (build)
 in_scope_of_contract: ReqALM maintenance
 edge: → conforms_to to RA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SI-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -8136,9 +8131,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: SI-2
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-maintenance
   ROLE: InScopeOf
@@ -8158,7 +8150,6 @@ priority: 50
 iteration: iter-r1
 security.catalog_ref: AC-2
 security.verification_note: Planned upkeep capability — not shipped; no verification outcome.
-in_scope_of_contract: ReqALM product (build)
 in_scope_of_contract: ReqALM maintenance
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8171,9 +8162,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AC-2
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-maintenance
   ROLE: InScopeOf
@@ -8193,7 +8181,6 @@ priority: 50
 iteration: iter-r1
 security.catalog_ref: AU-6
 security.verification_note: Planned upkeep capability — not shipped; no verification outcome.
-in_scope_of_contract: ReqALM product (build)
 in_scope_of_contract: ReqALM maintenance
 edge: → conforms_to to AU-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -8206,9 +8193,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-6
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-maintenance
   ROLE: InScopeOf
@@ -13579,7 +13563,6 @@ edge: ← satisfies from CAP-UPKEEP-MONTHLY-SEC-AUDIT
 edge: ← satisfies from CAP-UPKEEP-MONTHLY-DEPS-VULN
 edge: ← satisfies from CAP-UPKEEP-QUARTERLY-ACCESS-RECERT
 edge: ← satisfies from CAP-UPKEEP-AUDIT-LOG-REVIEW
-in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to CA-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to RA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to SI-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13604,9 +13587,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-6
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
 
 [[/SECTION]]
 

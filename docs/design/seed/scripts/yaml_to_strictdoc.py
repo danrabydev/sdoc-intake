@@ -147,6 +147,7 @@ def validate(data: dict[str, Any]) -> list[str]:
 
     release_ids = {r.get("id") for r in (data.get("releases") or []) if r.get("id")}
 
+    contracts_by_id = {c.get("id"): c for c in (data.get("contracts") or []) if c.get("id")}
     for c in data.get("contracts") or []:
         for u in c.get("in_scope_of") or []:
             if u not in ver_uids:
@@ -154,6 +155,19 @@ def validate(data: dict[str, Any]) -> list[str]:
         for rid in c.get("covers_releases") or []:
             if rid not in release_ids:
                 errs.append(f"contract {c.get('name')}: covers_releases {rid!r} not a release id")
+
+    prod = contracts_by_id.get("ctr-reqalm-product") or {}
+    maint = contracts_by_id.get("ctr-reqalm-maintenance") or {}
+    if prod and maint:
+        pset = set(prod.get("in_scope_of") or [])
+        mset = set(maint.get("in_scope_of") or [])
+        overlap = sorted(pset & mset)
+        if overlap:
+            errs.append(
+                "ctr-reqalm-product and ctr-reqalm-maintenance share in_scope_of UIDs: "
+                + ", ".join(overlap[:12])
+                + ("…" if len(overlap) > 12 else "")
+            )
 
     for r in data.get("releases") or []:
         for u in r.get("delivers") or []:
