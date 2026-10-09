@@ -475,7 +475,7 @@ pre {
 }
 
 .relation-chip-title {
-  flex-shrink: 100000;
+  flex: 1 100000 auto;
   font-weight: 500;
   min-width: 0;
   overflow: hidden;

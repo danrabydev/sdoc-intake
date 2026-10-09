@@ -656,6 +656,8 @@ describe("browse UI render (jsdom)", () => {
     const catTag = catalog?.querySelector(".relation-chip-project");
     assert.equal(catTag?.textContent, "p2");
     assert.equal(catTag?.childNodes[0]?.nodeType, 3);
+    assert.equal(catalog?.querySelector(".relation-chip-id")?.getAttribute("title"), xss);
+    assert.equal(twinLink?.querySelector(".relation-chip-id")?.getAttribute("title"), "A01");
     const restricted = main.querySelector(".relation-chip-restricted");
     assert.ok(restricted);
     assert.notEqual(restricted?.tagName, "A");
@@ -781,6 +783,8 @@ describe("browse UI render (jsdom)", () => {
     );
     assert.equal(evil.querySelector("b"), null);
     assert.equal(evil.querySelector(".relation-chip-project")?.textContent, "<b>p</b>");
+    const sameCat = { id: "C", title: "C", kind: "control", type: "catalog_control", project_id: "reqalm" };
+    assert.equal(relationPeerChip({ relation_kind: "conforms_to", direction: "outgoing", self_version_id: "A", peer_version_id: "C", trace_suspect: false, catalog_imprint_id: "nist@x", peer: sameCat }, "reqalm").querySelector(".relation-chip-project"), null);
   });
 
   it("requirement detail breadcrumbs use ancestor order and section vs requirement links", async () => {
