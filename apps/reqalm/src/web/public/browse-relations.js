@@ -69,6 +69,12 @@ function titleSpan(text) {
   return span;
 }
 
+function idCode(id) {
+  const code = el("code", { className: "relation-chip-id", text: id });
+  code.setAttribute("title", id);
+  return code;
+}
+
 function restrictedChip() {
   return el("div", { className: "relation-chip relation-chip-restricted", role: "listitem" }, [
     el("span", { className: "relation-chip-restricted-text", text: "Restricted — you don't have access" }),
@@ -79,7 +85,7 @@ function catalogChip(link, anchorProjectId) {
   const peer = link.peer;
   const title = peer.title?.trim() ? peer.title : peer.id;
   const imprint = imprintShortLabel(link.catalog_imprint_id);
-  const parts = [el("code", { className: "relation-chip-id", text: peer.id }), titleSpan(title)];
+  const parts = [idCode(peer.id), titleSpan(title)];
   if (imprint) parts.push(el("span", { className: "relation-chip-imprint", text: imprint }));
   if (peer.project_id && anchorProjectId && peer.project_id !== anchorProjectId) {
     parts.push(el("span", { className: "relation-chip-project", text: peer.project_id }));
@@ -93,7 +99,7 @@ function requirementPeerChip(link, anchorProjectId) {
   const peerProject = peer.project_id;
   const titleText = peer.title?.trim() ? peer.title : null;
   const inner = [
-    el("code", { className: "relation-chip-id", text: peer.id }),
+    idCode(peer.id),
     ...(titleText ? [titleSpan(titleText)] : []),
     peerStatusBadge(peer),
   ];

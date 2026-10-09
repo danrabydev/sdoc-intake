@@ -475,7 +475,7 @@ pre {
 }
 
 .relation-chip-title {
-  flex: 1 1 auto;
+  flex-shrink: 100000;
   font-weight: 500;
   min-width: 0;
   overflow: hidden;
@@ -494,13 +494,20 @@ pre {
 }
 
 .relation-chip-id {
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.82rem;
   background: #e0e7ff;
   color: var(--accent);
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
+}
+
+.relation-chip-list-more {
+  margin-top: 6px;
 }
 
 .relation-chip-status {

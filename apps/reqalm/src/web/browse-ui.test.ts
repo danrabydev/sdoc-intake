@@ -584,7 +584,7 @@ describe("browse UI render (jsdom)", () => {
       outgoing: {
         satisfies: [link("satisfies", "outgoing", xss, req(xss, "safe title"))],
         uses: [link("uses", "outgoing", "USE-TGT", req("USE-TGT", xss))],
-        conforms_to: [link("conforms_to", "outgoing", xss, { id: xss, title: null, kind: "control", type: "catalog_control", project_id: "reqalm" }, { catalog_imprint_id: "nist-800-53@rev5-dogfood-20261006", trace_suspect: true })],
+        conforms_to: [link("conforms_to", "outgoing", xss, { id: xss, title: null, kind: "control", type: "catalog_control", project_id: "p2" }, { catalog_imprint_id: "nist-800-53@rev5-dogfood-20261006", trace_suspect: true })],
       },
       incoming: {
         refines: [
@@ -653,7 +653,9 @@ describe("browse UI render (jsdom)", () => {
     assert.equal(catalog?.getAttribute("href"), null);
     assert.ok((catalog?.textContent ?? "").includes(xss) && (catalog?.textContent ?? "").includes("NIST"));
     assert.equal(catalog?.querySelector(".relation-chip-title")?.textContent, xss);
-    assert.equal(catalog?.querySelector(".relation-chip-project"), null);
+    const catTag = catalog?.querySelector(".relation-chip-project");
+    assert.equal(catTag?.textContent, "p2");
+    assert.equal(catTag?.childNodes[0]?.nodeType, 3);
     const restricted = main.querySelector(".relation-chip-restricted");
     assert.ok(restricted);
     assert.notEqual(restricted?.tagName, "A");
@@ -766,6 +768,19 @@ describe("browse UI render (jsdom)", () => {
     assert.equal(noProj.tagName, "DIV");
     assert.equal(noProj.getAttribute("href"), null);
     assert.equal(noProj.querySelector("a"), null);
+    const evil = relationPeerChip(
+      {
+        relation_kind: "uses",
+        direction: "outgoing",
+        self_version_id: "A",
+        peer_version_id: "Z",
+        trace_suspect: false,
+        peer: { id: "Z", title: "Z", kind: "requirement", type: "requirement", project_id: "<b>p</b>" },
+      },
+      "reqalm",
+    );
+    assert.equal(evil.querySelector("b"), null);
+    assert.equal(evil.querySelector(".relation-chip-project")?.textContent, "<b>p</b>");
   });
 
   it("requirement detail breadcrumbs use ancestor order and section vs requirement links", async () => {
