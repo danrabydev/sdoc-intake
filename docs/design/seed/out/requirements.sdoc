@@ -3522,7 +3522,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-CATALOGS
-STATUS: Draft
+STATUS: Active
 TITLE: Browse catalogs UI (read-only)
 STATEMENT: >>>
 Read-only /app browse screens for grant-scoped catalogs within a project: catalog list (title, primary imprint, control count), imprint detail with controls grouped by family and conforming-line counts, and control detail (statement + conforming requirement/capability chips). Uses catalogs read API; restricted catalogs follow API 404/redaction. Safe DOM (textContent only); Catalogs project tab in header nav.
@@ -3534,7 +3534,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until catalogs browse UI PR merges.
+security.verification_note: Shipped with catalogs browse UI PR #41 (merge cbee54e9484d89430b461789052cea296e1669c5).
 delivered_by_release: R1 — browse catalogs UI (read-only)
 <<<
 RELATIONS:
@@ -3554,6 +3554,39 @@ RELATIONS:
   ROLE: Satisfies
 - TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-catalogs
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-CONTRACTS-LOADER
+STATUS: Draft
+TITLE: Persist contracts from dogfood (migration + loader)
+STATEMENT: >>>
+Dogfood loader persists contract overlays from dogfood.yaml into Postgres: contracts, contract_scope, and contract_releases (migration 012_contracts_read.sql). Validates in_scope_of version uids and covers_releases release ids; allows cross-project scope lines anchored on the contract project_id. Seed reset deletes contract junction rows before releases (FK-safe). No HTTP read API in this release.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-CONTRACTS-LOADER
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Planned until contracts loader PR merges.
+delivered_by_release: R1 — contracts loader (DB + seed)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: F10
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CONTRACT.1
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-contracts-loader
   ROLE: Delivers
 
 [[/SECTION]]
@@ -5835,6 +5868,7 @@ edge: ← uses from F07
 edge: ← uses from L02
 edge: ← uses from F04
 edge: ← satisfies from CAP-REQALM-CONTRACTS
+edge: ← satisfies from CAP-CONTRACTS-LOADER
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -6362,6 +6396,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-CONTRACT-UI
+edge: ← satisfies from CAP-CONTRACTS-LOADER
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -12758,6 +12793,7 @@ edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
+edge: ← satisfies from CAP-CONTRACTS-LOADER
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<

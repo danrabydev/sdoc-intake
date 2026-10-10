@@ -125,6 +125,9 @@ export async function applyDogfoodSeed(
     trace_edges: 0,
     catalog_defs: 0,
     catalog_item_labels: 0,
+    contracts: 0,
+    contract_scope: 0,
+    contract_releases: 0,
   };
 
   const countBefore = options?.skipUnchangedCheck ? null : await countSeedRows(client);
@@ -171,6 +174,10 @@ export async function applyDogfoodSeed(
   for (const [position, rel] of (seed.releases ?? []).entries()) {
     await upsertRelease(client, rel, position, inserted);
   }
+  const releaseProject = new Map<string, string>();
+  for (const rel of seed.releases ?? []) {
+    releaseProject.set(String(rel.id), String(rel.project_id));
+  }
   for (const g of seed.platform_grants ?? []) {
     await upsertPlatformGrant(client, g, inserted);
   }
@@ -200,6 +207,10 @@ export async function applyDogfoodSeed(
     if (!verProject) throw new SeedValidationError(`version ${ver.uid}: no project_id`);
     uidProject.set(String(ver.uid), verProject);
     uidToBaseUid.set(String(ver.uid), baseUid);
+  }
+  for (const c of seed.contracts ?? []) {
+    assertContractReferences(c, uidProject, releaseProject);
+    await upsertContract(client, c, inserted);
   }
   for (const e of seed.edges ?? []) {
     assertInheritableTraceEdge(e, uidProject, uidToBaseUid, lineKindByProjectBase);
@@ -267,6 +278,9 @@ export async function countSeedRows(client: pg.PoolClient) {
     "trace_edges",
     "catalog_defs",
     "catalog_item_labels",
+    "contracts",
+    "contract_scope",
+    "contract_releases",
   ] as const;
   const counts: Record<string, number> = {};
   for (const t of tables) {
@@ -483,6 +497,85 @@ async function upsertVersion(
     ],
   );
   if (r.rowCount) inserted.requirement_versions++;
+}
+
+function assertContractReferences(
+  row: Record<string, unknown>,
+  uidProject: Map<string, string>,
+  releaseProject: Map<string, string>,
+): void {
+  const contractId = String(row.id);
+  for (const uid of (row.in_scope_of as unknown[] | undefined) ?? []) {
+    if (!uidProject.has(String(uid))) {
+      throw new SeedValidationError(`contract ${contractId}: unknown in_scope_of uid ${String(uid)}`);
+    }
+  }
+  for (const rid of (row.covers_releases as unknown[] | undefined) ?? []) {
+    if (!releaseProject.has(String(rid))) {
+      throw new SeedValidationError(`contract ${contractId}: unknown covers_releases id ${String(rid)}`);
+    }
+  }
+}
+
+async function upsertContract(
+  client: pg.PoolClient,
+  row: Record<string, unknown>,
+  inserted: Record<string, number>,
+): Promise<void> {
+  const contractId = String(row.id);
+  const projectId = String(row.project_id);
+  const r = await client.query(
+    `
+    INSERT INTO contracts (id, project_id, client_id, name, status, starts_on, ends_on, notes)
+    VALUES ($1, $2, $3, $4, $5, $6::date, $7::date, $8)
+    ON CONFLICT (id) DO UPDATE SET
+      project_id = EXCLUDED.project_id, client_id = EXCLUDED.client_id, name = EXCLUDED.name,
+      status = EXCLUDED.status, starts_on = EXCLUDED.starts_on, ends_on = EXCLUDED.ends_on,
+      notes = EXCLUDED.notes
+    RETURNING (xmax = 0) AS inserted
+  `,
+    [
+      contractId,
+      projectId,
+      row.client_id,
+      row.name,
+      row.status,
+      row.starts_on ?? null,
+      row.ends_on ?? null,
+      row.notes ?? null,
+    ],
+  );
+  if (r.rows[0]?.inserted) inserted.contracts++;
+
+  const scope = ((row.in_scope_of as unknown[] | undefined) ?? []).map(String);
+  await client.query(
+    `DELETE FROM contract_scope WHERE contract_id = $1 AND NOT (version_uid = ANY($2::text[]))`,
+    [contractId, scope],
+  );
+  for (const [position, uid] of scope.entries()) {
+    const d = await client.query(
+      `INSERT INTO contract_scope (contract_id, project_id, version_uid, position) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (contract_id, version_uid) DO UPDATE SET position = EXCLUDED.position, project_id = EXCLUDED.project_id
+       RETURNING (xmax = 0) AS inserted`,
+      [contractId, projectId, uid, position],
+    );
+    if (d.rows[0]?.inserted) inserted.contract_scope++;
+  }
+
+  const covers = ((row.covers_releases as unknown[] | undefined) ?? []).map(String);
+  await client.query(
+    `DELETE FROM contract_releases WHERE contract_id = $1 AND NOT (release_id = ANY($2::text[]))`,
+    [contractId, covers],
+  );
+  for (const [position, releaseId] of covers.entries()) {
+    const d = await client.query(
+      `INSERT INTO contract_releases (contract_id, project_id, release_id, position) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (contract_id, release_id) DO UPDATE SET position = EXCLUDED.position, project_id = EXCLUDED.project_id
+       RETURNING (xmax = 0) AS inserted`,
+      [contractId, projectId, releaseId, position],
+    );
+    if (d.rows[0]?.inserted) inserted.contract_releases++;
+  }
 }
 
 /**

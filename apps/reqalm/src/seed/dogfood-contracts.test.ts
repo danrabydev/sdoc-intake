@@ -4,11 +4,24 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { parse as parseYaml } from "yaml";
+import { loadConfig } from "../config.js";
+import { createMigratedPglitePool } from "../test/pglite-pool.js";
+import { testConfigEnv } from "../test/harness.js";
+import { SeedValidationError, loadDogfoodSeed, readDogfoodFile, type DogfoodSeed } from "./load-dogfood.js";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const dogfoodPath = path.join(repoRoot, "docs/design/seed/dogfood.yaml");
 
 type ContractRow = { id?: string; in_scope_of?: string[] };
+
+async function withMigratedPool(run: (pool: Awaited<ReturnType<typeof createMigratedPglitePool>>["pool"]) => Promise<void>) {
+  const pg = await createMigratedPglitePool();
+  try {
+    await run(pg.pool);
+  } finally {
+    await pg.close();
+  }
+}
 
 describe("dogfood ReqALM product vs maintenance contracts", () => {
   it("has no overlapping in_scope_of between ctr-reqalm-product and ctr-reqalm-maintenance", () => {
@@ -25,9 +38,87 @@ describe("dogfood ReqALM product vs maintenance contracts", () => {
       [],
       `product and maintenance contracts must not share in_scope_of UIDs; overlap=${overlap.join(", ")}`,
     );
-    assert.ok(!pset.has("SYS-CYBER-UPKEEP"), "SYS-CYBER-UPKEEP belongs on maintenance track only");
-    for (const uid of product.in_scope_of) {
-      assert.ok(!uid.startsWith("CAP-UPKEEP-"), `product scope must exclude upkeep cap ${uid}`);
-    }
+    assert.ok(!pset.has("SYS-CYBER-UPKEEP"));
+    assert.ok(product.in_scope_of.every((uid) => !uid.startsWith("CAP-UPKEEP-")));
+  });
+
+  it("loader persists contracts, scope, and releases from dogfood", async () => {
+    const config = loadConfig(testConfigEnv());
+    const seed = await readDogfoodFile(dogfoodPath);
+    await withMigratedPool(async (pool) => {
+      await loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true });
+      assert.equal(
+        (await pool.query(`SELECT count(*)::int AS c FROM contracts WHERE project_id = 'reqalm'`)).rows[0]?.c,
+        7,
+      );
+      assert.equal(
+        (await pool.query(`SELECT count(*)::int AS c FROM contract_scope WHERE contract_id = 'ctr-reqalm-maintenance'`))
+          .rows[0]?.c,
+        4,
+      );
+      const expected = (parseYaml(readFileSync(dogfoodPath, "utf8")) as { contracts?: ContractRow[] }).contracts?.find(
+        (c) => c.id === "ctr-reqalm-product",
+      )?.in_scope_of?.length;
+      assert.equal(
+        (await pool.query(`SELECT count(*)::int AS c FROM contract_scope WHERE contract_id = 'ctr-reqalm-product'`))
+          .rows[0]?.c,
+        expected,
+      );
+    });
+  });
+
+  it("loader accepts cross-project in_scope_of on contract anchor project", async () => {
+    const config = loadConfig(testConfigEnv());
+    const seed: DogfoodSeed = {
+      client: { id: "c1", name: "C1" },
+      projects: [
+        { id: "p1", client_id: "c1", name: "P1" },
+        { id: "p2", client_id: "c1", name: "P2" },
+      ],
+      identities: [],
+      project_grants: [],
+      requirement_lines: [{ base_uid: "R1", project_id: "p2", kind: "requirement", title: "R" }],
+      requirement_versions: [
+        { uid: "R1", base_uid: "R1", project_id: "p2", version_n: 0, status: "active", statement: "s" },
+      ],
+      contracts: [
+        { id: "ctr-cross", client_id: "c1", project_id: "p1", name: "cross", status: "active", in_scope_of: ["R1"] },
+      ],
+    };
+    await withMigratedPool(async (pool) => {
+      await loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true });
+      assert.deepEqual(
+        (await pool.query(`SELECT version_uid FROM contract_scope WHERE contract_id = 'ctr-cross'`)).rows.map(
+          (r) => r.version_uid,
+        ),
+        ["R1"],
+      );
+    });
+  });
+
+  it("loader rejects unknown in_scope_of uid", async () => {
+    const config = loadConfig(testConfigEnv());
+    const seed: DogfoodSeed = {
+      client: { id: "c1", name: "C1" },
+      projects: [{ id: "p1", client_id: "c1", name: "P1" }],
+      identities: [],
+      project_grants: [],
+      contracts: [
+        {
+          id: "ctr-bad",
+          client_id: "c1",
+          project_id: "p1",
+          name: "bad",
+          status: "active",
+          in_scope_of: ["NO-SUCH-VER"],
+        },
+      ],
+    };
+    await withMigratedPool(async (pool) => {
+      await assert.rejects(
+        () => loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true }),
+        (e: unknown) => e instanceof SeedValidationError && String(e.message).includes("unknown in_scope_of"),
+      );
+    });
   });
 });

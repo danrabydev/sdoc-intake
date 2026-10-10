@@ -74,7 +74,8 @@ describe("releases read API", () => {
     ).json() as { data: { items: Array<{ status: string; id: string }>; total: number } };
     assert.equal(planned.data.total, 4);
     assert.equal(planned.data.items.length, 4);
-    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-browse-ui-catalogs"));
+    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-contracts-loader"));
+    assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-browse-ui-catalogs"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-ui-layout-capabilities"));
     assert.ok(planned.data.items.every((i) => i.status === "planned"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-trace-inherit-uses"));
@@ -92,7 +93,8 @@ describe("releases read API", () => {
     const shipped = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=shipped&limit=100", headers: bearer })
     ).json() as { data: { total: number; items: Array<{ id: string; status: string }> } };
-    assert.equal(shipped.data.total, 30);
+    assert.equal(shipped.data.total, 31);
+    assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-browse-ui-catalogs"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-ui-layout-capabilities"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-seed-attach-figma"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-ui-header-nav"));
@@ -115,10 +117,11 @@ describe("releases read API", () => {
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ id: string; planned_on: string | null }> } };
     const ids = list.data.items.map((i) => i.id);
-    assert.deepEqual(ids.slice(0, 9), [
+    assert.deepEqual(ids.slice(0, 10), [
       "rel-r1-core-alm",
       "rel-r1-platform-followups",
       "rel-r0-sequences",
+      "rel-r1-contracts-loader",
       "rel-r1-seed-attach-figma",
       "rel-r1-ui-layout-capabilities",
       "rel-r1-browse-ui-catalogs",
