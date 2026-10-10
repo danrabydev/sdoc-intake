@@ -13,7 +13,7 @@ from ruamel.yaml import YAML
 
 SEED = Path(__file__).resolve().parent.parent
 REPO_ROOT = SEED.parent.parent
-BASE_MAIN = "a3ebdcdc23d9032eefa4109603e527b4e80d6c77"
+BASE_MAIN = "aa7e85631819d45ac04852831ab305d655f1eddd"
 FIXTURE = SEED / "fixtures" / "dogfood-baseline-outbound-edges.json"
 
 

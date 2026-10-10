@@ -54,6 +54,17 @@ import {
   renderCatalogControlDetail,
 } from "./public/browse-catalogs.js";
 import {
+  contractsListHref,
+  contractDetailHref,
+  contractsApiPath,
+  contractApiPath,
+  contractScopeApiPath,
+  contractReleasesApiPath,
+  isValidContractId,
+  renderContractsList,
+  renderContractDetail,
+} from "./public/browse-contracts.js";
+import {
   isValidCatalogId,
   isValidImprintId,
   isValidControlId,
@@ -132,6 +143,12 @@ describe("browse routes and helpers", () => {
       releaseId: "rel-r1",
     });
     assert.deepEqual(parseAppRoute("/app/projects/reqalm/tree"), { view: "requirements-tree", projectId: "reqalm" });
+    assert.deepEqual(parseAppRoute("/app/projects/reqalm/contracts"), { view: "contracts-list", projectId: "reqalm" });
+    assert.deepEqual(parseAppRoute("/app/projects/reqalm/contracts/ctr-reqalm-product"), {
+      view: "contract-detail",
+      projectId: "reqalm",
+      contractId: "ctr-reqalm-product",
+    });
     assert.deepEqual(parseAppRoute("/app/projects/reqalm/catalogs"), { view: "catalogs-list", projectId: "reqalm" });
     assert.deepEqual(parseAppRoute("/app/projects/reqalm/catalogs/cat-nist-global/imprints/nist%408"), {
       view: "catalog-imprint-detail",
@@ -160,6 +177,7 @@ describe("browse routes and helpers", () => {
     assert.ok(isValidCatalogId("cat-nist-global") && !isValidCatalogId("Bad!"));
     assert.ok(isValidImprintId("nist-800-53@rev5-dogfood-20261006") && !isValidImprintId("BAD IMPRINT"));
     assert.ok(isValidControlId("AC-3") && !isValidControlId("bad/id"));
+    assert.ok(isValidContractId("ctr-reqalm-product") && !isValidContractId("Bad_ID"));
   });
 
   it("builds encoded hrefs and filter URLs", () => {
@@ -1563,6 +1581,12 @@ describe("app shell", () => {
         href: "/app/projects/reqalm/catalogs",
         hideTopNav: true,
       },
+      {
+        path: "/app/projects/reqalm/contracts",
+        label: "Contracts",
+        href: "/app/projects/reqalm/contracts",
+        hideTopNav: true,
+      },
       { path: "/app/clients", minNav: true },
     ];
     for (const { path, label, href, hideTopNav, releaseActiveHref, comingSoon, minNav } of cases) {
@@ -1590,7 +1614,7 @@ describe("app shell", () => {
         );
       }
       if (comingSoon) {
-        for (const tabLabel of ["Traceability", "Capabilities", "Contracts", "Audit"]) {
+        for (const tabLabel of ["Traceability", "Capabilities", "Audit"]) {
           const tab = [...document.querySelectorAll("#project-nav .project-tab-disabled")].find(
             (n) => n.textContent === tabLabel,
           );
@@ -1599,7 +1623,7 @@ describe("app shell", () => {
           assert.equal(tab?.getAttribute("title"), "Coming soon");
           assert.equal(tab?.tagName, "SPAN");
         }
-        assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 4);
+        assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 3);
       }
     }
   });
@@ -1957,7 +1981,8 @@ describe("catalog browse screens", () => {
     const listSegs = breadcrumbSegments(parseAppRoute("/app/projects/reqalm/catalogs"), shellMeta);
     assert.equal(listSegs.at(-1)?.label, "Catalogs");
     assert.equal(breadcrumbSegments(parseAppRoute(`/app/projects/reqalm/catalogs/${NIST_CAT}/imprints/x/controls/AC-3`), shellMeta).at(-1)?.label, "Control");
-    assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 4);
+    assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 3);
+    assert.deepEqual(projectTabItems("INVALID!", "/app/projects/reqalm/contracts"), []);
   });
 
   it("401 leaves views empty; API errors show alert", async () => {
@@ -1986,6 +2011,329 @@ describe("catalog browse screens", () => {
     assert.ok(errImp.querySelector(".catalog-load-error"));
     const shellMain = document.createElement("main");
     await mountBrowseView(shellMain, parseAppRoute("/app/projects/reqalm/catalogs"), { apiFn: async () => null });
+    assert.equal(shellMain.textContent, "");
+  });
+});
+
+const CTR_PRODUCT = "ctr-reqalm-product";
+const CTR_MAINT = "ctr-reqalm-maintenance";
+const ctrSummary = (id, title, scope, rel) => ({
+  id,
+  title,
+  kind: "contract",
+  description: null,
+  scope_count: scope,
+  release_count: rel,
+});
+const ctrListOk = {
+  status: 200,
+  body: {
+    data: {
+      items: [ctrSummary(CTR_PRODUCT, "Product", 400, 31), ctrSummary(CTR_MAINT, "Maintenance", 4, 0)],
+      total: 2,
+      limit: 20,
+      offset: 0,
+    },
+  },
+};
+const ctrListEmpty = { status: 200, body: { data: { items: [], total: 0, limit: 20, offset: 0 } } };
+
+function ctrFetch(handler: (url: string) => { status: number; body?: unknown } | undefined) {
+  return mockFetchBare((url) => {
+    if (url === contractsApiPath("reqalm", 20, 0)) return ctrListOk;
+    return handler(url) ?? { status: 404 };
+  });
+}
+
+describe("contract browse screens", () => {
+  const contractsSrc = fs.readFileSync(
+    path.join(path.dirname(fileURLToPath(import.meta.url)), "public/browse-contracts.js"),
+    "utf8",
+  );
+
+  beforeEach(() => installDom("http://localhost/app/projects/reqalm/contracts"));
+  afterEach(() => {
+    Reflect.deleteProperty(globalThis, "window");
+    Reflect.deleteProperty(globalThis, "document");
+  });
+
+  it("source uses textContent guards and encoded API paths", () => {
+    assert.doesNotMatch(contractsSrc, /\.innerHTML\s*=/);
+    assert.match(contractsSrc, /encodeURIComponent/);
+    assert.match(contractsSrc, /isValidContractId/);
+    assert.match(contractsSrc, /isValidSlugId\(projectId\)/);
+  });
+
+  it("helpers and href validation", () => {
+    assert.equal(contractsListHref("reqalm"), "/app/projects/reqalm/contracts");
+    assert.equal(contractsListHref("INVALID!"), null);
+    assert.equal(
+      contractDetailHref("reqalm", CTR_PRODUCT),
+      "/app/projects/reqalm/contracts/ctr-reqalm-product",
+    );
+    assert.equal(contractDetailHref("reqalm", "Bad_ID"), null);
+    assert.equal(
+      contractsApiPath("reqalm", 20, 0),
+      "/api/v1/projects/reqalm/contracts?limit=20&offset=0",
+    );
+    assert.equal(contractsApiPath("bad!", 20, 0), null);
+  });
+
+  it("contract list empty state and invalid ids without fetch", async () => {
+    const main = document.createElement("main");
+    await renderContractsList(main, {
+      apiFn: ctrFetch(() => undefined),
+      projectId: "reqalm",
+    });
+    assert.match(main.textContent ?? "", /Product/);
+    assert.ok(main.querySelector(`a[href="${contractDetailHref("reqalm", CTR_PRODUCT)}"]`));
+    const empty = document.createElement("main");
+    await renderContractsList(empty, {
+      apiFn: mockFetchBare((url) => (url === contractsApiPath("reqalm", 20, 0) ? ctrListEmpty : { status: 404 })),
+      projectId: "reqalm",
+    });
+    assert.ok(empty.querySelector(".empty-state"));
+    let fetched = false;
+    const badProj = document.createElement("main");
+    await renderContractsList(badProj, { apiFn: async () => { fetched = true; return null; }, projectId: "BAD!" });
+    assert.equal(fetched, false);
+    assert.equal(badProj.querySelector("h1")?.textContent, "Not found");
+    const badRow = document.createElement("main");
+    await renderContractsList(badRow, {
+      apiFn: mockFetchBare((url) =>
+        url === contractsApiPath("reqalm", 20, 0)
+          ? {
+              status: 200,
+              body: {
+                data: {
+                  items: [{ id: "INVALID!", title: "Hidden", scope_count: 1, release_count: 0 }],
+                  total: 1,
+                  limit: 20,
+                  offset: 0,
+                },
+              },
+            }
+          : { status: 404 },
+      ),
+      projectId: "reqalm",
+    });
+    assert.equal(badRow.querySelector("tbody a"), null);
+  });
+
+  it("contract list not-found when contracts API returns 404", async () => {
+    const main = document.createElement("main");
+    await renderContractsList(main, {
+      apiFn: mockFetchBare((url) =>
+        url === contractsApiPath("reqalm", 20, 0) ? { status: 404, body: {} } : { status: 404 },
+      ),
+      projectId: "reqalm",
+    });
+    assert.equal(main.querySelector("h1")?.textContent, "Not found");
+    assert.equal(main.querySelector(".empty-state"), null);
+  });
+
+  it("contract detail maintenance scope and release links", async () => {
+    const detail = {
+      id: CTR_MAINT,
+      title: "Maintenance",
+      kind: "contract",
+      status: "active",
+      starts_on: "2026-01-01",
+      ends_on: null,
+      notes: "Maint notes",
+      scope_count: 4,
+      release_count: 0,
+      project_id: "reqalm",
+      client_id: "reqalm-client",
+    };
+    const scopeItems = [
+      { uid: "CAP-UPKEEP-1", base: "CAP-UPKEEP-1", kind: "capability", status: "draft", version: 0 },
+    ];
+    const main = document.createElement("main");
+    await renderContractDetail(main, {
+      apiFn: ctrFetch((url) => {
+        if (url === contractApiPath("reqalm", CTR_MAINT)) return { status: 200, body: { data: detail } };
+        if (url === contractScopeApiPath("reqalm", CTR_MAINT, 100, 0)) {
+          return { status: 200, body: { data: { items: scopeItems, total: 1, limit: 100, offset: 0 } } };
+        }
+        if (url === contractReleasesApiPath("reqalm", CTR_MAINT)) {
+          return { status: 200, body: { data: { items: [] } } };
+        }
+        return undefined;
+      }),
+      projectId: "reqalm",
+      contractId: CTR_MAINT,
+    });
+    assert.match(main.textContent ?? "", /Maint notes/);
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-UPKEEP-1"]'));
+    assert.ok(main.querySelector(".empty-state"));
+  });
+
+  it("contract detail product releases and XSS-safe titles", async () => {
+    const xss = '<img onerror=alert(1)>';
+    const detail = {
+      id: CTR_PRODUCT,
+      title: xss,
+      kind: "contract",
+      status: "active",
+      starts_on: null,
+      ends_on: null,
+      notes: null,
+      scope_count: 1,
+      release_count: 1,
+      project_id: "reqalm",
+      client_id: "reqalm-client",
+    };
+    const main = document.createElement("main");
+    await renderContractDetail(main, {
+      apiFn: ctrFetch((url) => {
+        if (url === contractApiPath("reqalm", CTR_PRODUCT)) return { status: 200, body: { data: detail } };
+        if (url === contractScopeApiPath("reqalm", CTR_PRODUCT, 100, 0)) {
+          return { status: 200, body: { data: { items: [], total: 0, limit: 100, offset: 0 } } };
+        }
+        if (url === contractReleasesApiPath("reqalm", CTR_PRODUCT)) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [{ id: "rel-r1-read-contracts", name: xss, status: "shipped", planned_on: null, shipped_on: "2026-10-10" }],
+              },
+            },
+          };
+        }
+        return undefined;
+      }),
+      projectId: "reqalm",
+      contractId: CTR_PRODUCT,
+    });
+    assert.equal(main.querySelector("img"), null);
+    assert.ok(
+      main.querySelector('a[href="/app/projects/reqalm/releases/rel-r1-read-contracts"]'),
+    );
+    assert.doesNotMatch(main.innerHTML, /<img[^>]*onerror/i);
+  });
+
+  it("contract detail not-found for invalid contract id without fetch", async () => {
+    let fetched = false;
+    const main = document.createElement("main");
+    await renderContractDetail(main, {
+      apiFn: async () => { fetched = true; return null; },
+      projectId: "reqalm",
+      contractId: "Bad_ID",
+    });
+    assert.equal(fetched, false);
+    assert.equal(main.querySelector("h1")?.textContent, "Not found");
+  });
+
+  it("contract detail not-found when contract API 404", async () => {
+    const main = document.createElement("main");
+    await renderContractDetail(main, {
+      apiFn: ctrFetch((url) =>
+        url === contractApiPath("reqalm", CTR_PRODUCT) ? { status: 404, body: {} } : undefined,
+      ),
+      projectId: "reqalm",
+      contractId: CTR_PRODUCT,
+    });
+    assert.equal(main.querySelector("h1")?.textContent, "Not found");
+  });
+
+  it("contract detail not-found when scope API 404 though contract ok", async () => {
+    const detail = {
+      id: CTR_PRODUCT,
+      title: "Product",
+      kind: "contract",
+      status: "active",
+      scope_count: 1,
+      release_count: 0,
+      project_id: "reqalm",
+      client_id: "c",
+    };
+    const main = document.createElement("main");
+    await renderContractDetail(main, {
+      apiFn: ctrFetch((url) => {
+        if (url === contractApiPath("reqalm", CTR_PRODUCT)) return { status: 200, body: { data: detail } };
+        if (url.includes("/contracts/ctr-reqalm-product/scope")) {
+          return { status: 404, body: {} };
+        }
+        return undefined;
+      }),
+      projectId: "reqalm",
+      contractId: CTR_PRODUCT,
+    });
+    assert.equal(main.querySelector("h1")?.textContent, "Not found");
+  });
+
+  it("contract detail not-found when releases API 404 though contract and scope ok", async () => {
+    const detail = {
+      id: CTR_PRODUCT,
+      title: "Product",
+      kind: "contract",
+      status: "active",
+      scope_count: 0,
+      release_count: 0,
+      project_id: "reqalm",
+      client_id: "c",
+    };
+    const main = document.createElement("main");
+    await renderContractDetail(main, {
+      apiFn: ctrFetch((url) => {
+        if (url === contractApiPath("reqalm", CTR_PRODUCT)) return { status: 200, body: { data: detail } };
+        if (url === contractScopeApiPath("reqalm", CTR_PRODUCT, 100, 0)) {
+          return { status: 200, body: { data: { items: [], total: 0, limit: 100, offset: 0 } } };
+        }
+        if (url === contractReleasesApiPath("reqalm", CTR_PRODUCT)) return { status: 404, body: {} };
+        return undefined;
+      }),
+      projectId: "reqalm",
+      contractId: CTR_PRODUCT,
+    });
+    assert.equal(main.querySelector("h1")?.textContent, "Not found");
+  });
+
+  it("shell tab aria-current and breadcrumbs for contracts routes", () => {
+    for (const path of [
+      "/app/projects/reqalm/contracts",
+      `/app/projects/reqalm/contracts/${CTR_PRODUCT}`,
+    ]) {
+      installDom(`http://localhost${path}`);
+      renderAppShell(path, parseAppRoute(path), shellMeta);
+      const active = document.querySelector('#project-nav a.project-tab-active[aria-current="page"]');
+      assert.equal(active?.textContent, "Contracts");
+      assert.equal(active?.getAttribute("href"), "/app/projects/reqalm/contracts");
+    }
+    assert.equal(breadcrumbSegments(parseAppRoute("/app/projects/reqalm/contracts"), shellMeta).at(-1)?.label, "Contracts");
+    assert.equal(
+      breadcrumbSegments(parseAppRoute(`/app/projects/reqalm/contracts/${CTR_PRODUCT}`), shellMeta).at(-1)?.label,
+      CTR_PRODUCT,
+    );
+  });
+
+  it("401 leaves views empty; API errors show alert", async () => {
+    for (const render of [
+      (m: HTMLElement) => renderContractsList(m, { apiFn: async () => null, projectId: "reqalm" }),
+      (m: HTMLElement) => renderContractDetail(m, { apiFn: async () => null, projectId: "reqalm", contractId: CTR_PRODUCT }),
+    ]) {
+      const m = document.createElement("main");
+      await render(m);
+      assert.equal(m.textContent, "");
+    }
+    const errList = document.createElement("main");
+    await renderContractsList(errList, {
+      apiFn: mockFetchBare((url) => (url === contractsApiPath("reqalm", 20, 0) ? { status: 500, body: {} } : { status: 404 })),
+      projectId: "reqalm",
+    });
+    assert.ok(errList.querySelector(".contract-load-error[role=alert]"));
+    const errDetail = document.createElement("main");
+    await renderContractDetail(errDetail, {
+      apiFn: ctrFetch((url) =>
+        url === contractApiPath("reqalm", CTR_PRODUCT) ? { status: 503, body: {} } : undefined,
+      ),
+      projectId: "reqalm",
+      contractId: CTR_PRODUCT,
+    });
+    assert.ok(errDetail.querySelector(".contract-load-error"));
+    const shellMain = document.createElement("main");
+    await mountBrowseView(shellMain, parseAppRoute("/app/projects/reqalm/contracts"), { apiFn: async () => null });
     assert.equal(shellMain.textContent, "");
   });
 });

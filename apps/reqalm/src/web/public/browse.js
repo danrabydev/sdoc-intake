@@ -16,6 +16,11 @@ import {
   renderCatalogControlDetail,
   catalogsListHref,
 } from "./browse-catalogs.js";
+import {
+  renderContractsList,
+  renderContractDetail,
+  contractsListHref,
+} from "./browse-contracts.js";
 
 export { el } from "./browse-dom.js";
 export { SLUG_ID, REQUIREMENT_ID, isValidSlugId, isValidRequirementId } from "./browse-core.js";
@@ -168,6 +173,19 @@ export function parseAppRoute(pathname) {
   if (catList) {
     const projectId = decodeRouteSegment(catList[1]);
     return projectId === null ? { view: "unknown" } : { view: "catalogs-list", projectId };
+  }
+  const ctrDetail = path.match(/^\/app\/projects\/([^/]+)\/contracts\/([^/]+)$/);
+  if (ctrDetail) {
+    const projectId = decodeRouteSegment(ctrDetail[1]);
+    const contractId = decodeRouteSegment(ctrDetail[2]);
+    return projectId === null || contractId === null
+      ? { view: "unknown" }
+      : { view: "contract-detail", projectId, contractId };
+  }
+  const ctrList = path.match(/^\/app\/projects\/([^/]+)\/contracts$/);
+  if (ctrList) {
+    const projectId = decodeRouteSegment(ctrList[1]);
+    return projectId === null ? { view: "unknown" } : { view: "contracts-list", projectId };
   }
   const projectMatch = path.match(/^\/app\/projects\/([^/]+)$/);
   if (projectMatch) {
@@ -960,6 +978,16 @@ export async function mountBrowseView(container, route, deps) {
         catalogId: route.catalogId,
         imprintId: route.imprintId,
         controlId: route.controlId,
+      });
+      break;
+    case "contracts-list":
+      await renderContractsList(container, { apiFn, projectId: route.projectId, offset });
+      break;
+    case "contract-detail":
+      await renderContractDetail(container, {
+        apiFn,
+        projectId: route.projectId,
+        contractId: route.contractId,
       });
       break;
     case "unknown":

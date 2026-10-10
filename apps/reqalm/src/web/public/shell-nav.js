@@ -6,6 +6,7 @@ import {
   requirementsListHref,
 } from "./browse.js";
 import { catalogsListHref } from "./browse-catalogs.js";
+import { contractsListHref } from "./browse-contracts.js";
 
 export const APP_MIN_NAV = [
   {
@@ -22,7 +23,8 @@ export const APP_MIN_NAV = [
         !p.includes("/requirements") &&
         !p.includes("/releases") &&
         !p.includes("/tree") &&
-        !p.includes("/catalogs")),
+        !p.includes("/catalogs") &&
+        !p.includes("/contracts")),
   },
 ];
 
@@ -52,7 +54,13 @@ export const PROJECT_TABS = [
     match: (p, pid) => p.startsWith(`/app/projects/${encodeURIComponent(pid)}/catalogs`),
   },
   { id: "releases", label: "Releases", enabled: true, href: (pid) => `/app/projects/${encodeURIComponent(pid)}/releases`, match: (p, pid) => p.startsWith(`/app/projects/${encodeURIComponent(pid)}/releases`) },
-  { id: "contracts", label: "Contracts", enabled: false },
+  {
+    id: "contracts",
+    label: "Contracts",
+    enabled: true,
+    href: (pid) => contractsListHref(pid),
+    match: (p, pid) => p.startsWith(`/app/projects/${encodeURIComponent(pid)}/contracts`),
+  },
   { id: "audit", label: "Audit", enabled: false },
 ];
 
@@ -109,12 +117,15 @@ const PAGE_LABELS = {
   "catalogs-list": "Catalogs",
   "catalog-imprint-detail": "Catalog",
   "catalog-control-detail": "Control",
+  "contracts-list": "Contracts",
+  "contract-detail": "Contract",
 };
 
 export function pageLabelForRoute(route) {
   if (route.view === "client-detail") return route.clientId ?? "Client";
   if (route.view === "requirement-detail") return route.requirementId ?? "Requirement";
   if (route.view === "release-detail") return route.releaseId ?? "Release";
+  if (route.view === "contract-detail") return route.contractId ?? "Contract";
   return PAGE_LABELS[route.view] ?? "ReqALM";
 }
 
@@ -145,6 +156,8 @@ export function breadcrumbSegments(route, meta) {
     "catalogs-list",
     "catalog-imprint-detail",
     "catalog-control-detail",
+    "contracts-list",
+    "contract-detail",
   ]);
   const inProject = route.projectId && isValidSlugId(route.projectId) && projectViews.has(route.view);
 
