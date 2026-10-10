@@ -13,6 +13,7 @@ import {
   contractScopeApiPath,
   contractReleasesApiPath,
   fetchAllScope,
+  MAX_SCOPE_FETCH_PAGES,
   isValidContractId,
   renderContractsList,
   renderContractDetail,
@@ -273,7 +274,14 @@ describe("contract browse screens", () => {
         fetches += 1;
         return {
           status: 200,
-          body: { data: { items: [], total: 999_999, limit: 0, offset: 0 } },
+          body: {
+            data: {
+              items: [{ uid: "uid-bad-limit", base: "CAP-BAD-LIMIT", kind: "capability", status: "active", version: 0 }],
+              total: 999_999,
+              limit: 0,
+              offset: 0,
+            },
+          },
         };
       };
       const out = await fetchAllScope(mockFetchBare(handler), PID, CTR_PRODUCT);
@@ -281,6 +289,32 @@ describe("contract browse screens", () => {
       assert.equal(out.data?.items.length, 0);
       assert.equal(out.data?.total, 999_999);
       assert.equal(fetches, 1);
+    });
+
+    it("fetchAllScope caps fetches at MAX_SCOPE_FETCH_PAGES when total is unbounded", async () => {
+      let fetches = 0;
+      const base = scopeBase();
+      const handler: FetchHandler = (url) => {
+        if (!url.startsWith(base)) return undefined;
+        fetches += 1;
+        const off = Number(new URLSearchParams(url.split("?")[1] ?? "").get("offset") ?? "0");
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: [{ uid: `uid-${off}`, base: `CAP-PAGE-${off}`, kind: "capability", status: "active", version: 0 }],
+              total: 999_999,
+              limit: 1,
+              offset: off,
+            },
+          },
+        };
+      };
+      const out = await fetchAllScope(mockFetchBare(handler), PID, CTR_PRODUCT, 1);
+      assert.equal(out.kind, "ok");
+      assert.equal(fetches, MAX_SCOPE_FETCH_PAGES);
+      assert.equal(out.data?.items.length, MAX_SCOPE_FETCH_PAGES);
+      assert.equal(out.data?.total, 999_999);
     });
 
     it("fetchAllScope 250 rows render on contract detail", async () => {

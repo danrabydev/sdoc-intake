@@ -85,6 +85,22 @@ describe("authorize without projectId", () => {
     }
   });
 
+  it("denies requirement:read for platform Reader when projectId is empty string", async () => {
+    const fixture = await createMigratedPglitePool();
+    try {
+      const { pool } = fixture;
+      await pool.query(`INSERT INTO identities (id, display_name) VALUES ('rbac-plat-reader-empty', 'pre') ON CONFLICT DO NOTHING`);
+      await pool.query(
+        `INSERT INTO platform_grants (id, identity_id, role)
+         VALUES ('pgrant-rbac-plat-reader-empty', 'rbac-plat-reader-empty', 'Reader') ON CONFLICT DO NOTHING`,
+      );
+      assert.equal(await authorize(pool, "rbac-plat-reader-empty", "requirement:read"), false);
+      assert.equal(await authorize(pool, "rbac-plat-reader-empty", "requirement:read", ""), false);
+    } finally {
+      await fixture.close();
+    }
+  });
+
   it("denies requirement:read when projectId is an empty string", async () => {
     const fixture = await createMigratedPglitePool();
     try {
