@@ -167,3 +167,10 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
+
+## Addendum — planning storage/loader (PR #47; read API stacked)
+
+- **Release / capability:** **`rel-r1-planning-read-api`** / **`CAP-READ-PLANNING`** on main via PR #49 — app PRs do not add seed release rows.
+- **PR #47 (loader tranche):** migration **`013_planning_read.sql`** + dogfood loader for **`iterations`**, **`change_sets`**, **`work_item_links`**; seed-reset FK-safe wipe. No HTTP routes.
+- **Stacked PR #50:** read-only GET planning API + **`planning:read`** + OpenAPI.
+- **Seed YAML:** unchanged in app PRs; no **`out/`** regen here.

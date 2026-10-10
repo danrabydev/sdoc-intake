@@ -7,7 +7,7 @@ import { parse } from "yaml";
 import type pg from "pg";
 import type { AppConfig } from "../config.js";
 import { isProduction } from "../config.js";
-import { CONTRACT_ID } from "../http/project-id.js";
+import { CHANGE_SET_ID, CONTRACT_ID, ITERATION_ID, WORK_ITEM_LINK_ID } from "../http/project-id.js";
 import {
   upsertCatalogMetadata,
   type CatalogImprintSeedRow,
@@ -45,6 +45,9 @@ export type DogfoodSeed = {
   platform_grants?: Record<string, unknown>[];
   edges?: DogfoodTraceEdgeSeedRow[];
   contracts?: DogfoodContractSeedRow[];
+  iterations?: Record<string, unknown>[];
+  change_sets?: Record<string, unknown>[];
+  work_item_links?: Record<string, unknown>[];
   catalogs?: CatalogSeedRow[];
   catalog_imprints?: CatalogImprintSeedRow[];
 };
@@ -129,6 +132,9 @@ export async function applyDogfoodSeed(
     contracts: 0,
     contract_scope: 0,
     contract_releases: 0,
+    iterations: 0,
+    change_sets: 0,
+    work_item_links: 0,
   };
 
   const countBefore = options?.skipUnchangedCheck ? null : await countSeedRows(client);
@@ -215,6 +221,15 @@ export async function applyDogfoodSeed(
     assertContractReferences(c, uidProject, releaseProject);
     await upsertContract(client, c, inserted);
   }
+  for (const row of seed.iterations ?? []) {
+    await upsertIteration(client, row, inserted);
+  }
+  for (const row of sortChangeSetsForLoad(seed.change_sets ?? [])) {
+    await upsertChangeSet(client, row, inserted);
+  }
+  for (const row of seed.work_item_links ?? []) {
+    await upsertWorkItemLink(client, row, uidProject, inserted);
+  }
   for (const e of seed.edges ?? []) {
     assertInheritableTraceEdge(e, uidProject, uidToBaseUid, lineKindByProjectBase);
     await upsertTraceEdge(client, e, uidProject, inserted);
@@ -284,6 +299,9 @@ export async function countSeedRows(client: pg.PoolClient) {
     "contracts",
     "contract_scope",
     "contract_releases",
+    "iterations",
+    "change_sets",
+    "work_item_links",
   ] as const;
   const counts: Record<string, number> = {};
   for (const t of tables) {
@@ -598,6 +616,113 @@ async function upsertContract(
     );
     if (d.rows[0]?.inserted) inserted.contract_releases++;
   }
+}
+
+function sortChangeSetsForLoad(rows: Record<string, unknown>[]): Record<string, unknown>[] {
+  const byId = new Map(rows.map((r) => [String(r.id), r]));
+  const out: Record<string, unknown>[] = [];
+  const done = new Set<string>();
+  let progress = true;
+  while (progress && out.length < rows.length) {
+    progress = false;
+    for (const row of rows) {
+      const id = String(row.id);
+      if (done.has(id)) continue;
+      const parent = row.parent_id ? String(row.parent_id) : null;
+      if (parent && !done.has(parent) && byId.has(parent)) continue;
+      out.push(row);
+      done.add(id);
+      progress = true;
+    }
+  }
+  if (out.length !== rows.length) {
+    throw new SeedValidationError("change_sets: unresolved parent_id ordering (cycle or missing parent)");
+  }
+  return out;
+}
+
+async function upsertIteration(
+  client: pg.PoolClient,
+  row: Record<string, unknown>,
+  inserted: Record<string, number>,
+): Promise<void> {
+  const id = String(row.id);
+  if (!ITERATION_ID.test(id)) throw new SeedValidationError(`iteration ${id}: invalid id`);
+  const r = await client.query(
+    `INSERT INTO iterations (id, project_id, name, starts_on, ends_on)
+     VALUES ($1, $2, $3, $4::date, $5::date)
+     ON CONFLICT (id) DO UPDATE SET project_id = EXCLUDED.project_id, name = EXCLUDED.name,
+       starts_on = EXCLUDED.starts_on, ends_on = EXCLUDED.ends_on
+     RETURNING (xmax = 0) AS inserted`,
+    [id, row.project_id, row.name, row.starts_on ?? null, row.ends_on ?? null],
+  );
+  if (r.rows[0]?.inserted) inserted.iterations++;
+}
+
+async function upsertChangeSet(
+  client: pg.PoolClient,
+  row: Record<string, unknown>,
+  inserted: Record<string, number>,
+): Promise<void> {
+  const id = String(row.id);
+  if (!CHANGE_SET_ID.test(id)) throw new SeedValidationError(`change_set ${id}: invalid id`);
+  const r = await client.query(
+    `INSERT INTO change_sets (id, project_id, kind, parent_id, scope, status, opened_by, opened_at, closed_at, summary, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9::timestamptz, $10, $11)
+     ON CONFLICT (id) DO UPDATE SET project_id = EXCLUDED.project_id, kind = EXCLUDED.kind, parent_id = EXCLUDED.parent_id,
+       scope = EXCLUDED.scope, status = EXCLUDED.status, opened_by = EXCLUDED.opened_by, opened_at = EXCLUDED.opened_at,
+       closed_at = EXCLUDED.closed_at, summary = EXCLUDED.summary, notes = EXCLUDED.notes
+     RETURNING (xmax = 0) AS inserted`,
+    [
+      id,
+      row.project_id,
+      row.kind,
+      row.parent_id ?? null,
+      row.scope ?? "project",
+      row.status,
+      row.opened_by,
+      row.opened_at,
+      row.closed_at ?? null,
+      row.summary ?? null,
+      row.notes ?? null,
+    ],
+  );
+  if (r.rows[0]?.inserted) inserted.change_sets++;
+}
+
+async function upsertWorkItemLink(
+  client: pg.PoolClient,
+  row: Record<string, unknown>,
+  uidProject: Map<string, string>,
+  inserted: Record<string, number>,
+): Promise<void> {
+  const id = String(row.id);
+  if (!WORK_ITEM_LINK_ID.test(id)) throw new SeedValidationError(`work_item_link ${id}: invalid id`);
+  const versionUid = String(row.requirement_version_uid);
+  const versionProject = uidProject.get(versionUid);
+  if (!versionProject) {
+    throw new SeedValidationError(`work_item_link ${id}: unknown requirement_version_uid ${versionUid}`);
+  }
+  const r = await client.query(
+    `INSERT INTO work_item_links (id, project_id, requirement_version_uid, devops_id, system, synced_fields, last_sync_at, status, notes)
+     VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::timestamptz, $8, $9)
+     ON CONFLICT (id) DO UPDATE SET project_id = EXCLUDED.project_id, requirement_version_uid = EXCLUDED.requirement_version_uid,
+       devops_id = EXCLUDED.devops_id, system = EXCLUDED.system, synced_fields = EXCLUDED.synced_fields,
+       last_sync_at = EXCLUDED.last_sync_at, status = EXCLUDED.status, notes = EXCLUDED.notes
+     RETURNING (xmax = 0) AS inserted`,
+    [
+      id,
+      versionProject,
+      versionUid,
+      row.devops_id,
+      row.system ?? null,
+      row.synced_fields ? JSON.stringify(row.synced_fields) : null,
+      row.last_sync_at ?? null,
+      row.status ?? null,
+      row.notes ?? null,
+    ],
+  );
+  if (r.rows[0]?.inserted) inserted.work_item_links++;
 }
 
 /**
