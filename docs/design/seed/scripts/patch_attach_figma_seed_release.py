@@ -12,6 +12,7 @@ import hashlib
 import importlib.util
 import re
 import sys
+from collections import Counter
 from copy import deepcopy
 from pathlib import Path
 
@@ -27,6 +28,9 @@ PLANNED = "2026-10-10"
 BASE_MAIN = "56bfc4d6a9fe04559ccddae636ec4052d84ae907"
 REL = "rel-r1-seed-attach-figma"
 CAP = "CAP-SEED-ATTACH-FIGMA"
+REMOVED_CAP = "CAP-FIGMA-LINK"
+KEY_SCOPE = "ARCH-KEY-SCOPE"
+KEY_SCOPE_DRAFT = "ARCH-KEY-SCOPE.1"
 
 _CATALOG_UID_RE = re.compile(r"^(?:[A-Z]{1,4}-\d+(?:\.\d+)?|V-\d+)$")
 
@@ -34,6 +38,15 @@ yaml = YAML()
 yaml.preserve_quotes = True
 yaml.width = 4096
 yaml.indent(mapping=2, sequence=2, offset=0)
+
+EXPECTED_LINES = 14
+EXPECTED_VERSIONS = 15
+EXPECTED_EDGE_KINDS = {
+    "conforms_to": 65,
+    "refines": 18,
+    "uses": 21,
+    "satisfies": 9,
+}
 
 
 def cm(**kw):
@@ -74,7 +87,6 @@ def line_base_uids(data) -> set[str]:
 def resolve_endpoint(data, ref: str, *, ver_uids: set[str]) -> str:
     if is_catalog_uid(ref):
         return ref
-    # Base uid in the snippet → active tip (even when superseded v0 uid still exists).
     if ref in line_base_uids(data):
         resolved = active_uid(data, ref)
         if resolved not in ver_uids and not is_catalog_uid(resolved):
@@ -85,72 +97,49 @@ def resolve_endpoint(data, ref: str, *, ver_uids: set[str]) -> str:
     raise KeyError(f"edge target {ref!r} is not a catalog uid, version uid, or line base_uid")
 
 
-def dict_eq(a: dict, b: dict) -> bool:
-    return deepcopy(a) == deepcopy(b)
-
-
-def upsert_line(lines: list, item: dict) -> bool:
-    bu = item["base_uid"]
-    cur = find(lines, "base_uid", bu)
-    if cur is None:
-        lines.append(deepcopy(item))
-        return True
-    if dict_eq(cur, item):
-        return False
-    for k, v in item.items():
-        cur[k] = deepcopy(v) if isinstance(v, (dict, list)) else v
-    return False
-
-
-def upsert_version(versions: list, item: dict) -> bool:
-    uid = item["uid"]
-    cur = find(versions, "uid", uid)
-    if cur is None:
-        versions.append(deepcopy(item))
-        return True
-    if dict_eq(cur, item):
-        return False
-    for k, v in item.items():
-        cur[k] = deepcopy(v) if isinstance(v, (dict, list)) else v
-    return False
-
-
-def ensure_edge(edges: list, edge: dict) -> bool:
-    key = (
+def edge_key(edge: dict) -> tuple:
+    return (
         edge.get("from"),
         edge.get("to"),
         edge.get("kind"),
         edge.get("catalog_imprint_id") or "",
     )
+
+
+def dict_eq(a: dict, b: dict) -> bool:
+    return deepcopy(a) == deepcopy(b)
+
+
+def upsert_line(lines: list, item: dict) -> None:
+    bu = item["base_uid"]
+    cur = find(lines, "base_uid", bu)
+    if cur is None:
+        lines.append(deepcopy(item))
+        return
+    if dict_eq(cur, item):
+        return
+    for k, v in item.items():
+        cur[k] = deepcopy(v) if isinstance(v, (dict, list)) else v
+
+
+def upsert_version(versions: list, item: dict) -> None:
+    uid = item["uid"]
+    cur = find(versions, "uid", uid)
+    if cur is None:
+        versions.append(deepcopy(item))
+        return
+    if dict_eq(cur, item):
+        return
+    for k, v in item.items():
+        cur[k] = deepcopy(v) if isinstance(v, (dict, list)) else v
+
+
+def ensure_edge(edges: list, edge: dict) -> None:
+    key = edge_key(edge)
     for e in edges:
-        if (
-            e.get("from"),
-            e.get("to"),
-            e.get("kind"),
-            e.get("catalog_imprint_id") or "",
-        ) == key:
-            return False
+        if edge_key(e) == key:
+            return
     edges.append(deepcopy(edge))
-    return True
-
-
-def replace_snippet_edge(edges: list, raw: dict, resolved: dict) -> None:
-    """Drop stale endpoints (base uid or old active tip) then ensure resolved edge."""
-    imprint = raw.get("catalog_imprint_id") or ""
-    raw_from, raw_to = str(raw["from"]), str(raw["to"])
-    want_from, want_to = resolved["from"], resolved["to"]
-    kind = raw["kind"]
-    edges[:] = [
-        e
-        for e in edges
-        if not (
-            e.get("kind") == kind
-            and (e.get("catalog_imprint_id") or "") == imprint
-            and e.get("from") in (raw_from, want_from)
-            and e.get("to") in (raw_to, want_to)
-        )
-    ]
-    ensure_edge(edges, resolved)
 
 
 def statement_hash(text: str) -> str:
@@ -176,6 +165,12 @@ def refresh_product_contract_scope(data) -> None:
     if prod:
         prod["in_scope_of"] = scope
         prod["covers_releases"] = mod.reqalm_release_ids(data)
+        # Active v0 stays pinned for delivered KEY-SCOPE; draft .1 is in-flight product work.
+        extra = KEY_SCOPE_DRAFT
+        if find(data.get("requirement_versions"), "uid", extra):
+            pins = set(prod.get("in_scope_of") or [])
+            if extra not in pins:
+                prod["in_scope_of"] = sorted(pins | {extra})
 
 
 def load_snippet() -> dict:
@@ -186,7 +181,52 @@ def load_snippet() -> dict:
         return yaml.load(f)
 
 
+def remove_cap_figma_link(data) -> None:
+    data["requirement_lines"] = [
+        ln for ln in data.get("requirement_lines") or [] if ln.get("base_uid") != REMOVED_CAP
+    ]
+    data["requirement_versions"] = [
+        v for v in data.get("requirement_versions") or [] if v.get("base_uid") != REMOVED_CAP
+    ]
+    data["edges"] = [
+        e
+        for e in data.get("edges") or []
+        if e.get("from") != REMOVED_CAP and e.get("to") != REMOVED_CAP
+    ]
+    arts = data.get("capability_artifacts") or []
+    data["capability_artifacts"] = [
+        a for a in arts if a.get("requirement_version_uid") != REMOVED_CAP
+    ]
+
+
+def snippet_from_uids(snippet: dict) -> set[str]:
+    refs: set[str] = {KEY_SCOPE_DRAFT}
+    for v in snippet.get("requirement_versions") or []:
+        refs.add(str(v["uid"]))
+        refs.add(str(v.get("base_uid")))
+    return refs
+
+
+def carry_key_scope_outbound_edges(data) -> None:
+    """Duplicate ARCH-KEY-SCOPE v0 outbound edges onto draft .1; never edit v0."""
+    v0 = find(data.get("requirement_versions"), "uid", KEY_SCOPE)
+    tip = find(data.get("requirement_versions"), "uid", KEY_SCOPE_DRAFT)
+    if not v0 or not tip:
+        return
+    if v0.get("status") != "active":
+        return
+    edges = data.setdefault("edges", [])
+    for e in list(edges):
+        if e.get("from") != KEY_SCOPE:
+            continue
+        dup = deepcopy(e)
+        dup["from"] = KEY_SCOPE_DRAFT
+        ensure_edge(edges, dup)
+
+
 def apply_snippet(data, snippet: dict) -> None:
+    remove_cap_figma_link(data)
+
     lines = data.setdefault("requirement_lines", [])
     versions = data.setdefault("requirement_versions", [])
     edges = data.setdefault("edges", [])
@@ -194,23 +234,45 @@ def apply_snippet(data, snippet: dict) -> None:
     for ln in snippet.get("requirement_lines") or []:
         upsert_line(lines, dict(ln))
 
+    v0_before = deepcopy(find(versions, "uid", KEY_SCOPE))
+
     for ver in snippet.get("requirement_versions") or []:
-        upsert_version(versions, dict(ver))
+        item = dict(ver)
+        if item["uid"] == KEY_SCOPE:
+            continue
+        upsert_version(versions, item)
+
+    if v0_before:
+        cur = find(versions, "uid", KEY_SCOPE)
+        if cur and not dict_eq(cur, v0_before):
+            raise RuntimeError(f"{KEY_SCOPE} v0 was modified; only {KEY_SCOPE_DRAFT} may be added")
 
     ver_uids = {v["uid"] for v in versions if v.get("uid")}
+
+    managed_from = snippet_from_uids(snippet)
+    edges[:] = [
+        e
+        for e in edges
+        if e.get("from") not in managed_from
+        and e.get("from") != REMOVED_CAP
+        and e.get("to") != REMOVED_CAP
+    ]
 
     for raw in snippet.get("edges") or []:
         resolved = dict(raw)
         resolved["from"] = resolve_endpoint(data, str(raw["from"]), ver_uids=ver_uids)
         resolved["to"] = resolve_endpoint(data, str(raw["to"]), ver_uids=ver_uids)
-        replace_snippet_edge(edges, raw, resolved)
+        ensure_edge(edges, resolved)
+
+    carry_key_scope_outbound_edges(data)
 
 
 CAP_STMT = (
     "Seed-only: Cyber attachments and Figma design-link requirement set in dogfood.yaml "
-    "(ARCH-ATTACH-*, ARCH-FIGMA-*, CAP-ATTACH-*, CAP-FIGMA-LINK) with conforms_to, refines, uses, "
-    "and satisfies edges applied from fixtures/cyber-attach-figma-snippet.yaml. Regenerates out/ and "
-    "HANDOFF.md. No application runtime changes; does not ship any release."
+    "(ARCH-ATTACH-*, ARCH-ATTACH-SCAN, ARCH-FIGMA-*, SPIKE-FIGMA-FEASIBILITY, CAP-ATTACH-*, "
+    "ARCH-KEY-SCOPE.1 content mint) with conforms_to, refines, uses, and satisfies edges applied "
+    "from fixtures/cyber-attach-figma-snippet.yaml. Regenerates out/ and HANDOFF.md. No application "
+    "runtime changes; does not ship any release."
 )
 
 CAP_ARTIFACTS = [
@@ -220,11 +282,14 @@ CAP_ARTIFACTS = [
     f"{REPO}/docs/design/HANDOFF.md",
 ]
 
-SNIPPET_BASES = frozenset(
-    ln["base_uid"]
-    for ln in (yaml.load(SNIPPET.read_text(encoding="utf-8")) or {}).get("requirement_lines") or []
-    if ln.get("base_uid")
-)
+
+def upsert(seq, key, item):
+    cur = find(seq, key, item[key])
+    if cur is None:
+        seq.append(deepcopy(item))
+        return
+    for k, v in item.items():
+        cur[k] = deepcopy(v) if isinstance(v, (dict, list)) else v
 
 
 def upsert_this_release(data) -> None:
@@ -296,20 +361,11 @@ def upsert_this_release(data) -> None:
             delivers=[CAP],
             cyber_gate=False,
             notes=(
-                f"Seed-only on main {BASE_MAIN[:12]}…; applies Cyber 2026-10-09 attachments-figma mapping. "
+                f"Seed-only on main {BASE_MAIN[:12]}…; applies Cyber 2026-10-09 attachments-figma mapping (v2). "
                 "Parallel Catalogs UI / Contracts API PRs may merge first; whichever lands later ships releases."
             ),
         ),
     )
-
-
-def upsert(seq, key, item):
-    cur = find(seq, key, item[key])
-    if cur is None:
-        seq.append(deepcopy(item))
-        return
-    for k, v in item.items():
-        cur[k] = deepcopy(v) if isinstance(v, (dict, list)) else v
 
 
 def verify_snippet_targets(data, snippet: dict) -> None:
@@ -337,21 +393,45 @@ def verify_snippet_targets(data, snippet: dict) -> None:
             raise ValueError(f"line {ln.get('base_uid')}: parent {parent!r} missing")
 
 
+def verify_snippet_inventory(snippet: dict) -> None:
+    if len(snippet.get("requirement_lines") or []) != EXPECTED_LINES:
+        raise RuntimeError("snippet requirement_lines count mismatch")
+    if len(snippet.get("requirement_versions") or []) != EXPECTED_VERSIONS:
+        raise RuntimeError("snippet requirement_versions count mismatch")
+    kinds = Counter(e["kind"] for e in snippet.get("edges") or [])
+    for kind, want in EXPECTED_EDGE_KINDS.items():
+        if kinds.get(kind, 0) != want:
+            raise RuntimeError(f"snippet edges {kind}: got {kinds.get(kind, 0)} want {want}")
+
+
+def verify_key_scope_v0_unchanged(data, v0_before: dict | None) -> None:
+    if not v0_before:
+        return
+    cur = find(data.get("requirement_versions"), "uid", KEY_SCOPE)
+    if not cur or not dict_eq(cur, v0_before):
+        raise RuntimeError(f"{KEY_SCOPE} v0 must remain unchanged")
+
+
 def main() -> None:
     snippet = load_snippet()
+    verify_snippet_inventory(snippet)
+
     with DOGFOOD.open("r", encoding="utf-8") as f:
         data = yaml.load(f)
 
+    v0_before = deepcopy(find(data.get("requirement_versions"), "uid", KEY_SCOPE))
+
     apply_snippet(data, snippet)
     verify_snippet_targets(data, snippet)
+    verify_key_scope_v0_unchanged(data, v0_before)
     upsert_this_release(data)
     refresh_product_contract_scope(data)
 
     with DOGFOOD.open("w", encoding="utf-8") as f:
         yaml.dump(data, f)
     print(
-        f"Patched dogfood.yaml: {len(SNIPPET_BASES)} Cyber attach/figma lines, "
-        f"{len(snippet.get('edges') or [])} edges, {REL} / {CAP} (planned)"
+        f"Patched dogfood.yaml: {EXPECTED_LINES} lines, {EXPECTED_VERSIONS} snippet versions, "
+        f"{sum(EXPECTED_EDGE_KINDS.values())} snippet edges, {REL} / {CAP} (planned)"
     )
 
 

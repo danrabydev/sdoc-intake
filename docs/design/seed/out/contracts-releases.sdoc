@@ -549,7 +549,7 @@ contract_id: ctr-reqalm-product
 client_id: raby-family
 project_id: reqalm
 in_scope_of: A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, A12.1, ARCH-API, ARCH-API-LAYERS, ARCH-API-RBAC.1, ARCH-APPROVAL, ARCH-APPROVAL-LINE, ARCH-APPROVAL-VIEW, ARCH-APPROVER-SLOTS, ARCH-ATTACH, ARCH-ATTACH-AUDIT, ARCH-ATTACH-ENCRYPT, AR...
-in_scope_of_count: 419
+in_scope_of_count: 421
 covers_releases: rel-pr11-planning-baseline, rel-pr12-devenv-foundation, rel-r0-sequences, rel-r1-browse-clients-projects, rel-r1-browse-ui-cp, rel-r1-browse-ui-relations, rel-r1-browse-ui-releases, rel-r1-browse-ui-reqs, rel-r1-browse-ui-tree, rel-r1-ca...
 covers_releases_count: 32
 <<<
@@ -624,6 +624,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: ARCH-ATTACH-PIN-VERSION
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-SCAN
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: ARCH-ATTACH-SCOPE
@@ -879,6 +882,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: ARCH-KEY-SCOPE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-KEY-SCOPE.1
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: ARCH-LOCKED
@@ -1158,9 +1164,6 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: CAP-DEVENV-STARTUP-BACKOFF
-  ROLE: InScopeOf
-- TYPE: Parent
-  VALUE: CAP-FIGMA-LINK
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: CAP-HEALTH-LIVENESS
@@ -1803,6 +1806,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: N03
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: SPIKE-FIGMA-FEASIBILITY
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: UI-APPROVE-LINE

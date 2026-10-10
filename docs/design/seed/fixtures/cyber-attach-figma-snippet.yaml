@@ -29,7 +29,12 @@ requirement_lines:
   project_id: reqalm
   parent: ARCH-ATTACH
   kind: requirement
-  title: 'Upload: write permission, validation, malware scan, quotas'
+  title: 'Upload: write permission, validation, size and quota'
+- base_uid: ARCH-ATTACH-SCAN
+  project_id: reqalm
+  parent: ARCH-ATTACH
+  kind: requirement
+  title: Pluggable malware scanner; quarantine until clean
 - base_uid: ARCH-ATTACH-ENCRYPT
   project_id: reqalm
   parent: ARCH-ATTACH
@@ -50,6 +55,11 @@ requirement_lines:
   parent: ARCH-FIGMA
   kind: requirement
   title: 'Figma data egress: classification, explicit export, audit'
+- base_uid: SPIKE-FIGMA-FEASIBILITY
+  project_id: reqalm
+  parent: ARCH-FIGMA
+  kind: requirement
+  title: 'Spike: Figma integration feasibility (go/no-go)'
 - base_uid: CAP-ATTACH-READ
   project_id: reqalm
   parent: SEC-SEC
@@ -60,11 +70,6 @@ requirement_lines:
   parent: SEC-SEC
   kind: capability
   title: Attachment upload, scan, encryption, soft delete
-- base_uid: CAP-FIGMA-LINK
-  project_id: reqalm
-  parent: SEC-IO
-  kind: capability
-  title: Figma node links, proxied previews, re-check (draft)
 requirement_versions:
 - uid: ARCH-ATTACH
   base_uid: ARCH-ATTACH
@@ -118,15 +123,18 @@ requirement_versions:
   iteration: iter-r1
   grooming_state: detailed
   rbac_op: attachment:read
-  statement: 'Listing or downloading an attachment requires the read permission of its parent in the parent''s project
-    (for example requirement:read for a requirement version), checked server-side on every request. If the caller
-    cannot read the parent, or the parent or attachment is restricted for the caller, or the attachment is soft-deleted,
-    the response is the same 404 as a nonexistent id, with no difference in body, headers, or timing class. Attachment
-    ids are server-generated and must match the allowlist ^att_[0-9a-z]{26}$; any other value is rejected with 400
-    before any lookup, and the raw value is not logged (logs record a redacted placeholder). List responses return
-    metadata only: id, sanitized display name, size in bytes, media type (as detected), sha256, scan state, uploaded_by
-    identity_id, created_at. They never return storage keys, object-store URLs, or content.'
-  statement_hash: sha256:58c9da7d6a03fec738b8a371017420cd7585c9494bec1a9105dd39d5d4174def
+  statement: 'Access to an attachment follows its parent object''s scope and role permissions at every parent level:
+    listing or downloading requires the read permission of the parent as granted by the caller''s role (client read
+    for a client-level attachment, project read for a project, requirement:read for a requirement version, and so
+    on), checked server-side on every request; creating or deleting requires the parent''s write-level permission
+    plus attachment:create. There is no attachment-specific grant model. If the caller cannot read the parent, or
+    the parent or attachment is restricted for the caller, or the attachment is soft-deleted, the response is the
+    same 404 as a nonexistent id, with no difference in body, headers, or timing class. Attachment ids are server-generated
+    and must match the allowlist ^att_[0-9a-z]{26}$; any other value is rejected with 400 before any lookup, and
+    the raw value is not logged (logs record a redacted placeholder). List responses return metadata only: id, sanitized
+    display name, size in bytes, media type (as detected), sha256, scan state, uploaded_by identity_id, created_at.
+    They never return storage keys, object-store URLs, or content.'
+  statement_hash: sha256:206d28dc0dd2808362ed1d8c54c826a0412106f8e9ba5a9658fa34b6308b99b5
   security:
     catalog_ref: AC-3
     verification_note: Cyber 2026-10-09 attachments-figma mapping; Same-404 rule as restricted relations (ARCH-SEC-REL-STUB,
@@ -180,16 +188,38 @@ requirement_versions:
   rbac_op: attachment:create
   statement: Uploading requires attachment:create on the parent's project, which is separate from read and is granted
     to Author and above. Upload is a same-origin POST protected by the session CSRF defenses (ARCH-SEC-HEADERS,
-    SameSite cookies, Origin check). The server enforces a per-file size cap and a per-project storage quota, both
-    configured per deployment, before accepting bytes. The type is decided from magic bytes against an allowlist
+    SameSite cookies, Origin check). The server rejects any file larger than 25 MB (26,214,400 bytes) and any upload
+    that would take the project's total attachment storage above 5 GB (5,368,709,120 bytes), counting soft-deleted
+    attachments until wiped, before accepting the bytes. The type is decided from magic bytes against an allowlist
     (initially PDF, PNG, JPEG, plain text, CSV, and Office Open XML), never from the extension or client Content-Type;
-    a mismatch is rejected with 400. New attachments start in scan_state pending and cannot be listed as available
-    or downloaded until a malware scan returns clean; infected files move to quarantined, are never served, and
-    raise an audited alert. Scanner unavailability leaves files pending (fail closed).
-  statement_hash: sha256:b448c52907018a420eaa2b82ad9a3351a0b5e4f9923ab73f404e73df4b2a8c80
+    a mismatch is rejected with 400. Accepted files enter quarantine and become available only per ARCH-ATTACH-SCAN.
+  statement_hash: sha256:db561fb65a04fb515795ade7b2c73bccb9c419a0248d166571ec12ea037e69b3
+  security:
+    catalog_ref: SI-10
+    verification_note: Cyber 2026-10-09 attachments-figma mapping; Write phase (later). Scanning is in ARCH-ATTACH-SCAN.
+- uid: ARCH-ATTACH-SCAN
+  base_uid: ARCH-ATTACH-SCAN
+  version_n: 0
+  status: draft
+  priority: 20
+  iteration: iter-r1
+  grooming_state: detailed
+  rbac_op: attachment:create
+  statement: Every uploaded attachment is scanned through a pluggable scanner interface scan(stream) -> clean |
+    infected | error, and each result records the engine name, engine version, and signature version. A new attachment
+    stays in scan_state pending (quarantined) and cannot be listed as available or downloaded until a scan returns
+    clean. An error or timeout leaves it quarantined (fail closed) and it may be retried. An infected attachment
+    moves to scan_state infected, is never served, stays quarantined, and is retained per the soft-delete rule (ARCH-ATTACH)
+    until wiped. Every scan result is written as an audit_events row (attachment id, parent ref, sha256, result,
+    engine and signature version) and an infected result raises an alert. Rescanning clean attachments after a signature
+    update is optional per deployment. The ClamAV (clamd) adapter is allowed in development only; production scanner
+    selection is deferred, and production startup refuses to start with the dev adapter unless an operator explicitly
+    configures it.
+  statement_hash: sha256:1d72092862ba6934b6fe8239b0d8abb000493703838f96416638c65744009440
   security:
     catalog_ref: SI-3
-    verification_note: Cyber 2026-10-09 attachments-figma mapping; Write phase (later). Quarantine-before-availability.
+    verification_note: Cyber 2026-10-09 attachments-figma mapping; No ASD V6R4 seed item covers malicious-code scanning;
+      SI-3/SI-8 stand without a STIG pair.
 - uid: ARCH-ATTACH-ENCRYPT
   base_uid: ARCH-ATTACH-ENCRYPT
   version_n: 0
@@ -214,7 +244,7 @@ requirement_versions:
   status: draft
   priority: 30
   iteration: iter-r2
-  grooming_state: rough
+  grooming_state: want
   rbac_op: figma:link
   statement: 'A capability or requirement version may link to Figma nodes by file key and node id (file, frame,
     or component). Linked ids must match ^[A-Za-z0-9]{10,128}$ (file key) and ^[0-9]+[:-][0-9]+(;[0-9]+[:-][0-9]+)*$
@@ -228,36 +258,36 @@ requirement_versions:
   statement_hash: sha256:0663cbd2966235e887892c5c78849cb3502df72dbec394dbaf18e2b1af4b5fba
   security:
     catalog_ref: SA-9
-    verification_note: Cyber 2026-10-09 attachments-figma mapping; Draft; external service integration. Figma is
-      an external system (AC-20, SA-9, CA-3).
+    verification_note: Cyber 2026-10-09 attachments-figma mapping; Draft, needs-spike (SPIKE-FIGMA-FEASIBILITY);
+      external service integration. Figma is an external system (AC-20, SA-9, CA-3).
 - uid: ARCH-FIGMA-AUTH
   base_uid: ARCH-FIGMA-AUTH
   version_n: 0
   status: draft
   priority: 30
   iteration: iter-r2
-  grooming_state: rough
+  grooming_state: want
   rbac_op: figma:connection:admin
   statement: Each project connects to Figma separately, which requires figma:connection:admin (Project admin) and
     step-up re-authentication, and is audited. The connection uses OAuth 2.0 authorization code with PKCE (S256)
     and the minimum read-only scopes needed (file content read, plus webhooks only if enabled). Access and refresh
-    tokens are encrypted at rest under the KeyProvider (ARCH-KEY-SCOPE), refresh tokens are rotated on use, and
+    tokens are encrypted at rest under the KeyProvider (ARCH-KEY-SCOPE.1), refresh tokens are rotated on use, and
     a connection is revoked by setting revoked_at and calling the provider's revocation endpoint where supported.
     Tokens are never logged, never returned to the browser or MCP clients, and never placed in URLs. Outbound HTTP
     is restricted to an allowlist (api.figma.com, www.figma.com for the OAuth endpoints) over TLS with certificate
     validation.
-  statement_hash: sha256:f93fb482be443e85fe8bb3c416b068faae1c385ace64f32540750cea734ba13b
+  statement_hash: sha256:7b59325dac73890836a62d7b786de50125b36ccca90172dd8151c82fcdd9f80b
   security:
     catalog_ref: IA-5
-    verification_note: Cyber 2026-10-09 attachments-figma mapping; Outbound credentials join ARCH-KEY-SCOPE item
-      (2).
+    verification_note: Cyber 2026-10-09 attachments-figma mapping; Draft, needs-spike. Outbound credentials join
+      ARCH-KEY-SCOPE item (2).
 - uid: ARCH-FIGMA-EGRESS
   base_uid: ARCH-FIGMA-EGRESS
   version_n: 0
   status: draft
   priority: 30
   iteration: iter-r2
-  grooming_state: rough
+  grooming_state: want
   rbac_op: figma:export
   statement: By default ReqALM sends Figma only the file keys and node ids needed to fetch previews. Pushing trace
     data into Figma (for example uids and titles on a frame) is an explicit export that requires figma:export on
@@ -268,7 +298,28 @@ requirement_versions:
   statement_hash: sha256:ad04eee6e9b2f392ae3e1b12214f052692e9f7e44d1bd37946c614d12b86cd5a
   security:
     catalog_ref: AC-4
-    verification_note: Cyber 2026-10-09 attachments-figma mapping; Information-flow control for data leaving ReqALM.
+    verification_note: Cyber 2026-10-09 attachments-figma mapping; Draft, needs-spike. Information-flow control
+      for data leaving ReqALM.
+- uid: SPIKE-FIGMA-FEASIBILITY
+  base_uid: SPIKE-FIGMA-FEASIBILITY
+  version_n: 0
+  status: draft
+  priority: 30
+  iteration: iter-r2
+  grooming_state: want
+  rbac_op: figma:link
+  statement: 'Before any Figma capability is planned, a time-boxed spike assesses and documents: Figma REST API
+    rate limits and plan tiers; scale (files, nodes, and previews per project and cache size); the auth model (OAuth
+    2.0 with PKCE, available read-only scopes, token lifetime and refresh, per-project versus per-user connection);
+    preview feasibility (server-side image export of frames and components, formats, latency); webhook availability,
+    plan requirements, and signature or passcode verification; cost; and data egress (exactly what ReqALM must send
+    to Figma). The outcome is a recorded go or no-go decision. Go updates ARCH-FIGMA, ARCH-FIGMA-AUTH, and ARCH-FIGMA-EGRESS
+    by successor and then allows an implementation capability; no-go withdraws them.'
+  statement_hash: sha256:4955e3d2acce3cc134179b9a218688084f903f5154a71d573c5719cd1525d211
+  security:
+    catalog_ref: SA-9
+    verification_note: Cyber 2026-10-09 attachments-figma mapping; Spike modeled as a draft requirement (seed has
+      no spike/task kind). Outcome refines or withdraws ARCH-FIGMA*.
 - uid: CAP-ATTACH-READ
   base_uid: CAP-ATTACH-READ
   version_n: 0
@@ -300,20 +351,28 @@ requirement_versions:
   security:
     catalog_ref: SI-3
     verification_note: Cyber 2026-10-09 attachments-figma mapping; Planned; phase 2.
-- uid: CAP-FIGMA-LINK
-  base_uid: CAP-FIGMA-LINK
-  version_n: 0
+- uid: ARCH-KEY-SCOPE.1
+  base_uid: ARCH-KEY-SCOPE
+  version_n: 1
   status: draft
-  priority: 30
-  iteration: iter-r2
-  grooming_state: rough
-  rbac_op: figma:link
-  statement: Per-project Figma OAuth (PKCE) connection, node link rows with id allowlist, server-proxied PNG previews,
-    lastModified polling or verified webhook re-check, and audited explicit export of non-restricted uids.
-  statement_hash: sha256:faf9c7bb8d577f3aa2fb6346c2b7d9ce14b7620a89d43174037a4ea972e1c80d
+  priority: 10
+  iteration: iter-r1
+  grooming_state: detailed
+  statement: 'The key store protects: (1) OAuth token signing keys (ARCH-KEY-JWKS); (2) secrets the app must use
+    (DB credentials, SMTP credentials, Azure DevOps connector tokens, upstream IdP client secrets, OTEL sink credentials,
+    MFA secrets, object-store credentials, and outbound integration OAuth access and refresh tokens such as Figma),
+    encrypted under DEKs; (3) peppers or HMAC keys used to hash server-side tokens (ARCH-CRED-TOKENS); (4) per-object
+    data encryption keys for file attachments (ARCH-ATTACH-ENCRYPT), each wrapped by the KeyProvider KEK and stored
+    beside the attachment metadata. Verify-only credentials are hashed, not encrypted. Field-level encryption applies
+    only to columns that hold such secrets. Requirement content is not field-encrypted and relies on storage-level
+    encryption at rest per deployment.'
+  statement_hash: sha256:4444386874a0eb93e1787f954d4ae3646c3e9736e6490dc9d7e5456ed4685727
   security:
-    catalog_ref: SA-9
-    verification_note: Cyber 2026-10-09 attachments-figma mapping; Draft; phase 3.
+    catalog_ref: SC-28.1
+    verification_note: Cyber 2026-10-09 attachments-figma mapping; content mint .1 (statement adds attachment DEKs,
+      object-store creds, outbound integration OAuth tokens); v0 is delivered by shipped rel-r1-foundation-shell-auth
+      and in ctr-reqalm-product, so v0 is never edited; v0 becomes superseded only when .1 is activated (D04).
+  mint_kind: content
 edges:
 - from: ARCH-ATTACH
   to: ARCH-CP-SCOPE
@@ -465,9 +524,8 @@ edges:
   to: ARCH-API-RBAC
   kind: uses
 - from: ARCH-ATTACH-UPLOAD
-  to: SI-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  to: ARCH-ATTACH-SCAN
+  kind: uses
 - from: ARCH-ATTACH-UPLOAD
   to: SI-10
   kind: conforms_to
@@ -492,6 +550,24 @@ edges:
   to: V-222429
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-ATTACH-SCAN
+  to: ARCH-ATTACH
+  kind: refines
+- from: ARCH-ATTACH-SCAN
+  to: ARCH-ATTACH-AUDIT
+  kind: uses
+- from: ARCH-ATTACH-SCAN
+  to: SI-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-ATTACH-SCAN
+  to: SI-8
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-ATTACH-SCAN
+  to: CM-7
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: ARCH-ATTACH-ENCRYPT
   to: ARCH-ATTACH
   kind: refines
@@ -499,7 +575,7 @@ edges:
   to: ARCH-KEY-PROVIDER
   kind: uses
 - from: ARCH-ATTACH-ENCRYPT
-  to: ARCH-KEY-SCOPE
+  to: ARCH-KEY-SCOPE.1
   kind: refines
 - from: ARCH-ATTACH-ENCRYPT
   to: ARCH-KEY-FAILCLOSED
@@ -554,7 +630,7 @@ edges:
   to: ARCH-FIGMA
   kind: refines
 - from: ARCH-FIGMA-AUTH
-  to: ARCH-KEY-SCOPE
+  to: ARCH-KEY-SCOPE.1
   kind: refines
 - from: ARCH-FIGMA-AUTH
   to: ARCH-KEY-PROVIDER
@@ -615,6 +691,21 @@ edges:
   to: V-222427
   kind: conforms_to
   catalog_imprint_id: asd-stig@v6r4
+- from: SPIKE-FIGMA-FEASIBILITY
+  to: ARCH-FIGMA
+  kind: refines
+- from: SPIKE-FIGMA-FEASIBILITY
+  to: SA-9
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: SPIKE-FIGMA-FEASIBILITY
+  to: CA-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: SPIKE-FIGMA-FEASIBILITY
+  to: RA-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-ATTACH-READ
   to: ARCH-ATTACH
   kind: satisfies
@@ -646,6 +737,9 @@ edges:
   to: ARCH-ATTACH-UPLOAD
   kind: satisfies
 - from: CAP-ATTACH-WRITE
+  to: ARCH-ATTACH-SCAN
+  kind: satisfies
+- from: CAP-ATTACH-WRITE
   to: ARCH-ATTACH-ENCRYPT
   kind: satisfies
 - from: CAP-ATTACH-WRITE
@@ -659,26 +753,28 @@ edges:
   to: SC-28
   kind: conforms_to
   catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-FIGMA-LINK
-  to: ARCH-FIGMA
-  kind: satisfies
-- from: CAP-FIGMA-LINK
-  to: ARCH-FIGMA-AUTH
-  kind: satisfies
-- from: CAP-FIGMA-LINK
-  to: ARCH-FIGMA-EGRESS
-  kind: satisfies
-- from: CAP-FIGMA-LINK
-  to: SA-9
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: CAP-FIGMA-LINK
-  to: IA-5
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 - from: CAP-ATTACH-WRITE
   to: CAP-ATTACH-READ
   kind: uses
-- from: CAP-FIGMA-LINK
-  to: CAP-ATTACH-READ
+- from: ARCH-KEY-SCOPE.1
+  to: ARCH-KEY
+  kind: refines
+- from: ARCH-KEY-SCOPE.1
+  to: M03
   kind: uses
+- from: ARCH-KEY-SCOPE.1
+  to: SC-28.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-SCOPE.1
+  to: V-222588
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-SCOPE.1
+  to: V-222589
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-SCOPE.1
+  to: V-222642
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4

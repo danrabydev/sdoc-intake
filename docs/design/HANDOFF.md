@@ -101,10 +101,10 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 ## Addendum — main @ `56bfc4d` (2026-10-10, seed attachments + Figma)
 
 - **Release (planned):** `rel-r1-seed-attach-figma` → **`CAP-SEED-ATTACH-FIGMA`** (seed-only; no release shipped in this PR).
-- **Requirements (draft):** **`ARCH-ATTACH`**, **`ARCH-ATTACH-PIN-VERSION`**, **`ARCH-ATTACH-SCOPE`**, **`ARCH-ATTACH-AUDIT`**, **`ARCH-ATTACH-SERVE`**, **`ARCH-ATTACH-UPLOAD`**, **`ARCH-ATTACH-ENCRYPT`**, **`ARCH-FIGMA`**, **`ARCH-FIGMA-AUTH`**, **`ARCH-FIGMA-EGRESS`**.
-- **Capabilities (draft):** **`CAP-ATTACH-READ`**, **`CAP-ATTACH-WRITE`**, **`CAP-FIGMA-LINK`**.
-- **Edges (snippet):** 103 new trace edges — 58 `conforms_to` (39 NIST, 19 STIG), 15 `refines`, 19 `uses`, 11 `satisfies`; targets resolve to active version uids where applicable.
-- **Product contract:** all 13 new lines added to **`ctr-reqalm-product`** `in_scope_of` (via scope refresh).
+- **Requirements (draft):** **`ARCH-ATTACH*`**, **`ARCH-ATTACH-SCAN`**, **`ARCH-FIGMA*`**, **`SPIKE-FIGMA-FEASIBILITY`**; **`ARCH-KEY-SCOPE.1`** content mint (v0 stays active, unedited; outbound edges duplicated on `.1`).
+- **Capabilities (draft):** **`CAP-ATTACH-READ`**, **`CAP-ATTACH-WRITE`** (`CAP-FIGMA-LINK` removed in Cyber v2).
+- **Edges (snippet v2):** 113 trace edges — 65 `conforms_to`, 18 `refines`, 21 `uses`, 9 `satisfies`; targets resolve to active version uids where applicable.
+- **Product contract:** **`ctr-reqalm-product`** `in_scope_of` refreshed (drops **`CAP-FIGMA-LINK`**; adds **`ARCH-ATTACH-SCAN`**, **`SPIKE-FIGMA-FEASIBILITY`**, **`ARCH-KEY-SCOPE.1`** alongside active **`ARCH-KEY-SCOPE`**).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_attach_figma_seed_release.py` — source snippet `docs/design/seed/fixtures/cyber-attach-figma-snippet.yaml`.
 - **Validate:** `python3 docs/design/seed/scripts/yaml_to_strictdoc.py --validate` (regenerates `docs/design/seed/out/`).
 - **Parallel PRs:** Catalogs browse UI and Contracts API may merge first; whichever PR merges after them owns shipping their planned releases — this PR does not ship any release.
