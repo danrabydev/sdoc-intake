@@ -298,6 +298,7 @@ def apply_patch(data) -> None:
                 "J02.1",
                 "ARCH-TRACE-RECHECK.1",
             }
+            and not (isinstance(u, str) and u.startswith("FIX-CAP-"))
         ]
 
     proposals = [
