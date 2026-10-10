@@ -5,6 +5,7 @@ import {
   isValidSlugId,
   requirementsListHref,
 } from "./browse.js";
+import { catalogsListHref } from "./browse-catalogs.js";
 
 export const APP_MIN_NAV = [
   {
@@ -20,11 +21,12 @@ export const APP_MIN_NAV = [
       (p.startsWith("/app/projects/") &&
         !p.includes("/requirements") &&
         !p.includes("/releases") &&
-        !p.includes("/tree")),
+        !p.includes("/tree") &&
+        !p.includes("/catalogs")),
   },
 ];
 
-/** @typedef {'requirements'|'traceability'|'capabilities'|'releases'|'contracts'|'audit'} ProjectTabId */
+/** @typedef {'requirements'|'traceability'|'capabilities'|'catalogs'|'releases'|'contracts'|'audit'} ProjectTabId */
 
 /** @type {Array<{ id: ProjectTabId, label: string, enabled: boolean, href?: (projectId: string) => string, match?: (path: string, projectId: string) => boolean }>} */
 export const PROJECT_TABS = [
@@ -42,6 +44,13 @@ export const PROJECT_TABS = [
   },
   { id: "traceability", label: "Traceability", enabled: false },
   { id: "capabilities", label: "Capabilities", enabled: false },
+  {
+    id: "catalogs",
+    label: "Catalogs",
+    enabled: true,
+    href: (pid) => catalogsListHref(pid),
+    match: (p, pid) => p.startsWith(`/app/projects/${encodeURIComponent(pid)}/catalogs`),
+  },
   { id: "releases", label: "Releases", enabled: true, href: (pid) => `/app/projects/${encodeURIComponent(pid)}/releases`, match: (p, pid) => p.startsWith(`/app/projects/${encodeURIComponent(pid)}/releases`) },
   { id: "contracts", label: "Contracts", enabled: false },
   { id: "audit", label: "Audit", enabled: false },
@@ -97,6 +106,9 @@ const PAGE_LABELS = {
   "requirements-tree": "Requirements",
   "requirement-versions": "Versions",
   "releases-list": "Releases",
+  "catalogs-list": "Catalogs",
+  "catalog-imprint-detail": "Catalog",
+  "catalog-control-detail": "Control",
 };
 
 export function pageLabelForRoute(route) {
@@ -130,6 +142,9 @@ export function breadcrumbSegments(route, meta) {
     "requirement-versions",
     "releases-list",
     "release-detail",
+    "catalogs-list",
+    "catalog-imprint-detail",
+    "catalog-control-detail",
   ]);
   const inProject = route.projectId && isValidSlugId(route.projectId) && projectViews.has(route.view);
 

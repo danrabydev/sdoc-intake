@@ -10,6 +10,12 @@ import {
   isValidRequirementId,
 } from "./browse-core.js";
 import { fillRequirementRelationsPanel, relationsPanelShell } from "./browse-relations.js";
+import {
+  renderCatalogsList,
+  renderCatalogImprintDetail,
+  renderCatalogControlDetail,
+  catalogsListHref,
+} from "./browse-catalogs.js";
 
 export { el } from "./browse-dom.js";
 export { SLUG_ID, REQUIREMENT_ID, isValidSlugId, isValidRequirementId } from "./browse-core.js";
@@ -138,6 +144,30 @@ export function parseAppRoute(pathname) {
   if (treeMatch) {
     const projectId = decodeRouteSegment(treeMatch[1]);
     return projectId === null ? { view: "unknown" } : { view: "requirements-tree", projectId };
+  }
+  const catControl = path.match(/^\/app\/projects\/([^/]+)\/catalogs\/([^/]+)\/imprints\/([^/]+)\/controls\/([^/]+)$/);
+  if (catControl) {
+    const projectId = decodeRouteSegment(catControl[1]);
+    const catalogId = decodeRouteSegment(catControl[2]);
+    const imprintId = decodeRouteSegment(catControl[3]);
+    const controlId = decodeRouteSegment(catControl[4]);
+    if (projectId === null || catalogId === null || imprintId === null || controlId === null) {
+      return { view: "unknown" };
+    }
+    return { view: "catalog-control-detail", projectId, catalogId, imprintId, controlId };
+  }
+  const catImprint = path.match(/^\/app\/projects\/([^/]+)\/catalogs\/([^/]+)\/imprints\/([^/]+)$/);
+  if (catImprint) {
+    const projectId = decodeRouteSegment(catImprint[1]);
+    const catalogId = decodeRouteSegment(catImprint[2]);
+    const imprintId = decodeRouteSegment(catImprint[3]);
+    if (projectId === null || catalogId === null || imprintId === null) return { view: "unknown" };
+    return { view: "catalog-imprint-detail", projectId, catalogId, imprintId };
+  }
+  const catList = path.match(/^\/app\/projects\/([^/]+)\/catalogs$/);
+  if (catList) {
+    const projectId = decodeRouteSegment(catList[1]);
+    return projectId === null ? { view: "unknown" } : { view: "catalogs-list", projectId };
   }
   const projectMatch = path.match(/^\/app\/projects\/([^/]+)$/);
   if (projectMatch) {
@@ -402,6 +432,10 @@ export async function renderProjectDetail(container, { apiFn, projectId }) {
     el("section", { className: "stub-section" }, [
       el("h2", { text: "Releases" }),
       el("p", {}, [el("a", { href: releasesListHref(projectId), text: "Browse releases" })]),
+    ]),
+    el("section", { className: "stub-section" }, [
+      el("h2", { text: "Catalogs" }),
+      el("p", {}, [el("a", { href: catalogsListHref(projectId), text: "Browse catalogs" })]),
     ]),
   );
 }
@@ -905,6 +939,27 @@ export async function mountBrowseView(container, route, deps) {
         projectId: route.projectId,
         releaseId: route.releaseId,
         listFilters: releaseFilters,
+      });
+      break;
+    case "catalogs-list":
+      await renderCatalogsList(container, { apiFn, projectId: route.projectId });
+      break;
+    case "catalog-imprint-detail":
+      await renderCatalogImprintDetail(container, {
+        apiFn,
+        projectId: route.projectId,
+        catalogId: route.catalogId,
+        imprintId: route.imprintId,
+        offset,
+      });
+      break;
+    case "catalog-control-detail":
+      await renderCatalogControlDetail(container, {
+        apiFn,
+        projectId: route.projectId,
+        catalogId: route.catalogId,
+        imprintId: route.imprintId,
+        controlId: route.controlId,
       });
       break;
     case "unknown":

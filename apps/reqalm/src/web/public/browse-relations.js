@@ -76,7 +76,7 @@ function idCode(id) {
 }
 
 function restrictedChip() {
-  return el("div", { className: "relation-chip relation-chip-restricted", role: "listitem" }, [
+  return el("div", { className: "relation-chip relation-chip-restricted" }, [
     el("span", { className: "relation-chip-restricted-text", text: "Restricted — you don't have access" }),
   ]);
 }
@@ -91,7 +91,7 @@ function catalogChip(link, anchorProjectId) {
     parts.push(el("span", { className: "relation-chip-project", text: peer.project_id }));
   }
   if (link.trace_suspect) parts.push(suspectBadge());
-  return el("div", { className: "relation-chip relation-chip-catalog", role: "listitem" }, parts);
+  return el("div", { className: "relation-chip relation-chip-catalog" }, parts);
 }
 
 function requirementPeerChip(link, anchorProjectId) {
@@ -109,11 +109,11 @@ function requirementPeerChip(link, anchorProjectId) {
     inner.push(el("span", { className: "relation-chip-project", text: peerProject }));
   }
   if (link.trace_suspect) inner.push(suspectBadge());
-  const chipProps = { className: "relation-chip relation-chip-link", role: "listitem" };
-  if (!peerProject || !isValidSlugId(peerProject) || !isValidRequirementId(peer.id)) {
-    return el("div", { ...chipProps, className: "relation-chip relation-chip-noproj" }, inner);
+  const chipClass = "relation-chip relation-chip-link";
+  if (!peer?.id || !peerProject || !isValidSlugId(peerProject) || !isValidRequirementId(peer.id)) {
+    return el("div", { className: "relation-chip relation-chip-noproj" }, inner);
   }
-  return el("a", { ...chipProps, href: appRequirementHref(peerProject, peer.id) }, inner);
+  return el("a", { className: chipClass, href: appRequirementHref(peerProject, peer.id) }, inner);
 }
 
 export function relationPeerChip(link, anchorProjectId = "") {
@@ -125,15 +125,19 @@ export function relationPeerChip(link, anchorProjectId = "") {
 export function renderKindBlock(kind, direction, links, anchorProjectId) {
   const block = el("div", { className: "relation-kind-block" });
   block.append(kindHeading(kind, direction, links.length));
-  const list = el("div", { className: "relation-chip-list", role: "list" });
+  const list = el("ul", { className: "relation-chip-list", role: "list" });
   if (links.length <= RELATION_KIND_COLLAPSE) {
-    for (const link of links) list.append(relationPeerChip(link, anchorProjectId));
+    for (const link of links) list.append(el("li", { className: "relation-chip-item" }, [relationPeerChip(link, anchorProjectId)]));
     block.append(list);
     return block;
   }
-  for (const link of links.slice(0, RELATION_KIND_COLLAPSE)) list.append(relationPeerChip(link, anchorProjectId));
-  const hidden = el("div", { className: "relation-chip-list relation-chip-list-more", role: "list", hidden: "" });
-  for (const link of links.slice(RELATION_KIND_COLLAPSE)) hidden.append(relationPeerChip(link, anchorProjectId));
+  for (const link of links.slice(0, RELATION_KIND_COLLAPSE)) {
+    list.append(el("li", { className: "relation-chip-item" }, [relationPeerChip(link, anchorProjectId)]));
+  }
+  const hidden = el("ul", { className: "relation-chip-list relation-chip-list-more", role: "list", hidden: "" });
+  for (const link of links.slice(RELATION_KIND_COLLAPSE)) {
+    hidden.append(el("li", { className: "relation-chip-item" }, [relationPeerChip(link, anchorProjectId)]));
+  }
   block.append(list, hidden);
   const toggle = el("button", {
     type: "button",

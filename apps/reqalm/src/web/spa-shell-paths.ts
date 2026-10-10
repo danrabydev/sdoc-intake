@@ -25,4 +25,7 @@ export const WEB_UI_SPA_ENTRY_GET_PATHS = [
   "/app/projects/reqalm/releases",
   "/app/projects/reqalm/releases/rel-r1-read-releases",
   "/app/projects/reqalm/tree",
+  "/app/projects/reqalm/catalogs",
+  "/app/projects/reqalm/catalogs/cat-nist-global/imprints/nist-800-53@rev5-dogfood-20261006",
+  "/app/projects/reqalm/catalogs/cat-nist-global/imprints/nist-800-53@rev5-dogfood-20261006/controls/AC-3",
 ] as const;
