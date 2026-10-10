@@ -262,7 +262,9 @@ export async function renderCatalogImprintDetail(container, { apiFn, projectId, 
       const controlHref = catalogControlHref(projectId, catalogId, imprintId, ctrl.id);
       tr.append(
         el("td", {}, [
-          el("a", { href: controlHref || "/app/evil", text: ctrl.id }),
+          controlHref
+            ? el("a", { href: controlHref, text: ctrl.id })
+            : el("span", { text: ctrl.id ?? "—" }),
         ]),
         el("td", { text: ctrl.title ?? "—" }),
         el("td", { text: String(ctrl.conforming_count ?? 0) }),

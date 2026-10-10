@@ -17,7 +17,8 @@
     "seed": "tsx --env-file-if-exists=../../.env src/cli/seed.ts",
     "seed:reset": "tsx --env-file-if-exists=../../.env src/cli/seed-reset.ts",
     "enroll-mfa": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../.reqalm/devenv.env src/cli/enroll-mfa.ts",
-    "lint": "node -e \"process.exit(0)\""
+    "lint": "node -e \"process.exit(0)\"",
+    "capture:catalog-screenshots": "node --import tsx scripts/capture-catalog-browse-screenshots.mjs"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.2",
@@ -51,6 +52,7 @@
     "@types/node": "^22.16.5",
     "@types/pg": "^8.11.11",
     "jsdom": "26.1.0",
+    "puppeteer-core": "24.2.0",
     "tsx": "^4.19.3",
     "typescript": "^5.7.0"
   }
