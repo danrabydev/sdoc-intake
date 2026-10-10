@@ -122,13 +122,49 @@ describe("dogfood ReqALM product vs maintenance contracts", () => {
     });
   });
 
-  it("DELETE contracts RESTRICTs when scope or release children exist", async () => {
+  it("DELETE contracts RESTRICTs when contract_scope children exist", async () => {
     const config = loadConfig(testConfigEnv());
     const seed = await readDogfoodFile(dogfoodPath);
     await withMigratedPool(async (pool) => {
       await loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true });
       await assert.rejects(
         () => pool.query(`DELETE FROM contracts WHERE id = 'ctr-reqalm-maintenance'`),
+        /foreign key|violates foreign key constraint/i,
+      );
+    });
+  });
+
+  it("DELETE contracts RESTRICTs when only contract_releases children exist", async () => {
+    const config = loadConfig(testConfigEnv());
+    const seed: DogfoodSeed = {
+      client: { id: "c1", name: "C1" },
+      projects: [{ id: "p1", client_id: "c1", name: "P1" }],
+      identities: [],
+      project_grants: [],
+      releases: [{ id: "rel-only", project_id: "p1", name: "R", status: "planned" }],
+      contracts: [
+        {
+          id: "ctr-rel-only",
+          client_id: "c1",
+          project_id: "p1",
+          name: "releases only",
+          status: "active",
+          covers_releases: ["rel-only"],
+        },
+      ],
+    };
+    await withMigratedPool(async (pool) => {
+      await loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true });
+      assert.equal(
+        (await pool.query(`SELECT count(*)::int AS c FROM contract_scope WHERE contract_id = 'ctr-rel-only'`)).rows[0]?.c,
+        0,
+      );
+      assert.equal(
+        (await pool.query(`SELECT count(*)::int AS c FROM contract_releases WHERE contract_id = 'ctr-rel-only'`)).rows[0]?.c,
+        1,
+      );
+      await assert.rejects(
+        () => pool.query(`DELETE FROM contracts WHERE id = 'ctr-rel-only'`),
         /foreign key|violates foreign key constraint/i,
       );
     });
