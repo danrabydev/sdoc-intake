@@ -36,7 +36,15 @@ const DEFAULT_SEGMENT_RULES: PathSegmentRedactionRule[] = [
   { prefix: "/catalogs/", valid: (s) => CATALOG_ID.test(s) },
   { prefix: "/imprints/", valid: (s) => IMPRINT_ID.test(s) },
   { prefix: "/controls/", valid: (s) => CONTROL_ID.test(s) },
-  { prefix: "/access/", valid: () => true },
+  {
+    prefix: "/access/",
+    valid: (s) =>
+      s === "people" ||
+      s === "grants" ||
+      s === "roles" ||
+      s === "platform-grants" ||
+      SLUG_ID.test(s),
+  },
 ];
 
 export function redactInvalidPathParamIds(

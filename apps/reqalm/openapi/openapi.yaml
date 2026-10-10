@@ -1096,14 +1096,10 @@ components:
     AccessPerson:
       type: object
       additionalProperties: false
-      required: [id, display_name, email, roles]
+      required: [display_name, roles]
       properties:
-        id:
-          type: string
         display_name:
           type: string
-        email:
-          type: [string, "null"]
         roles:
           type: array
           items:
@@ -1126,14 +1122,10 @@ components:
     AccessGrantPerson:
       type: object
       additionalProperties: false
-      required: [id, display_name, email]
+      required: [display_name]
       properties:
-        id:
-          type: string
         display_name:
           type: string
-        email:
-          type: [string, "null"]
     AccessGrant:
       type: object
       additionalProperties: false
@@ -1189,12 +1181,10 @@ components:
     PlatformGrantPerson:
       type: object
       additionalProperties: false
-      required: [display_name, email]
+      required: [display_name]
       properties:
         display_name:
           type: string
-        email:
-          type: [string, "null"]
     PlatformGrant:
       type: object
       additionalProperties: false

@@ -62,6 +62,12 @@ function projectScopeFromPath(req: FastifyRequest): string | undefined {
   return parsed.success ? parsed.data : undefined;
 }
 
+function invalidProjectPathParam(req: FastifyRequest): true | undefined {
+  const raw = (req.params as Record<string, unknown> | undefined)?.projectId;
+  if (raw === undefined) return undefined;
+  return projectIdSchema.safeParse(raw).success ? undefined : true;
+}
+
 const PROJECT_ID_PATH_PARAM = /\/:projectId(\/|$)/;
 
 /**
@@ -138,7 +144,11 @@ export function defineOperationRoute<TIn, TOut>(
 
   const run = async (req: FastifyRequest, parse: () => ServiceResult<TIn>) => {
     const ctx = await buildRequestContext(req, { ...deps, logger: req.log });
-    return runOperationCall(ctx, op, { projectId: scopeOf(req), parseInput: parse });
+    return runOperationCall(ctx, op, {
+      projectId: scopeOf(req),
+      invalidPathProjectId: op.invalidPathProjectIdAsValidation ? invalidProjectPathParam(req) : undefined,
+      parseInput: parse,
+    });
   };
 
   /**

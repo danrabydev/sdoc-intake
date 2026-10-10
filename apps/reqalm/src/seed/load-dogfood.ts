@@ -344,9 +344,7 @@ async function upsertProject(
       : `
     INSERT INTO projects (id, client_id, name, status, notes, workflow_profile_id)
     VALUES ($1, $2, $3, $4, $5, $6)
-    ON CONFLICT (id) DO UPDATE SET
-      client_id = EXCLUDED.client_id, name = EXCLUDED.name, status = EXCLUDED.status,
-      notes = EXCLUDED.notes, workflow_profile_id = EXCLUDED.workflow_profile_id
+    ON CONFLICT (id) DO NOTHING
     RETURNING id
   `,
     [

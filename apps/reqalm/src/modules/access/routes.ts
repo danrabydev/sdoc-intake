@@ -44,8 +44,9 @@ function accessReadOp<TIn extends { projectId: string }, TOut>(
 ): OperationDef<TIn, TOut> {
   return {
     name,
-    permission: "grant:read",
+    permission: "access:read",
     projectScoped: true,
+    invalidPathProjectIdAsValidation: true,
     ...denyAsMissing,
     projectIdFromInput: (input) => input.projectId,
     auditMeta: (input) => ({
@@ -72,7 +73,7 @@ const listProjectGrantsOp = accessReadOp<ListProjectGrantsInput, PageResult<Proj
 
 const listClientGrantsOp: OperationDef<ListClientGrantsInput, PageResult<ClientGrantDto>> = {
   name: "access.list_client_grants",
-  permission: "grant:read",
+  permission: "access:read",
   listScope: true,
   auditMeta: (input) => ({
     targetType: "client",
@@ -83,7 +84,7 @@ const listClientGrantsOp: OperationDef<ListClientGrantsInput, PageResult<ClientG
 
 const listRolesOp: OperationDef<ListRolesInput, PageResult<RoleCatalogDto>> = {
   name: "access.list_roles",
-  permission: "grant:read",
+  permission: "access:read",
   listScope: true,
   auditMeta: () => ({ targetType: "role_catalog", targetId: null }),
   execute: listRoleCatalog,
@@ -91,7 +92,7 @@ const listRolesOp: OperationDef<ListRolesInput, PageResult<RoleCatalogDto>> = {
 
 const listPlatformGrantsOp: OperationDef<ListPlatformGrantsInput, PageResult<PlatformGrantDto>> = {
   name: "access.list_platform_grants",
-  permission: "grant:read",
+  permission: "access:read",
   listScope: true,
   auditMeta: () => ({ targetType: "platform_grant", targetId: null }),
   execute: listPlatformGrants,

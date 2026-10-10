@@ -27,6 +27,8 @@ export type OperationDef<TIn, TOut> = {
   /** Failed permission check returns not_found when set (optional detail via permissionDeniedDetail). */
   permissionDeniedAsNotFound?: true;
   permissionDeniedDetail?: string;
+  /** Malformed `:projectId` path param returns validation (400) after auth instead of not_found. */
+  invalidPathProjectIdAsValidation?: true;
   auditMeta?: (input: TIn) => OperationAuditMeta;
   execute: (ctx: RequestContext, input: TIn) => Promise<ServiceResult<TOut>>;
 };
@@ -97,6 +99,7 @@ function operationSpanAttributes(
  */
 export type OperationCall<TIn> = {
   projectId: string | undefined;
+  invalidPathProjectId?: true;
   parseInput: () => ServiceResult<TIn>;
 };
 
@@ -120,7 +123,7 @@ export async function runOperationCall<TIn, TOut>(
   def: OperationDef<TIn, TOut>,
   call: OperationCall<TIn>,
 ): Promise<ServiceResult<TOut>> {
-  return runPipeline(ctx, def, call.projectId, {}, call.parseInput);
+  return runPipeline(ctx, def, call.projectId, {}, call.parseInput, call.invalidPathProjectId);
 }
 
 async function runPipeline<TIn, TOut>(
@@ -129,6 +132,7 @@ async function runPipeline<TIn, TOut>(
   projectId: string | undefined,
   initialMeta: OperationAuditMeta,
   parseInput: () => ServiceResult<TIn>,
+  invalidPathProjectId?: true,
 ): Promise<ServiceResult<TOut>> {
   const tracer = trace.getTracer(OP_TRACER);
   return tracer.startActiveSpan(`operation ${def.name}`, async (span) => {
@@ -180,6 +184,17 @@ async function runPipeline<TIn, TOut>(
         err("unauthenticated", "Authentication required"),
         "deny",
         "deny",
+      );
+    }
+
+    if (invalidPathProjectId && def.invalidPathProjectIdAsValidation) {
+      return finish(
+        err("validation", "Invalid request input", {
+          slice: "params",
+          issues: [{ path: "projectId", message: "invalid project id" }],
+        }),
+        "error",
+        "error",
       );
     }
 

@@ -19,6 +19,7 @@ const FORBIDDEN_KEYS = new Set([
   "identity_id",
   "sub",
   "jti",
+  "email",
 ]);
 
 const FORBIDDEN_SUBSTRINGS = [
@@ -31,6 +32,7 @@ const FORBIDDEN_SUBSTRINGS = [
   "argon2",
   "external_sub",
   "oidc:",
+  "@therabyfamily.com",
 ];
 
 function collectKeys(value: unknown, keys: Set<string>): void {
@@ -43,6 +45,24 @@ function collectKeys(value: unknown, keys: Set<string>): void {
     keys.add(k);
     collectKeys(v, keys);
   }
+}
+
+function assertExactKeys(obj: Record<string, unknown>, expected: string[], label: string): void {
+  assert.deepEqual(Object.keys(obj).sort(), [...expected].sort(), label);
+}
+
+export function assertAccessPersonDto(item: unknown): void {
+  assertExactKeys(item as Record<string, unknown>, ["display_name", "roles"], "AccessPerson");
+}
+
+export function assertAccessGrantDto(item: unknown): void {
+  const row = item as { id: string; role: string; person: Record<string, unknown> };
+  assertExactKeys(row, ["id", "role", "person"], "AccessGrant");
+  assertExactKeys(row.person, ["display_name"], "AccessGrant.person");
+}
+
+export function assertPlatformGrantDto(item: unknown): void {
+  assertAccessGrantDto(item);
 }
 
 export function assertAccessDtoHygiene(payload: unknown): void {
@@ -58,26 +78,37 @@ export function assertAccessDtoHygiene(payload: unknown): void {
   }
 }
 
+export function assertAccessPeoplePage(payload: unknown): void {
+  assertAccessDtoHygiene(payload);
+  const page = payload as { items: unknown[] };
+  for (const item of page.items) assertAccessPersonDto(item);
+}
+
+export function assertAccessGrantPage(payload: unknown): void {
+  assertAccessDtoHygiene(payload);
+  const page = payload as { items: unknown[] };
+  for (const item of page.items) assertAccessGrantDto(item);
+}
+
+export function assertPlatformGrantPage(payload: unknown): void {
+  assertAccessDtoHygiene(payload);
+  const page = payload as { items: unknown[] };
+  for (const item of page.items) assertPlatformGrantDto(item);
+}
+
 describe("access DTO hygiene", () => {
-  it("rejects payloads that echo credential or session fields", () => {
-    assertAccessDtoHygiene({
-      items: [
-        {
-          id: "casey-reader",
-          display_name: "Casey Reader",
-          email: "casey.reader@therabyfamily.com",
-          roles: ["Reader"],
-        },
-      ],
+  it("rejects payloads that echo credential, identity, or email fields", () => {
+    assertAccessPeoplePage({
+      items: [{ display_name: "Casey Reader", roles: ["Reader"] }],
     });
+    assert.throws(() => assertAccessDtoHygiene({ password_hash: "x" }));
+    assert.throws(() => assertAccessDtoHygiene({ person: { external_sub: "oidc:x" } }));
+    assert.throws(() => assertAccessDtoHygiene({ identity_id: "casey-reader" }));
+    assert.throws(() => assertAccessPeoplePage({ items: [{ id: "x", display_name: "x", roles: [] }] }));
     assert.throws(() =>
-      assertAccessDtoHygiene({ password_hash: "x" }),
-    );
-    assert.throws(() =>
-      assertAccessDtoHygiene({ person: { external_sub: "oidc:x" } }),
-    );
-    assert.throws(() =>
-      assertAccessDtoHygiene({ identity_id: "casey-reader" }),
+      assertAccessGrantPage({
+        items: [{ id: "g1", role: "Reader", person: { id: "x", display_name: "x", email: "a@b.c" } }],
+      }),
     );
   });
 });

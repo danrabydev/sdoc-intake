@@ -64,6 +64,7 @@ const EXPECTED: Record<string, string[]> = {
     "requirement:read",
   ],
   Security: [
+    "access:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -88,6 +89,7 @@ const EXPECTED: Record<string, string[]> = {
     "requirement:read",
   ],
   Auditor: [
+    "access:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -99,6 +101,7 @@ const EXPECTED: Record<string, string[]> = {
     "requirement:read",
   ],
   "Project admin": [
+    "access:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -112,6 +115,7 @@ const EXPECTED: Record<string, string[]> = {
     "requirement:write",
   ],
   "Client admin": [
+    "access:read",
     "audit:read",
     "client:list",
     "client:manage",

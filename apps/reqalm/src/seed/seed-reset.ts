@@ -60,6 +60,7 @@ const PRESERVED_TABLES = [
   "identities",
   "project_grants",
   "platform_grants",
+  "client_grants",
   "local_credentials",
   "dev_local_accounts",
   "auth_sessions",
