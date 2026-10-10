@@ -167,3 +167,10 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
+
+## Addendum — contracts browse mockup 02 table restyle (PR cursor/contracts-mockup-02-restyle)
+
+- **UI:** Read-only contracts list + detail styled to **`docs/design/mockups/02-contracts-list-detail.jpg`** (table layout; overlap timeline remains stub until read API exists).
+- **Detail scope:** First **`CONTRACT_SCOPE_DETAIL_PREVIEW`** lines only, with **`+N more`** when total scope exceeds the preview (no full-table render of product contract scope).
+- **Cross-project links:** Scope and covered-release DTOs include **`project_id`**; browse links target the peer project (plain **`code`** when ids are invalid).
+- **Verify:** `pnpm test` (Node 22); contract browse tests cover link guards, **`+N more`** boundary, and scope/release **`project_id`** routing.

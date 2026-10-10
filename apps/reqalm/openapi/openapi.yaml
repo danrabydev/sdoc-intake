@@ -775,7 +775,7 @@ components:
     ContractSummary:
       type: object
       additionalProperties: false
-      required: [id, title, kind, description, scope_count, release_count]
+      required: [id, title, kind, description, scope_count, release_count, status, starts_on, ends_on]
       properties:
         id:
           type: string
@@ -791,6 +791,12 @@ components:
         release_count:
           type: integer
           minimum: 0
+        status:
+          type: string
+        starts_on:
+          type: [string, "null"]
+        ends_on:
+          type: [string, "null"]
     ContractSummaryPage:
       type: object
       additionalProperties: false
@@ -828,7 +834,7 @@ components:
     ContractScopeLine:
       type: object
       additionalProperties: false
-      required: [uid, base, kind, status, version]
+      required: [uid, base, kind, status, version, project_id]
       properties:
         uid:
           type: string
@@ -840,6 +846,8 @@ components:
           type: string
         version:
           type: integer
+        project_id:
+          type: string
     ContractScopePage:
       type: object
       additionalProperties: false
@@ -858,7 +866,7 @@ components:
     ContractReleaseSummary:
       type: object
       additionalProperties: false
-      required: [id, name, status, planned_on, shipped_on]
+      required: [id, name, status, planned_on, shipped_on, project_id]
       properties:
         id:
           type: string
@@ -870,6 +878,8 @@ components:
           type: [string, "null"]
         shipped_on:
           type: [string, "null"]
+        project_id:
+          type: string
     ContractReleases:
       type: object
       additionalProperties: false

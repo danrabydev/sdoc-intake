@@ -8,10 +8,16 @@ import {
   contractApiPath,
   contractScopeApiPath,
   contractReleasesApiPath,
+  CONTRACT_SCOPE_DETAIL_PREVIEW,
   fetchAllScope,
+  formatContractPeriod,
   isValidContractId,
+  releaseNameLink,
   renderContractsList,
   renderContractDetail,
+  scopeLineLink,
+  scopeMoreCount,
+  scopeMoreLabel,
 } from "./public/browse-contracts.js";
 import { parseAppRoute, mountBrowseView } from "./public/browse.js";
 import { renderAppShell } from "./public/app.js";
@@ -40,6 +46,9 @@ const ctrSummary = (id, title, scope, rel) => ({
   description: null,
   scope_count: scope,
   release_count: rel,
+  status: "active",
+  starts_on: "2026-10-01",
+  ends_on: null,
 });
 
 const ctrListOk = {
@@ -67,8 +76,15 @@ function scopeOffset(url: string) {
   return Number(new URLSearchParams(url.split("?")[1] ?? "").get("offset") ?? "0");
 }
 
-function scopeLine(i: number) {
-  return { uid: `uid-${i}`, base: `CAP-SCOPE-${i}`, kind: "capability", status: "active", version: 0 };
+function scopeLine(i: number, projectId = PID) {
+  return {
+    uid: `uid-${i}`,
+    base: `CAP-SCOPE-${i}`,
+    kind: "capability",
+    status: "active",
+    version: 0,
+    project_id: projectId,
+  };
 }
 
 function scopeBase(contractId = CTR_PRODUCT) {
@@ -126,7 +142,7 @@ export function registerContractBrowseTests(deps: {
     const contractOk = { status: 200, body: { data: ctrProductDetail } };
     return mockFetchBare((url) => {
       if (url === contractApiPath(PID, CTR_PRODUCT)) return overrides.contract ?? contractOk;
-      if (url === contractScopeApiPath(PID, CTR_PRODUCT, SCOPE_LIM, 0)) return overrides.scope ?? scopeEmptyOk;
+      if (url === contractScopeApiPath(PID, CTR_PRODUCT, CONTRACT_SCOPE_DETAIL_PREVIEW, 0)) return overrides.scope ?? scopeEmptyOk;
       if (url === contractReleasesApiPath(PID, CTR_PRODUCT)) return overrides.releases ?? relEmptyOk;
       return { status: 404 };
     });
@@ -150,6 +166,46 @@ export function registerContractBrowseTests(deps: {
       assert.equal(contractsApiPath(PID, 20, 0), `/api/v1/projects/${PID}/contracts?limit=20&offset=0`);
       assert.equal(contractsApiPath("bad!", 20, 0), null);
       assert.ok(isValidContractId(CTR_PRODUCT) && !isValidContractId("Bad_ID"));
+      assert.equal(formatContractPeriod("2026-10-01", "2027-03-15"), "2026-10 — 2027-03");
+      assert.equal(scopeMoreLabel(25, 431), "+406 more");
+      assert.equal(scopeMoreLabel(25, 25), null);
+      assert.equal(scopeMoreCount(3, 62), 59);
+    });
+
+    it("scopeMoreLabel mutant boundary (off-by-one fails)", () => {
+      assert.equal(scopeMoreLabel(24, 25), "+1 more");
+      assert.notEqual(scopeMoreLabel(24, 25), "+2 more");
+      assert.notEqual(scopeMoreLabel(24, 25), "+0 more");
+      const mutant = (shown: number, total: number) => {
+        const n = Math.max(0, total - shown + 1);
+        return n > 0 ? `+${n} more` : null;
+      };
+      assert.notEqual(mutant(24, 25), scopeMoreLabel(24, 25));
+    });
+
+    it("scope and release link guards use peer project_id", () => {
+      const scopeHost = document.createElement("div");
+      scopeHost.append(
+        scopeLineLink(PID, { base: "CAP-OK", project_id: PID }),
+        scopeLineLink(PID, { base: "R-PEER", project_id: "twin-b" }),
+        scopeLineLink(PID, { base: "bad id", project_id: PID }),
+        scopeLineLink(PID, { base: "NO-PROJ", project_id: "" }),
+      );
+      assert.ok(scopeHost.querySelector('a[href="/app/projects/reqalm/requirements/CAP-OK"]'));
+      assert.ok(scopeHost.querySelector('a[href="/app/projects/twin-b/requirements/R-PEER"]'));
+      assert.equal(scopeHost.querySelector('a[href="/app/projects/reqalm/requirements/bad id"]'), null);
+      assert.equal(scopeHost.querySelector('a[href="/app/projects/reqalm/requirements/NO-PROJ"]'), null);
+      assert.ok(scopeHost.querySelector("code.contract-scope-plain"));
+
+      const relHost = document.createElement("div");
+      relHost.append(
+        releaseNameLink(PID, { id: "rel-a", name: "A", project_id: PID }),
+        releaseNameLink(PID, { id: "rel-b", name: "B", project_id: "twin-b" }),
+        releaseNameLink(PID, { id: "INVALID!", name: "Bad", project_id: PID }),
+      );
+      assert.ok(relHost.querySelector('a[href="/app/projects/reqalm/releases/rel-a"]'));
+      assert.ok(relHost.querySelector('a[href="/app/projects/twin-b/releases/rel-b"]'));
+      assert.equal(relHost.querySelector("a[href*='INVALID']"), null);
     });
 
     it("list empty, invalid ids, summary, list 404", async () => {
@@ -191,7 +247,8 @@ export function registerContractBrowseTests(deps: {
         projectId: PID,
         offset: 0,
       });
-      assert.equal(sum.querySelectorAll("table.data-table tbody tr").length, 20);
+      assert.equal(sum.querySelectorAll("table.contracts-list-table tbody tr").length, 20);
+      assert.ok(sum.querySelector(".contract-status-active"));
       assert.equal(sum.querySelector(".contracts-list-summary")?.textContent, "Showing 20 of 45");
       const sum2 = mainEl();
       await renderContractsList(sum2, {
@@ -227,8 +284,18 @@ export function registerContractBrowseTests(deps: {
       await renderContractDetail(m1, {
         apiFn: ctrFetch((u) => {
           if (u === contractApiPath(PID, CTR_MAINT)) return { status: 200, body: { data: maint } };
-          if (u === contractScopeApiPath(PID, CTR_MAINT, SCOPE_LIM, 0)) {
-            return { status: 200, body: { data: { items: [{ uid: "CAP-UPKEEP-1", base: "CAP-UPKEEP-1", kind: "capability", status: "draft", version: 0 }], total: 1, limit: SCOPE_LIM, offset: 0 } } };
+          if (u === contractScopeApiPath(PID, CTR_MAINT, CONTRACT_SCOPE_DETAIL_PREVIEW, 0)) {
+            return {
+              status: 200,
+              body: {
+                data: {
+                  items: [{ uid: "CAP-UPKEEP-1", base: "CAP-UPKEEP-1", kind: "capability", status: "draft", version: 0, project_id: PID }],
+                  total: 1,
+                  limit: CONTRACT_SCOPE_DETAIL_PREVIEW,
+                  offset: 0,
+                },
+              },
+            };
           }
           if (u === contractReleasesApiPath(PID, CTR_MAINT)) return relEmptyOk;
           return undefined;
@@ -244,9 +311,16 @@ export function registerContractBrowseTests(deps: {
       await renderContractDetail(m2, {
         apiFn: ctrFetch((u) => {
           if (u === contractApiPath(PID, CTR_PRODUCT)) return { status: 200, body: { data: { ...ctrProductDetail, title: xss } } };
-          if (u === contractScopeApiPath(PID, CTR_PRODUCT, SCOPE_LIM, 0)) return scopeEmptyOk;
+          if (u === contractScopeApiPath(PID, CTR_PRODUCT, CONTRACT_SCOPE_DETAIL_PREVIEW, 0)) return scopeEmptyOk;
           if (u === contractReleasesApiPath(PID, CTR_PRODUCT)) {
-            return { status: 200, body: { data: { items: [{ id: "rel-r1-read-contracts", name: xss, status: "shipped", planned_on: null, shipped_on: "2026-10-10" }] } } };
+            return {
+              status: 200,
+              body: {
+                data: {
+                  items: [{ id: "rel-r1-read-contracts", name: xss, status: "shipped", planned_on: null, shipped_on: "2026-10-10", project_id: PID }],
+                },
+              },
+            };
           }
           return undefined;
         }),
@@ -301,31 +375,36 @@ export function registerContractBrowseTests(deps: {
       });
     }
 
-    it("fetchAllScope 250 rows render on contract detail", async () => {
-      const mock = scopePagingMock(250, { 0: 100, 100: 100, 200: 50 });
+    it("contract detail scope preview and +N more (not full fetchAllScope table)", async () => {
+      const preview = CONTRACT_SCOPE_DETAIL_PREVIEW;
+      const total = 431;
+      const mock = scopePagingMock(total, { 0: preview });
       const m = mainEl();
       await renderContractDetail(m, {
-        apiFn: detailFetch({ ...ctrProductDetail, scope_count: 250 }, mock.handler, () => relEmptyOk),
+        apiFn: detailFetch({ ...ctrProductDetail, scope_count: total }, mock.handler, () => relEmptyOk),
         projectId: PID,
         contractId: CTR_PRODUCT,
       });
-      assert.equal(m.querySelectorAll("table.data-table tbody tr").length, 250);
+      assert.equal(m.querySelectorAll("table.contracts-scope-table tbody tr").length, preview);
+      assert.equal(m.querySelector(".contract-scope-more")?.textContent, scopeMoreLabel(preview, total));
+      assert.deepEqual(mock.offsets, [0]);
+      assert.equal(mock.offsets.length, 1);
     });
 
     for (const [label, failStatus, expect] of [
       ["500 load error", 500, (m: HTMLElement) => {
         assert.ok(m.querySelector(".contract-load-error"));
         assert.equal(m.querySelector("h2"), null);
-        assert.equal(m.querySelectorAll("table.data-table tbody tr").length, 0);
+        assert.equal(m.querySelectorAll("table.contracts-scope-table tbody tr").length, 0);
       }],
       ["404 not-found", 404, (m: HTMLElement) => {
         assert.equal(m.querySelector("h1")?.textContent, "Not found");
         assert.equal(m.querySelector("h2"), null);
-        assert.equal(m.querySelectorAll("table.data-table tbody tr").length, 0);
+        assert.equal(m.querySelectorAll("table.contracts-scope-table tbody tr").length, 0);
       }],
     ] as const) {
-      it(`fetchAllScope middle-page ${label} not partial table`, async () => {
-        const mock = scopePagingMock(250, { 0: 100 }, { offset: 100, status: failStatus });
+      it(`scope preview first-page ${label} not partial table`, async () => {
+        const mock = scopePagingMock(250, { 0: CONTRACT_SCOPE_DETAIL_PREVIEW }, { offset: 0, status: failStatus });
         const m = mainEl();
         await renderContractDetail(m, {
           apiFn: detailFetch(ctrProductDetail, mock.handler, () => relEmptyOk),
@@ -362,17 +441,18 @@ export function registerContractBrowseTests(deps: {
       await renderContractDetail(m, {
         apiFn: mockFetchBare((u) => {
           if (u === contractApiPath(PID, CTR_PRODUCT)) return { status: 200, body: { data: ctrProductDetail } };
-          if (u === contractScopeApiPath(PID, CTR_PRODUCT, SCOPE_LIM, 0)) {
+          if (u === contractScopeApiPath(PID, CTR_PRODUCT, CONTRACT_SCOPE_DETAIL_PREVIEW, 0)) {
             return {
               status: 200,
               body: {
                 data: {
                   items: [
-                    { uid: "u1", base: "CAP-OK", kind: "capability", status: "active", version: 0 },
-                    { uid: "u2", base: "bad id", kind: "requirement", status: "active", version: 0 },
+                    { uid: "u1", base: "CAP-OK", kind: "capability", status: "active", version: 0, project_id: PID },
+                    { uid: "u2", base: "bad id", kind: "requirement", status: "active", version: 0, project_id: PID },
+                    { uid: "u3", base: "R-X", kind: "requirement", status: "active", version: 0, project_id: "twin-b" },
                   ],
-                  total: 2,
-                  limit: SCOPE_LIM,
+                  total: 3,
+                  limit: CONTRACT_SCOPE_DETAIL_PREVIEW,
                   offset: 0,
                 },
               },
@@ -384,8 +464,9 @@ export function registerContractBrowseTests(deps: {
               body: {
                 data: {
                   items: [
-                    { id: "rel-r1-read-contracts", name: "Good", status: "shipped", planned_on: null, shipped_on: "2026-10-10" },
-                    { id: "INVALID!", name: "Bad release", status: "planned", planned_on: "2026-10-10", shipped_on: null },
+                    { id: "rel-r1-read-contracts", name: "Good", status: "shipped", planned_on: null, shipped_on: "2026-10-10", project_id: PID },
+                    { id: "INVALID!", name: "Bad release", status: "planned", planned_on: "2026-10-10", shipped_on: null, project_id: PID },
+                    { id: "rel-twin", name: "Twin", status: "planned", planned_on: "2026-10-10", shipped_on: null, project_id: "twin-b" },
                   ],
                 },
               },
@@ -396,13 +477,15 @@ export function registerContractBrowseTests(deps: {
         projectId: PID,
         contractId: CTR_PRODUCT,
       });
-      const tables = m.querySelectorAll("table.data-table");
+      const tables = m.querySelectorAll("table.contracts-table");
       assert.ok(m.querySelector('a[href="/app/projects/reqalm/requirements/CAP-OK"]'));
+      assert.ok(m.querySelector('a[href="/app/projects/twin-b/requirements/R-X"]'));
       assert.equal(m.querySelector('a[href="/app/projects/reqalm/requirements/bad id"]'), null);
       const scopeRows = [...tables[0].querySelectorAll("tbody tr")];
       assert.equal(scopeRows[1]?.querySelector("td a"), null);
       assert.equal(scopeRows[1]?.querySelector("td code")?.textContent, "bad id");
       assert.ok(m.querySelector('a[href="/app/projects/reqalm/releases/rel-r1-read-contracts"]'));
+      assert.ok(m.querySelector('a[href="/app/projects/twin-b/releases/rel-twin"]'));
       const releaseRows = [...tables[1].querySelectorAll("tbody tr")];
       assert.equal(releaseRows[1]?.querySelector("td a"), null);
       assert.match(releaseRows[1]?.textContent ?? "", /Bad release/);
