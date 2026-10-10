@@ -85,6 +85,83 @@ describe("authorize without projectId", () => {
     }
   });
 
+  it("denies requirement:read for platform Reader when projectId is empty string", async () => {
+    const fixture = await createMigratedPglitePool();
+    try {
+      const { pool } = fixture;
+      await pool.query(`INSERT INTO identities (id, display_name) VALUES ('rbac-plat-reader-empty', 'pre') ON CONFLICT DO NOTHING`);
+      await pool.query(
+        `INSERT INTO platform_grants (id, identity_id, role)
+         VALUES ('pgrant-rbac-plat-reader-empty', 'rbac-plat-reader-empty', 'Reader') ON CONFLICT DO NOTHING`,
+      );
+      assert.equal(await authorize(pool, "rbac-plat-reader-empty", "requirement:read"), false);
+      assert.equal(await authorize(pool, "rbac-plat-reader-empty", "requirement:read", ""), false);
+    } finally {
+      await fixture.close();
+    }
+  });
+
+  it("denies requirement:read when projectId is whitespace only", async () => {
+    const fixture = await createMigratedPglitePool();
+    try {
+      const { pool } = fixture;
+      await pool.query(`INSERT INTO identities (id, display_name) VALUES ('rbac-ws-proj', 'ws') ON CONFLICT DO NOTHING`);
+      await pool.query(`INSERT INTO clients (id, name) VALUES ('rbac-client', 'C') ON CONFLICT DO NOTHING`);
+      await pool.query(
+        `INSERT INTO projects (id, client_id, name) VALUES ('rbac-p2', 'rbac-client', 'P2') ON CONFLICT DO NOTHING`,
+      );
+      await pool.query(
+        `INSERT INTO project_grants (id, project_id, identity_id, role)
+         VALUES ('grant-rbac-ws-proj-reader', 'rbac-p2', 'rbac-ws-proj', 'Reader') ON CONFLICT DO NOTHING`,
+      );
+      assert.equal(await authorize(pool, "rbac-ws-proj", "requirement:read", "   "), false);
+      assert.equal(await authorize(pool, "rbac-ws-proj", "requirement:read", "rbac-p2"), true);
+    } finally {
+      await fixture.close();
+    }
+  });
+
+  it("denies requirement:read when projectId is an empty string", async () => {
+    const fixture = await createMigratedPglitePool();
+    try {
+      const { pool } = fixture;
+      await pool.query(`INSERT INTO identities (id, display_name) VALUES ('rbac-empty-proj', 'ep') ON CONFLICT DO NOTHING`);
+      await pool.query(`INSERT INTO clients (id, name) VALUES ('rbac-client', 'C') ON CONFLICT DO NOTHING`);
+      await pool.query(
+        `INSERT INTO projects (id, client_id, name) VALUES ('rbac-p2', 'rbac-client', 'P2') ON CONFLICT DO NOTHING`,
+      );
+      await pool.query(
+        `INSERT INTO project_grants (id, project_id, identity_id, role)
+         VALUES ('grant-rbac-empty-proj-reader', 'rbac-p2', 'rbac-empty-proj', 'Reader') ON CONFLICT DO NOTHING`,
+      );
+      assert.equal(await authorize(pool, "rbac-empty-proj", "requirement:read", ""), false);
+      assert.equal(await authorize(pool, "rbac-empty-proj", "requirement:read", "rbac-p2"), true);
+    } finally {
+      await fixture.close();
+    }
+  });
+
+  it("denies audit:read without projectId for a project-level Auditor (no platform grant)", async () => {
+    const fixture = await createMigratedPglitePool();
+    try {
+      const { pool } = fixture;
+      await pool.query(`INSERT INTO identities (id, display_name) VALUES ('rbac-proj-auditor', 'pa') ON CONFLICT DO NOTHING`);
+      await pool.query(`INSERT INTO clients (id, name) VALUES ('rbac-client', 'C') ON CONFLICT DO NOTHING`);
+      await pool.query(
+        `INSERT INTO projects (id, client_id, name) VALUES ('rbac-p2', 'rbac-client', 'P2') ON CONFLICT DO NOTHING`,
+      );
+      await pool.query(
+        `INSERT INTO project_grants (id, project_id, identity_id, role)
+         VALUES ('grant-rbac-proj-auditor', 'rbac-p2', 'rbac-proj-auditor', 'Auditor') ON CONFLICT DO NOTHING`,
+      );
+      assert.equal(await authorize(pool, "rbac-proj-auditor", "audit:read"), false);
+      assert.equal(await authorize(pool, "rbac-proj-auditor", "audit:read", ""), false);
+      assert.equal(await authorize(pool, "rbac-proj-auditor", "audit:read", "rbac-p2"), true);
+    } finally {
+      await fixture.close();
+    }
+  });
+
   it("allows Key custodian key:manage and audit:read from platform_grants without projectId", async () => {
     const fixture = await createMigratedPglitePool();
     try {

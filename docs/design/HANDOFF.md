@@ -167,3 +167,9 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
+
+## Addendum — hardening follow-up (PR #48, runtime only)
+
+- **Release (planned):** `rel-r1-hardening-followup-1` → **`CAP-SVC-HARDENING-FOLLOWUP`** (no seed/release-row edits in this PR).
+- **Runtime:** `authorize` treats blank/whitespace `projectId` like missing scope (`trim` then fail-closed); `fetchAllScope` stops on non-positive `page.limit`, caps pages at **`MAX_SCOPE_FETCH_PAGES`**, and returns **error** (no partial scope table) when aggregated items are fewer than the server `total`.
+- **Tests:** mutant-killing coverage for each guard; contract browse scenarios in **`contract-browse.test.ts`** with fixtures in **`contract-browse.test-support.ts`**.

@@ -1,6 +1,10 @@
-// @ts-nocheck
+// @ts-nocheck — contract browse modules are plain JS (same as browse-ui.test.ts).
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, it, beforeEach, afterEach } from "node:test";
+import { JSDOM } from "jsdom";
 import {
   contractsListHref,
   contractDetailHref,
@@ -9,6 +13,7 @@ import {
   contractScopeApiPath,
   contractReleasesApiPath,
   fetchAllScope,
+  MAX_SCOPE_FETCH_PAGES,
   isValidContractId,
   renderContractsList,
   renderContractDetail,
@@ -16,123 +21,83 @@ import {
 import { parseAppRoute, mountBrowseView } from "./public/browse.js";
 import { renderAppShell } from "./public/app.js";
 import { breadcrumbSegments } from "./public/shell-nav.js";
+import {
+  CTR_PRODUCT,
+  CTR_MAINT,
+  PID,
+  SCOPE_LIM,
+  ctrProductDetail,
+  ctrListOk,
+  ctrListEmpty,
+  scopeEmptyOk,
+  relEmptyOk,
+  contractsPage,
+  ctrSummary,
+  scopePagingMock,
+  scopeBase,
+  type FetchHandler,
+} from "./contract-browse.test-support.js";
 
-export const CTR_PRODUCT = "ctr-reqalm-product";
-export const CTR_MAINT = "ctr-reqalm-maintenance";
-const PID = "reqalm";
-const SCOPE_LIM = 100;
-
-export const ctrProductDetail = {
-  id: CTR_PRODUCT,
-  title: "Product",
-  kind: "contract",
-  status: "active",
-  scope_count: 0,
-  release_count: 0,
-  project_id: PID,
-  client_id: "reqalm-client",
+const shellMeta = {
+  identityId: "dan-raby",
+  agentName: "Dan Raby",
+  client: { id: "danrabydev", name: "Dan Raby Dev" },
+  project: { id: "reqalm", name: "ReqALM Product", client_id: "danrabydev" },
 };
 
-const ctrSummary = (id, title, scope, rel) => ({
-  id,
-  title,
-  kind: "contract",
-  description: null,
-  scope_count: scope,
-  release_count: rel,
-});
+const contractsSrc = fs.readFileSync(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), "public/browse-contracts.js"),
+  "utf8",
+);
 
-const ctrListOk = {
-  status: 200,
-  body: {
-    data: {
-      items: [ctrSummary(CTR_PRODUCT, "Product", 400, 31), ctrSummary(CTR_MAINT, "Maintenance", 4, 0)],
-      total: 2,
-      limit: 20,
-      offset: 0,
-    },
-  },
-};
-const ctrListEmpty = { status: 200, body: { data: { items: [], total: 0, limit: 20, offset: 0 } } };
-const scopeEmptyOk = { status: 200, body: { data: { items: [], total: 0, limit: SCOPE_LIM, offset: 0 } } };
-const relEmptyOk = { status: 200, body: { data: { items: [] } } };
-const contractsPage = (off: number, items: unknown[], total: number) => ({
-  status: 200,
-  body: { data: { items, total, limit: 20, offset: off } },
-});
-
-type FetchHandler = (url: string) => { status: number; body?: unknown } | undefined;
-
-function scopeOffset(url: string) {
-  return Number(new URLSearchParams(url.split("?")[1] ?? "").get("offset") ?? "0");
+function jsonResponse(status: number, body: unknown) {
+  return { status, ok: status >= 200 && status < 300, json: async () => body };
 }
 
-function scopeLine(i: number) {
-  return { uid: `uid-${i}`, base: `CAP-SCOPE-${i}`, kind: "capability", status: "active", version: 0 };
+function mockFetchBare(handler: FetchHandler) {
+  return (async (input: RequestInfo | URL) => {
+    const url = typeof input === "string" ? input : input.toString();
+    const hit = handler(url);
+    const status = hit?.status ?? 404;
+    return jsonResponse(status, hit?.body) as Response;
+  }) as unknown as typeof fetch;
 }
 
-function scopeBase(contractId = CTR_PRODUCT) {
-  return contractScopeApiPath(PID, contractId, SCOPE_LIM, 0)!.split("?")[0];
-}
-
-function scopePage(off: number, n: number, total: number) {
-  const items = Array.from({ length: n }, (_, j) => scopeLine(off + j));
-  return { status: 200, body: { data: { items, total, limit: SCOPE_LIM, offset: off } } };
-}
-
-/** Paged scope mock: pageSizes map offset→item count; optional fail offset+status. */
-export function scopePagingMock(
-  total: number,
-  pageSizes: Record<number, number>,
-  fail?: { offset: number; status: number },
-) {
-  const offsets: number[] = [];
-  const base = scopeBase();
-  const handler: FetchHandler = (url) => {
-    if (!url.startsWith(base)) return undefined;
-    const off = scopeOffset(url);
-    offsets.push(off);
-    if (fail && off === fail.offset) return { status: fail.status, body: {} };
-    const n = pageSizes[off];
-    if (n === undefined) return { status: 404 };
-    return scopePage(off, n, total);
-  };
-  return { handler, offsets, base };
+function installDom(url = `http://localhost/app/projects/${PID}/contracts`) {
+  const dom = new JSDOM("<!doctype html><html><body></body></html>", { url });
+  globalThis.window = dom.window as unknown as Window & typeof globalThis;
+  globalThis.document = dom.window.document;
+  return dom;
 }
 
 function mainEl() {
   return document.createElement("main");
 }
 
-export function registerContractBrowseTests(deps: {
-  installDom: (url?: string) => unknown;
-  shellMeta: unknown;
-  contractsSrc: string;
-  mockFetchBare: (handler: FetchHandler) => typeof fetch;
-}) {
-  const { installDom, shellMeta, contractsSrc, mockFetchBare } = deps;
-  const ctrFetch = (extra: FetchHandler) =>
-    mockFetchBare((url) => (url === contractsApiPath(PID, 20, 0) ? ctrListOk : extra(url) ?? { status: 404 }));
-  const detailFetch = (contractBody: unknown, scope: FetchHandler, releases: FetchHandler = () => relEmptyOk) =>
-    mockFetchBare((url) => {
-      if (url === contractApiPath(PID, CTR_PRODUCT)) return { status: 200, body: { data: contractBody } };
-      return scope(url) ?? releases(url) ?? { status: 404 };
-    });
-  const ctrDetailApiFetch = (overrides: {
-    contract?: { status: number; body?: unknown };
-    scope?: { status: number; body?: unknown };
-    releases?: { status: number; body?: unknown };
-  } = {}) => {
-    const contractOk = { status: 200, body: { data: ctrProductDetail } };
-    return mockFetchBare((url) => {
-      if (url === contractApiPath(PID, CTR_PRODUCT)) return overrides.contract ?? contractOk;
-      if (url === contractScopeApiPath(PID, CTR_PRODUCT, SCOPE_LIM, 0)) return overrides.scope ?? scopeEmptyOk;
-      if (url === contractReleasesApiPath(PID, CTR_PRODUCT)) return overrides.releases ?? relEmptyOk;
-      return { status: 404 };
-    });
-  };
+const ctrFetch = (extra: FetchHandler) =>
+  mockFetchBare((url) => (url === contractsApiPath(PID, 20, 0) ? ctrListOk : extra(url) ?? { status: 404 }));
 
-  describe("contract browse screens", () => {
+const detailFetch = (contractBody: unknown, scope: FetchHandler, releases: FetchHandler = () => relEmptyOk) =>
+  mockFetchBare((url) => {
+    if (url === contractApiPath(PID, CTR_PRODUCT)) return { status: 200, body: { data: contractBody } };
+    return scope(url) ?? releases(url) ?? { status: 404 };
+  });
+
+const ctrDetailApiFetch = (overrides: {
+  contract?: { status: number; body?: unknown };
+  scope?: { status: number; body?: unknown };
+  releases?: { status: number; body?: unknown };
+} = {}) => {
+  const contractOk = { status: 200, body: { data: ctrProductDetail } };
+  return mockFetchBare((url) => {
+    if (url === contractApiPath(PID, CTR_PRODUCT)) return overrides.contract ?? contractOk;
+    if (url === contractScopeApiPath(PID, CTR_PRODUCT, SCOPE_LIM, 0)) return overrides.scope ?? scopeEmptyOk;
+    if (url === contractReleasesApiPath(PID, CTR_PRODUCT)) return overrides.releases ?? relEmptyOk;
+    return { status: 404 };
+  });
+};
+
+describe("contract browse screens", () => {
     beforeEach(() => installDom(`http://localhost/app/projects/${PID}/contracts`));
     afterEach(() => {
       Reflect.deleteProperty(globalThis, "window");
@@ -143,6 +108,7 @@ export function registerContractBrowseTests(deps: {
       assert.doesNotMatch(contractsSrc, /\.innerHTML\s*=/);
       assert.match(contractsSrc, /encodeURIComponent/);
       assert.match(contractsSrc, /isValidContractId/);
+      assert.match(contractsSrc, /items\.length\s*<\s*total/);
       assert.equal(contractsListHref(PID), `/app/projects/${PID}/contracts`);
       assert.equal(contractsListHref("INVALID!"), null);
       assert.equal(contractDetailHref(PID, CTR_PRODUCT), `/app/projects/${PID}/contracts/${CTR_PRODUCT}`);
@@ -288,7 +254,6 @@ export function registerContractBrowseTests(deps: {
       ["250 in three pages", { 0: 100, 100: 100, 200: 50 }, 250, [0, 100, 200], 250],
       ["125 short final page", { 0: 100, 100: 25 }, 125, [0, 100], 125],
       ["200 exact two full pages", { 0: 100, 100: 100 }, 200, [0, 100], 200],
-      ["empty page stops paging", { 0: 100, 100: 0 }, 250, [0, 100], 100],
     ] as const) {
       it(`fetchAllScope ${label}`, async () => {
         const mock = scopePagingMock(total, pages);
@@ -298,6 +263,122 @@ export function registerContractBrowseTests(deps: {
         assert.equal(out.data?.total, total);
         assert.deepEqual(mock.offsets, expectOffsets);
         assert.equal(mock.offsets.length, expectOffsets.length);
+      });
+    }
+
+    it("fetchAllScope fails closed when an empty page leaves scope truncated", async () => {
+      const mock = scopePagingMock(250, { 0: 100, 100: 0 });
+      const out = await fetchAllScope(mockFetchBare(mock.handler), PID, CTR_PRODUCT);
+      assert.equal(out.kind, "error");
+      assert.deepEqual(mock.offsets, [0, 100]);
+    });
+
+    it("fetchAllScope stops when server returns limit zero with large total", async () => {
+      let fetches = 0;
+      const base = scopeBase();
+      const handler: FetchHandler = (url) => {
+        if (!url.startsWith(base)) return undefined;
+        fetches += 1;
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: [{ uid: "uid-bad-limit", base: "CAP-BAD-LIMIT", kind: "capability", status: "active", version: 0 }],
+              total: 999_999,
+              limit: 0,
+              offset: 0,
+            },
+          },
+        };
+      };
+      const out = await fetchAllScope(mockFetchBare(handler), PID, CTR_PRODUCT);
+      assert.equal(out.kind, "error");
+      assert.equal(fetches, 1);
+    });
+
+    it("fetchAllScope caps fetches at MAX_SCOPE_FETCH_PAGES when total is unbounded", async () => {
+      let fetches = 0;
+      const base = scopeBase();
+      const handler: FetchHandler = (url) => {
+        if (!url.startsWith(base)) return undefined;
+        fetches += 1;
+        const off = Number(new URLSearchParams(url.split("?")[1] ?? "").get("offset") ?? "0");
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: [{ uid: `uid-${off}`, base: `CAP-PAGE-${off}`, kind: "capability", status: "active", version: 0 }],
+              total: 999_999,
+              limit: 1,
+              offset: off,
+            },
+          },
+        };
+      };
+      const out = await fetchAllScope(mockFetchBare(handler), PID, CTR_PRODUCT, 1);
+      assert.equal(out.kind, "error");
+      assert.equal(fetches, MAX_SCOPE_FETCH_PAGES);
+    });
+
+    for (const [label, apiFnFactory] of [
+      [
+        "non-positive page limit",
+        () => {
+          const base = scopeBase();
+          const scopeHandler: FetchHandler = (url) => {
+            if (!url.startsWith(base)) return undefined;
+            return {
+              status: 200,
+              body: {
+                data: {
+                  items: [{ uid: "uid-bad-limit", base: "CAP-BAD-LIMIT", kind: "capability", status: "active", version: 0 }],
+                  total: 999_999,
+                  limit: 0,
+                  offset: 0,
+                },
+              },
+            };
+          };
+          return detailFetch(ctrProductDetail, scopeHandler, () => relEmptyOk);
+        },
+      ],
+      [
+        "page cap",
+        () => {
+          const base = scopeBase();
+          const scopeHandler: FetchHandler = (url) => {
+            if (!url.startsWith(base)) return undefined;
+            const off = Number(new URLSearchParams(url.split("?")[1] ?? "").get("offset") ?? "0");
+            return {
+              status: 200,
+              body: {
+                data: {
+                  items: [{ uid: `uid-${off}`, base: `CAP-PAGE-${off}`, kind: "capability", status: "active", version: 0 }],
+                  total: 999_999,
+                  limit: 1,
+                  offset: off,
+                },
+              },
+            };
+          };
+          return detailFetch(ctrProductDetail, scopeHandler, () => relEmptyOk);
+        },
+      ],
+      [
+        "empty follow-up page",
+        () => detailFetch(ctrProductDetail, scopePagingMock(250, { 0: 100, 100: 0 }).handler, () => relEmptyOk),
+      ],
+    ] as const) {
+      it(`renderContractDetail load error when scope fetch is truncated (${label})`, async () => {
+        const m = mainEl();
+        await renderContractDetail(m, {
+          apiFn: apiFnFactory(),
+          projectId: PID,
+          contractId: CTR_PRODUCT,
+        });
+        assert.ok(m.querySelector(".contract-load-error"));
+        assert.equal(m.querySelector("h2"), null);
+        assert.equal(m.querySelectorAll("table.data-table tbody tr").length, 0);
       });
     }
 
@@ -447,4 +528,3 @@ export function registerContractBrowseTests(deps: {
       assert.equal(shellMain.textContent, "");
     });
   });
-}
