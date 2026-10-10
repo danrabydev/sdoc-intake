@@ -39,26 +39,32 @@ describe("013_planning_read migration", () => {
     assert.match(sql, /work_item_links[\s\S]*project_id TEXT NOT NULL REFERENCES projects\(id\) ON DELETE RESTRICT/);
   });
 
-  it("iterations.project_id RESTRICTs when it is the only planning row on the project", async () => {
+  it("iterations.project_id RESTRICTs when it is the only row referencing the project", async () => {
     const db = new PGlite();
     try {
       await basePlanningFixture(db);
-      await db.exec(`INSERT INTO iterations (id, project_id, name) VALUES ('it1', 'p1', 'I');`);
-      await assert.rejects(() => db.exec(`DELETE FROM projects WHERE id = 'p1'`), /restrict/i);
+      await db.exec(`INSERT INTO projects (id, client_id, name) VALUES ('p-iter-only', 'c1', 'Iter only');
+        INSERT INTO iterations (id, project_id, name) VALUES ('it1', 'p-iter-only', 'I');`);
+      await assert.rejects(
+        () => db.exec(`DELETE FROM projects WHERE id = 'p-iter-only'`),
+        /iterations_project_id_fkey|restrict/i,
+      );
     } finally {
       await db.close();
     }
   });
 
-  it("change_sets.project_id RESTRICTs when it is the only change set on the project", async () => {
+  it("change_sets.project_id RESTRICTs when it is the only row referencing the project", async () => {
     const db = new PGlite();
     try {
       await basePlanningFixture(db);
-      await db.exec(
-        `INSERT INTO change_sets (id, project_id, kind, scope, status, opened_by, opened_at)
-         VALUES ('cs1', 'p1', 'leaf', 'project', 'open', 'i1', '2026-01-01T00:00:00Z');`,
+      await db.exec(`INSERT INTO projects (id, client_id, name) VALUES ('p-cs-only', 'c1', 'CS only');
+        INSERT INTO change_sets (id, project_id, kind, scope, status, opened_by, opened_at)
+         VALUES ('cs1', 'p-cs-only', 'leaf', 'project', 'open', 'i1', '2026-01-01T00:00:00Z');`);
+      await assert.rejects(
+        () => db.exec(`DELETE FROM projects WHERE id = 'p-cs-only'`),
+        /change_sets_project_id_fkey|restrict/i,
       );
-      await assert.rejects(() => db.exec(`DELETE FROM projects WHERE id = 'p1'`), /restrict/i);
     } finally {
       await db.close();
     }
@@ -78,14 +84,17 @@ describe("013_planning_read migration", () => {
     }
   });
 
-  it("work_item_links.project_id RESTRICTs when it is the only link on the project", async () => {
+  it("work_item_links.project_id RESTRICTs when it is the only row referencing the project", async () => {
     const db = new PGlite();
     try {
       await basePlanningFixture(db);
-      await db.exec(
-        `INSERT INTO work_item_links (id, project_id, requirement_version_uid, devops_id) VALUES ('wil1', 'p1', 'L1', 'ADO-1');`,
+      await db.exec(`INSERT INTO projects (id, client_id, name) VALUES ('p-wil-only', 'c1', 'WIL shell');
+        INSERT INTO work_item_links (id, project_id, requirement_version_uid, devops_id)
+         VALUES ('wil1', 'p-wil-only', 'L1', 'ADO-1');`);
+      await assert.rejects(
+        () => db.exec(`DELETE FROM projects WHERE id = 'p-wil-only'`),
+        /work_item_links_project_id_fkey|restrict/i,
       );
-      await assert.rejects(() => db.exec(`DELETE FROM projects WHERE id = 'p1'`), /restrict/i);
     } finally {
       await db.close();
     }
