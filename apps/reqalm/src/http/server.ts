@@ -19,6 +19,7 @@ import type { SyncHandle } from "../roles/sync-worker.js";
 import { registerProbeRoutes } from "./routes-probes.js";
 import { createBearerGuard, type AuthedRequest } from "./middleware/bearer-auth.js";
 import { installRouteCapture } from "./route-security.js";
+import { redactInvalidAuditQueryParams } from "../audit/audit-api-schemas.js";
 import { redactInvalidPathParamIds } from "./project-id.js";
 import { sendProblem } from "../core/http-envelope.js";
 import { pathGetsWebSpaShell } from "../web/spa-shell-paths.js";
@@ -47,7 +48,11 @@ export async function buildApiServer(state: RuntimeState) {
       mixin: traceLogFields,
       serializers: {
         req(req) {
-          const url = req.url && redactInvalidPathParamIds(req.url.replace(/([?&]code=)[^&]+/gi, "$1[REDACTED]"));
+          const url =
+            req.url &&
+            redactInvalidAuditQueryParams(
+              redactInvalidPathParamIds(req.url.replace(/([?&]code=)[^&]+/gi, "$1[REDACTED]")),
+            );
           return { method: req.method, url, host: req.host };
         },
       },

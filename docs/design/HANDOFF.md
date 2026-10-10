@@ -167,3 +167,9 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
+
+## Addendum — audit read API (draft PR, migration 017)
+
+- **API:** `GET /api/v1/projects/:projectId/audit-events` (project-scoped business `audit_events`, **`audit:read`**) and `GET /api/v1/audit-events` (platform grant: null-project business rows plus `auth_audit_events`; auth IPs only for platform Security / Key custodian).
+- **Filters:** allowlisted `actor`, `action`, `target_type`, bounded UTC `from`/`to`; detail redaction (secrets, tokens, session ids); read-only (no mutating routes).
+- **Code:** `apps/reqalm/src/modules/audit/`, `apps/reqalm/src/audit/audit-api-{redact,schemas}.ts`, migration `017_audit_read.sql`.
