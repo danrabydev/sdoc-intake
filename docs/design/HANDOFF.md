@@ -97,3 +97,14 @@ When continuing in Cursor: read `dogfood.yaml` releases and `ARCH-BROWSE-ROADMAP
 - **Deferred:** read-time inherited + hybrid control display (follow-on PR after loader merge).
 
 When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `dogfood.yaml` first; keep read API inheritance for the next small PR.
+
+## Addendum — main @ `56bfc4d` (2026-10-10, seed attachments + Figma)
+
+- **Release (planned):** `rel-r1-seed-attach-figma` → **`CAP-SEED-ATTACH-FIGMA`** (seed-only; no release shipped in this PR).
+- **Requirements (draft):** **`ARCH-ATTACH`**, **`ARCH-ATTACH-PIN-VERSION`**, **`ARCH-ATTACH-SCOPE`**, **`ARCH-ATTACH-AUDIT`**, **`ARCH-ATTACH-SERVE`**, **`ARCH-ATTACH-UPLOAD`**, **`ARCH-ATTACH-ENCRYPT`**, **`ARCH-FIGMA`**, **`ARCH-FIGMA-AUTH`**, **`ARCH-FIGMA-EGRESS`**.
+- **Capabilities (draft):** **`CAP-ATTACH-READ`**, **`CAP-ATTACH-WRITE`**, **`CAP-FIGMA-LINK`**.
+- **Edges (snippet):** 103 new trace edges — 58 `conforms_to` (39 NIST, 19 STIG), 15 `refines`, 19 `uses`, 11 `satisfies`; targets resolve to active version uids where applicable.
+- **Product contract:** all 13 new lines added to **`ctr-reqalm-product`** `in_scope_of` (via scope refresh).
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_attach_figma_seed_release.py` — source snippet `docs/design/seed/fixtures/cyber-attach-figma-snippet.yaml`.
+- **Validate:** `python3 docs/design/seed/scripts/yaml_to_strictdoc.py --validate` (regenerates `docs/design/seed/out/`).
+- **Parallel PRs:** Catalogs browse UI and Contracts API may merge first; whichever PR merges after them owns shipping their planned releases — this PR does not ship any release.

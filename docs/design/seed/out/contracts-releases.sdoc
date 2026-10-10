@@ -548,10 +548,10 @@ KIND: contract
 contract_id: ctr-reqalm-product
 client_id: raby-family
 project_id: reqalm
-in_scope_of: A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, A12.1, ARCH-API, ARCH-API-LAYERS, ARCH-API-RBAC.1, ARCH-APPROVAL, ARCH-APPROVAL-LINE, ARCH-APPROVAL-VIEW, ARCH-APPROVER-SLOTS, ARCH-AUTH-AGENT-ATTRIBUTION, ARCH-AUTH-AS, ARCH-AUTH-AU...
-in_scope_of_count: 405
+in_scope_of: A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, A12.1, ARCH-API, ARCH-API-LAYERS, ARCH-API-RBAC.1, ARCH-APPROVAL, ARCH-APPROVAL-LINE, ARCH-APPROVAL-VIEW, ARCH-APPROVER-SLOTS, ARCH-ATTACH, ARCH-ATTACH-AUDIT, ARCH-ATTACH-ENCRYPT, AR...
+in_scope_of_count: 419
 covers_releases: rel-pr11-planning-baseline, rel-pr12-devenv-foundation, rel-r0-sequences, rel-r1-browse-clients-projects, rel-r1-browse-ui-cp, rel-r1-browse-ui-relations, rel-r1-browse-ui-releases, rel-r1-browse-ui-reqs, rel-r1-browse-ui-tree, rel-r1-ca...
-covers_releases_count: 31
+covers_releases_count: 32
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -612,6 +612,27 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: ARCH-APPROVER-SLOTS
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-AUDIT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-ENCRYPT
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-PIN-VERSION
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-SCOPE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-SERVE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-UPLOAD
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: ARCH-AUTH-AGENT-ATTRIBUTION
@@ -795,6 +816,15 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: ARCH-DEVENV-SEED
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-FIGMA
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-FIGMA-AUTH
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-FIGMA-EGRESS
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: ARCH-GANTT
@@ -1046,6 +1076,12 @@ RELATIONS:
   VALUE: CAP-API-DOCS-SEED-SUMMARY
   ROLE: InScopeOf
 - TYPE: Parent
+  VALUE: CAP-ATTACH-READ
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-ATTACH-WRITE
+  ROLE: InScopeOf
+- TYPE: Parent
   VALUE: CAP-AUDIT
   ROLE: InScopeOf
 - TYPE: Parent
@@ -1124,6 +1160,9 @@ RELATIONS:
   VALUE: CAP-DEVENV-STARTUP-BACKOFF
   ROLE: InScopeOf
 - TYPE: Parent
+  VALUE: CAP-FIGMA-LINK
+  ROLE: InScopeOf
+- TYPE: Parent
   VALUE: CAP-HEALTH-LIVENESS
   ROLE: InScopeOf
 - TYPE: Parent
@@ -1194,6 +1233,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: CAP-SCOPED-VIEW.1
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-SEED-ATTACH-FIGMA
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: CAP-SEED-GROOMING
@@ -1842,6 +1884,9 @@ RELATIONS:
   ROLE: CoversRelease
 - TYPE: Parent
   VALUE: RELEASE-rel-r1-route-helper
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-seed-attach-figma
   ROLE: CoversRelease
 - TYPE: Parent
   VALUE: RELEASE-rel-r1-seed-grooming
@@ -3236,6 +3281,29 @@ RELATIONS:
   VALUE: SEC-RELEASES-EXPORT
 - TYPE: Parent
   VALUE: CAP-TRACE-INHERIT-USES
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-seed-attach-figma
+STATUS: Draft
+TITLE: Release R1 — Cyber attachments + Figma requirements (seed)
+STATEMENT: >>>
+ReqALM release `R1 — Cyber attachments + Figma requirements (seed)` (status=planned, planned_on=2026-10-10). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-seed-attach-figma
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-SEED-ATTACH-FIGMA
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-SEED-ATTACH-FIGMA
   ROLE: Delivers
 
 [[/SECTION]]
