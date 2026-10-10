@@ -358,6 +358,143 @@ paths:
           $ref: "#/components/responses/ProblemUnauthorized"
         "404":
           $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/audit-events:
+    get:
+      operationId: listPlatformAuditEvents
+      summary: Platform-wide audit events (null-project business rows and auth audit)
+      tags: [audit]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+        - name: actor
+          in: query
+          schema:
+            type: string
+            pattern: "^[a-z0-9][a-z0-9-]{0,63}$"
+        - name: action
+          in: query
+          schema:
+            type: string
+            pattern: "^[a-z][a-z0-9._-]{0,127}$"
+        - name: target_type
+          in: query
+          schema:
+            type: string
+            pattern: "^[a-z][a-z0-9_]{0,63}$"
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Paged audit events (newest first)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AuditEventPage"
+                  request_id:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/audit-events:
+    get:
+      operationId: listProjectAuditEvents
+      summary: Paged business audit events for a project (newest first)
+      tags: [audit]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+        - name: actor
+          in: query
+          schema:
+            type: string
+            pattern: "^[a-z0-9][a-z0-9-]{0,63}$"
+        - name: action
+          in: query
+          schema:
+            type: string
+            pattern: "^[a-z][a-z0-9._-]{0,127}$"
+        - name: target_type
+          in: query
+          schema:
+            type: string
+            pattern: "^[a-z][a-z0-9_]{0,63}$"
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Paged audit events (newest first)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AuditEventPage"
+                  request_id:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
   /api/v1/projects/{projectId}/catalogs:
     get:
       operationId: listProjectCatalogs
@@ -791,6 +928,73 @@ components:
         release_count:
           type: integer
           minimum: 0
+    AuditEventPage:
+      type: object
+      additionalProperties: false
+      required: [items, limit, offset, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditEvent"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+    AuditEvent:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - source
+        - occurred_at
+        - action
+        - outcome
+        - actor_identity_id
+        - actor_client_id
+        - agent_name
+        - token_role
+        - acting_for
+        - project_id
+        - target_type
+        - target_id
+        - detail
+        - client_ip
+      properties:
+        id:
+          type: string
+        source:
+          type: string
+          enum: [business, auth]
+        occurred_at:
+          type: string
+        action:
+          type: string
+        outcome:
+          type: string
+        actor_identity_id:
+          type: [string, "null"]
+        actor_client_id:
+          type: [string, "null"]
+        agent_name:
+          type: [string, "null"]
+        token_role:
+          type: [string, "null"]
+        acting_for:
+          type: [string, "null"]
+        project_id:
+          type: [string, "null"]
+        target_type:
+          type: [string, "null"]
+        target_id:
+          type: [string, "null"]
+        detail:
+          type: object
+          additionalProperties: true
+        client_ip:
+          type: [string, "null"]
     ContractSummaryPage:
       type: object
       additionalProperties: false
