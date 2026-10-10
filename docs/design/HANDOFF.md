@@ -153,7 +153,6 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_browse_ui_contracts_release.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 457 lines, 490 versions, **1950** edges, 37 releases.
 
-<<<<<<< HEAD
 ## Addendum — RBAC authorize fail closed (PR #46, baseline @ `86d3154`)
 
 - **Ship (this PR’s seed patch):** `rel-r1-browse-ui-contracts` → **`CAP-BROWSE-UI-CONTRACTS`** @ **`86d315462b67446e605d6c898c15df2c8066b5d3`** (2026-10-10), `active` / `pass`; baseline fixture @ **`86d3154`**; allow-list browse UI ship rows only.
@@ -162,17 +161,16 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_rbac_authorize_fail_closed_release.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 458 lines, 491 versions, **1953** edges, 38 releases.
 
-## Addendum — release state seed (main @ `d54c5a6`, PR #46 shipped)
+## Addendum — release state seed (main @ `341330f`, PR #49)
 
 - **Ship (this PR’s seed patch):** `rel-r1-rbac-authorize-fail-closed` → **`CAP-SVC-RBAC-NO-PROJECT`** @ **`d54c5a67235fd56e49bdbc2a939dce89ff5a4f36`** (2026-10-10), `active` / `pass`; baseline fixture @ **`d54c5a6`**; allow-list RBAC ship rows only.
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
-=======
-## Addendum — planning read API (PR read-planning-api; release state elsewhere)
 
-- **Release / capability:** **`rel-r1-planning-read-api`** and its draft capability are owned by a separate tiny **release-state** PR (not this one). Rebase this branch onto that PR at merge time; do not add duplicate release rows here.
-- **This PR (app only):** migration **`013_planning_read.sql`**; dogfood loader for existing **`iterations`**, **`change_sets`**, and **`work_item_links`** YAML; grant-scoped read-only GET routes under **`/api/v1/projects/:projectId/`** for **`iterations`**, **`change-sets`**, and **`work-item-links`**; RBAC **`planning:read`**; seed reset FK-safe wipe order.
-- **Seed YAML:** no new rows required (dogfood already carries planning fixtures); no **`out/`** regen in this PR.
-- **Follow-on:** browse UI tranche after read API ships.
->>>>>>> 49e61d4 ([skip ci] HANDOFF: document planning read API PR (release state in separate PR))
+## Addendum — planning storage/loader (PR #47; read API stacked)
+
+- **Release / capability:** **`rel-r1-planning-read-api`** / **`CAP-READ-PLANNING`** on main via PR #49 — app PRs do not add seed release rows.
+- **PR #47 (loader tranche):** migration **`013_planning_read.sql`** + dogfood loader for **`iterations`**, **`change_sets`**, **`work_item_links`**; seed-reset FK-safe wipe. No HTTP routes.
+- **Stacked PR #50:** read-only GET planning API + **`planning:read`** + OpenAPI.
+- **Seed YAML:** unchanged in app PRs; no **`out/`** regen here.

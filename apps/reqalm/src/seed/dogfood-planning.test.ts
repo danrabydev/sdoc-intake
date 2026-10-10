@@ -9,10 +9,12 @@ import { createMigratedPglitePool } from "../test/pglite-pool.js";
 import { testConfigEnv } from "../test/harness.js";
 import { SeedValidationError, loadDogfoodSeed, readDogfoodFile } from "./load-dogfood.js";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
-const dogfoodPath = path.join(repoRoot, "docs/design/seed/dogfood.yaml");
+const dogfoodPath = path.join(
+  path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../.."),
+  "docs/design/seed/dogfood.yaml",
+);
 
-async function withMigratedPool(run: (pool: Awaited<ReturnType<typeof createMigratedPglitePool>>["pool"]) => Promise<void>) {
+async function withPool(run: (pool: Awaited<ReturnType<typeof createMigratedPglitePool>>["pool"]) => Promise<void>) {
   const pg = await createMigratedPglitePool();
   try {
     await run(pg.pool);
@@ -22,20 +24,20 @@ async function withMigratedPool(run: (pool: Awaited<ReturnType<typeof createMigr
 }
 
 describe("dogfood planning loader", () => {
-  it("persists iterations, change_sets, and work_item_links from dogfood", async () => {
+  it("loads planning tables and enforces id + FK rules", async () => {
     const config = loadConfig(testConfigEnv());
     const seed = await readDogfoodFile(dogfoodPath);
-    await withMigratedPool(async (pool) => {
+    const parent = (parseYaml(readFileSync(dogfoodPath, "utf8")) as { change_sets?: { id: string }[] }).change_sets?.find(
+      (c) => c.id === "cs-sdlc-r1-security-review",
+    )?.id;
+    assert.ok(parent);
+    await withPool(async (pool) => {
       await loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true });
-      assert.equal((await pool.query(`SELECT count(*)::int AS c FROM iterations WHERE project_id = 'reqalm'`)).rows[0]?.c, 3);
-      assert.equal((await pool.query(`SELECT count(*)::int AS c FROM change_sets WHERE project_id = 'reqalm'`)).rows[0]?.c, 5);
-      assert.equal((await pool.query(`SELECT count(*)::int AS c FROM work_item_links WHERE project_id = 'reqalm'`)).rows[0]?.c, 2);
-    });
-  });
-
-  it("rejects invalid planning ids at load", async () => {
-    const config = loadConfig(testConfigEnv());
-    await withMigratedPool(async (pool) => {
+      const count = async (t: string) => (await pool.query(`SELECT count(*)::int AS c FROM ${t} WHERE project_id = 'reqalm'`)).rows[0]?.c;
+      assert.equal(await count("iterations"), 3);
+      assert.equal(await count("change_sets"), 5);
+      assert.equal(await count("work_item_links"), 2);
+      await assert.rejects(() => pool.query(`DELETE FROM change_sets WHERE id = $1`, [parent]), /restrict/i);
       await assert.rejects(
         () =>
           loadDogfoodSeed(pool, config, {
@@ -47,18 +49,6 @@ describe("dogfood planning loader", () => {
           }),
         SeedValidationError,
       );
-    });
-  });
-
-  it("DELETE change_sets RESTRICTs when child rows exist", async () => {
-    const config = loadConfig(testConfigEnv());
-    const seed = await readDogfoodFile(dogfoodPath);
-    const raw = parseYaml(readFileSync(dogfoodPath, "utf8")) as { change_sets?: { id: string }[] };
-    const parent = raw.change_sets?.find((c) => c.id === "cs-sdlc-r1-security-review")?.id;
-    assert.ok(parent);
-    await withMigratedPool(async (pool) => {
-      await loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true });
-      await assert.rejects(() => pool.query(`DELETE FROM change_sets WHERE id = $1`, [parent]), /restrict/i);
     });
   });
 });

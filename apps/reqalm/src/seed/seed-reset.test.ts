@@ -271,6 +271,29 @@ describe("seed reset", () => {
     await pg.close();
   });
 
+  it("wipes planning and contract rows in FK-safe order before releases", async () => {
+    const pg = await createMigratedPglitePool();
+    const { config, env } = harness();
+    const seed = await readDogfoodFile(dogfoodPath);
+    await loadDogfoodSeed(pg.pool, config, seed);
+    for (const [sql, msg] of [
+      [`SELECT count(*)::int AS c FROM work_item_links WHERE project_id = 'reqalm'`, "work_item_links"],
+      [`SELECT count(*)::int AS c FROM change_sets WHERE project_id = 'reqalm'`, "change_sets"],
+      [`SELECT count(*)::int AS c FROM iterations WHERE project_id = 'reqalm'`, "iterations"],
+    ] as const) {
+      assert.ok(((await pg.pool.query<{ c: number }>(sql)).rows[0]?.c ?? 0) > 0, msg);
+    }
+    await resetDogfoodSeed(pg.pool, config, seed, {
+      confirm: true,
+      seedPath: dogfoodPath,
+      repoRoot,
+      env,
+      actor: "test-operator",
+    });
+    assert.equal((await pg.pool.query(`SELECT count(*)::int AS c FROM iterations WHERE project_id = 'reqalm'`)).rows[0]?.c, 3);
+    await pg.close();
+  });
+
   it("wipes contract junction rows before releases (FK-safe)", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();
