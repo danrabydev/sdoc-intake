@@ -24,7 +24,7 @@ describe("loadDogfoodSeed trace edges", () => {
     try {
       await loadDogfoodSeed(pg.pool, config, seed, { skipUnchangedCheck: true });
       const edges = await pg.pool.query<{ c: number }>(`SELECT count(*)::int AS c FROM trace_edges`);
-      assert.equal(edges.rows[0]?.c, 1959);
+      assert.equal(edges.rows[0]?.c, 1973);
       const inheritable = await pg.pool.query<{ c: number }>(
         `SELECT count(*)::int AS c FROM trace_edges WHERE inheritable = true`,
       );

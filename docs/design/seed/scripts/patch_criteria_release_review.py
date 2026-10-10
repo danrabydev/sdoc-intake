@@ -1,0 +1,566 @@
+#!/usr/bin/env python3
+"""Propose capability acceptance criteria completed in release UAT/review. Idempotent. Seed only.
+
+Does not ship a runtime. Draft successors narrow ARCH-REQ-AC-FACET / ARCH-REQ-AC-ROLLUP;
+v0 stays active until the project lead accepts the proposal.
+
+Run: python3 patch_criteria_release_review.py && python3 yaml_to_strictdoc.py --validate
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import sys
+from copy import deepcopy
+from pathlib import Path
+
+from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap
+
+SEED = Path(__file__).resolve().parent.parent
+DOGFOOD = SEED / "dogfood.yaml"
+REPO = "../../.."
+PLANNED = "2026-10-10"
+REL = "rel-r1-criteria-release-review"
+CAP = "CAP-CRITERIA-RELEASE-REVIEW"
+LEGACY_FIX_REL = "rel-fix-cap-review-uat"
+
+
+def security_meta(catalog_ref: str, note: str = "Proposed 2026-10-10 for project-lead review. Not activated.") -> dict:
+    return {"catalog_ref": catalog_ref, "verification_note": note}
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from seed_baseline_edges import validate_baseline_edges_preserved  # noqa: E402
+
+yaml = YAML()
+yaml.preserve_quotes = True
+yaml.width = 4096
+yaml.indent(mapping=2, sequence=2, offset=0)
+
+
+def cm(**kw):
+    m = CommentedMap()
+    for k, v in kw.items():
+        m[k] = v
+    return m
+
+
+def find(seq, key, val):
+    for x in seq or []:
+        if x.get(key) == val:
+            return x
+    return None
+
+
+def upsert(seq, key, item):
+    cur = find(seq, key, item[key])
+    if cur is None:
+        seq.append(deepcopy(item))
+        return 1
+    for k, v in item.items():
+        cur[k] = deepcopy(v) if isinstance(v, (dict, list)) else v
+    return 0
+
+
+def ensure_edge(edges, edge):
+    for e in edges:
+        if (e.get("from"), e.get("to"), e.get("kind")) == (edge.get("from"), edge.get("to"), edge.get("kind")):
+            return 0
+    edges.append(edge)
+    return 1
+
+
+def remove_outbound_conforms(edges, from_uid: str) -> None:
+    edges[:] = [
+        e
+        for e in edges
+        if not (str(e.get("from") or "") == from_uid and e.get("kind") == "conforms_to")
+    ]
+
+
+def remove_edge(edges, edge):
+    before = len(edges)
+    edges[:] = [
+        e
+        for e in edges
+        if (e.get("from"), e.get("to"), e.get("kind"))
+        != (edge.get("from"), edge.get("to"), edge.get("kind"))
+    ]
+    return before - len(edges)
+
+
+def insert_alpha(seq, value: str) -> None:
+    if value in seq:
+        return
+    for i, cur in enumerate(seq):
+        if str(cur) > value:
+            seq.insert(i, value)
+            return
+    seq.append(value)
+
+
+def remove_release(data, release_id: str) -> None:
+    data["releases"] = [r for r in data.get("releases") or [] if r.get("id") != release_id]
+
+
+def remove_version(data, uid: str) -> None:
+    vers = data.get("requirement_versions")
+    if not vers:
+        return
+    vers[:] = [v for v in vers if v.get("uid") != uid]
+
+
+def remove_line(data, base_uid: str) -> None:
+    lines = data.get("requirement_lines")
+    if not lines:
+        return
+    lines[:] = [ln for ln in lines if ln.get("base_uid") != base_uid]
+
+
+def crit_row(
+    cid: str,
+    version_uid: str,
+    position: int,
+    statement: str,
+    *,
+    copied_from: str | None = None,
+) -> CommentedMap:
+    row = cm(
+        id=cid,
+        version_uid=version_uid,
+        position=position,
+        statement=statement,
+        statement_hash=statement_hash(statement),
+    )
+    if copied_from:
+        row["copied_from"] = copied_from
+    return row
+
+
+def remove_completions_for_release(data, release_id: str) -> None:
+    data["criterion_completions"] = [
+        c for c in data.get("criterion_completions") or [] if c.get("release_id") != release_id
+    ]
+
+
+def statement_hash(text: str) -> str:
+    canon = "\n".join(line.rstrip() for line in text.strip().replace("\r\n", "\n").split("\n"))
+    return "sha256:" + hashlib.sha256(canon.encode("utf-8")).hexdigest()
+
+
+FACET_1 = (
+    "An acceptance criterion (facet) is a verifiable shall-statement attached to exactly one requirement "
+    "version or exactly one capability version. Requirement facets and capability facets are separate sets "
+    "with separate completion markers: completing a requirement facet does not complete a capability facet. "
+    "Facets are not lines and have no trace graph of their own. A child requirement line remains decomposition "
+    "(ARCH-HIER-REQ-DECOMP), not a facet."
+)
+ROLLUP_1 = (
+    "Completeness of a requirement rolls up from that requirement version's own facets. Completeness of a "
+    "capability rolls up from that capability version's own facets. A facet is complete only when a release "
+    "UAT or review records a completion marker for it (ARCH-CRITERION-RELEASE-UAT). Carried completion markers "
+    "count toward rollup completeness and shall be displayed as carried. A satisfies link, a closed work item, or "
+    "verification_outcome on the version does not by itself complete a facet; verification_outcome and ship gates "
+    "remain governed by ARCH-VERIFICATION and ARCH-VERIFICATION-GATE. The parent stays incomplete while any of its "
+    "facets has no completion marker."
+)
+UAT = (
+    "UAT and review of a release are the completeness gate for acceptance criteria. Marking a criterion complete "
+    "shall require an authorized permission distinct from edit rights on the parent version. The actor who marks "
+    "a criterion complete shall not be the author of the parent requirement or capability version for that "
+    "criterion (separation of duties). Each completion shall append an audit event to the append-only audit log "
+    "naming the criterion, release, actor, and time, and shall apply only to a criterion on a version that release "
+    "delivers. Work items do not complete criteria. A capability may be delivered in more than one release; each "
+    "release review may complete only criteria on versions listed in that release's delivers snapshot. Exception: "
+    "when a user carries an unchanged criterion onto a successor version (ARCH-CAP-REVIEW-COPY), the carried "
+    "marker may appear on that successor even though the mint act did not deliver the successor; the carried marker "
+    "shall reference copied_from, carried_by, carried_at, the source marker's by and at, and the release that "
+    "originally completed the frozen criterion."
+)
+COPY = (
+    "When a reviewed capability receives a new content version, each criterion on the reviewed version is copied "
+    "onto the successor. Criteria on the reviewed version freeze: their statements and completion markers are not "
+    "edited after the successor exists. Each copy is a new criterion id with copied_from pointing at the frozen "
+    "criterion. Unchanged means the copy's statement_hash equals the source criterion's statement_hash (canonical "
+    "shall-statement text). A changed criterion (different statement_hash) shall start with no completion marker "
+    "and status open (incomplete). A copy of a criterion that was never complete on the source starts open "
+    "(incomplete). An unchanged criterion may carry its prior completion only when the editor explicitly chooses "
+    "carry for that criterion; the default when no choice is recorded is reset to open (incomplete). Carry is per "
+    "criterion within one capability revision, not all-or-nothing. Carry shall require an authorized permission "
+    "distinct from completion and edit rights. Each carry choice shall append an audit event to the append-only "
+    "audit log with copied_from, carried_by, and carried_at. Carry is limited to the same project and the same "
+    "capability line. Copied criteria on a review-driven successor do not enter re-check (ARCH-TRACE-RECHECK.1)."
+)
+RECHECK_1 = (
+    "Re-check (needs re-check) remains distinct from incomplete and open per ARCH-TRACE-RECHECK. When a capability "
+    "receives a review-driven content successor tied to a recorded review action (ARCH-CAP-REVIEW-COPY), copied "
+    "acceptance criteria on that successor do not enter re-check; each copy either carries done state (unchanged "
+    "statement_hash and an explicit editor carry choice) or resets to open (incomplete). Re-check still applies "
+    "when a conforming capability changes content by other means, loses verification, regresses, when "
+    "trace_suspect is set on inbound satisfies, refines, or uses edges, or when the provider of an inherited or "
+    "hybrid control changes."
+)
+J02_1 = (
+    "The initial work-item act compiles a briefing from a capability, not a one-to-one sync from a requirement "
+    "version (J02). The briefing shall list the capability's open acceptance criteria and the controls that apply "
+    "to the capability (direct, inherited, and hybrid) for implementers. One capability may have many work items, "
+    "including across releases, and a work item may cover only part of a capability. Closing, reopening, or "
+    "editing a work item does not complete a criterion and does not change the capability statement. Two-way "
+    "field push, pull, and conflict merge (J04–J06) are not this initial path."
+)
+CAP_STMT = (
+    "Seed and schema only: capability acceptance criteria with completion markers separate from requirement "
+    "facets; those markers are written in a release UAT or review, not by a work item; a review that accepts "
+    "the implementation and still requires a change freezes criteria on the reviewed version and copies them "
+    "onto the successor with per-criterion carry or reset per ARCH-CAP-REVIEW-COPY. No loader or UI in this "
+    "release. Fixture lines FIX-CAP-REVIEW and FIX-CAP-REVIEW.1 illustrate copy and carry in statement notes "
+    "(no fixture release row)."
+)
+REQ_STMT = (
+    "FIXTURE need used only to show that a requirement facet and a capability facet are different criteria. "
+    "Nothing in this line is a product requirement."
+)
+CAP_V0 = (
+    "FIXTURE capability reviewed in UAT before a required successor. One criterion was marked complete in that "
+    "review; the review still required a change, so this version's criteria are frozen. Example (seed notes only): "
+    "crit-fix-cap-a completed; crit-fix-cap-b left open."
+)
+CAP_V1 = (
+    "FIXTURE successor required by that review. Criteria were copied from FIX-CAP-REVIEW. Example (seed notes only): "
+    "unchanged crit-fix-cap-a may carry its completion when the editor chooses carry; open crit-fix-cap-b is copied "
+    "without a marker until a later release review completes it."
+)
+CRIT_REQ = "The need shall remain distinguishable from the capability's own criteria."
+CRIT_A = "The implementation shall record who attended the review."
+CRIT_B = "The implementation shall keep an unfinished criterion open until a later release review."
+
+
+def draft_version(
+    uid: str,
+    base: str,
+    n: int,
+    statement: str,
+    *,
+    mint: str | None = None,
+    rbac_op: str | None = None,
+    security: dict | None = None,
+) -> CommentedMap:
+    row = cm(
+        uid=uid,
+        base_uid=base,
+        version_n=n,
+        status="draft",
+        statement=statement,
+        priority=15,
+        iteration="iter-r1",
+        security=deepcopy(security or security_meta("CM-2")),
+        statement_hash=statement_hash(statement),
+        grooming_state="detailed",
+    )
+    if mint:
+        row["mint_kind"] = mint
+    if rbac_op:
+        row["rbac_op"] = rbac_op
+    return row
+
+
+def apply_patch(data) -> None:
+    lines = data.setdefault("requirement_lines", [])
+    versions = data.setdefault("requirement_versions", [])
+    edges = data.setdefault("edges", [])
+
+    # Idempotent cleanup from earlier patch revisions.
+    remove_release(data, LEGACY_FIX_REL)
+    remove_completions_for_release(data, LEGACY_FIX_REL)
+    remove_version(data, "ARCH-WI-COMPILE")
+    remove_version(data, "ARCH-WI-COMPILE.1")
+    remove_line(data, "ARCH-WI-COMPILE")
+    remove_edge(edges, {"from": "ARCH-WI-COMPILE", "to": "J02", "kind": "refines"})
+    remove_edge(edges, {"from": "ARCH-WI-COMPILE.1", "to": "J02", "kind": "refines"})
+    remove_edge(edges, {"from": "CAP-CRITERIA-RELEASE-REVIEW", "to": "ARCH-WI-COMPILE", "kind": "satisfies"})
+    remove_edge(edges, {"from": "CAP-CRITERIA-RELEASE-REVIEW", "to": "ARCH-WI-COMPILE.1", "kind": "satisfies"})
+    remove_edge(edges, {"from": "ARCH-CAP-REVIEW-COPY", "to": "ARCH-TRACE-RECHECK", "kind": "refines"})
+    remove_outbound_conforms(edges, "ARCH-CRITERION-RELEASE-UAT")
+    remove_outbound_conforms(edges, "ARCH-CAP-REVIEW-COPY")
+
+    product = find(data.get("contracts"), "id", "ctr-reqalm-product")
+    if product is not None:
+        scope = product.get("in_scope_of") or []
+        product["in_scope_of"] = [
+            u
+            for u in scope
+            if u
+            not in {
+                "ARCH-CAP-REVIEW-COPY",
+                "ARCH-CRITERION-RELEASE-UAT",
+                "ARCH-WI-COMPILE",
+                "ARCH-WI-COMPILE.1",
+                "J02.1",
+                "ARCH-TRACE-RECHECK.1",
+            }
+            and not (isinstance(u, str) and u.startswith("FIX-CAP-"))
+        ]
+
+    proposals = [
+        (
+            "ARCH-REQ-AC-FACET.1",
+            "ARCH-REQ-AC-FACET",
+            1,
+            FACET_1,
+            "content",
+            "requirement:tree:read",
+            security_meta("CM-2"),
+        ),
+        (
+            "ARCH-REQ-AC-ROLLUP.1",
+            "ARCH-REQ-AC-ROLLUP",
+            1,
+            ROLLUP_1,
+            "content",
+            "requirement:tree:read",
+            security_meta("CA-7"),
+        ),
+        (
+            "ARCH-TRACE-RECHECK.1",
+            "ARCH-TRACE-RECHECK",
+            1,
+            RECHECK_1,
+            "content",
+            "trace:suspect",
+            security_meta("CM-3"),
+        ),
+    ]
+    for uid, base, n, statement, mint, rbac, row_sec in proposals:
+        upsert(
+            versions,
+            "uid",
+            draft_version(uid, base, n, statement, mint=mint, rbac_op=rbac, security=row_sec),
+        )
+
+    new_reqs = [
+        (
+            "ARCH-CRITERION-RELEASE-UAT",
+            "SEC-RL",
+            "requirement",
+            "Criterion completion is release UAT or review",
+            UAT,
+            security_meta("CA-2"),
+        ),
+        (
+            "ARCH-CAP-REVIEW-COPY",
+            "SEC-RL",
+            "requirement",
+            "Accepted review that still requires a change",
+            COPY,
+            security_meta("CM-3"),
+        ),
+    ]
+    for uid, parent, kind, title, statement, row_sec in new_reqs:
+        upsert(lines, "base_uid", cm(base_uid=uid, project_id="reqalm", parent=parent, kind=kind, title=title))
+        upsert(versions, "uid", draft_version(uid, uid, 0, statement, security=row_sec))
+
+    upsert(
+        versions,
+        "uid",
+        draft_version(
+            "J02.1",
+            "J02",
+            1,
+            J02_1,
+            mint="content",
+            rbac_op="workitem:create",
+            security=security_meta("AC-3", "AC-3 access enforcement; AU-2/3/12 where mutating."),
+        ),
+    )
+
+    upsert(
+        lines,
+        "base_uid",
+        cm(
+            base_uid=CAP,
+            project_id="reqalm",
+            parent="SEC-RL",
+            kind="capability",
+            title="Capability criteria completed in release review",
+        ),
+    )
+    upsert(versions, "uid", draft_version(CAP, CAP, 0, CAP_STMT))
+    upsert(
+        data.setdefault("approval_records", []),
+        "id",
+        cm(
+            id="ar-criteria-release-review",
+            subject_kind="CapabilityLine",
+            base_uid=CAP,
+            status="unapproved",
+            by=None,
+            at=None,
+            notes="Proposal only. Approve after the project lead accepts the criterion model.",
+            approved_version_uid=None,
+            approved_statement_hash=None,
+        ),
+    )
+    arts = data.setdefault("capability_artifacts", [])
+    patch_uri = f"{REPO}/docs/design/seed/scripts/patch_criteria_release_review.py"
+    if not any(a.get("requirement_version_uid") == CAP and a.get("uri") == patch_uri for a in arts):
+        arts.append({"requirement_version_uid": CAP, "kind": "other", "uri": patch_uri})
+
+    upsert(
+        data.setdefault("releases", []),
+        "id",
+        cm(
+            id=REL,
+            project_id="reqalm",
+            name="R1 — capability criteria completed in release review",
+            planned_on=PLANNED,
+            shipped_on=None,
+            status="planned",
+            delivers=[CAP],
+            cyber_gate=False,
+            notes=(
+                "Suggested seed for project-lead review. Not shipped. Encodes separate capability facets, "
+                "UAT/review as the completeness gate, and freeze-and-copy when a review still requires a new "
+                "version. FIX-* fixture lines illustrate copy/carry without a fixture release row."
+            ),
+        ),
+    )
+
+    upsert(
+        lines,
+        "base_uid",
+        cm(
+            base_uid="FIX-REQ-REVIEW",
+            project_id="reqalm",
+            parent="SEC-FIX",
+            kind="requirement",
+            title="Fixture need for separate requirement and capability criteria",
+        ),
+    )
+    upsert(
+        lines,
+        "base_uid",
+        cm(
+            base_uid="FIX-CAP-REVIEW",
+            project_id="reqalm",
+            parent="SEC-FIX",
+            kind="capability",
+            title="Fixture capability accepted in review and still changed",
+        ),
+    )
+    upsert(
+        versions,
+        "uid",
+        cm(
+            uid="FIX-REQ-REVIEW",
+            base_uid="FIX-REQ-REVIEW",
+            version_n=0,
+            status="draft",
+            statement=REQ_STMT,
+            security={"catalog_ref": "CM-2", "verification_note": "Fixture. Not a product requirement."},
+            statement_hash=statement_hash(REQ_STMT),
+            grooming_state="detailed",
+        ),
+    )
+    upsert(
+        versions,
+        "uid",
+        cm(
+            uid="FIX-CAP-REVIEW",
+            base_uid="FIX-CAP-REVIEW",
+            version_n=0,
+            status="superseded",
+            statement=CAP_V0,
+            security={
+                "catalog_ref": "CM-2",
+                "verification_note": "Fixture. Version outcome is not the completeness gate.",
+            },
+            statement_hash=statement_hash(CAP_V0),
+            grooming_state="detailed",
+        ),
+    )
+    upsert(
+        versions,
+        "uid",
+        cm(
+            uid="FIX-CAP-REVIEW.1",
+            base_uid="FIX-CAP-REVIEW",
+            version_n=1,
+            status="draft",
+            statement=CAP_V1,
+            mint_kind="content",
+            security={
+                "catalog_ref": "CM-2",
+                "verification_note": "Fixture successor. Not activated.",
+            },
+            statement_hash=statement_hash(CAP_V1),
+            grooming_state="detailed",
+        ),
+    )
+
+    criteria = data.setdefault("acceptance_criteria", [])
+    for row in (
+        crit_row("crit-fix-req", "FIX-REQ-REVIEW", 0, CRIT_REQ),
+        crit_row("crit-fix-cap-a", "FIX-CAP-REVIEW", 0, CRIT_A),
+        crit_row("crit-fix-cap-b", "FIX-CAP-REVIEW", 1, CRIT_B),
+        crit_row("crit-fix-cap-a-1", "FIX-CAP-REVIEW.1", 0, CRIT_A, copied_from="crit-fix-cap-a"),
+        crit_row("crit-fix-cap-b-1", "FIX-CAP-REVIEW.1", 1, CRIT_B, copied_from="crit-fix-cap-b"),
+    ):
+        upsert(criteria, "id", row)
+
+    data["criterion_completions"] = [
+        c
+        for c in data.get("criterion_completions") or []
+        if c.get("id") not in {"cc-fix-cap-a", "cc-fix-cap-a-1"}
+    ]
+
+    for frm, to, kind in (
+        ("ARCH-REQ-AC-FACET.1", "ARCH-REQ-AC-FACET", "refines"),
+        ("ARCH-REQ-AC-ROLLUP.1", "ARCH-REQ-AC-ROLLUP", "refines"),
+        ("ARCH-CRITERION-RELEASE-UAT", "ARCH-REQ-AC-ROLLUP.1", "refines"),
+        ("ARCH-CAP-REVIEW-COPY", "ARCH-REQ-AC-FACET.1", "refines"),
+        ("ARCH-CAP-REVIEW-COPY", "ARCH-TRACE-RECHECK.1", "refines"),
+        ("ARCH-TRACE-RECHECK.1", "ARCH-TRACE-RECHECK", "refines"),
+        ("J02.1", "J02", "refines"),
+        (CAP, "ARCH-REQ-AC-FACET.1", "satisfies"),
+        (CAP, "ARCH-REQ-AC-ROLLUP.1", "satisfies"),
+        (CAP, "ARCH-CRITERION-RELEASE-UAT", "satisfies"),
+        (CAP, "ARCH-CAP-REVIEW-COPY", "satisfies"),
+        (CAP, "J02.1", "satisfies"),
+        ("FIX-CAP-REVIEW", "FIX-REQ-REVIEW", "satisfies"),
+        ("FIX-CAP-REVIEW.1", "FIX-REQ-REVIEW", "satisfies"),
+    ):
+        ensure_edge(edges, {"from": frm, "to": to, "kind": kind})
+
+    if product is not None:
+        insert_alpha(product.setdefault("in_scope_of", []), CAP)
+        insert_alpha(product.setdefault("covers_releases", []), REL)
+
+    validate_baseline_edges_preserved(data)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--validate-baseline-edges", action="store_true")
+    args = parser.parse_args()
+    with DOGFOOD.open("r", encoding="utf-8") as f:
+        data = yaml.load(f)
+    if args.validate_baseline_edges:
+        validate_baseline_edges_preserved(data)
+        print("baseline edge preservation ok")
+        return
+    apply_patch(data)
+    with DOGFOOD.open("w", encoding="utf-8") as f:
+        yaml.dump(data, f)
+    print(
+        "Patched dogfood.yaml: "
+        f"lines={len(data.get('requirement_lines') or [])} "
+        f"versions={len(data.get('requirement_versions') or [])} "
+        f"edges={len(data.get('edges') or [])} "
+        f"releases={len(data.get('releases') or [])} "
+        f"criteria={len(data.get('acceptance_criteria') or [])} "
+        f"completions={len(data.get('criterion_completions') or [])}"
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -167,3 +167,13 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
+
+## Addendum — capability criteria completed in release review (suggested)
+
+- **Release (planned, not shipped):** `rel-r1-criteria-release-review` → **`CAP-CRITERIA-RELEASE-REVIEW`**. Seed and schema only. No loader or UI. `verification_outcome` stays unset.
+- **Draft successors, not activated:** `ARCH-REQ-AC-FACET.1`, `ARCH-REQ-AC-ROLLUP.1` (rollup references `ARCH-VERIFICATION` / `ARCH-VERIFICATION-GATE`), and `ARCH-TRACE-RECHECK.1` (review-driven copy: carry or reset to open, not re-check). v0 stays the active pin on `ctr-reqalm-product`. The `.1` drafts and other new draft rules stay off the product contract until activation.
+- **New draft requirements (off product contract until activation):** `ARCH-CRITERION-RELEASE-UAT` (UAT/review completion marker; carried markers record `carried_by` / `carried_at`), `ARCH-CAP-REVIEW-COPY` (freeze, copy, per-criterion carry or reset; `refines` → `ARCH-TRACE-RECHECK.1`), `J02.1` (draft successor refining `J02` — capability briefing). `J02`–`J06` are not rewritten.
+- **Fixture lines (not on product contract):** `FIX-CAP-REVIEW` / `FIX-CAP-REVIEW.1` and `FIX-REQ-REVIEW` illustrate copy/carry in statement notes only; no fixture release row.
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_criteria_release_review.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
+- **Counts (post-patch):** 466 lines, 504 versions, **1973** edges, 42 releases, 5 acceptance criteria (each with `statement_hash`), 0 completion markers.
+- **Cyber `catalog_ref` (draft rows):** `ARCH-CRITERION-RELEASE-UAT` CA-2; `ARCH-CAP-REVIEW-COPY` CM-3; `ARCH-TRACE-RECHECK.1` CM-3; `ARCH-REQ-AC-ROLLUP.1` CA-7; `ARCH-REQ-AC-FACET.1` CM-2; `J02.1` AC-3.

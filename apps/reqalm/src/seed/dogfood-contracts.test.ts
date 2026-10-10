@@ -42,6 +42,18 @@ describe("dogfood ReqALM product vs maintenance contracts", () => {
     assert.ok(product.in_scope_of.every((uid) => !uid.startsWith("CAP-UPKEEP-")));
   });
 
+  it("excludes FIX-CAP-* fixture capabilities from ctr-reqalm-product in_scope_of", () => {
+    const raw = parseYaml(readFileSync(dogfoodPath, "utf8")) as { contracts?: ContractRow[] };
+    const product = (raw.contracts ?? []).find((c) => c.id === "ctr-reqalm-product");
+    assert.ok(product?.in_scope_of?.length, "ctr-reqalm-product in_scope_of");
+    const fixCaps = product.in_scope_of.filter((uid) => uid.startsWith("FIX-CAP-"));
+    assert.deepEqual(
+      fixCaps,
+      [],
+      `FIX-CAP-* fixtures must not be on product contract scope (browse/rollups); found=${fixCaps.join(", ")}`,
+    );
+  });
+
   it("loader persists contracts, scope, and releases from dogfood", async () => {
     const config = loadConfig(testConfigEnv());
     const seed = await readDogfoodFile(dogfoodPath);

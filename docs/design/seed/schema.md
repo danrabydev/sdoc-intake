@@ -212,6 +212,41 @@ Locked → migrate only via successor `.N` (ARCH-CAT-MIGRATE / H10 / ARCH-LOCKED
 
 Prior active on tip activate → **in-place `superseded`** (same txn; ≤1 active). Terminal obsolete/withdraw without replacement = in-place status or status-only `.N` (mint_kind=status). Content edits still require a successor `.N`.
 
+## acceptance_criterion
+
+A verifiable shall-statement attached to **exactly one** requirement version **or** exactly one capability version. Not a line, and not a trace node. Requirement facets and capability facets are separate sets (ARCH-REQ-AC-FACET.1).
+
+| Field | Type | Required | Notes |
+|-------|------|----------|--------|
+| `id` | string | yes | stable criterion id |
+| `version_uid` | string | yes | → requirement_version.uid |
+| `statement` | string | yes | testable shall-statement |
+| `statement_hash` | string | yes | `sha256:` digest of canonical statement text (same rules as requirement `statement_hash` — ARCH-SUCCESSION-HASH / ARCH-MINT-KIND); **unchanged** copy ⇔ equal `statement_hash` (ARCH-CAP-REVIEW-COPY) |
+| `position` | int | yes | order on that version |
+| `copied_from` | string \| null | no | predecessor criterion id when minted by ARCH-CAP-REVIEW-COPY |
+
+Completeness is **not** a field on the criterion. It is a `criterion_completion`.
+
+## criterion_completion
+
+UAT or review of a **release** is the completeness gate (ARCH-CRITERION-RELEASE-UAT). A work item does not complete a criterion.
+
+| Field | Type | Required | Notes |
+|-------|------|----------|--------|
+| `id` | string | yes | |
+| `criterion_id` | string | yes | → acceptance_criterion.id |
+| `release_id` | string | yes | release whose UAT/review recorded the marker (original review, or the release named on a carried marker's source) |
+| `by` | string | yes | → identity.id (original UAT/review actor on the source marker) |
+| `at` | string | yes | ISO-8601 (original UAT/review time on the source marker) |
+| `copied_from` | string \| null | no | source `criterion_completion.id` when the marker is carried onto a successor's criterion |
+| `carried_by` | string \| null | no | required when `copied_from` is set → identity.id who chose carry |
+| `carried_at` | string \| null | no | required when `copied_from` is set → ISO-8601 when carry was recorded |
+| `notes` | string | no | |
+
+An original marker (no `copied_from`) is valid only for a criterion whose version that release `delivers`. When a review accepts the implementation and still requires a change, criteria on the reviewed version **freeze** and are **copied** onto the successor (new ids). Completion markers stay on the frozen criterion.
+
+Per ARCH-CAP-REVIEW-COPY and ARCH-TRACE-RECHECK.1, when a capability receives a **review-driven** content successor, copied criteria **do not enter re-check** (v0 ARCH-TRACE-RECHECK still applies to capability content changes by other means, verification loss, regression, and trace/suspect edges). Each copy starts **open (incomplete)** unless the editor explicitly **carries** an **unchanged** criterion's completion (same `statement_hash` as the source). The default when no carry choice is recorded is **reset to open (incomplete)**. A **changed** criterion (different `statement_hash`) is always open (incomplete). A copy of a criterion that was **never** complete on the source is open (incomplete). A user-chosen carry records `copied_from`, `carried_by`, and `carried_at`. A previously complete criterion that is copied but not carried is reset to open (incomplete), not re-check.
+
 ## edge
 
 | Field | Type | Required | Notes |
@@ -420,6 +455,7 @@ Line-grain approval **source of truth** (ARCH-APPROVAL-LINE).
 13. **Approval grain = line** — `ApprovalRecord` + version/hash pin; tree UI batches.
 14. **No orphan caps** — CapabilityLine create requires Satisfies in the same mutation; CapabilityLine approval accepts solution (Satisfies edge not separately approved by default).
 15. **Workflow composition** — profile / gate / hook / binding / thin transition; StrictDoc unchanged.
+16. **Criterion completion is a release review** — requirement facets and capability facets complete separately; UAT/review of a release writes the marker; a work item does not. A review that accepts the implementation and still requires a change freezes criteria on that version and copies them onto the successor.
 
 
 ## gate_signoff

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -199,6 +200,145 @@ def validate(data: dict[str, Any]) -> list[str]:
             if u not in ver_uids:
                 errs.append(f"release {r.get('name')}: delivers {u!r} not a version uid")
 
+    errs.extend(validate_acceptance_criteria(data, ver_uids, release_ids))
+    return errs
+
+
+def criterion_statement_hash(text: str) -> str:
+    canon = "\n".join(line.rstrip() for line in str(text or "").strip().replace("\r\n", "\n").split("\n"))
+    return "sha256:" + hashlib.sha256(canon.encode("utf-8")).hexdigest()
+
+
+def validate_acceptance_criteria(data: dict[str, Any], ver_uids: set, release_ids: set) -> list[str]:
+    """Facets, release-review completions, and freeze-and-copy onto a successor."""
+    errs: list[str] = []
+    criteria = list(data.get("acceptance_criteria") or [])
+    completions = list(data.get("criterion_completions") or [])
+    if not criteria and not completions:
+        return errs
+
+    versions = data.get("requirement_versions") or []
+    lines = {ln.get("base_uid"): ln for ln in (data.get("requirement_lines") or [])}
+    ver_by_uid = {v.get("uid"): v for v in versions if v.get("uid")}
+    kind_ok = {"requirement": "requirement", "capability": "capability"}
+    by_id: dict[str, dict] = {}
+    by_version: dict[str, list[dict]] = defaultdict(list)
+    for c in criteria:
+        cid = c.get("id")
+        if not cid:
+            errs.append("acceptance_criterion missing id")
+            continue
+        if cid in by_id:
+            errs.append(f"acceptance_criterion {cid}: duplicate id")
+        by_id[cid] = c
+        uid = c.get("version_uid")
+        if uid not in ver_uids:
+            errs.append(f"acceptance_criterion {cid}: version_uid {uid!r} is not a version")
+            continue
+        by_version[uid].append(c)
+        ver = ver_by_uid[uid]
+        line = lines.get(ver.get("base_uid"))
+        kind = (line or {}).get("kind")
+        if kind not in kind_ok:
+            errs.append(f"acceptance_criterion {cid}: version {uid} kind {kind!r} cannot own a facet")
+        if not str(c.get("statement") or "").strip():
+            errs.append(f"acceptance_criterion {cid}: empty statement")
+        if not isinstance(c.get("position"), int):
+            errs.append(f"acceptance_criterion {cid}: position must be an int")
+        sh = c.get("statement_hash")
+        if not sh:
+            errs.append(f"acceptance_criterion {cid}: missing statement_hash")
+        elif sh != criterion_statement_hash(c.get("statement") or ""):
+            errs.append(f"acceptance_criterion {cid}: statement_hash mismatch")
+
+    for c in criteria:
+        src = c.get("copied_from")
+        if not src:
+            continue
+        prev = by_id.get(src)
+        if prev is None:
+            errs.append(f"acceptance_criterion {c.get('id')}: copied_from {src!r} is not a criterion")
+            continue
+        if prev.get("statement_hash") != c.get("statement_hash"):
+            errs.append(
+                f"acceptance_criterion {c.get('id')}: statement_hash differs from copied_from {src} (changed copy)"
+            )
+
+    identities = {i.get("id") for i in (data.get("identities") or []) if i.get("id")}
+    delivers: dict[str, set[str]] = {}
+    for rel in data.get("releases") or []:
+        delivers[rel.get("id")] = set(rel.get("delivers") or [])
+    comp_by_id = {}
+    comps_by_criterion: dict[str, list[dict]] = defaultdict(list)
+    for m in completions:
+        mid = m.get("id")
+        if not mid:
+            errs.append("criterion_completion missing id")
+            continue
+        if mid in comp_by_id:
+            errs.append(f"criterion_completion {mid}: duplicate id")
+        comp_by_id[mid] = m
+        crit = by_id.get(m.get("criterion_id"))
+        if crit is None:
+            errs.append(f"criterion_completion {mid}: unknown criterion_id {m.get('criterion_id')!r}")
+            continue
+        comps_by_criterion[m.get("criterion_id")].append(m)
+        rid = m.get("release_id")
+        if rid not in release_ids:
+            errs.append(f"criterion_completion {mid}: unknown release_id {rid!r}")
+        if identities and m.get("by") not in identities:
+            errs.append(f"criterion_completion {mid}: by {m.get('by')!r} is not an identity")
+        if not m.get("copied_from") and rid in delivers and crit.get("version_uid") not in delivers[rid]:
+            errs.append(
+                f"criterion_completion {mid}: release {rid} does not deliver {crit.get('version_uid')}"
+            )
+
+    for m in completions:
+        src_id = m.get("copied_from")
+        if not src_id:
+            continue
+        src = comp_by_id.get(src_id)
+        if src is None:
+            errs.append(f"criterion_completion {m.get('id')}: copied_from {src_id!r} is not a completion")
+            continue
+        if m.get("release_id") != src.get("release_id"):
+            errs.append(f"criterion_completion {m.get('id')}: carried marker changed release")
+        if not m.get("carried_by") or not m.get("carried_at"):
+            errs.append(
+                f"criterion_completion {m.get('id')}: carried marker requires carried_by and carried_at"
+            )
+        elif identities and m.get("carried_by") not in identities:
+            errs.append(f"criterion_completion {m.get('id')}: carried_by {m.get('carried_by')!r} is not an identity")
+        crit = by_id.get(m.get("criterion_id"))
+        if crit and crit.get("copied_from") != src.get("criterion_id"):
+            errs.append(
+                f"criterion_completion {m.get('id')}: criterion was not copied from "
+                f"{src.get('criterion_id')}"
+            )
+
+    versions_by_base: dict[str, list[dict]] = defaultdict(list)
+    for v in versions:
+        if v.get("base_uid"):
+            versions_by_base[v["base_uid"]].append(v)
+    for base, vers in versions_by_base.items():
+        ordered = sorted(vers, key=lambda v: int(v.get("version_n") or 0))
+        for older, newer in zip(ordered, ordered[1:]):
+            old_crits = by_version.get(older.get("uid")) or []
+            if not old_crits:
+                continue
+            copies = by_version.get(newer.get("uid")) or []
+            for oc in old_crits:
+                found = [c for c in copies if c.get("copied_from") == oc.get("id")]
+                if len(found) != 1:
+                    errs.append(
+                        f"line {base}: criterion {oc.get('id')} on {older.get('uid')} "
+                        f"must be copied once onto {newer.get('uid')}"
+                    )
+                    continue
+                src_marks = comps_by_criterion.get(oc.get("id")) or []
+                copy_marks = comps_by_criterion.get(found[0].get("id")) or []
+                if not src_marks and copy_marks:
+                    errs.append(f"criterion {found[0].get('id')}: open criterion copied as complete")
     return errs
 
 
@@ -1036,6 +1176,8 @@ Target grammar: **StrictDoc 0.30**.
 | catalog_imprints | {len(data.get('catalog_imprints') or [])} |
 | identities | {len(data.get('identities') or [])} |
 | project_grants | {len(data.get('project_grants') or [])} |
+| acceptance_criteria | {len(data.get('acceptance_criteria') or [])} |
+| criterion_completions | {len(data.get('criterion_completions') or [])} |
 
 ## Counts (exported .sdoc structure)
 

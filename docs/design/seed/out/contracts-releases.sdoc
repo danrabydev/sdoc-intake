@@ -549,9 +549,9 @@ contract_id: ctr-reqalm-product
 client_id: raby-family
 project_id: reqalm
 in_scope_of: A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11, A12.1, ARCH-API, ARCH-API-LAYERS, ARCH-API-RBAC.1, ARCH-APPROVAL, ARCH-APPROVAL-LINE, ARCH-APPROVAL-VIEW, ARCH-APPROVER-SLOTS, ARCH-ATTACH, ARCH-ATTACH-AUDIT, ARCH-ATTACH-ENCRYPT, AR...
-in_scope_of_count: 431
+in_scope_of_count: 432
 covers_releases: rel-pr11-planning-baseline, rel-pr12-devenv-foundation, rel-r0-sequences, rel-r1-browse-clients-projects, rel-r1-browse-ui-catalogs, rel-r1-browse-ui-cp, rel-r1-browse-ui-relations, rel-r1-browse-ui-releases, rel-r1-browse-ui-reqs, rel-r...
-covers_releases_count: 36
+covers_releases_count: 37
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1134,6 +1134,9 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: CAP-CRED-STORE
+  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: CAP-CRITERIA-RELEASE-REVIEW
   ROLE: InScopeOf
 - TYPE: Parent
   VALUE: CAP-DEVENV-COMPOSE
@@ -1887,6 +1890,9 @@ RELATIONS:
   ROLE: CoversRelease
 - TYPE: Parent
   VALUE: RELEASE-rel-r1-core-alm
+  ROLE: CoversRelease
+- TYPE: Parent
+  VALUE: RELEASE-rel-r1-criteria-release-review
   ROLE: CoversRelease
 - TYPE: Parent
   VALUE: RELEASE-rel-r1-foundation-shell-auth
@@ -3559,6 +3565,29 @@ RELATIONS:
   VALUE: SEC-RELEASES-EXPORT
 - TYPE: Parent
   VALUE: CAP-SVC-HARDENING-FOLLOWUP
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-criteria-release-review
+STATUS: Draft
+TITLE: Release R1 — capability criteria completed in release review
+STATEMENT: >>>
+ReqALM release `R1 — capability criteria completed in release review` (status=planned, planned_on=2026-10-10). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-criteria-release-review
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-CRITERIA-RELEASE-REVIEW
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-CRITERIA-RELEASE-REVIEW
   ROLE: Delivers
 
 [[/SECTION]]
