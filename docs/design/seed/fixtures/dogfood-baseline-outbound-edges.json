@@ -1,5 +1,5 @@
 {
-  "baseline_main": "aa7e85631819d45ac04852831ab305d655f1eddd",
+  "baseline_main": "86d315462b67446e605d6c898c15df2c8066b5d3",
   "version_uids": [
     "A01",
     "A02",
@@ -199,6 +199,7 @@
     "CAP-BROWSE-CP",
     "CAP-BROWSE-ROADMAP",
     "CAP-BROWSE-UI-CATALOGS",
+    "CAP-BROWSE-UI-CONTRACTS",
     "CAP-BROWSE-UI-CP",
     "CAP-BROWSE-UI-CP.1",
     "CAP-BROWSE-UI-RELATIONS",
@@ -491,7 +492,7 @@
     "UI-APPROVE-TREE",
     "WANT-CHANGESET-FIELD-UNDO"
   ],
-  "edge_count": 1945,
+  "edge_count": 1950,
   "edges": [
     {
       "catalog_imprint_id": "asd-stig@v6r4",
@@ -9294,6 +9295,31 @@
     },
     {
       "from": "CAP-BROWSE-UI-CATALOGS",
+      "kind": "satisfies",
+      "to": "CAP-UI-HEADER-NAV"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CONTRACTS",
+      "kind": "satisfies",
+      "to": "ARCH-UI-GUARD"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CONTRACTS",
+      "kind": "satisfies",
+      "to": "CAP-BROWSE-UI-REQS"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CONTRACTS",
+      "kind": "satisfies",
+      "to": "CAP-CONTRACT-UI"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CONTRACTS",
+      "kind": "satisfies",
+      "to": "CAP-READ-CONTRACTS"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CONTRACTS",
       "kind": "satisfies",
       "to": "CAP-UI-HEADER-NAV"
     },

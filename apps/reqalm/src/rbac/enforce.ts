@@ -45,6 +45,12 @@ export const ROLE_PERMISSIONS: Record<string, Set<string>> = {
   "Key custodian": new Set(["key:manage", "audit:read"]),
 };
 
+/**
+ * Permissions that may pass authorize() without a project id (platform grants only today).
+ * All other permissions in ROLE_PERMISSIONS require a project grant for that project.
+ */
+export const PERMISSIONS_WITHOUT_PROJECT = new Set(["key:manage", "audit:read"]);
+
 export async function listActiveRoles(
   pool: pg.Pool,
   identityId: string,
@@ -59,7 +65,7 @@ export async function listActiveRoles(
     [identityId],
   );
   for (const g of grants.rows) {
-    if (!projectId || g.project_id === projectId) {
+    if (projectId && g.project_id === projectId) {
       roles.add(g.role);
     }
   }
@@ -91,6 +97,9 @@ export async function authorize(
   /** Verified access-token claims; a bound `reqalm_role` (agent tokens) narrows the grants. */
   token?: { readonly [claim: string]: unknown },
 ): Promise<boolean> {
+  if (projectId === undefined && !PERMISSIONS_WITHOUT_PROJECT.has(permission)) {
+    return false;
+  }
   const roles = effectiveRoles(await listActiveRoles(pool, identityId, projectId), token);
   if (roles.length === 0) return false;
   const perms = permissionsForRoles(roles);

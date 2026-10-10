@@ -151,3 +151,11 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Out of scope (mockups 02–03 / CAP-CONTRACT-UI):** document view from contract, overlap timeline, cyber_gate display — no read API fields yet.
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_browse_ui_contracts_release.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 457 lines, 490 versions, **1950** edges, 37 releases.
+
+## Addendum — RBAC authorize fail closed (PR #46, baseline @ `86d3154`)
+
+- **Ship (this PR’s seed patch):** `rel-r1-browse-ui-contracts` → **`CAP-BROWSE-UI-CONTRACTS`** @ **`86d315462b67446e605d6c898c15df2c8066b5d3`** (2026-10-10), `active` / `pass`; baseline fixture @ **`86d3154`**; allow-list browse UI ship rows only.
+- **Release (planned):** `rel-r1-rbac-authorize-fail-closed` → **`CAP-SVC-RBAC-NO-PROJECT`** (not shipped until merge).
+- **Runtime:** `listActiveRoles` ignores project grants when `projectId` is omitted; `authorize` denies all permissions except platform Key custodian **`key:manage`** and **`audit:read`** without a project scope.
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_rbac_authorize_fail_closed_release.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
+- **Counts (post-patch):** 458 lines, 491 versions, **1953** edges, 38 releases.
