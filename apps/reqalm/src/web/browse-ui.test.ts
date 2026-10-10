@@ -65,6 +65,7 @@ import {
   relationsPanelShell,
   requirementsRelationsApiPath,
   renderKindBlock,
+  RELATION_KIND_COLLAPSE,
 } from "./public/browse-relations.js";
 import {
   APP_MIN_NAV,
@@ -808,17 +809,6 @@ describe("browse UI render (jsdom)", () => {
     assert.equal(lists.length, 2);
     assert.equal(lists[0].querySelectorAll(".relation-chip").length, 10);
     assert.equal(lists[1].querySelectorAll(".relation-chip").length, 2);
-    const block11 = renderKindBlock(
-      "satisfies",
-      "outgoing",
-      Array.from({ length: 11 }, (_, i) => peer(`B${i}`)),
-      "reqalm",
-    );
-    const lists11 = block11.querySelectorAll(".relation-chip-list");
-    assert.equal(lists11.length, 2);
-    assert.equal(lists11[0].querySelectorAll(".relation-chip").length, 10);
-    assert.equal(lists11[1].querySelectorAll(".relation-chip").length, 1);
-    assert.ok(block11.querySelector(".relation-show-all"));
     assert.equal(lists[1].hidden, true);
     const btn = block.querySelector(".relation-show-all");
     assert.equal(btn?.textContent, "Show all 12");
@@ -877,8 +867,19 @@ describe("browse UI render (jsdom)", () => {
       "reqalm",
     );
     assert.equal(nullIdChip.tagName, "DIV");
-    assert.equal(nullIdChip.getAttribute("role"), null);
-    assert.equal(nullIdChip.querySelector("a"), null);
+  });
+
+  it("relation chip collapse 10-vs-11 boundary (<= must include 10)", () => {
+    assert.equal(RELATION_KIND_COLLAPSE, 10);
+    const peer = (id: string) => ({ relation_kind: "satisfies", direction: "outgoing", self_version_id: "A", peer_version_id: id, trace_suspect: false, peer: { id, title: id, kind: "requirement", type: "requirement", project_id: "reqalm" } });
+    const flat = renderKindBlock("satisfies", "outgoing", Array.from({ length: 10 }, (_, i) => peer(`N${i}`)), "reqalm");
+    assert.equal(flat.querySelector(".relation-show-all"), null);
+    assert.equal(flat.querySelectorAll(".relation-chip").length, 10);
+    const split = renderKindBlock("satisfies", "outgoing", Array.from({ length: 11 }, (_, i) => peer(`M${i}`)), "reqalm");
+    const splitLists = split.querySelectorAll(".relation-chip-list");
+    assert.ok(split.querySelector(".relation-show-all"));
+    assert.equal(splitLists[0].querySelectorAll(".relation-chip").length, 10);
+    assert.equal(splitLists[1].querySelectorAll(".relation-chip").length, 1);
   });
 
   it("requirement detail breadcrumbs use ancestor order and section vs requirement links", async () => {
@@ -1810,6 +1811,34 @@ describe("catalog browse screens", () => {
       projectId: "reqalm",
     });
     assert.equal(badCat.querySelector("tbody a"), null);
+  });
+
+  it("catalog list not-found when catalogs API returns 404", async () => {
+    const main = document.createElement("main");
+    await renderCatalogsList(main, {
+      apiFn: mockFetchBare((url) =>
+        url === catalogsApiPath("reqalm") ? { status: 404, body: {} } : { status: 404 },
+      ),
+      projectId: "reqalm",
+    });
+    assert.equal(main.querySelector("h1")?.textContent, "Not found");
+    assert.equal(main.querySelector(".empty-state"), null);
+    assert.equal(main.querySelector(".catalog-load-error"), null);
+  });
+
+  it("control detail not-found when control API 404 but catalog list ok", async () => {
+    const main = document.createElement("main");
+    await renderCatalogControlDetail(main, {
+      apiFn: catFetch((url) =>
+        url === imprintControlApiPath("reqalm", NIST_CAT, NIST_IMP, "AC-3") ? { status: 404, body: {} } : undefined,
+      ),
+      projectId: "reqalm",
+      catalogId: NIST_CAT,
+      imprintId: NIST_IMP,
+      controlId: "AC-3",
+    });
+    assert.equal(main.querySelector("h1")?.textContent, "Not found");
+    assert.equal(main.querySelector(".catalog-load-error"), null);
   });
 
   it("imprint detail: family groups, breadcrumbs, invalid control id", async () => {

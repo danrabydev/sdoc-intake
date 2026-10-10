@@ -1,24 +1,33 @@
 /**
  * Capture catalog browse UI PNGs at 1280px width against PGlite + dogfood seed.
- * Usage: node --import tsx scripts/capture-catalog-browse-screenshots.mjs
+ * Usage: node --import tsx scripts/capture-catalog-browse-screenshots.mjs [--port N] [--out-dir PATH]
+ * Env: REQALM_CAPTURE_PORT | REQALM_PORT (default 3000), CATALOG_SCREENSHOT_DIR (default /opt/cursor/artifacts/screenshots)
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer-core";
 
-import {
-  createTestApp,
-  TEST_PASSWORD,
-} from "../src/test/harness.ts";
-
-/** Must match harness testConfigEnv REQALM_PORT so OAuth redirect URIs are registered. */
-const PORT = 3000;
-const BASE = `http://localhost:${PORT}`;
 const VIEWPORT = { width: 1280, height: 900 };
-const OUT_DIR =
-  process.env.CATALOG_SCREENSHOT_DIR ??
-  "/opt/cursor/artifacts/screenshots";
+const DEFAULT_PORT = 3000;
+const DEFAULT_OUT_DIR = "/opt/cursor/artifacts/screenshots";
+
+function parseCaptureConfig() {
+  let port = Number(process.env.REQALM_CAPTURE_PORT ?? process.env.REQALM_PORT ?? DEFAULT_PORT);
+  let outDir = process.env.CATALOG_SCREENSHOT_DIR ?? DEFAULT_OUT_DIR;
+  const args = process.argv.slice(2);
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--port" && args[i + 1]) port = Number(args[++i]);
+    else if (args[i] === "--out-dir" && args[i + 1]) outDir = args[++i];
+    else if (args[i] === "--help" || args[i] === "-h") {
+      console.log(`Usage: capture-catalog-browse-screenshots.mjs [--port ${DEFAULT_PORT}] [--out-dir ${DEFAULT_OUT_DIR}]`);
+      process.exit(0);
+    }
+  }
+  if (!Number.isFinite(port) || port < 1 || port > 65535) {
+    throw new Error(`invalid port: ${port}`);
+  }
+  return { port, outDir };
+}
 
 const NIST_CAT = "cat-nist-global";
 const NIST_IMP = "nist-800-53@rev5-dogfood-20261006";
@@ -114,12 +123,12 @@ async function hideAllCatalogsFromProject(pool, projectId) {
   }
 }
 
-async function issueWebSessionCookies(app) {
+async function issueWebSessionCookies(app, port, base) {
   const inject = (opts) =>
     app.inject({
       ...opts,
       remoteAddress: "203.0.113.50",
-      headers: { host: `localhost:${PORT}`, ...(opts.headers || {}) },
+      headers: { host: `localhost:${port}`, ...(opts.headers || {}) },
     });
   const start = await inject({ method: "GET", url: "/oauth/web/start" });
   if (start.statusCode !== 302) throw new Error(`web/start ${start.statusCode}`);
@@ -128,7 +137,7 @@ async function issueWebSessionCookies(app) {
     throw new Error(`authorize ${authz.statusCode}: ${authz.body}`);
   }
   const loginPath = authz.headers.location;
-  const h = new URL(loginPath, BASE).searchParams.get("h");
+  const h = new URL(loginPath, base).searchParams.get("h");
   if (!h) throw new Error("missing handoff");
   const login = await inject({
     method: "POST",
@@ -155,23 +164,28 @@ async function issueWebSessionCookies(app) {
   return pairs;
 }
 
-async function capture(page, spec) {
+async function capture(page, spec, base, outDir) {
   await page.setViewport(VIEWPORT);
-  await page.goto(`${BASE}${spec.path}`, { waitUntil: "load", timeout: 120_000 });
+  await page.goto(`${base}${spec.path}`, { waitUntil: "load", timeout: 120_000 });
   await spec.ready(page);
   await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
-  const outPath = path.join(OUT_DIR, spec.file);
+  const outPath = path.join(outDir, spec.file);
   const fullPage = spec.fullPage === true;
   await page.screenshot({ path: outPath, type: "png", fullPage });
   return outPath;
 }
 
 async function main() {
-  await mkdir(OUT_DIR, { recursive: true });
+  const { port, outDir } = parseCaptureConfig();
+  process.env.REQALM_PORT = String(port);
+  const base = `http://localhost:${port}`;
+  const { createTestApp, TEST_PASSWORD } = await import("../src/test/harness.ts");
+
+  await mkdir(outDir, { recursive: true });
   const ctx = await createTestApp({ dogfood: true });
   await seedScreenshotFixtures(ctx.pool);
-  await ctx.app.listen({ port: PORT, host: "127.0.0.1" });
-  const cookies = await issueWebSessionCookies(ctx.app);
+  await ctx.app.listen({ port, host: "127.0.0.1" });
+  const cookies = await issueWebSessionCookies(ctx.app, port, base);
 
   const chrome =
     process.env.CHROME_PATH ??
@@ -192,7 +206,7 @@ async function main() {
     await page.setCookie(...cookies);
     for (const spec of SHOTS) {
       if (spec.beforeCapture) await spec.beforeCapture(ctx.pool);
-      const p = await capture(page, spec);
+      const p = await capture(page, spec, base, outDir);
       written.push(p);
       console.log("wrote", p);
     }
@@ -203,7 +217,7 @@ async function main() {
   }
 
   await writeFile(
-    path.join(OUT_DIR, "catalog-browse-screenshots.json"),
+    path.join(outDir, "catalog-browse-screenshots.json"),
     `${JSON.stringify({ width: VIEWPORT.width, files: SHOTS.map((s) => s.file), paths: written }, null, 2)}\n`,
   );
 }
