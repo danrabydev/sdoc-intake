@@ -92,8 +92,19 @@ describe("planning read API", () => {
 
   for (const [name, listUrl, expectIds, total] of [
     ["iterations", paths.iterList, ["iter-r2", "iter-r1", "iter-r0"], 3],
-    ["change_sets", paths.csList, null, 5],
-    ["work_item_links", paths.wiList, null, 2],
+    [
+      "change_sets",
+      paths.csList,
+      [
+        "cs-stack-newer",
+        "cs-stack-older",
+        "cs-leaf-under-sdlc-conforms",
+        "cs-sdlc-r1-security-review",
+        "cs-leaf-alex-draft-edit",
+      ],
+      5,
+    ],
+    ["work_item_links", paths.wiList, ["wil-a01-ado", "wil-fix-approved-ado"], 2],
   ] as const) {
     it(`list ${name}: sort, paging edges, no cyber_gate`, async () => {
       assert.equal((await inject(`${listUrl}?limit=101`)).statusCode, 400);
@@ -113,13 +124,67 @@ describe("planning read API", () => {
     for (const key of Object.keys(detail)) assert.ok(!key.includes("cyber_gate") && !key.includes("gate_signoffs"), key);
   });
 
-  it("404 header/body parity: missing, forbidden, cross-project id", async () => {
+  it("iterations list is scoped to projectId (cross-project rows omitted)", async () => {
+    await q(`INSERT INTO projects (id, client_id, name) VALUES ('plan-p2', 'raby-family', 'P2') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO iterations (id, project_id, name) VALUES ('iter-p2-only', 'plan-p2', 'x') ON CONFLICT DO NOTHING`);
+    try {
+      const page = dataOf(await inject(`${paths.iterList}?limit=100`)) as { items: { id: string }[]; total: number };
+      assert.equal(page.total, 3);
+      assert.ok(!page.items.some((i) => i.id === "iter-p2-only"));
+    } finally {
+      await q(`DELETE FROM iterations WHERE id = 'iter-p2-only'; DELETE FROM projects WHERE id = 'plan-p2'`);
+    }
+  });
+
+  it("change-set GET returns 404 for id owned by another project", async () => {
+    const ref = await inject(paths.csGet("no-such-cs"));
+    assert.equal(ref.statusCode, 404);
+    await q(`INSERT INTO projects (id, client_id, name) VALUES ('plan-cs-p2', 'raby-family', 'P2') ON CONFLICT DO NOTHING`);
+    await q(
+      `INSERT INTO change_sets (id, project_id, kind, scope, status, opened_by, opened_at)
+       VALUES ('cs-p2-only', 'plan-cs-p2', 'leaf', 'project', 'open', 'dan', now()) ON CONFLICT DO NOTHING`,
+    );
+    try {
+      assert404Parity(ref, await inject(paths.csGet("cs-p2-only")), "change-set cross-project");
+    } finally {
+      await q(`DELETE FROM change_sets WHERE id = 'cs-p2-only'; DELETE FROM projects WHERE id = 'plan-cs-p2'`);
+    }
+  });
+
+  it("work-item-link GET returns 404 for id in URL project but version on another project", async () => {
+    const ref = await inject(paths.wiGet("no-such-wil"));
+    assert.equal(ref.statusCode, 404);
+    await q(`INSERT INTO projects (id, client_id, name) VALUES ('plan-wil-p2', 'raby-family', 'P2') ON CONFLICT DO NOTHING`);
+    await q(
+      `INSERT INTO requirement_lines (base_uid, project_id, kind, title) VALUES ('PLAN-WIL-P2', 'plan-wil-p2', 'requirement', 'x') ON CONFLICT DO NOTHING`,
+    );
+    await q(
+      `INSERT INTO requirement_versions (uid, base_uid, project_id, version_n, status, statement)
+       VALUES ('PLAN-WIL-P2', 'PLAN-WIL-P2', 'plan-wil-p2', 0, 'active', 's') ON CONFLICT DO NOTHING`,
+    );
+    await q(
+      `INSERT INTO work_item_links (id, project_id, requirement_version_uid, devops_id)
+       VALUES ('wil-p2-version', '${P}', 'PLAN-WIL-P2', 'ADO-P2') ON CONFLICT DO NOTHING`,
+    );
+    try {
+      assert404Parity(ref, await inject(paths.wiGet("wil-p2-version")), "work-item-link cross-project version");
+    } finally {
+      await q(
+        `DELETE FROM work_item_links WHERE id = 'wil-p2-version';
+         DELETE FROM requirement_versions WHERE uid = 'PLAN-WIL-P2';
+         DELETE FROM requirement_lines WHERE base_uid = 'PLAN-WIL-P2';
+         DELETE FROM projects WHERE id = 'plan-wil-p2'`,
+      );
+    }
+  });
+
+  it("404 header/body parity: missing, forbidden, cross-project iteration id", async () => {
     const ref = await inject(paths.iterGet("no-such-iter"));
     assert.equal(ref.statusCode, 404);
     await q(`INSERT INTO projects (id, client_id, name) VALUES ('plan-p2', 'raby-family', 'P2') ON CONFLICT DO NOTHING`);
     await q(`INSERT INTO iterations (id, project_id, name) VALUES ('iter-p2-only', 'plan-p2', 'x') ON CONFLICT DO NOTHING`);
     try {
-      assert404Parity(ref, await inject(paths.iterGet("iter-p2-only")), "cross-project");
+      assert404Parity(ref, await inject(paths.iterGet("iter-p2-only")), "cross-project iteration get");
     } finally {
       await q(`DELETE FROM iterations WHERE id = 'iter-p2-only'; DELETE FROM projects WHERE id = 'plan-p2'`);
     }
