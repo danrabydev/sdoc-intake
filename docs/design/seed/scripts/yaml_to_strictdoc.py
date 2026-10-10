@@ -178,6 +178,22 @@ def validate(data: dict[str, Any]) -> list[str]:
                 + ("…" if len(overlap) > 12 else "")
             )
 
+    ver_base = {str(v.get("uid")): str(v.get("base_uid")) for v in versions if v.get("uid")}
+    for cid, contract in (("ctr-reqalm-product", prod), ("ctr-reqalm-maintenance", maint)):
+        if not contract:
+            continue
+        by_line: dict[str, list[str]] = defaultdict(list)
+        for u in contract.get("in_scope_of") or []:
+            base = ver_base.get(str(u))
+            if base:
+                by_line.setdefault(base, []).append(str(u))
+        for base, uids in sorted(by_line.items()):
+            if len(uids) > 1:
+                errs.append(
+                    f"{cid}: in_scope_of pins {len(uids)} versions of line {base!r} "
+                    f"({', '.join(uids[:6])}{'…' if len(uids) > 6 else ''}); ≤1 per line (#38)"
+                )
+
     for r in data.get("releases") or []:
         for u in r.get("delivers") or []:
             if u not in ver_uids:

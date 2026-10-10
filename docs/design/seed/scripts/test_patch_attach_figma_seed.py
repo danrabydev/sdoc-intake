@@ -32,7 +32,7 @@ class PatchAttachFigmaSeedTest(unittest.TestCase):
             cls.snippet = yaml.load(f)
 
     def test_managed_from_excludes_key_scope_base_uid(self) -> None:
-        managed = self.mod.snippet_managed_from_uids(self.snippet)
+        managed = self.mod.fixture_version_uids(self.snippet)
         self.assertIn("ARCH-KEY-SCOPE.1", managed)
         self.assertNotIn(KEY_SCOPE, managed)
 
@@ -52,10 +52,10 @@ class PatchAttachFigmaSeedTest(unittest.TestCase):
         }
         before = v0_keys(data.get("edges") or [])
         self.assertEqual(len(before), 6, "dogfood must ship six ARCH-KEY-SCOPE v0 outbound edges")
-        self.mod.apply_snippet(data, self.snippet)
+        self.mod.apply_cyber_fixtures(data, self.snippet)
         mid = v0_keys(data.get("edges") or [])
         self.assertEqual(mid, before)
-        self.mod.apply_snippet(data, self.snippet)
+        self.mod.apply_cyber_fixtures(data, self.snippet)
         after = v0_keys(data.get("edges") or [])
         self.assertEqual(after, before)
 

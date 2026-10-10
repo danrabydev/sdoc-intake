@@ -22,6 +22,7 @@ from ruamel.yaml.comments import CommentedMap
 SEED = Path(__file__).resolve().parent.parent
 DOGFOOD = SEED / "dogfood.yaml"
 SNIPPET = SEED / "fixtures" / "cyber-attach-figma-snippet.yaml"
+DELTA = SEED / "fixtures" / "delta-versions.yaml"
 REPO = "../../.."
 NIST = "nist-800-53@rev5-dogfood-20261006"
 PLANNED = "2026-10-10"
@@ -47,6 +48,33 @@ EXPECTED_EDGE_KINDS = {
     "uses": 21,
     "satisfies": 9,
 }
+
+DELTA_EXPECTED_LINES = 1
+DELTA_EXPECTED_VERSIONS = 4
+DELTA_EXPECTED_EDGE_KINDS = {
+    "conforms_to": 19,
+    "refines": 8,
+    "uses": 10,
+    "satisfies": 6,
+}
+
+PRESERVE_ACTIVE_V0_BASES = frozenset(
+    {
+        KEY_SCOPE,
+        "ARCH-ATTACH-PIN-VERSION",
+        "ARCH-ATTACH-SCOPE",
+        "ARCH-ATTACH-ENCRYPT",
+    }
+)
+
+DRAFT_SCOPE_EXCLUDE_UIDS = frozenset(
+    {
+        KEY_SCOPE_DRAFT,
+        "ARCH-ATTACH-PIN-VERSION.1",
+        "ARCH-ATTACH-SCOPE.1",
+        "ARCH-ATTACH-ENCRYPT.1",
+    }
+)
 
 
 def cm(**kw):
@@ -87,13 +115,14 @@ def line_base_uids(data) -> set[str]:
 def resolve_endpoint(data, ref: str, *, ver_uids: set[str]) -> str:
     if is_catalog_uid(ref):
         return ref
+    # Exact version uid wins over line base_uid (v0 uid often equals base_uid).
+    if ref in ver_uids:
+        return ref
     if ref in line_base_uids(data):
         resolved = active_uid(data, ref)
         if resolved not in ver_uids and not is_catalog_uid(resolved):
             raise KeyError(f"edge target {ref!r} → {resolved!r} is not a version uid")
         return resolved
-    if ref in ver_uids:
-        return ref
     raise KeyError(f"edge target {ref!r} is not a catalog uid, version uid, or line base_uid")
 
 
@@ -163,19 +192,33 @@ def refresh_product_contract_scope(data) -> None:
     scope = mod.reqalm_product_contract_scope(data, maint_in_scope=maint_in_scope)
     prod = find(data.get("contracts"), "id", mod.PRODUCT_CONTRACT)
     if prod:
-        prod["in_scope_of"] = scope
         prod["covers_releases"] = mod.reqalm_release_ids(data)
-        # One version per line (#38): active ARCH-KEY-SCOPE v0 only until .1 activates.
-        pins = [u for u in prod.get("in_scope_of") or [] if u != KEY_SCOPE_DRAFT]
-        prod["in_scope_of"] = sorted(set(pins))
+        # One version per line (#38): when auto-scope picks a draft .1, pin v0 instead.
+        pins: set[str] = set()
+        for uid in scope:
+            if uid in DRAFT_SCOPE_EXCLUDE_UIDS:
+                ver = find(data.get("requirement_versions"), "uid", uid)
+                if ver and ver.get("base_uid"):
+                    pins.add(str(ver["base_uid"]))
+                continue
+            pins.add(str(uid))
+        prod["in_scope_of"] = sorted(pins)
+
+
+def load_fixture(path: Path, label: str) -> dict:
+    if not path.is_file():
+        print(f"error: missing {label} {path}", file=sys.stderr)
+        sys.exit(1)
+    with path.open("r", encoding="utf-8") as f:
+        return yaml.load(f)
 
 
 def load_snippet() -> dict:
-    if not SNIPPET.is_file():
-        print(f"error: missing snippet {SNIPPET}", file=sys.stderr)
-        sys.exit(1)
-    with SNIPPET.open("r", encoding="utf-8") as f:
-        return yaml.load(f)
+    return load_fixture(SNIPPET, "snippet")
+
+
+def load_delta() -> dict:
+    return load_fixture(DELTA, "delta")
 
 
 def remove_cap_figma_link(data) -> None:
@@ -196,9 +239,66 @@ def remove_cap_figma_link(data) -> None:
     ]
 
 
-def snippet_managed_from_uids(snippet: dict) -> set[str]:
-    """Version uids whose outbound edges this patch may replace (not line base_uids)."""
-    return {str(v["uid"]) for v in snippet.get("requirement_versions") or [] if v.get("uid")}
+def fixture_version_uids(fixture: dict) -> set[str]:
+    """Version uids declared in a fixture (not line base_uids)."""
+    return {str(v["uid"]) for v in fixture.get("requirement_versions") or [] if v.get("uid")}
+
+
+def line_has_successor_version(data, base: str) -> bool:
+    return any(
+        v.get("base_uid") == base and int(v.get("version_n") or 0) >= 1
+        for v in data.get("requirement_versions") or []
+    )
+
+
+def preserve_v0_line(data, base: str) -> bool:
+    if base not in PRESERVE_ACTIVE_V0_BASES:
+        return False
+    v0 = find(data.get("requirement_versions"), "uid", base)
+    if not v0:
+        return False
+    if v0.get("status") == "active":
+        return True
+    return line_has_successor_version(data, base)
+
+
+def fixture_managed_from_uids(fixtures: list[dict], data) -> set[str]:
+    """Managed outbound sources: fixture version uids minus preserved v0 tips."""
+    managed: set[str] = set()
+    for fix in fixtures:
+        managed |= fixture_version_uids(fix)
+    for base in PRESERVE_ACTIVE_V0_BASES:
+        if preserve_v0_line(data, base) and base in managed:
+            managed.discard(base)
+    return managed
+
+
+def skip_preserved_v0_upsert(data, item: dict) -> bool:
+    uid = item.get("uid")
+    base = item.get("base_uid")
+    if uid == KEY_SCOPE:
+        return True
+    if base not in PRESERVE_ACTIVE_V0_BASES or uid != base:
+        return False
+    return preserve_v0_line(data, base)
+
+
+def snapshot_preserve_v0_outbounds(data) -> dict[str, list[dict]]:
+    snaps: dict[str, list[dict]] = {}
+    for base in PRESERVE_ACTIVE_V0_BASES:
+        if not preserve_v0_line(data, base):
+            continue
+        snaps[base] = [
+            deepcopy(e) for e in data.get("edges") or [] if e.get("from") == base
+        ]
+    return snaps
+
+
+def restore_preserve_v0_outbounds(data, snapshots: dict[str, list[dict]]) -> None:
+    edges = data.setdefault("edges", [])
+    for edge_list in snapshots.values():
+        for edge in edge_list:
+            ensure_edge(edges, edge)
 
 
 KEY_SCOPE_V0_OUTBOUND: list[dict] = [
@@ -269,31 +369,40 @@ def assert_protected_edges_unchanged(before: set[tuple], after_edges: list, mana
         )
 
 
-def apply_snippet(data, snippet: dict) -> None:
+def apply_cyber_fixtures(data, *fixtures: dict) -> None:
     remove_cap_figma_link(data)
 
     lines = data.setdefault("requirement_lines", [])
     versions = data.setdefault("requirement_versions", [])
     edges = data.setdefault("edges", [])
 
-    managed_from = snippet_managed_from_uids(snippet)
+    v0_outbound_before = snapshot_preserve_v0_outbounds(data)
+    v0_records_before = {
+        base: deepcopy(find(versions, "uid", base))
+        for base in PRESERVE_ACTIVE_V0_BASES
+        if find(versions, "uid", base)
+    }
+
+    managed_from = fixture_managed_from_uids(list(fixtures), data)
     protected_before = protected_edge_keys(edges, managed_from)
 
-    for ln in snippet.get("requirement_lines") or []:
-        upsert_line(lines, dict(ln))
+    for fix in fixtures:
+        for ln in fix.get("requirement_lines") or []:
+            upsert_line(lines, dict(ln))
 
-    v0_before = deepcopy(find(versions, "uid", KEY_SCOPE))
+    for fix in fixtures:
+        for ver in fix.get("requirement_versions") or []:
+            item = dict(ver)
+            if skip_preserved_v0_upsert(data, item):
+                continue
+            upsert_version(versions, item)
 
-    for ver in snippet.get("requirement_versions") or []:
-        item = dict(ver)
-        if item["uid"] == KEY_SCOPE:
+    for base, before in v0_records_before.items():
+        if not before:
             continue
-        upsert_version(versions, item)
-
-    if v0_before:
-        cur = find(versions, "uid", KEY_SCOPE)
-        if cur and not dict_eq(cur, v0_before):
-            raise RuntimeError(f"{KEY_SCOPE} v0 was modified; only {KEY_SCOPE_DRAFT} may be added")
+        cur = find(versions, "uid", base)
+        if cur and not dict_eq(cur, before):
+            raise RuntimeError(f"{base} v0 was modified; only draft successors may change")
 
     ver_uids = {v["uid"] for v in versions if v.get("uid")}
 
@@ -305,12 +414,14 @@ def apply_snippet(data, snippet: dict) -> None:
         and e.get("to") != REMOVED_CAP
     ]
 
-    for raw in snippet.get("edges") or []:
-        resolved = dict(raw)
-        resolved["from"] = resolve_endpoint(data, str(raw["from"]), ver_uids=ver_uids)
-        resolved["to"] = resolve_endpoint(data, str(raw["to"]), ver_uids=ver_uids)
-        ensure_edge(edges, resolved)
+    for fix in fixtures:
+        for raw in fix.get("edges") or []:
+            resolved = dict(raw)
+            resolved["from"] = resolve_endpoint(data, str(raw["from"]), ver_uids=ver_uids)
+            resolved["to"] = resolve_endpoint(data, str(raw["to"]), ver_uids=ver_uids)
+            ensure_edge(edges, resolved)
 
+    restore_preserve_v0_outbounds(data, v0_outbound_before)
     ensure_key_scope_v0_outbound(data)
     carry_key_scope_outbound_edges(data)
     assert_protected_edges_unchanged(protected_before, edges, managed_from)
@@ -318,15 +429,16 @@ def apply_snippet(data, snippet: dict) -> None:
 
 CAP_STMT = (
     "Seed-only: Cyber attachments and Figma design-link requirement set in dogfood.yaml "
-    "(ARCH-ATTACH-*, ARCH-ATTACH-SCAN, ARCH-FIGMA-*, SPIKE-FIGMA-FEASIBILITY, CAP-ATTACH-*, "
-    "ARCH-KEY-SCOPE.1 content mint) with conforms_to, refines, uses, and satisfies edges applied "
-    "from fixtures/cyber-attach-figma-snippet.yaml. Regenerates out/ and HANDOFF.md. No application "
-    "runtime changes; does not ship any release."
+    "(ARCH-ATTACH-*, ARCH-ATTACH-VERSIONS, ARCH-ATTACH-SCAN, ARCH-FIGMA-*, SPIKE-FIGMA-FEASIBILITY, "
+    "CAP-ATTACH-*, ARCH-KEY-SCOPE.1 and attachment .1 content mints) with conforms_to, refines, uses, "
+    "and satisfies edges from fixtures/cyber-attach-figma-snippet.yaml and delta-versions.yaml. "
+    "Regenerates out/ and HANDOFF.md. No application runtime changes; does not ship any release."
 )
 
 CAP_ARTIFACTS = [
     f"{REPO}/docs/design/seed/dogfood.yaml",
     f"{REPO}/docs/design/seed/fixtures/cyber-attach-figma-snippet.yaml",
+    f"{REPO}/docs/design/seed/fixtures/delta-versions.yaml",
     f"{REPO}/docs/design/seed/scripts/patch_attach_figma_seed_release.py",
     f"{REPO}/docs/design/HANDOFF.md",
 ]
@@ -442,45 +554,62 @@ def verify_snippet_targets(data, snippet: dict) -> None:
             raise ValueError(f"line {ln.get('base_uid')}: parent {parent!r} missing")
 
 
-def verify_snippet_inventory(snippet: dict) -> None:
-    if len(snippet.get("requirement_lines") or []) != EXPECTED_LINES:
-        raise RuntimeError("snippet requirement_lines count mismatch")
-    if len(snippet.get("requirement_versions") or []) != EXPECTED_VERSIONS:
-        raise RuntimeError("snippet requirement_versions count mismatch")
-    kinds = Counter(e["kind"] for e in snippet.get("edges") or [])
-    for kind, want in EXPECTED_EDGE_KINDS.items():
+def verify_fixture_inventory(
+    fixture: dict,
+    *,
+    label: str,
+    expected_lines: int,
+    expected_versions: int,
+    expected_edge_kinds: dict[str, int],
+) -> None:
+    if len(fixture.get("requirement_lines") or []) != expected_lines:
+        raise RuntimeError(f"{label} requirement_lines count mismatch")
+    if len(fixture.get("requirement_versions") or []) != expected_versions:
+        raise RuntimeError(f"{label} requirement_versions count mismatch")
+    kinds = Counter(e["kind"] for e in fixture.get("edges") or [])
+    for kind, want in expected_edge_kinds.items():
         if kinds.get(kind, 0) != want:
-            raise RuntimeError(f"snippet edges {kind}: got {kinds.get(kind, 0)} want {want}")
+            raise RuntimeError(f"{label} edges {kind}: got {kinds.get(kind, 0)} want {want}")
 
 
-def verify_key_scope_v0_unchanged(data, v0_before: dict | None) -> None:
-    if not v0_before:
-        return
-    cur = find(data.get("requirement_versions"), "uid", KEY_SCOPE)
-    if not cur or not dict_eq(cur, v0_before):
-        raise RuntimeError(f"{KEY_SCOPE} v0 must remain unchanged")
+def verify_snippet_targets_all(data, *fixtures: dict) -> None:
+    for fix in fixtures:
+        verify_snippet_targets(data, fix)
 
 
 def main() -> None:
     snippet = load_snippet()
-    verify_snippet_inventory(snippet)
+    delta = load_delta()
+    verify_fixture_inventory(
+        snippet,
+        label="snippet",
+        expected_lines=EXPECTED_LINES,
+        expected_versions=EXPECTED_VERSIONS,
+        expected_edge_kinds=EXPECTED_EDGE_KINDS,
+    )
+    verify_fixture_inventory(
+        delta,
+        label="delta",
+        expected_lines=DELTA_EXPECTED_LINES,
+        expected_versions=DELTA_EXPECTED_VERSIONS,
+        expected_edge_kinds=DELTA_EXPECTED_EDGE_KINDS,
+    )
 
     with DOGFOOD.open("r", encoding="utf-8") as f:
         data = yaml.load(f)
 
-    v0_before = deepcopy(find(data.get("requirement_versions"), "uid", KEY_SCOPE))
-
-    apply_snippet(data, snippet)
-    verify_snippet_targets(data, snippet)
-    verify_key_scope_v0_unchanged(data, v0_before)
+    apply_cyber_fixtures(data, snippet, delta)
+    verify_snippet_targets_all(data, snippet, delta)
     upsert_this_release(data)
     refresh_product_contract_scope(data)
 
     with DOGFOOD.open("w", encoding="utf-8") as f:
         yaml.dump(data, f)
+    delta_edges = sum(DELTA_EXPECTED_EDGE_KINDS.values())
     print(
-        f"Patched dogfood.yaml: {EXPECTED_LINES} lines, {EXPECTED_VERSIONS} snippet versions, "
-        f"{sum(EXPECTED_EDGE_KINDS.values())} snippet edges, {REL} / {CAP} (planned)"
+        f"Patched dogfood.yaml: snippet {EXPECTED_LINES}/{EXPECTED_VERSIONS}/"
+        f"{sum(EXPECTED_EDGE_KINDS.values())} edges + delta {DELTA_EXPECTED_LINES}/"
+        f"{DELTA_EXPECTED_VERSIONS}/{delta_edges} edges, {REL} / {CAP} (planned)"
     )
 
 

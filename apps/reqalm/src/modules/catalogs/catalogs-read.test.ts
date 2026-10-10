@@ -58,8 +58,8 @@ describe("catalogs read API", () => {
     assert.deepEqual(cats.catalogs.map((c) => c.id).sort(), ["cat-nist-global", "cat-reqalm-security", "cat-stig-asd-v6r4"]);
     assert.ok(cats.catalogs.find((c) => c.id === CAT)!.imprints.some((i) => i.id === NIST && i.status === "published"));
     const cm3 = (await detail("reqalm", "CM-3")) as Detail;
-    assert.equal(cm3.conforming_lines.length, 8);
-    assert.equal(await listCount("reqalm", "CM-3"), 8);
+    assert.equal(cm3.conforming_lines.length, 9);
+    assert.equal(await listCount("reqalm", "CM-3"), 9);
     const hop = cm3.conforming_lines.find((l) => l.id === "FIX-SUCC-2HOP")!;
     assert.deepEqual(hop.pins.map((p) => p.edge_uid).sort(), ["FIX-SUCC-2HOP", "FIX-SUCC-2HOP.1", "FIX-SUCC-2HOP.2"]);
     await q(`INSERT INTO requirement_lines (base_uid, project_id, kind, title) VALUES ('CAT-SUS-PIN', 'reqalm', 'requirement', 's') ON CONFLICT DO NOTHING`);
