@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
 import { loadConfig } from "../config.js";
 import { createMigratedPglitePool } from "../test/pglite-pool.js";
@@ -6,6 +7,16 @@ import { DOGFOOD_SEED_PATH, testConfigEnv } from "../test/harness.js";
 import { SeedValidationError, loadDogfoodSeed, readDogfoodFile, type DogfoodSeed } from "./load-dogfood.js";
 
 describe("loadDogfoodSeed trace edges", () => {
+  it("preserves baseline outbound edges from the committed fixture", () => {
+    const patch = "docs/design/seed/scripts/patch_ui_layout_capabilities_release.py";
+    const r = spawnSync("python3", [patch, "--validate-baseline-edges"], {
+      cwd: new URL("../../../../", import.meta.url).pathname,
+      encoding: "utf-8",
+    });
+    assert.equal(r.status, 0, r.stderr || r.stdout);
+    assert.match(r.stdout, /baseline edge preservation ok/);
+  });
+
   it("persists dogfood edges and catalog labels", async () => {
     const pg = await createMigratedPglitePool();
     const config = loadConfig(testConfigEnv());
@@ -13,7 +24,7 @@ describe("loadDogfoodSeed trace edges", () => {
     try {
       await loadDogfoodSeed(pg.pool, config, seed, { skipUnchangedCheck: true });
       const edges = await pg.pool.query<{ c: number }>(`SELECT count(*)::int AS c FROM trace_edges`);
-      assert.equal(edges.rows[0]?.c, 1867);
+      assert.equal(edges.rows[0]?.c, 1934);
       const inheritable = await pg.pool.query<{ c: number }>(
         `SELECT count(*)::int AS c FROM trace_edges WHERE inheritable = true`,
       );

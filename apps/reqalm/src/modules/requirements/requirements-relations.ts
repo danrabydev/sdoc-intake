@@ -1,6 +1,10 @@
 import { err, ok, type ServiceResult } from "../../core/service-result.js";
 import type { RequestContext } from "../../core/request-context.js";
 import { projectIdsWithPermission } from "../../rbac/enforce.js";
+import {
+  dedupeVisibleRelationLinks,
+  type VersionPickMeta,
+} from "./requirements-relations-dedupe.js";
 
 export type RelationPeerDto = { id: string; title: string | null; kind: string; type: string; project_id: string };
 export type VisibleRelationLink = {
@@ -111,12 +115,14 @@ export async function getRequirementRelations(
 
   const outgoing: RelationsGroupedDto = {};
   const incoming: RelationsGroupedDto = {};
+  const peerVersionKeys: { project_id: string; uid: string }[] = [];
   for (const edge of deduped) {
     const outbound = edge.from_project_id === projectId && touchUids.includes(edge.from_uid);
     const direction = outbound ? "outgoing" : "incoming";
     const selfVersionId = outbound ? edge.from_uid : edge.to_uid;
     const peerVersionId = outbound ? edge.to_uid : edge.from_uid;
     const peerProject = outbound ? edge.to_project_id : edge.from_project_id;
+    if (peerProject) peerVersionKeys.push({ project_id: peerProject, uid: peerVersionId });
     const link = buildLink(
       edge,
       direction,
@@ -134,7 +140,17 @@ export async function getRequirementRelations(
     (bucket[edge.kind] ??= []).push(link);
   }
 
+  const versionMeta = await loadVersionPickMeta(ctx, peerVersionKeys, allowed);
+  dedupeGroupedLinks(outgoing, versionMeta);
+  dedupeGroupedLinks(incoming, versionMeta);
+
   return ok({ id: requirementId, project_id: projectId, outgoing: finalizeGrouped(outgoing), incoming: finalizeGrouped(incoming) });
+}
+
+function dedupeGroupedLinks(grouped: RelationsGroupedDto, meta: Map<string, VersionPickMeta>): void {
+  for (const kind of Object.keys(grouped)) {
+    grouped[kind] = dedupeVisibleRelationLinks(grouped[kind]!, meta);
+  }
 }
 
 function dedupeEdges(
@@ -162,6 +178,29 @@ function dedupeEdges(
     } else passthrough.push(e);
   }
   return [...kept.values(), ...passthrough];
+}
+
+async function loadVersionPickMeta(
+  ctx: RequestContext,
+  keys: { project_id: string; uid: string }[],
+  allowedProjectIds: Set<string>,
+): Promise<Map<string, VersionPickMeta>> {
+  const meta = new Map<string, VersionPickMeta>();
+  const granted = keys.filter((k) => allowedProjectIds.has(k.project_id));
+  if (!granted.length) return meta;
+  const projects = granted.map((k) => k.project_id);
+  const uids = granted.map((k) => k.uid);
+  const res = await ctx.pool.query<{ project_id: string; uid: string; status: string; version_n: number }>(
+    `WITH wanted AS (
+       SELECT unnest($1::text[]) AS project_id, unnest($2::text[]) AS uid
+     )
+     SELECT v.project_id, v.uid, v.status, v.version_n
+       FROM wanted w
+       JOIN requirement_versions v ON v.project_id = w.project_id AND v.uid = w.uid`,
+    [projects, uids],
+  );
+  for (const r of res.rows) meta.set(`${r.project_id}\0${r.uid}`, { status: r.status, version_n: r.version_n });
+  return meta;
 }
 
 function buildLink(

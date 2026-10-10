@@ -108,4 +108,13 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Delta v3 (file versioning):** `docs/design/seed/fixtures/delta-versions.yaml` — **`ARCH-ATTACH-VERSIONS`** line + **`.1`** content mints on **`ARCH-ATTACH-PIN-VERSION`**, **`ARCH-ATTACH-SCOPE`**, **`ARCH-ATTACH-ENCRYPT`** (v0 unchanged; 43 edges).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_attach_figma_seed_release.py` — applies snippet + delta; product contract pins **`ARCH-ATTACH-VERSIONS`** v0 and active/draft v0 tips only (draft **`.1`** successors omitted per #38).
 - **Validate:** `python3 docs/design/seed/scripts/yaml_to_strictdoc.py --validate` (regenerates `docs/design/seed/out/`).
-- **Parallel PR pair (rule 3):** This PR ships **`rel-r1-trace-inherit-uses`** / **`CAP-TRACE-INHERIT-USES`** at main merge **`56bfc4d6a9fe04559ccddae636ec4052d84ae907`** (PR #39). **`rel-r1-seed-attach-figma`** stays planned.
+- **Parallel PR pair (rule 3):** Ships **`rel-r1-trace-inherit-uses`** / **`CAP-TRACE-INHERIT-USES`** at main merge **`1eb8482b533b5f656240bc7b53a60b1a58c5a203`** (PR #39 on #40 main). **`rel-r1-seed-attach-figma`** shipped on **2026-10-09** at the same merge SHA via PR #42 rebase.
+- **Baseline guard:** `docs/design/seed/fixtures/dogfood-baseline-outbound-edges.json` @ **`1eb8482`**; `python3 docs/design/seed/scripts/seed_baseline_edges.py` / **`--validate-baseline-edges`** on patch scripts.
+
+## Addendum — UI layout capability statements (seed PR #42, main @ `1eb8482`)
+
+- **Release (planned):** `rel-r1-ui-layout-capabilities` → **`CAP-UI-LAYOUT`** (draft; documents header + content region patterns and navigation).
+- **Content mints (layout prose):** shipped browse caps **`CAP-BROWSE-UI-*`**, **`CAP-UI-HEADER-NAV`**, **`CAP-UI-FRAME.2`**; draft layout intent only on **`CAP-CONTRACT-UI.1`** / **`CAP-VERSION-UI.1`**; draft edits **`CAP-UI-KIT`**, **`CAP-UI-KIT-CHROME`**, **`CAP-UI-KIT-TREE`** (WAI-ARIA + paging label restored on tree draft).
+- **Mock view drafts:** six **`CAP-UI-VIEW-*`** capabilities; mock URIs under **`mockups/reqalm-two-column/shots/`** (see `docs/design/mockups/README.md`).
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_ui_layout_capabilities_release.py` — never removes baseline outbound edges; **`--validate-baseline-edges`**; refreshes product contract via attach patch helper; run before `yaml_to_strictdoc.py --validate`.
+- **Counts (post-patch):** 453 lines, 486 versions, **1934** edges, 33 releases.

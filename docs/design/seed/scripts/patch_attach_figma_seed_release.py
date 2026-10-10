@@ -28,14 +28,15 @@ DELTA = SEED / "fixtures" / "delta-versions.yaml"
 REPO = "../../.."
 NIST = "nist-800-53@rev5-dogfood-20261006"
 PLANNED = "2026-10-10"
-BASE_MAIN = "56bfc4d6a9fe04559ccddae636ec4052d84ae907"
+BASE_MAIN = "1eb8482b533b5f656240bc7b53a60b1a58c5a203"
 TRACE_SHIPPED = "2026-10-09"
 CAP_TRACE = "CAP-TRACE-INHERIT-USES"
 REL_TRACE = "rel-r1-trace-inherit-uses"
 REL = "rel-r1-seed-attach-figma"
 CAP = "CAP-SEED-ATTACH-FIGMA"
-BASELINE_RECORD_ALLOW_VERSIONS = frozenset({CAP_TRACE})
-BASELINE_RECORD_ALLOW_RELEASES = frozenset({REL_TRACE})
+ATTACH_SHIPPED = "2026-10-09"
+BASELINE_RECORD_ALLOW_VERSIONS = frozenset({CAP_TRACE, CAP})
+BASELINE_RECORD_ALLOW_RELEASES = frozenset({REL_TRACE, REL})
 REMOVED_CAP = "CAP-FIGMA-LINK"
 KEY_SCOPE = "ARCH-KEY-SCOPE"
 KEY_SCOPE_DRAFT = "ARCH-KEY-SCOPE.1"
@@ -202,6 +203,36 @@ def validate_baseline_records_preserved(data) -> None:
         allow_version_uids=BASELINE_RECORD_ALLOW_VERSIONS,
         allow_release_ids=BASELINE_RECORD_ALLOW_RELEASES,
     )
+
+
+def ship_attach_figma_seed_release(data) -> None:
+    """Ship PR #40 attachments/Figma seed release at full main merge SHA."""
+    rel = find(data.get("releases"), "id", REL)
+    if rel:
+        rel["status"] = "shipped"
+        rel["shipped_on"] = ATTACH_SHIPPED
+        rel["notes"] = (
+            f"PR #40 merged to main as {BASE_MAIN} on {ATTACH_SHIPPED}. "
+            "Cyber attachments + Figma requirement set in dogfood seed."
+        )
+    ver = find(data.get("requirement_versions"), "uid", CAP)
+    if ver:
+        catalog_ref = (ver.get("security") or {}).get("catalog_ref", "CM-2")
+        ver["status"] = "active"
+        ver["verification_outcome"] = "pass"
+        ver["security"] = {
+            "catalog_ref": catalog_ref,
+            "verification_note": f"Shipped with attachments/Figma seed PR #40 (merge {BASE_MAIN}).",
+        }
+    ar = find(data.get("approval_records"), "id", "ar-seed-attach-figma")
+    if ar:
+        ar["status"] = "unapproved"
+        ar["notes"] = (
+            f"Capability active with verification pass after PR #40 merge {BASE_MAIN}; "
+            "formal approval record not filed in seed."
+        )
+        ar["approved_version_uid"] = None
+        ar["approved_statement_hash"] = None
 
 
 def ship_trace_inherit_uses_release(data) -> None:
@@ -695,6 +726,7 @@ def main() -> None:
     verify_snippet_targets_all(data, snippet, delta)
     ship_trace_inherit_uses_release(data)
     upsert_this_release(data)
+    ship_attach_figma_seed_release(data)
     refresh_product_contract_scope(data)
     validate_baseline_records_preserved(data)
 
