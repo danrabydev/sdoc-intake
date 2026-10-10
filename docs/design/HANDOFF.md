@@ -167,3 +167,12 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
+
+## Addendum — capability criteria completed in release review (suggested)
+
+- **Release (planned, not shipped):** `rel-r1-criteria-release-review` → **`CAP-CRITERIA-RELEASE-REVIEW`**. Seed and schema only. No loader or UI. `verification_outcome` stays unset.
+- **Draft successors, not activated:** `ARCH-REQ-AC-FACET.1` and `ARCH-REQ-AC-ROLLUP.1`. v0 stays the active pin and stays on `ctr-reqalm-product`. The `.1` drafts are omitted from the product contract until activation.
+- **New draft requirements (on the product contract):** `ARCH-CRITERION-RELEASE-UAT` (UAT/review writes the completion marker), `ARCH-CAP-REVIEW-COPY` (accept-and-still-change freezes criteria and copies them), `ARCH-WI-COMPILE` (a work item is a briefing compiled from a capability; it does not complete a criterion). `J02`–`J06` are not rewritten.
+- **Fixture (not a product release):** `rel-fix-cap-review-uat` delivers superseded `FIX-CAP-REVIEW`. UAT completed `crit-fix-cap-a` and still required `FIX-CAP-REVIEW.1`. The accepted criterion is copied with its marker; the open criterion is copied without one. `FIX-REQ-REVIEW` has its own uncompleted facet. Neither the fixture release nor the FIX uids are on `ctr-reqalm-product`.
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_criteria_release_review.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply. Record check allow-lists only the two rows the previous release already shipped (`CAP-SVC-RBAC-NO-PROJECT`, `rel-r1-rbac-authorize-fail-closed`).
+- **Counts (post-patch):** 467 lines, 503 versions, **1971** edges, 43 releases, 5 acceptance criteria, 2 completion markers.

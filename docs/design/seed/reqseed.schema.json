@@ -125,9 +125,27 @@
     },
     "work_item_links": {
       "type": "array",
-      "description": "External tracker mappings for J* actions.",
+      "description": "External tracker mappings. A link is a briefing compiled from a capability, not the completeness gate.",
       "items": {
         "$ref": "#/definitions/work_item_link"
+      }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "description": "Shall-statement facets on one requirement version or one capability version. Completion is criterion_completions.",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["id", "version_uid", "statement", "position"]
+      }
+    },
+    "criterion_completions": {
+      "type": "array",
+      "description": "UAT or review of a release marked one criterion complete. Not written by work-item sync.",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["id", "criterion_id", "release_id", "by", "at"]
       }
     },
     "subject_kinds": {

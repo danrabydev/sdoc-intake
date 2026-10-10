@@ -1523,6 +1523,15 @@ approval_records:
   notes: In progress on cloud agent bc-7132b537; approve after merge and verification.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-criteria-release-review
+  subject_kind: CapabilityLine
+  base_uid: CAP-CRITERIA-RELEASE-REVIEW
+  status: unapproved
+  by:
+  at:
+  notes: Proposal only. Approve after the project lead accepts the criterion model.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3849,6 +3858,36 @@ requirement_lines:
   parent: SEC-CP
   kind: capability
   title: hardening follow-up (no-project gate, fetchAllScope, test kit)
+- base_uid: ARCH-CRITERION-RELEASE-UAT
+  project_id: reqalm
+  parent: SEC-RL
+  kind: requirement
+  title: Criterion completion is release UAT or review
+- base_uid: ARCH-CAP-REVIEW-COPY
+  project_id: reqalm
+  parent: SEC-RL
+  kind: requirement
+  title: Accepted review that still requires a change
+- base_uid: ARCH-WI-COMPILE
+  project_id: reqalm
+  parent: SEC-WI
+  kind: requirement
+  title: Work item is a capability briefing, not completeness
+- base_uid: CAP-CRITERIA-RELEASE-REVIEW
+  project_id: reqalm
+  parent: SEC-RL
+  kind: capability
+  title: Capability criteria completed in release review
+- base_uid: FIX-REQ-REVIEW
+  project_id: reqalm
+  parent: SEC-FIX
+  kind: requirement
+  title: Fixture need for separate requirement and capability criteria
+- base_uid: FIX-CAP-REVIEW
+  project_id: reqalm
+  parent: SEC-FIX
+  kind: capability
+  title: Fixture capability accepted in review and still changed
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -9909,6 +9948,111 @@ requirement_versions:
     verification_note: Started 2026-10-10 (cloud agent bc-7132b537); not shipped.
   statement_hash: sha256:d5dafdbea5a4a3ff72e610aeac86192b0e8bfa7cc26894173011003d773a229a
   grooming_state: detailed
+- uid: ARCH-REQ-AC-FACET.1
+  base_uid: ARCH-REQ-AC-FACET
+  version_n: 1
+  status: draft
+  statement: 'An acceptance criterion (facet) is a verifiable shall-statement attached to exactly one requirement version or exactly one capability version. Requirement facets and capability facets are separate sets with separate completion markers: completing a requirement facet does not complete a capability facet. Facets are not lines and have no trace graph of their own. A child requirement line remains decomposition (ARCH-HIER-REQ-DECOMP), not a facet.'
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+  statement_hash: sha256:675b48d4aceb59586050568fe90f52df21b949114e34b0e07cca19e75e411a25
+  grooming_state: detailed
+  mint_kind: content
+- uid: ARCH-REQ-AC-ROLLUP.1
+  base_uid: ARCH-REQ-AC-ROLLUP
+  version_n: 1
+  status: draft
+  statement: Completeness of a requirement rolls up from that requirement version's own facets. Completeness of a capability rolls up from that capability version's own facets. A facet is complete only when a release UAT or review records a completion marker for it (ARCH-CRITERION-RELEASE-UAT). A satisfies link, a closed work item, or verification_outcome on the version does not by itself complete a facet. The parent stays incomplete while any of its facets has no completion marker.
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+  statement_hash: sha256:5a80ba26324dc173705a8b30ba897d19ae1be24ef473299cbdf19d111358cd50
+  grooming_state: detailed
+  mint_kind: content
+- uid: ARCH-CRITERION-RELEASE-UAT
+  base_uid: ARCH-CRITERION-RELEASE-UAT
+  version_n: 0
+  status: draft
+  statement: UAT and review of a release are the completeness gate for acceptance criteria. A completion marker names the criterion, the release, the actor, and the time, and is recorded only for a criterion on a version that release delivers. Work items do not complete criteria. A capability may be delivered in more than one release; each release review may complete only the criteria that release earned. The capability's criteria are complete when each of its facets has a completion marker, which may be a later release than the first delivery.
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+  statement_hash: sha256:9cd0fc6888f9f31db2f66afcb99ea6ce79a1af1fa01535b23d8bc7144afdbd40
+  grooming_state: detailed
+- uid: ARCH-CAP-REVIEW-COPY
+  base_uid: ARCH-CAP-REVIEW-COPY
+  version_n: 0
+  status: draft
+  statement: 'A capability review may accept the implementation and still require a change. The required change mints a successor version. Criteria on the reviewed version freeze: their statements and completion markers are not edited after the successor exists. Each frozen criterion is copied onto the successor as a new criterion id with the same shall-statement and copied_from pointing at the frozen criterion. Completion markers stay on the frozen criterion. A copy of a criterion that already has a completion is born with its own marker, copied_from that completion and naming the same release, so an accepted criterion does not reopen. A copy of an open criterion starts with no completion. Later UAT may complete only open criteria on the successor.'
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+  statement_hash: sha256:3f00a8fd686960f0af76bc9ae5c9b6d500674a7fc6c225261d4c0761efbad6bd
+  grooming_state: detailed
+- uid: ARCH-WI-COMPILE
+  base_uid: ARCH-WI-COMPILE
+  version_n: 0
+  status: draft
+  statement: The initial work-item act compiles a briefing from a capability, not a one-to-one sync from a requirement. The briefing includes the capability's still-open acceptance criteria and the controls that apply to it (direct, inherited, and hybrid) for implementers to keep in mind. One capability may have many work items, including across releases, and a work item may cover only part of a capability. Closing, reopening, or editing a work item does not complete a criterion and does not change the capability statement. Two-way field push, pull, and conflict merge (J04–J06) are not this initial path.
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+  statement_hash: sha256:53037a8df95fc55af7f0e36f5885ed3e6bf356f8289ad093f4b8af2ae4376706
+  grooming_state: detailed
+- uid: CAP-CRITERIA-RELEASE-REVIEW
+  base_uid: CAP-CRITERIA-RELEASE-REVIEW
+  version_n: 0
+  status: draft
+  statement: 'Seed and schema only: capability acceptance criteria with completion markers separate from requirement facets; those markers are written in a release UAT or review, not by a work item; a review that accepts the implementation and still requires a change freezes criteria on the reviewed version and copies them onto the successor. No loader or UI in this release. Fixture: FIX-CAP-REVIEW, FIX-CAP-REVIEW.1, and rel-fix-cap-review-uat (not a product release).'
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+  statement_hash: sha256:72d5b072a5608a8054c8f9afecc5e375abb801fc93567d3b04a8291b6346c510
+  grooming_state: detailed
+- uid: FIX-REQ-REVIEW
+  base_uid: FIX-REQ-REVIEW
+  version_n: 0
+  status: draft
+  statement: FIXTURE need used only to show that a requirement facet and a capability facet are different criteria. Nothing in this line is a product requirement.
+  security:
+    catalog_ref: CM-2
+    verification_note: Fixture. Not a product requirement.
+  statement_hash: sha256:807a13d9b4acb66f46ec9b4393369b7ecec124dd32fa8e0a7449a94e0cc7b2a1
+  grooming_state: detailed
+- uid: FIX-CAP-REVIEW
+  base_uid: FIX-CAP-REVIEW
+  version_n: 0
+  status: superseded
+  statement: FIXTURE capability reviewed in rel-fix-cap-review-uat. One criterion was marked complete in that UAT; the review still required a change, so this version's criteria are frozen.
+  security:
+    catalog_ref: CM-2
+    verification_note: Fixture. Version outcome is not the completeness gate.
+  statement_hash: sha256:b6b1584e4ebf047d283346beabf3db05100bc1fa5ef509b5b7e8f11addac365d
+  grooming_state: detailed
+- uid: FIX-CAP-REVIEW.1
+  base_uid: FIX-CAP-REVIEW
+  version_n: 1
+  status: draft
+  statement: FIXTURE successor required by that review. Criteria were copied from FIX-CAP-REVIEW. The accepted criterion keeps a copied completion marker. The open criterion stays open for a later release review.
+  mint_kind: content
+  security:
+    catalog_ref: CM-2
+    verification_note: Fixture successor. Not activated.
+  statement_hash: sha256:5f5d4db5e681e1e8553bf23b132e21cb417ee4cf8b67e800759e5328355e8289
+  grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -10834,6 +10978,9 @@ capability_artifacts:
 - requirement_version_uid: CAP-SVC-HARDENING-FOLLOWUP
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_r1_release_state_seed.py
+- requirement_version_uid: CAP-CRITERIA-RELEASE-REVIEW
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_criteria_release_review.py
 edges:
 - from: CAP-SSO
   to: A01
@@ -17974,6 +18121,42 @@ edges:
 - from: CAP-SVC-HARDENING-FOLLOWUP
   to: CAP-SVC-RBAC-NO-PROJECT
   kind: refines
+- from: ARCH-REQ-AC-FACET.1
+  to: ARCH-REQ-AC-FACET
+  kind: refines
+- from: ARCH-REQ-AC-ROLLUP.1
+  to: ARCH-REQ-AC-ROLLUP
+  kind: refines
+- from: ARCH-CRITERION-RELEASE-UAT
+  to: ARCH-REQ-AC-ROLLUP.1
+  kind: refines
+- from: ARCH-CAP-REVIEW-COPY
+  to: ARCH-REQ-AC-FACET.1
+  kind: refines
+- from: ARCH-WI-COMPILE
+  to: J02
+  kind: refines
+- from: CAP-CRITERIA-RELEASE-REVIEW
+  to: ARCH-REQ-AC-FACET.1
+  kind: satisfies
+- from: CAP-CRITERIA-RELEASE-REVIEW
+  to: ARCH-REQ-AC-ROLLUP.1
+  kind: satisfies
+- from: CAP-CRITERIA-RELEASE-REVIEW
+  to: ARCH-CRITERION-RELEASE-UAT
+  kind: satisfies
+- from: CAP-CRITERIA-RELEASE-REVIEW
+  to: ARCH-CAP-REVIEW-COPY
+  kind: satisfies
+- from: CAP-CRITERIA-RELEASE-REVIEW
+  to: ARCH-WI-COMPILE
+  kind: satisfies
+- from: FIX-CAP-REVIEW
+  to: FIX-REQ-REVIEW
+  kind: satisfies
+- from: FIX-CAP-REVIEW.1
+  to: FIX-REQ-REVIEW
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -18157,6 +18340,7 @@ contracts:
   - rel-r1-catalogs-api
   - rel-r1-contracts-loader
   - rel-r1-core-alm
+  - rel-r1-criteria-release-review
   - rel-r1-foundation-shell-auth
   - rel-r1-lf-endings
   - rel-r1-mfa-qr
@@ -18230,6 +18414,7 @@ contracts:
   - ARCH-BUILD-FOUNDATION
   - ARCH-CAP-APPROVE
   - ARCH-CAP-LINK
+  - ARCH-CAP-REVIEW-COPY
   - ARCH-CAT-DRIFT
   - ARCH-CAT-EXTERNAL
   - ARCH-CAT-FREEZE
@@ -18258,6 +18443,7 @@ contracts:
   - ARCH-CRED-REAUTH
   - ARCH-CRED-SESSION
   - ARCH-CRED-TOKENS
+  - ARCH-CRITERION-RELEASE-UAT
   - ARCH-CYBER-GATE
   - ARCH-DEPLOY-MINIMAL
   - ARCH-DEPLOY-PERIPHERALS
@@ -18331,6 +18517,7 @@ contracts:
   - ARCH-VERIFICATION
   - ARCH-VERIFICATION-GATE
   - ARCH-WF-ADMIN
+  - ARCH-WI-COMPILE
   - ARCH-WORKFLOW
   - ARCH-WRITE-AUDIT-FLOOD
   - ARCH-WRITE-REPOSITORY-LAYER
@@ -18374,6 +18561,7 @@ contracts:
   - CAP-CONTRACT-UI
   - CAP-CONTRACTS-LOADER
   - CAP-CRED-STORE
+  - CAP-CRITERIA-RELEASE-REVIEW
   - CAP-DEVENV-COMPOSE
   - CAP-DEVENV-DOCKERFILE-ROLES
   - CAP-DEVENV-INIT
@@ -19244,6 +19432,26 @@ releases:
   - CAP-SVC-HARDENING-FOLLOWUP
   cyber_gate: false
   notes: Started 2026-10-10 on cloud agent bc-7132b537. One PR = one release; capability stays draft until that PR merges and verification passes.
+- id: rel-r1-criteria-release-review
+  project_id: reqalm
+  name: R1 — capability criteria completed in release review
+  planned_on: '2026-10-10'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-CRITERIA-RELEASE-REVIEW
+  cyber_gate: false
+  notes: Suggested seed for project-lead review. Not shipped. Encodes separate capability facets, UAT/review as the completeness gate, and freeze-and-copy when a review still requires a new version. rel-fix-cap-review-uat is a fixture and is not this release.
+- id: rel-fix-cap-review-uat
+  project_id: reqalm
+  name: Fixture — capability UAT review
+  planned_on: '2026-10-10'
+  shipped_on: '2026-10-10'
+  status: shipped
+  delivers:
+  - FIX-CAP-REVIEW
+  cyber_gate: false
+  notes: FIXTURE only, not a product release, and not covered by ctr-reqalm-product. UAT marked crit-fix-cap-a complete and still required FIX-CAP-REVIEW.1. The successor is not delivered here.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm
@@ -19861,3 +20069,40 @@ platform_grants:
   role: Key custodian
   scope: deployment
   notes: Deployment-scoped Key custodian (ARCH-KEY-CUSTODIAN); distinct from Client/Project admin (AC-5). Grants no requirement-content access.
+acceptance_criteria:
+- id: crit-fix-req
+  version_uid: FIX-REQ-REVIEW
+  position: 0
+  statement: The need shall remain distinguishable from the capability's own criteria.
+- id: crit-fix-cap-a
+  version_uid: FIX-CAP-REVIEW
+  position: 0
+  statement: The implementation shall record who attended the review.
+- id: crit-fix-cap-b
+  version_uid: FIX-CAP-REVIEW
+  position: 1
+  statement: The implementation shall keep an unfinished criterion open until a later release review.
+- id: crit-fix-cap-a-1
+  version_uid: FIX-CAP-REVIEW.1
+  position: 0
+  statement: The implementation shall record who attended the review.
+  copied_from: crit-fix-cap-a
+- id: crit-fix-cap-b-1
+  version_uid: FIX-CAP-REVIEW.1
+  position: 1
+  statement: The implementation shall keep an unfinished criterion open until a later release review.
+  copied_from: crit-fix-cap-b
+criterion_completions:
+- id: cc-fix-cap-a
+  criterion_id: crit-fix-cap-a
+  release_id: rel-fix-cap-review-uat
+  by: taylor-tester
+  at: '2026-10-10T15:00:00-04:00'
+  notes: UAT of the fixture release. Not a work-item transition.
+- id: cc-fix-cap-a-1
+  criterion_id: crit-fix-cap-a-1
+  release_id: rel-fix-cap-review-uat
+  by: taylor-tester
+  at: '2026-10-10T15:00:00-04:00'
+  copied_from: cc-fix-cap-a
+  notes: Copied with the criterion so the accepted item does not reopen. Not a second UAT decision.
