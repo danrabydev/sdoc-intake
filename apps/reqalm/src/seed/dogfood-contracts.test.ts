@@ -67,7 +67,74 @@ describe("dogfood ReqALM product vs maintenance contracts", () => {
     });
   });
 
-  it("loader accepts cross-project in_scope_of on contract anchor project", async () => {
+  it("loader rejects overlapping product vs maintenance in_scope_of", async () => {
+    const config = loadConfig(testConfigEnv());
+    const seed: DogfoodSeed = {
+      client: { id: "c1", name: "C1" },
+      projects: [{ id: "p1", client_id: "c1", name: "P1" }],
+      identities: [],
+      project_grants: [],
+      requirement_lines: [{ base_uid: "R1", project_id: "p1", kind: "requirement", title: "R" }],
+      requirement_versions: [
+        { uid: "R1", base_uid: "R1", project_id: "p1", version_n: 0, status: "active", statement: "s" },
+      ],
+      contracts: [
+        {
+          id: "ctr-reqalm-product",
+          client_id: "c1",
+          project_id: "p1",
+          name: "product",
+          status: "active",
+          in_scope_of: ["R1"],
+        },
+        {
+          id: "ctr-reqalm-maintenance",
+          client_id: "c1",
+          project_id: "p1",
+          name: "maint",
+          status: "active",
+          in_scope_of: ["R1"],
+        },
+      ],
+    };
+    await withMigratedPool(async (pool) => {
+      await assert.rejects(
+        () => loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true }),
+        (e: unknown) => e instanceof SeedValidationError && /share in_scope_of uid R1/.test(String(e)),
+      );
+    });
+  });
+
+  it("loader rejects invalid contract id slug", async () => {
+    const config = loadConfig(testConfigEnv());
+    const seed: DogfoodSeed = {
+      client: { id: "c1", name: "C1" },
+      projects: [{ id: "p1", client_id: "c1", name: "P1" }],
+      identities: [],
+      project_grants: [],
+      contracts: [{ id: "Bad_ID", client_id: "c1", project_id: "p1", name: "bad", status: "active" }],
+    };
+    await withMigratedPool(async (pool) => {
+      await assert.rejects(
+        () => loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true }),
+        (e: unknown) => e instanceof SeedValidationError && /invalid contract id/.test(String(e)),
+      );
+    });
+  });
+
+  it("DELETE contracts RESTRICTs when scope or release children exist", async () => {
+    const config = loadConfig(testConfigEnv());
+    const seed = await readDogfoodFile(dogfoodPath);
+    await withMigratedPool(async (pool) => {
+      await loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true });
+      await assert.rejects(
+        () => pool.query(`DELETE FROM contracts WHERE id = 'ctr-reqalm-maintenance'`),
+        /foreign key|violates foreign key constraint/i,
+      );
+    });
+  });
+
+  it("loader accepts cross-project in_scope_of on contract anchor project (intended coverage)", async () => {
     const config = loadConfig(testConfigEnv());
     const seed: DogfoodSeed = {
       client: { id: "c1", name: "C1" },

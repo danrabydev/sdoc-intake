@@ -7,6 +7,7 @@ import { parse } from "yaml";
 import type pg from "pg";
 import type { AppConfig } from "../config.js";
 import { isProduction } from "../config.js";
+import { CONTRACT_ID } from "../http/project-id.js";
 import {
   upsertCatalogMetadata,
   type CatalogImprintSeedRow,
@@ -208,7 +209,9 @@ export async function applyDogfoodSeed(
     uidProject.set(String(ver.uid), verProject);
     uidToBaseUid.set(String(ver.uid), baseUid);
   }
-  for (const c of seed.contracts ?? []) {
+  const contractRows = seed.contracts ?? [];
+  assertProductMaintenanceScopeDisjoint(contractRows);
+  for (const c of contractRows) {
     assertContractReferences(c, uidProject, releaseProject);
     await upsertContract(client, c, inserted);
   }
@@ -499,12 +502,30 @@ async function upsertVersion(
   if (r.rowCount) inserted.requirement_versions++;
 }
 
+function assertProductMaintenanceScopeDisjoint(contracts: Record<string, unknown>[]): void {
+  const byId = new Map(contracts.map((c) => [String(c.id), c]));
+  const product = byId.get("ctr-reqalm-product");
+  const maintenance = byId.get("ctr-reqalm-maintenance");
+  if (!product || !maintenance) return;
+  const productUids = new Set(((product.in_scope_of as unknown[]) ?? []).map(String));
+  for (const uid of ((maintenance.in_scope_of as unknown[]) ?? []).map(String)) {
+    if (productUids.has(uid)) {
+      throw new SeedValidationError(
+        `contracts ctr-reqalm-product and ctr-reqalm-maintenance share in_scope_of uid ${uid}`,
+      );
+    }
+  }
+}
+
 function assertContractReferences(
   row: Record<string, unknown>,
   uidProject: Map<string, string>,
   releaseProject: Map<string, string>,
 ): void {
   const contractId = String(row.id);
+  if (!CONTRACT_ID.test(contractId)) {
+    throw new SeedValidationError(`contract ${contractId}: invalid contract id`);
+  }
   for (const uid of (row.in_scope_of as unknown[] | undefined) ?? []) {
     if (!uidProject.has(String(uid))) {
       throw new SeedValidationError(`contract ${contractId}: unknown in_scope_of uid ${String(uid)}`);
@@ -547,6 +568,7 @@ async function upsertContract(
   );
   if (r.rows[0]?.inserted) inserted.contracts++;
 
+  // contract_scope.project_id is the contract anchor; version_uid may reference another project (intended).
   const scope = ((row.in_scope_of as unknown[] | undefined) ?? []).map(String);
   await client.query(
     `DELETE FROM contract_scope WHERE contract_id = $1 AND NOT (version_uid = ANY($2::text[]))`,

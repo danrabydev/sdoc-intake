@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS contracts (
 );
 
 CREATE TABLE IF NOT EXISTS contract_scope (
-  contract_id TEXT NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
+  contract_id TEXT NOT NULL REFERENCES contracts(id) ON DELETE RESTRICT,
   project_id TEXT NOT NULL REFERENCES projects(id),
   version_uid TEXT NOT NULL REFERENCES requirement_versions(uid),
   position INT NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS contract_scope (
 );
 
 CREATE TABLE IF NOT EXISTS contract_releases (
-  contract_id TEXT NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
+  contract_id TEXT NOT NULL REFERENCES contracts(id) ON DELETE RESTRICT,
   project_id TEXT NOT NULL REFERENCES projects(id),
   release_id TEXT NOT NULL REFERENCES releases(id),
   position INT NOT NULL,

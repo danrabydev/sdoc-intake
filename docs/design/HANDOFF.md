@@ -131,7 +131,7 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 
 - **Ship (this PR’s seed patch):** `rel-r1-browse-ui-catalogs` → **`CAP-BROWSE-UI-CATALOGS`** at merge **`cbee54e9484d89430b461789052cea296e1669c5`** (2026-10-09), `active` / `pass` (merged #41; do not edit **`patch_browse_ui_catalogs_release.py`**).
 - **Release (planned):** `rel-r1-contracts-loader` → **`CAP-CONTRACTS-LOADER`** (migration + dogfood loader only; read API is PR #43).
-- **Runtime:** `012_contracts_read.sql`; loader upserts `contracts`, `contract_scope`, `contract_releases`; seed reset wipes junction tables before `releases`.
+- **Runtime:** `012_contracts_read.sql`; loader upserts `contracts`, `contract_scope`, `contract_releases`; seed reset wipes junction tables before `releases`; junction FKs **`ON DELETE RESTRICT`**; loader validates **`CONTRACT_ID`**, product/maintenance scope disjointness, and cross-project scope lines (intended).
 - **Patch:** `docs/design/seed/scripts/patch_contracts_loader_release.py` — baseline fixture @ **`cbee54e`**; allow-list ship rows browse catalogs + planned loader only; **`--validate-baseline-edges`**.
 - **Validate:** `python3 patch_contracts_loader_release.py && python3 yaml_to_strictdoc.py --validate`.
 - **Counts (post-patch):** 455 lines, 488 versions, **1941** edges, 35 releases (4 planned including loader).
