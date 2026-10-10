@@ -1493,7 +1493,34 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned for RBAC authorize fail-closed PR.
+  notes: 'Capability active with verification pass after PR #46 merge d54c5a67235fd56e49bdbc2a939dce89ff5a4f36; formal approval record not filed in seed.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-read-planning
+  subject_kind: CapabilityLine
+  base_uid: CAP-READ-PLANNING
+  status: unapproved
+  by:
+  at:
+  notes: In progress on cloud agent bc-a71c6948; approve after merge and verification.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-read-artifacts
+  subject_kind: CapabilityLine
+  base_uid: CAP-READ-ARTIFACTS
+  status: unapproved
+  by:
+  at:
+  notes: In progress on cloud agent bc-72846206; approve after merge and verification.
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-svc-hardening-followup
+  subject_kind: CapabilityLine
+  base_uid: CAP-SVC-HARDENING-FOLLOWUP
+  status: unapproved
+  by:
+  at:
+  notes: In progress on cloud agent bc-7132b537; approve after merge and verification.
   approved_version_uid:
   approved_statement_hash:
 gate_signoffs:
@@ -3807,6 +3834,21 @@ requirement_lines:
   parent: SEC-SEC
   kind: capability
   title: RBAC authorize fails closed without project scope
+- base_uid: CAP-READ-PLANNING
+  project_id: reqalm
+  parent: SEC-CP
+  kind: capability
+  title: planning read API
+- base_uid: CAP-READ-ARTIFACTS
+  project_id: reqalm
+  parent: SEC-CP
+  kind: capability
+  title: capability artifacts read API
+- base_uid: CAP-SVC-HARDENING-FOLLOWUP
+  project_id: reqalm
+  parent: SEC-CP
+  kind: capability
+  title: hardening follow-up (no-project gate, fetchAllScope, test kit)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -9821,14 +9863,51 @@ requirement_versions:
 - uid: CAP-SVC-RBAC-NO-PROJECT
   base_uid: CAP-SVC-RBAC-NO-PROJECT
   version_n: 0
-  status: draft
+  status: active
   statement: "authorize() and listActiveRoles() fail closed when no project id is supplied: project_grants roles apply only when projectId matches; permissions other than platform Key custodian key:manage and audit:read are denied without a project scope, so a route that omits projectScoped cannot authorize via another project's grant."
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: Planned until RBAC authorize fail-closed PR merges.
+    verification_note: 'Shipped with RBAC authorize fail-closed PR #46 (merge d54c5a67235fd56e49bdbc2a939dce89ff5a4f36).'
   statement_hash: sha256:0490580e14a2ee69d73ce6c1dd5627fbe9f6dab8a6efe9ba6d0eaf03ae4ac9c8
+  grooming_state: detailed
+  verification_outcome: pass
+- uid: CAP-READ-PLANNING
+  base_uid: CAP-READ-PLANNING
+  version_n: 0
+  status: draft
+  statement: Planning read API (grant-scoped GET routes for backlog / iteration / work-item views). Not implemented in this release; capability statement will tighten when the feature PR lands.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-3
+    verification_note: Started 2026-10-10 (cloud agent bc-a71c6948); not shipped.
+  statement_hash: sha256:0102dcf5b14d6cbc41702339bd2c12516d20a791fc84800a511d72da5ffdb789
+  grooming_state: detailed
+- uid: CAP-READ-ARTIFACTS
+  base_uid: CAP-READ-ARTIFACTS
+  version_n: 0
+  status: draft
+  statement: Read API for capability_artifacts (list/detail by requirement version). Not implemented in this release; honest placeholder until artifacts read PR merges.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-3
+    verification_note: Started 2026-10-10 (cloud agent bc-72846206); not shipped.
+  statement_hash: sha256:4d94e3c36037e6d8b8d0a6cdf435c91462130e0bd9c894d4bebf0f7422c7dfad
+  grooming_state: detailed
+- uid: CAP-SVC-HARDENING-FOLLOWUP
+  base_uid: CAP-SVC-HARDENING-FOLLOWUP
+  version_n: 0
+  status: draft
+  statement: 'Follow-up hardening after RBAC fail-closed: explicit !projectId gate on routes that must not infer scope, bound fetchAllScope pagination in browse test kits, and rename shared contract browse test helpers for clarity. Work in progress on cloud agent; not shipped.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-3
+    verification_note: Started 2026-10-10 (cloud agent bc-7132b537); not shipped.
+  statement_hash: sha256:d5dafdbea5a4a3ff72e610aeac86192b0e8bfa7cc26894173011003d773a229a
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -10746,6 +10825,15 @@ capability_artifacts:
 - requirement_version_uid: CAP-SVC-RBAC-NO-PROJECT
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_rbac_authorize_fail_closed_release.py
+- requirement_version_uid: CAP-READ-PLANNING
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_r1_release_state_seed.py
+- requirement_version_uid: CAP-READ-ARTIFACTS
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_r1_release_state_seed.py
+- requirement_version_uid: CAP-SVC-HARDENING-FOLLOWUP
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_r1_release_state_seed.py
 edges:
 - from: CAP-SSO
   to: A01
@@ -17868,6 +17956,24 @@ edges:
 - from: CAP-SVC-RBAC-NO-PROJECT
   to: CAP-SVC-OPERATION-EXECUTOR
   kind: satisfies
+- from: CAP-READ-PLANNING
+  to: ARCH-BROWSE-ROADMAP
+  kind: satisfies
+- from: CAP-READ-PLANNING
+  to: ARCH-PLANNING-GATES
+  kind: satisfies
+- from: CAP-READ-ARTIFACTS
+  to: ARCH-ATTACH-PIN-VERSION
+  kind: satisfies
+- from: CAP-READ-ARTIFACTS
+  to: CAP-ATTACH-READ
+  kind: refines
+- from: CAP-SVC-HARDENING-FOLLOWUP
+  to: ARCH-API-RBAC
+  kind: satisfies
+- from: CAP-SVC-HARDENING-FOLLOWUP
+  to: CAP-SVC-RBAC-NO-PROJECT
+  kind: refines
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -19102,12 +19208,42 @@ releases:
   project_id: reqalm
   name: R1 — RBAC authorize fail closed (no project scope)
   planned_on: '2026-10-10'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-10'
+  status: shipped
   delivers:
   - CAP-SVC-RBAC-NO-PROJECT
   cyber_gate: true
-  notes: 'Security hardening: listActiveRoles without projectId must not union all project grants; authorize denies project-bound permissions unless projectId is set. Planned until merge.'
+  notes: 'PR #46 merged to main as d54c5a67235fd56e49bdbc2a939dce89ff5a4f36 on 2026-10-10. listActiveRoles without projectId does not union project grants; authorize denies project-bound permissions unless projectId is set (platform key:manage and audit:read excepted).'
+- id: rel-r1-planning-read-api
+  project_id: reqalm
+  name: R1 — planning read API
+  planned_on: '2026-10-10'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-READ-PLANNING
+  cyber_gate: false
+  notes: Started 2026-10-10 on cloud agent bc-a71c6948. One PR = one release; capability stays draft until that PR merges and verification passes.
+- id: rel-r1-artifacts-read-api
+  project_id: reqalm
+  name: R1 — capability artifacts read API
+  planned_on: '2026-10-10'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-READ-ARTIFACTS
+  cyber_gate: false
+  notes: Started 2026-10-10 on cloud agent bc-72846206. One PR = one release; capability stays draft until that PR merges and verification passes.
+- id: rel-r1-hardening-followup-1
+  project_id: reqalm
+  name: R1 — hardening follow-up (no-project gate, fetchAllScope, test kit)
+  planned_on: '2026-10-10'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-SVC-HARDENING-FOLLOWUP
+  cyber_gate: false
+  notes: Started 2026-10-10 on cloud agent bc-7132b537. One PR = one release; capability stays draft until that PR merges and verification passes.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

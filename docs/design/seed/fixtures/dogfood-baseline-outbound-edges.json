@@ -1,5 +1,5 @@
 {
-  "baseline_main": "86d315462b67446e605d6c898c15df2c8066b5d3",
+  "baseline_main": "d54c5a67235fd56e49bdbc2a939dce89ff5a4f36",
   "version_uids": [
     "A01",
     "A02",
@@ -269,6 +269,7 @@
     "CAP-SVC-PROBLEM-JSON",
     "CAP-SVC-PROJECT-ID-SLUG",
     "CAP-SVC-PROJECT-READ",
+    "CAP-SVC-RBAC-NO-PROJECT",
     "CAP-SVC-REQUEST-CONTEXT",
     "CAP-SVC-RESULT-ENVELOPE",
     "CAP-SVC-ROUTE-REGISTRY",
@@ -492,7 +493,7 @@
     "UI-APPROVE-TREE",
     "WANT-CHANGESET-FIELD-UNDO"
   ],
-  "edge_count": 1950,
+  "edge_count": 1953,
   "edges": [
     {
       "catalog_imprint_id": "asd-stig@v6r4",
@@ -10483,6 +10484,21 @@
       "suspect_reason": "target line content-succeeded; edge still on superseded .0 (ARCH-API-RBAC)",
       "to": "ARCH-API-RBAC",
       "trace_suspect": true
+    },
+    {
+      "from": "CAP-SVC-RBAC-NO-PROJECT",
+      "kind": "satisfies",
+      "to": "ARCH-API-RBAC"
+    },
+    {
+      "from": "CAP-SVC-RBAC-NO-PROJECT",
+      "kind": "satisfies",
+      "to": "CAP-RBAC"
+    },
+    {
+      "from": "CAP-SVC-RBAC-NO-PROJECT",
+      "kind": "satisfies",
+      "to": "CAP-SVC-OPERATION-EXECUTOR"
     },
     {
       "from": "CAP-SVC-REQUEST-CONTEXT",

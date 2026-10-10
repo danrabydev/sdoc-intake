@@ -3471,17 +3471,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-rbac-authorize-fail-closed
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — RBAC authorize fail closed (no project scope)
 STATEMENT: >>>
-ReqALM release `R1 — RBAC authorize fail closed (no project scope)` (status=planned, planned_on=2026-10-10). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — RBAC authorize fail closed (no project scope)` (status=shipped, planned_on=2026-10-10). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-rbac-authorize-fail-closed
 project_id: reqalm
-shipped_on: None
-raw_status: planned
+shipped_on: 2026-10-10
+raw_status: shipped
 delivers: CAP-SVC-RBAC-NO-PROJECT
 delivers_count: 1
 <<<
@@ -3490,6 +3490,75 @@ RELATIONS:
   VALUE: SEC-RELEASES-EXPORT
 - TYPE: Parent
   VALUE: CAP-SVC-RBAC-NO-PROJECT
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-planning-read-api
+STATUS: Draft
+TITLE: Release R1 — planning read API
+STATEMENT: >>>
+ReqALM release `R1 — planning read API` (status=planned, planned_on=2026-10-10). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-planning-read-api
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-READ-PLANNING
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-READ-PLANNING
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-artifacts-read-api
+STATUS: Draft
+TITLE: Release R1 — capability artifacts read API
+STATEMENT: >>>
+ReqALM release `R1 — capability artifacts read API` (status=planned, planned_on=2026-10-10). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-artifacts-read-api
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-READ-ARTIFACTS
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-READ-ARTIFACTS
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-hardening-followup-1
+STATUS: Draft
+TITLE: Release R1 — hardening follow-up (no-project gate, fetchAllScope, test kit)
+STATEMENT: >>>
+ReqALM release `R1 — hardening follow-up (no-project gate, fetchAllScope, test kit)` (status=planned, planned_on=2026-10-10). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-hardening-followup-1
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-SVC-HARDENING-FOLLOWUP
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-SVC-HARDENING-FOLLOWUP
   ROLE: Delivers
 
 [[/SECTION]]
