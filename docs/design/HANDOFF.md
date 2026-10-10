@@ -167,3 +167,9 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
+
+## Addendum — artifacts read API runtime (draft PR, main @ `341330f`)
+
+- **Release seed:** `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** already on main (#49); this PR is runtime only (migration 014, loader, list routes).
+- **API:** `GET .../requirement-versions/:versionUid/artifacts` and `.../attachments`; **`attachment:read`** (parent **`requirement:read`** guard on version); no upload/download bytes.
+- **Loader:** persists **`capability_artifacts`** from dogfood; **`file_attachments`** rows may be inserted in tests until seed adds fixtures.

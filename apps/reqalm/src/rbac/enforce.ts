@@ -5,43 +5,20 @@ import { effectiveRoles } from "./agent-role.js";
 /** Minimal v1 role → permission map (aligned to permission-matrix-flat.md). */
 const browseList = ["client:list", "project:list", "requirement:list", "release:list"] as const;
 const withBrowse = (...perms: string[]) => new Set([...perms, ...browseList]);
+const readBundle = ["requirement:read", "attachment:read", "contract:read", "release:read", "audit:read", "grant:read"] as const;
 
 /** Exact role → permission map (tests pin this table). */
 export const ROLE_PERMISSIONS: Record<string, Set<string>> = {
-  Reader: withBrowse("requirement:read", "contract:read", "release:read", "audit:read", "grant:read"),
-  Author: withBrowse("requirement:read", "contract:read", "requirement:write", "release:read", "audit:read", "grant:read"),
-  Developer: withBrowse("requirement:read", "contract:read", "workitem:write", "release:read", "audit:read", "grant:read"),
-  Tester: withBrowse("requirement:read", "contract:read", "verification:write", "release:read", "audit:read", "grant:read"),
-  "Release manager": withBrowse(
-    "requirement:read",
-    "contract:read",
-    "release:read",
-    "release:plan",
-    "release:ship",
-    "audit:read",
-    "grant:read",
-  ),
-  Security: withBrowse("requirement:read", "contract:read", "security:apply", "release:read", "audit:read", "grant:read"),
-  AO: withBrowse("requirement:read", "contract:read", "gate:approve", "release:read", "audit:read", "grant:read"),
-  Auditor: withBrowse("requirement:read", "contract:read", "release:read", "audit:read", "grant:read"),
-  "Project admin": withBrowse(
-    "requirement:read",
-    "contract:read",
-    "requirement:write",
-    "release:read",
-    "grant:manage",
-    "audit:read",
-    "grant:read",
-  ),
-  "Client admin": withBrowse(
-    "requirement:read",
-    "contract:read",
-    "client:manage",
-    "release:read",
-    "grant:manage",
-    "audit:read",
-    "grant:read",
-  ),
+  Reader: withBrowse(...readBundle),
+  Author: withBrowse(...readBundle, "requirement:write"),
+  Developer: withBrowse(...readBundle, "workitem:write"),
+  Tester: withBrowse(...readBundle, "verification:write"),
+  "Release manager": withBrowse(...readBundle, "release:plan", "release:ship"),
+  Security: withBrowse(...readBundle, "security:apply"),
+  AO: withBrowse(...readBundle, "gate:approve"),
+  Auditor: withBrowse(...readBundle),
+  "Project admin": withBrowse(...readBundle, "requirement:write", "grant:manage"),
+  "Client admin": withBrowse(...readBundle, "client:manage", "grant:manage"),
   "Key custodian": new Set(["key:manage", "audit:read"]),
 };
 

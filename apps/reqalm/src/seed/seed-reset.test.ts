@@ -18,6 +18,7 @@ import {
   resetDogfoodSeed,
   runSeedResetCommand,
   SeedResetRefusedError,
+  SEED_RESET_PRESERVED_TABLES,
   summarizeSeedReset,
 } from "./seed-reset.js";
 import { createMigratedPglitePool } from "../test/pglite-pool.js";
@@ -292,6 +293,26 @@ describe("seed reset", () => {
     await pg.close();
   });
 
+  it("clears and reloads capability_artifacts and attachment tables for YAML projects", async () => {
+    const pg = await createMigratedPglitePool();
+    const { config, env } = harness();
+    const seed = await readDogfoodFile(dogfoodPath);
+    await loadDogfoodSeed(pg.pool, config, seed);
+    const blob = `blob_${"a".repeat(64)}`;
+    await pg.pool.query(`INSERT INTO attachment_blobs (id, sha256, size_bytes, media_type, storage_key) VALUES ($1, $2, 1, 'text/plain', 't') ON CONFLICT DO NOTHING`, [blob, "a".repeat(64)]);
+    await pg.pool.query(`INSERT INTO file_attachments (id, client_id, project_id, parent_kind, parent_uid, display_name) VALUES ('att_a1b2c3d4e5f6g7h8i9j0k1l2m4', 'raby-family', 'reqalm', 'requirement_version', 'CAP-SSO', 'p')`);
+    await pg.pool.query(`INSERT INTO file_attachment_versions (id, attachment_id, version_n, blob_id, scan_state, uploaded_by) VALUES ('attv_b2c3d4e5f6g7h8i9j0k1l2m3n4', 'att_a1b2c3d4e5f6g7h8i9j0k1l2m4', 1, $1, 'clean', 't')`, [blob]);
+    await pg.pool.query(`INSERT INTO capability_artifacts (id, project_id, requirement_version_uid, kind, uri, position) VALUES ('art_c3d4e5f6g7h8i9j0k1l2m3n4o5', 'reqalm', 'CAP-SSO', 'other', 'probe://x', 99)`);
+    await resetDogfoodSeed(pg.pool, config, seed, { confirm: true, seedPath: dogfoodPath, repoRoot, env });
+    assert.equal((await pg.pool.query(`SELECT 1 FROM file_attachments WHERE id = 'att_a1b2c3d4e5f6g7h8i9j0k1l2m4'`)).rowCount, 0);
+    assert.equal((await pg.pool.query(`SELECT 1 FROM capability_artifacts WHERE id = 'art_c3d4e5f6g7h8i9j0k1l2m3n4o5'`)).rowCount, 0);
+    assert.equal(
+      (await pg.pool.query(`SELECT count(*)::int AS c FROM capability_artifacts WHERE requirement_version_uid = 'CAP-SSO'`)).rows[0]?.c,
+      2,
+    );
+    await pg.close();
+  });
+
   it("is idempotent on a second run", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();
@@ -378,29 +399,17 @@ describe("seed reset", () => {
     );
     // Every table the reset does not own, row for row (clients/projects are synced from the YAML,
     // seed_meta records the reset, audit_events is checked below).
-    const notOwned = async () => {
-      const owned = new Set([
-        "requirement_lines",
-        "requirement_versions",
-        "releases",
-        "release_delivers",
-        "clients",
-        "projects",
-        "seed_meta",
-        "audit_events",
-      ]);
-      const tables = (
-        await pg.pool.query(`SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY 1`)
-      ).rows
-        .map((r) => String(r.tablename))
-        .filter((t) => !owned.has(t));
+    const preservedSnapshot = async () => {
+      const tables = SEED_RESET_PRESERVED_TABLES.filter((t) => t !== "audit_events");
       const rows: Record<string, unknown[]> = {};
-      for (const t of tables) rows[t] = (await pg.pool.query(`SELECT * FROM ${t} x ORDER BY x::text`)).rows;
+      for (const t of tables) {
+        rows[t] = (await pg.pool.query(`SELECT * FROM ${t} ORDER BY 1`)).rows;
+      }
       return rows;
     };
     const auditRows = async () =>
       (await pg.pool.query(`SELECT * FROM audit_events ORDER BY id`)).rows;
-    const keptBefore = await notOwned();
+    const keptBefore = await preservedSnapshot();
     for (const t of ["identities", "project_grants", "platform_grants", "local_credentials", "web_sessions", "auth_sessions"]) {
       assert.ok((keptBefore[t]?.length ?? 0) > 0, `${t} has rows before the reset`);
     }
@@ -414,7 +423,7 @@ describe("seed reset", () => {
       actor: "dan",
     });
 
-    assert.deepEqual(await notOwned(), keptBefore);
+    assert.deepEqual(await preservedSnapshot(), keptBefore);
     assert.equal((await foreignRows()).length, 3, "rows of a project not in the YAML survive the reset");
     const auditAfter = await auditRows();
     // audit_events: every earlier row unchanged, exactly one row appended.

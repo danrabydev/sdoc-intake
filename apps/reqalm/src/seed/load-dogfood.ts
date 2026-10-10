@@ -7,7 +7,8 @@ import { parse } from "yaml";
 import type pg from "pg";
 import type { AppConfig } from "../config.js";
 import { isProduction } from "../config.js";
-import { CONTRACT_ID } from "../http/project-id.js";
+import { ATTACHMENT_ID, ATTACHMENT_VERSION_ID, CONTRACT_ID } from "../http/project-id.js";
+import { stableCapabilityArtifactId } from "../modules/read-artifacts/artifacts.service.js";
 import {
   upsertCatalogMetadata,
   type CatalogImprintSeedRow,
@@ -47,6 +48,8 @@ export type DogfoodSeed = {
   contracts?: DogfoodContractSeedRow[];
   catalogs?: CatalogSeedRow[];
   catalog_imprints?: CatalogImprintSeedRow[];
+  capability_artifacts?: Record<string, unknown>[];
+  file_attachments?: Record<string, unknown>[];
 };
 
 export class SeedValidationError extends Error {
@@ -129,6 +132,10 @@ export async function applyDogfoodSeed(
     contracts: 0,
     contract_scope: 0,
     contract_releases: 0,
+    capability_artifacts: 0,
+    file_attachments: 0,
+    file_attachment_versions: 0,
+    attachment_blobs: 0,
   };
 
   const countBefore = options?.skipUnchangedCheck ? null : await countSeedRows(client);
@@ -215,6 +222,8 @@ export async function applyDogfoodSeed(
     assertContractReferences(c, uidProject, releaseProject);
     await upsertContract(client, c, inserted);
   }
+  await loadCapabilityArtifacts(client, seed.capability_artifacts ?? [], uidProject, inserted);
+  await loadFileAttachments(client, seed.file_attachments ?? [], uidProject, inserted);
   for (const e of seed.edges ?? []) {
     assertInheritableTraceEdge(e, uidProject, uidToBaseUid, lineKindByProjectBase);
     await upsertTraceEdge(client, e, uidProject, inserted);
@@ -284,6 +293,10 @@ export async function countSeedRows(client: pg.PoolClient) {
     "contracts",
     "contract_scope",
     "contract_releases",
+    "capability_artifacts",
+    "file_attachment_versions",
+    "file_attachments",
+    "attachment_blobs",
   ] as const;
   const counts: Record<string, number> = {};
   for (const t of tables) {
@@ -828,4 +841,165 @@ export async function getSeedSummary(pool: pg.Pool) {
     releases: releases.rows,
     sample_identity_id: (sample.rows[0]?.id as string | undefined) ?? null,
   };
+}
+
+const BLOB_ID = /^blob_[0-9a-f]{64}$/;
+const ARTIFACT_KINDS = new Set(["openapi", "wireframe", "mock", "other"]);
+
+async function loadCapabilityArtifacts(
+  client: pg.PoolClient,
+  rows: Record<string, unknown>[],
+  uidProject: Map<string, string>,
+  inserted: Record<string, number>,
+): Promise<void> {
+  const byVersion = new Map<string, { kind: string; uri: string; position: number }[]>();
+  for (const row of rows) {
+    const versionUid = String(row.requirement_version_uid);
+    const projectId = uidProject.get(versionUid);
+    if (!projectId) {
+      throw new SeedValidationError(`capability_artifact: unknown requirement_version_uid ${versionUid}`);
+    }
+    const kind = String(row.kind);
+    if (!ARTIFACT_KINDS.has(kind)) {
+      throw new SeedValidationError(`capability_artifact ${versionUid}: invalid kind ${kind}`);
+    }
+    const uri = String(row.uri);
+    const list = byVersion.get(versionUid) ?? [];
+    list.push({ kind, uri, position: list.length });
+    byVersion.set(versionUid, list);
+  }
+  for (const [versionUid, list] of byVersion) {
+    const projectId = uidProject.get(versionUid)!;
+    const positions = list.map((_, i) => i);
+    await client.query(
+      `DELETE FROM capability_artifacts
+         WHERE requirement_version_uid = $1 AND NOT (position = ANY($2::int[]))`,
+      [versionUid, positions],
+    );
+    for (const item of list) {
+      const id = stableCapabilityArtifactId(versionUid, item.position);
+      const d = await client.query(
+        `INSERT INTO capability_artifacts (id, project_id, requirement_version_uid, kind, uri, position)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (requirement_version_uid, position) DO UPDATE SET
+           project_id = EXCLUDED.project_id, kind = EXCLUDED.kind, uri = EXCLUDED.uri, id = EXCLUDED.id
+         RETURNING (xmax = 0) AS inserted`,
+        [id, projectId, versionUid, item.kind, item.uri, item.position],
+      );
+      if (d.rows[0]?.inserted) inserted.capability_artifacts++;
+    }
+  }
+}
+
+async function loadFileAttachments(
+  client: pg.PoolClient,
+  rows: Record<string, unknown>[],
+  uidProject: Map<string, string>,
+  inserted: Record<string, number>,
+): Promise<void> {
+  const allowedParents = new Set(["requirement_version", "capability_version"]);
+  for (const row of rows) {
+    const id = String(row.id);
+    if (!ATTACHMENT_ID.test(id)) {
+      throw new SeedValidationError(`file_attachment ${id}: invalid attachment id`);
+    }
+    const parentKind = String(row.parent_kind);
+    if (!allowedParents.has(parentKind)) {
+      throw new SeedValidationError(`file_attachment ${id}: invalid parent_kind ${parentKind}`);
+    }
+    const parentUid = String(row.parent_uid);
+    const projectId = uidProject.get(parentUid);
+    if (!projectId) {
+      throw new SeedValidationError(`file_attachment ${id}: unknown parent_uid ${parentUid}`);
+    }
+    const clientId = String(row.client_id);
+    const displayName = String(row.display_name);
+    const versions = (row.versions as Record<string, unknown>[] | undefined) ?? [];
+    if (versions.length === 0) {
+      throw new SeedValidationError(`file_attachment ${id}: at least one version required`);
+    }
+    const fa = await client.query(
+      `INSERT INTO file_attachments (id, client_id, project_id, parent_kind, parent_uid, display_name, deleted_at, deleted_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::timestamptz, $8)
+       ON CONFLICT (id) DO UPDATE SET
+         client_id = EXCLUDED.client_id, project_id = EXCLUDED.project_id, parent_kind = EXCLUDED.parent_kind,
+         parent_uid = EXCLUDED.parent_uid, display_name = EXCLUDED.display_name,
+         deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by
+       RETURNING (xmax = 0) AS inserted`,
+      [
+        id,
+        clientId,
+        projectId,
+        parentKind,
+        parentUid,
+        displayName,
+        row.deleted_at ?? null,
+        row.deleted_by ?? null,
+      ],
+    );
+    if (fa.rows[0]?.inserted) inserted.file_attachments++;
+
+    const versionIds: string[] = [];
+    for (const ver of versions) {
+      const versionId = String(ver.id);
+      if (!ATTACHMENT_VERSION_ID.test(versionId)) {
+        throw new SeedValidationError(`file_attachment ${id}: invalid version id ${versionId}`);
+      }
+      versionIds.push(versionId);
+      const versionN = Number(ver.version_n);
+      const blobId = String(ver.blob_id);
+      if (!BLOB_ID.test(blobId)) {
+        throw new SeedValidationError(`file_attachment ${id}: invalid blob_id ${blobId}`);
+      }
+      const sha256 = String(ver.sha256);
+      if (blobId !== `blob_${sha256}`) {
+        throw new SeedValidationError(`file_attachment ${id}: blob_id must match sha256`);
+      }
+      const blobIns = await client.query(
+        `INSERT INTO attachment_blobs (id, sha256, size_bytes, media_type, storage_key, wrapped_dek)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (id) DO UPDATE SET
+           sha256 = EXCLUDED.sha256, size_bytes = EXCLUDED.size_bytes, media_type = EXCLUDED.media_type,
+           storage_key = EXCLUDED.storage_key
+         RETURNING (xmax = 0) AS inserted`,
+        [
+          blobId,
+          sha256,
+          ver.size_bytes,
+          ver.media_type,
+          ver.storage_key ?? `seed/${blobId}`,
+          null,
+        ],
+      );
+      if (blobIns.rows[0]?.inserted) inserted.attachment_blobs++;
+      const vIns = await client.query(
+        `INSERT INTO file_attachment_versions (id, attachment_id, version_n, blob_id, scan_state, uploaded_by, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7::timestamptz, now()))
+         ON CONFLICT (attachment_id, version_n) DO UPDATE SET
+           blob_id = EXCLUDED.blob_id, scan_state = EXCLUDED.scan_state, uploaded_by = EXCLUDED.uploaded_by
+         RETURNING (xmax = 0) AS inserted`,
+        [
+          versionId,
+          id,
+          versionN,
+          blobId,
+          ver.scan_state ?? "clean",
+          ver.uploaded_by ?? "seed-loader",
+          ver.created_at ?? null,
+        ],
+      );
+      if (vIns.rows[0]?.inserted) inserted.file_attachment_versions++;
+    }
+    await client.query(
+      `DELETE FROM file_attachment_versions
+         WHERE attachment_id = $1 AND NOT (id = ANY($2::text[]))`,
+      [id, versionIds],
+    );
+    if (row.deleted_at) {
+      await client.query(`UPDATE file_attachments SET deleted_at = $2::timestamptz WHERE id = $1`, [
+        id,
+        row.deleted_at,
+      ]);
+    }
+  }
 }

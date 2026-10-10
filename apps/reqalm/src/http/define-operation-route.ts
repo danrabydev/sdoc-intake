@@ -138,7 +138,20 @@ export function defineOperationRoute<TIn, TOut>(
 
   const run = async (req: FastifyRequest, parse: () => ServiceResult<TIn>) => {
     const ctx = await buildRequestContext(req, { ...deps, logger: req.log });
-    return runOperationCall(ctx, op, { projectId: scopeOf(req), parseInput: parse });
+    let earlyValidation: ServiceResult<never> | undefined;
+    if (op.projectScoped && op.validatePathProjectId) {
+      const v = parseZodInput(
+        projectIdSchema,
+        (req.params as Record<string, unknown> | undefined)?.projectId,
+        "params",
+      );
+      if (!v.ok) earlyValidation = v;
+    }
+    return runOperationCall(ctx, op, {
+      projectId: earlyValidation ? undefined : scopeOf(req),
+      parseInput: parse,
+      earlyValidation,
+    });
   };
 
   /**
