@@ -28,6 +28,7 @@ function assertCapReadReqsStable(d: RequirementRelationsDto) {
   assert.deepEqual(peerIds(d.incoming.satisfies), [
     "CAP-BROWSE-UI-REQS",
     "CAP-CATALOGS-API",
+    "CAP-READ-CONTRACTS",
     "CAP-READ-HIERARCHY",
     "CAP-RELATIONS-API",
   ]);

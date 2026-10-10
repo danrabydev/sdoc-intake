@@ -3193,6 +3193,7 @@ edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
 edge: ← satisfies from CAP-BROWSE-UI-REQS.1
+edge: ← satisfies from CAP-READ-CONTRACTS
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — requirements read API
 <<<
@@ -3535,6 +3536,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with catalogs browse UI PR #41 (merge cbee54e9484d89430b461789052cea296e1669c5).
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — browse catalogs UI (read-only)
 <<<
 RELATIONS:
@@ -3553,12 +3555,15 @@ RELATIONS:
   VALUE: ARCH-UI-GUARD
   ROLE: Satisfies
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-catalogs
   ROLE: Delivers
 
 [REQUIREMENT]
 UID: CAP-CONTRACTS-LOADER
-STATUS: Draft
+STATUS: Active
 TITLE: Persist contracts from dogfood (migration + loader)
 STATEMENT: >>>
 Dogfood loader persists contract overlays from dogfood.yaml into Postgres: contracts, contract_scope, and contract_releases (migration 012_contracts_read.sql). Validates in_scope_of version uids and covers_releases release ids; allows cross-project scope lines anchored on the contract project_id. Seed reset deletes contract junction rows before releases (FK-safe). No HTTP read API in this release.
@@ -3570,7 +3575,8 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: Planned until contracts loader PR merges.
+security.verification_note: Shipped with contracts loader PR #44 (merge 0f471a90c244c98330d37478d92e9f12cbb96c77).
+in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — contracts loader (DB + seed)
 <<<
 RELATIONS:
@@ -3586,7 +3592,50 @@ RELATIONS:
   VALUE: CAP-SVC-OPERATION-ROUTE
   ROLE: Satisfies
 - TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
   VALUE: RELEASE-rel-r1-contracts-loader
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-READ-CONTRACTS
+STATUS: Draft
+TITLE: Read contracts (list, detail, scope, releases)
+STATEMENT: >>>
+Grant-scoped read-only contracts API under /api/v1/projects/:projectId/contracts: paged list with scope and release counts; detail; paged in_scope_of scope lines (uid, base, kind, status, version) with cross-project lines omitted when the caller lacks requirement:read on the line project; covers_releases release summaries. RBAC contract:read mirrors requirement:read roles; missing/forbidden contract access returns 404.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-READ-CONTRACTS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Planned until contracts read API PR merges.
+in_scope_of_contract: ReqALM product (build)
+delivered_by_release: R1 — contracts read API
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: F10
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CONTRACT.1
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-READ-REQS
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-read-contracts
   ROLE: Delivers
 
 [[/SECTION]]
@@ -5869,6 +5918,7 @@ edge: ← uses from L02
 edge: ← uses from F04
 edge: ← satisfies from CAP-REQALM-CONTRACTS
 edge: ← satisfies from CAP-CONTRACTS-LOADER
+edge: ← satisfies from CAP-READ-CONTRACTS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -6397,6 +6447,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-CONTRACT-UI
 edge: ← satisfies from CAP-CONTRACTS-LOADER
+edge: ← satisfies from CAP-READ-CONTRACTS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -12794,6 +12845,7 @@ edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
 edge: ← satisfies from CAP-CONTRACTS-LOADER
+edge: ← satisfies from CAP-READ-CONTRACTS
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<

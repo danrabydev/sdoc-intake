@@ -24,6 +24,9 @@ export type OperationDef<TIn, TOut> = {
   projectIdFromInput?: (input: TIn) => string | undefined;
   /** Cross-project list/read: skip union RBAC gate; filter by per-project permission in execute. */
   listScope?: true;
+  /** Failed permission check returns not_found when set (optional detail via permissionDeniedDetail). */
+  permissionDeniedAsNotFound?: true;
+  permissionDeniedDetail?: string;
   auditMeta?: (input: TIn) => OperationAuditMeta;
   execute: (ctx: RequestContext, input: TIn) => Promise<ServiceResult<TOut>>;
 };
@@ -208,6 +211,13 @@ async function runPipeline<TIn, TOut>(
         ctx.auth.accessToken,
       );
       if (!allowed) {
+        if (def.permissionDeniedAsNotFound) {
+          return finish(
+            err("not_found", def.permissionDeniedDetail ?? "Not found"),
+            "deny",
+            "deny",
+          );
+        }
         return finish(err("forbidden", "Insufficient permission"), "deny", "deny");
       }
     }

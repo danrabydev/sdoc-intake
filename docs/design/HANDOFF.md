@@ -135,3 +135,11 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Patch:** `docs/design/seed/scripts/patch_contracts_loader_release.py` — baseline fixture @ **`cbee54e`**; allow-list ship rows browse catalogs + planned loader only; **`--validate-baseline-edges`**.
 - **Validate:** `python3 patch_contracts_loader_release.py && python3 yaml_to_strictdoc.py --validate`.
 - **Counts (post-patch):** 455 lines, 488 versions, **1941** edges, 35 releases (4 planned including loader).
+
+## Addendum — contracts read API (PR #43 on #44)
+
+- **Ship (this PR’s seed patch, after #44 merges):** `rel-r1-contracts-loader` → **`CAP-CONTRACTS-LOADER`** at merge **`0f471a90c244c98330d37478d92e9f12cbb96c77`** (2026-10-10), `active` / `pass`.
+- **Release (planned):** `rel-r1-read-contracts` → **`CAP-READ-CONTRACTS`** (not shipped until Dan says so).
+- **API:** four GET routes under `/api/v1/projects/:projectId/contracts`; **`contract:read`**; grant-filtered counts; hidden scope lines omitted; authz/missing → **404**.
+- **Patch:** `patch_read_contracts_release.py` — allow-list ship rows browse catalogs (#44) + loader; **`--validate-baseline-edges`**.
+- **Counts (post-patch):** 456 lines, 489 versions, **1945** edges, 36 releases (4 planned including read API).

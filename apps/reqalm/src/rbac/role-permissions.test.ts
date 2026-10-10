@@ -6,6 +6,8 @@ const EXPECTED: Record<string, string[]> = {
   Reader: [
     "audit:read",
     "client:list",
+    "contract:list",
+    "contract:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -16,6 +18,8 @@ const EXPECTED: Record<string, string[]> = {
   Author: [
     "audit:read",
     "client:list",
+    "contract:list",
+    "contract:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -27,6 +31,8 @@ const EXPECTED: Record<string, string[]> = {
   Developer: [
     "audit:read",
     "client:list",
+    "contract:list",
+    "contract:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -38,6 +44,8 @@ const EXPECTED: Record<string, string[]> = {
   Tester: [
     "audit:read",
     "client:list",
+    "contract:list",
+    "contract:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -49,6 +57,8 @@ const EXPECTED: Record<string, string[]> = {
   "Release manager": [
     "audit:read",
     "client:list",
+    "contract:list",
+    "contract:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -61,6 +71,8 @@ const EXPECTED: Record<string, string[]> = {
   Security: [
     "audit:read",
     "client:list",
+    "contract:list",
+    "contract:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -72,6 +84,8 @@ const EXPECTED: Record<string, string[]> = {
   AO: [
     "audit:read",
     "client:list",
+    "contract:list",
+    "contract:read",
     "gate:approve",
     "grant:read",
     "project:list",
@@ -83,6 +97,8 @@ const EXPECTED: Record<string, string[]> = {
   Auditor: [
     "audit:read",
     "client:list",
+    "contract:list",
+    "contract:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -93,6 +109,8 @@ const EXPECTED: Record<string, string[]> = {
   "Project admin": [
     "audit:read",
     "client:list",
+    "contract:list",
+    "contract:read",
     "grant:manage",
     "grant:read",
     "project:list",
@@ -106,6 +124,8 @@ const EXPECTED: Record<string, string[]> = {
     "audit:read",
     "client:list",
     "client:manage",
+    "contract:list",
+    "contract:read",
     "grant:manage",
     "grant:read",
     "project:list",
@@ -134,6 +154,8 @@ describe("ROLE_PERMISSIONS table", () => {
       "requirement:read",
       "release:list",
       "release:read",
+      "contract:list",
+      "contract:read",
     ]) {
       assert.equal(perms.has(p), false, p);
     }
