@@ -1394,7 +1394,7 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned CAP-UI-LAYOUT.
+  notes: 'Capability active with verification pass after PR #42 merge 4d82bf9ab35ed63db675de8b187952cf60a434e5; formal approval record not filed in seed.'
   approved_version_uid:
   approved_statement_hash:
 - id: ar-cap-ui-view-rtm
@@ -1449,6 +1449,15 @@ approval_records:
   by:
   at:
   notes: 'Mockup files (Grok Bot box): 10a-focus-cap-rbac.png, 10d-focus-picker-search.png, 11a-focus-release-r1-foundation-shipped.png.'
+  approved_version_uid:
+  approved_statement_hash:
+- id: ar-browse-ui-catalogs
+  subject_kind: CapabilityLine
+  base_uid: CAP-BROWSE-UI-CATALOGS
+  status: unapproved
+  by:
+  at:
+  notes: Planned for catalogs browse UI PR.
   approved_version_uid:
   approved_statement_hash:
 gate_signoffs:
@@ -3737,6 +3746,11 @@ requirement_lines:
   parent: SEC-UI
   kind: capability
   title: Capability and release focus view (mock)
+- base_uid: CAP-BROWSE-UI-CATALOGS
+  project_id: reqalm
+  parent: SEC-CP
+  kind: capability
+  title: Browse catalogs UI (read-only)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -9490,15 +9504,16 @@ requirement_versions:
 - uid: CAP-UI-LAYOUT
   base_uid: CAP-UI-LAYOUT
   version_n: 0
-  status: draft
+  status: active
   statement: 'ReqALM /app layout (no persistent sidebar): a fixed header band (CAP-UI-HEADER-NAV) spans the viewport with brand, client/project/page breadcrumb, project tabs, and account menu; the remaining viewport is the main content region. Main patterns: (1) paged list with URL-driven filters and row links to detail; (2) list + detail split (tree or table beside a detail pane); (3) single-column detail with secondary panels (version history, relationships); (4) two- or three-column trace boards with cross-highlighted join paths; (5) catalog pickers with imprint/control columns. Navigation: header tabs switch major project modes (Requirements list/tree, Releases, future Traceability/Capabilities/Contracts/Audit stubs); breadcrumbs and in-content links drill to requirement, release, capability, contract, and catalog routes; client-scoped routes under /app/clients and /app/projects/:projectId/*. All feature views consume shared chrome via CAP-UI-KIT (header, badges, tree widget).'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: Planned layout architecture; seed-only 2026-10-10.
+    verification_note: 'Shipped with UI layout seed PR #42 (merge 4d82bf9ab35ed63db675de8b187952cf60a434e5).'
   statement_hash: sha256:30ebdacf1fca80bdd80f2c42e93d73a1ba1eac3a45900d700dc5edb1ba728145
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-UI-FRAME.2
   base_uid: CAP-UI-FRAME
   version_n: 2
@@ -9694,6 +9709,18 @@ requirement_versions:
     catalog_ref: CM-2
     verification_note: 'Mockup files (Grok Bot box): 10a-focus-cap-rbac.png, 10d-focus-picker-search.png, 11a-focus-release-r1-foundation-shipped.png.'
   statement_hash: sha256:348cb241b82f3628e8be85ba0a50cd5ef493fe2a2fc866f88d6c5509f132a1ac
+  grooming_state: detailed
+- uid: CAP-BROWSE-UI-CATALOGS
+  base_uid: CAP-BROWSE-UI-CATALOGS
+  version_n: 0
+  status: draft
+  statement: 'Read-only /app browse screens for grant-scoped catalogs within a project: catalog list (title, primary imprint, control count), imprint detail with controls grouped by family and conforming-line counts, and control detail (statement + conforming requirement/capability chips). Uses catalogs read API; restricted catalogs follow API 404/redaction. Safe DOM (textContent only); Catalogs project tab in header nav.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until catalogs browse UI PR merges.
+  statement_hash: sha256:65e18f30004cc8301f9e8e8ba21608ef403e0116a86f8abd6bd3d9d1868963ac
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -10539,6 +10566,33 @@ capability_artifacts:
 - requirement_version_uid: CAP-UI-LAYOUT
   kind: other
   uri: ../../../docs/design/HANDOFF.md
+- requirement_version_uid: CAP-BROWSE-UI-CATALOGS
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/browse-catalogs.js
+- requirement_version_uid: CAP-BROWSE-UI-CATALOGS
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/browse.js
+- requirement_version_uid: CAP-BROWSE-UI-CATALOGS
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/browse-core.js
+- requirement_version_uid: CAP-BROWSE-UI-CATALOGS
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/browse-relations.js
+- requirement_version_uid: CAP-BROWSE-UI-CATALOGS
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/shell-nav.js
+- requirement_version_uid: CAP-BROWSE-UI-CATALOGS
+  kind: other
+  uri: ../../../apps/reqalm/src/web/public/styles.css
+- requirement_version_uid: CAP-BROWSE-UI-CATALOGS
+  kind: other
+  uri: ../../../apps/reqalm/src/web/spa-shell-paths.ts
+- requirement_version_uid: CAP-BROWSE-UI-CATALOGS
+  kind: other
+  uri: ../../../apps/reqalm/src/web/browse-ui.test.ts
+- requirement_version_uid: CAP-BROWSE-UI-CATALOGS
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_browse_ui_catalogs_release.py
 edges:
 - from: CAP-SSO
   to: A01
@@ -17604,6 +17658,18 @@ edges:
 - from: CAP-UI-LAYOUT
   to: CAP-UI-KIT
   kind: uses
+- from: CAP-BROWSE-UI-CATALOGS
+  to: CAP-CATALOGS-API
+  kind: satisfies
+- from: CAP-BROWSE-UI-CATALOGS
+  to: CAP-BROWSE-UI-REQS
+  kind: satisfies
+- from: CAP-BROWSE-UI-CATALOGS
+  to: CAP-UI-HEADER-NAV
+  kind: satisfies
+- from: CAP-BROWSE-UI-CATALOGS
+  to: ARCH-UI-GUARD
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -18782,12 +18848,22 @@ releases:
   project_id: reqalm
   name: R1 — UI layout capability statements (seed)
   planned_on: '2026-10-10'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-09'
+  status: shipped
   delivers:
   - CAP-UI-LAYOUT
   cyber_gate: false
-  notes: Seed-only UI layout + mock view capabilities on main @ 1eb8482. Documents regions/links in capability text; ships nothing.
+  notes: 'PR #42 merged to main as 4d82bf9ab35ed63db675de8b187952cf60a434e5 on 2026-10-09. UI layout capability statements + mock view drafts in dogfood seed.'
+- id: rel-r1-browse-ui-catalogs
+  project_id: reqalm
+  name: R1 — browse catalogs UI (read-only)
+  planned_on: '2026-10-09'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-BROWSE-UI-CATALOGS
+  cyber_gate: false
+  notes: Catalogs browse screens; ships UI layout release at merge 4d82bf9ab35ed63db675de8b187952cf60a434e5 (2026-10-09).
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

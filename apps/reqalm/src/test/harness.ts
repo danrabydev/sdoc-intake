@@ -35,7 +35,7 @@ export function testConfigEnv(): NodeJS.ProcessEnv {
   return {
     REQALM_MODE: "development",
     REQALM_ROLES: "api,web,mcp",
-    REQALM_PORT: "3000",
+    REQALM_PORT: process.env.REQALM_PORT ?? "3000",
     DATABASE_URL: "postgres://pglite/test",
     REQALM_SESSION_SECRET: "harness-session-secret-min-32-chars!!",
     REQALM_AGENT_CLIENT_SECRET: TEST_AGENT_SECRET,

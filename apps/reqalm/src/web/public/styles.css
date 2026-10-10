@@ -443,6 +443,27 @@ pre {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.relation-chip-item {
+  margin: 0;
+  padding: 0;
+}
+
+.catalog-family-section {
+  margin-top: 1.25rem;
+}
+
+.catalog-family-heading {
+  font-size: 1.05rem;
+  margin-bottom: 0.35rem;
+}
+
+.catalog-conforming-list {
+  margin-top: 0.5rem;
 }
 
 .relation-chip-list[hidden] {

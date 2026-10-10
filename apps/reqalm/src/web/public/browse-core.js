@@ -2,12 +2,22 @@
 
 export const SLUG_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 export const REQUIREMENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+export const IMPRINT_ID = /^[a-z0-9][a-z0-9.@_-]{0,159}$/;
 
 export function isValidSlugId(id) {
   return typeof id === "string" && SLUG_ID.test(id);
 }
 export function isValidRequirementId(id) {
   return typeof id === "string" && REQUIREMENT_ID.test(id);
+}
+export function isValidCatalogId(id) {
+  return isValidSlugId(id);
+}
+export function isValidImprintId(id) {
+  return typeof id === "string" && IMPRINT_ID.test(id);
+}
+export function isValidControlId(id) {
+  return isValidRequirementId(id);
 }
 
 export function appRequirementHref(projectId, requirementId) {
