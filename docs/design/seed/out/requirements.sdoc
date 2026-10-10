@@ -5257,7 +5257,7 @@ UID: ARCH-REQ-AC-ROLLUP.1
 STATUS: Draft
 TITLE: Roll up completeness from facets
 STATEMENT: >>>
-Completeness of a requirement rolls up from that requirement version's own facets. Completeness of a capability rolls up from that capability version's own facets. A facet is complete only when a release UAT or review records a completion marker for it (ARCH-CRITERION-RELEASE-UAT). A satisfies link, a closed work item, or verification_outcome on the version does not by itself complete a facet. The parent stays incomplete while any of its facets has no completion marker.
+Completeness of a requirement rolls up from that requirement version's own facets. Completeness of a capability rolls up from that capability version's own facets. A facet is complete only when a release UAT or review records a completion marker for it (ARCH-CRITERION-RELEASE-UAT). A satisfies link, a closed work item, or verification_outcome on the version does not by itself complete a facet; verification_outcome and ship gates remain governed by ARCH-VERIFICATION and ARCH-VERIFICATION-GATE. The parent stays incomplete while any of its facets has no completion marker.
 <<<
 COMMENT: >>>
 KIND: requirement
@@ -5312,7 +5312,7 @@ UID: ARCH-CRITERION-RELEASE-UAT
 STATUS: Draft
 TITLE: Criterion completion is release UAT or review
 STATEMENT: >>>
-UAT and review of a release are the completeness gate for acceptance criteria. A completion marker names the criterion, the release, the actor, and the time, and is recorded only for a criterion on a version that release delivers. Work items do not complete criteria. A capability may be delivered in more than one release; each release review may complete only the criteria that release earned. The capability's criteria are complete when each of its facets has a completion marker, which may be a later release than the first delivery.
+UAT and review of a release are the completeness gate for acceptance criteria. A completion marker shall name the criterion, the release, the actor, and the time, and shall be recorded only for a criterion on a version that release delivers. Work items do not complete criteria. A capability may be delivered in more than one release; each release review may complete only criteria on versions listed in that release's delivers snapshot. The capability's criteria are complete when each facet has a completion marker, which may be recorded in a later release than the first delivery. Exception: when a user carries an unchanged criterion onto a successor version (ARCH-CAP-REVIEW-COPY), the carried marker may appear on that successor even though the carrying release did not deliver the successor; the carried marker shall reference copied_from, the original marker, and the release that originally completed the frozen criterion.
 <<<
 COMMENT: >>>
 KIND: requirement
@@ -5323,7 +5323,6 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
 edge: ← satisfies from CAP-CRITERIA-RELEASE-REVIEW
-in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -5331,16 +5330,13 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-REQ-AC-ROLLUP.1
   ROLE: Refines
-- TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
 
 [REQUIREMENT]
 UID: ARCH-CAP-REVIEW-COPY
 STATUS: Draft
 TITLE: Accepted review that still requires a change
 STATEMENT: >>>
-A capability review may accept the implementation and still require a change. The required change mints a successor version. Criteria on the reviewed version freeze: their statements and completion markers are not edited after the successor exists. Each frozen criterion is copied onto the successor as a new criterion id with the same shall-statement and copied_from pointing at the frozen criterion. Completion markers stay on the frozen criterion. A copy of a criterion that already has a completion is born with its own marker, copied_from that completion and naming the same release, so an accepted criterion does not reopen. A copy of an open criterion starts with no completion. Later UAT may complete only open criteria on the successor.
+When a reviewed capability receives a new content version, each criterion on the reviewed version is copied onto the successor. Criteria on the reviewed version freeze: their statements and completion markers are not edited after the successor exists. Each copy is a new criterion id with copied_from pointing at the frozen criterion. A changed criterion (different statement text or statement_hash) shall start with no completion marker and status open. An unchanged criterion may start open or may carry its prior completion only when the editor explicitly chooses carry for that criterion; the default when no choice is recorded is reset to open. Carry is per criterion within one capability revision, not all-or-nothing. A carry choice shall record who chose, when, and which source marker was carried, and shall be auditable. A user-chosen carry of an unchanged criterion is an explicit, recorded exemption from re-check under ARCH-TRACE-RECHECK; every other copied criterion follows re-check until a release UAT or review records a new completion marker.
 <<<
 COMMENT: >>>
 KIND: requirement
@@ -5351,7 +5347,6 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
 edge: ← satisfies from CAP-CRITERIA-RELEASE-REVIEW
-in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -5359,16 +5354,16 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-REQ-AC-FACET.1
   ROLE: Refines
-- TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
+- TYPE: Parent
+  VALUE: ARCH-TRACE-RECHECK
+  ROLE: Refines
 
 [REQUIREMENT]
 UID: CAP-CRITERIA-RELEASE-REVIEW
 STATUS: Draft
 TITLE: Capability criteria completed in release review
 STATEMENT: >>>
-Seed and schema only: capability acceptance criteria with completion markers separate from requirement facets; those markers are written in a release UAT or review, not by a work item; a review that accepts the implementation and still requires a change freezes criteria on the reviewed version and copies them onto the successor. No loader or UI in this release. Fixture: FIX-CAP-REVIEW, FIX-CAP-REVIEW.1, and rel-fix-cap-review-uat (not a product release).
+Seed and schema only: capability acceptance criteria with completion markers separate from requirement facets; those markers are written in a release UAT or review, not by a work item; a review that accepts the implementation and still requires a change freezes criteria on the reviewed version and copies them onto the successor with per-criterion carry or reset per ARCH-CAP-REVIEW-COPY. No loader or UI in this release. Fixture lines FIX-CAP-REVIEW and FIX-CAP-REVIEW.1 illustrate copy and carry in statement notes (no fixture release row).
 <<<
 COMMENT: >>>
 KIND: capability
@@ -5397,7 +5392,7 @@ RELATIONS:
   VALUE: ARCH-CAP-REVIEW-COPY
   ROLE: Satisfies
 - TYPE: Parent
-  VALUE: ARCH-WI-COMPILE
+  VALUE: ARCH-WI-COMPILE.1
   ROLE: Satisfies
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-product
@@ -5824,6 +5819,7 @@ edge: ← refines from ARCH-TRACE-INHERIT-USES
 edge: ← uses from ARCH-ATTACH-PIN-VERSION
 edge: ← uses from ARCH-FIGMA
 edge: ← uses from ARCH-ATTACH-PIN-VERSION.1
+edge: ← refines from ARCH-CAP-REVIEW-COPY
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -9153,7 +9149,7 @@ priority: 25
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
-edge: ← refines from ARCH-WI-COMPILE
+edge: ← refines from ARCH-WI-COMPILE.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9444,22 +9440,21 @@ RELATIONS:
   ROLE: InScopeOf
 
 [REQUIREMENT]
-UID: ARCH-WI-COMPILE
+UID: ARCH-WI-COMPILE.1
 STATUS: Draft
 TITLE: Work item is a capability briefing, not completeness
 STATEMENT: >>>
-The initial work-item act compiles a briefing from a capability, not a one-to-one sync from a requirement. The briefing includes the capability's still-open acceptance criteria and the controls that apply to it (direct, inherited, and hybrid) for implementers to keep in mind. One capability may have many work items, including across releases, and a work item may cover only part of a capability. Closing, reopening, or editing a work item does not complete a criterion and does not change the capability statement. Two-way field push, pull, and conflict merge (J04–J06) are not this initial path.
+The initial work-item act compiles a briefing from a capability, not a one-to-one sync from a requirement version (J02). The briefing shall list the capability's open acceptance criteria and the controls that apply to the capability (direct, inherited, and hybrid) for implementers. One capability may have many work items, including across releases, and a work item may cover only part of a capability. Closing, reopening, or editing a work item does not complete a criterion and does not change the capability statement. Two-way field push, pull, and conflict merge (J04–J06) are not this initial path.
 <<<
 COMMENT: >>>
 KIND: requirement
 BASE_UID: ARCH-WI-COMPILE
-VERSION_N: 0
+VERSION_N: 1
 priority: 15
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
 edge: ← satisfies from CAP-CRITERIA-RELEASE-REVIEW
-in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -9467,9 +9462,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: J02
   ROLE: Refines
-- TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
 
 [[/SECTION]]
 
@@ -19351,7 +19343,7 @@ UID: FIX-CAP-REVIEW
 STATUS: Draft
 TITLE: Fixture capability accepted in review and still changed
 STATEMENT: >>>
-FIXTURE capability reviewed in rel-fix-cap-review-uat. One criterion was marked complete in that UAT; the review still required a change, so this version's criteria are frozen.
+FIXTURE capability reviewed in UAT before a required successor. One criterion was marked complete in that review; the review still required a change, so this version's criteria are frozen. Example (seed notes only): crit-fix-cap-a completed; crit-fix-cap-b left open.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -19359,7 +19351,6 @@ BASE_UID: FIX-CAP-REVIEW
 VERSION_N: 0
 security.catalog_ref: CM-2
 security.verification_note: Fixture. Version outcome is not the completeness gate.
-delivered_by_release: Fixture — capability UAT review
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -19367,16 +19358,13 @@ RELATIONS:
 - TYPE: Parent
   VALUE: FIX-REQ-REVIEW
   ROLE: Satisfies
-- TYPE: Child
-  VALUE: RELEASE-rel-fix-cap-review-uat
-  ROLE: Delivers
 
 [REQUIREMENT]
 UID: FIX-CAP-REVIEW.1
 STATUS: Draft
 TITLE: Fixture capability accepted in review and still changed
 STATEMENT: >>>
-FIXTURE successor required by that review. Criteria were copied from FIX-CAP-REVIEW. The accepted criterion keeps a copied completion marker. The open criterion stays open for a later release review.
+FIXTURE successor required by that review. Criteria were copied from FIX-CAP-REVIEW. Example (seed notes only): unchanged crit-fix-cap-a may carry its completion when the editor chooses carry; open crit-fix-cap-b is copied without a marker until a later release review completes it.
 <<<
 COMMENT: >>>
 KIND: capability
