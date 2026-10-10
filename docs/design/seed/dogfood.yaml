@@ -10173,6 +10173,12 @@ capability_artifacts:
   uri: ../../../docs/design/seed/fixtures/delta-versions.yaml
 - requirement_version_uid: CAP-SEED-ATTACH-FIGMA
   kind: other
+  uri: ../../../docs/design/seed/fixtures/dogfood-baseline-outbound-edges.json
+- requirement_version_uid: CAP-SEED-ATTACH-FIGMA
+  kind: other
+  uri: ../../../docs/design/seed/scripts/seed_baseline_edges.py
+- requirement_version_uid: CAP-SEED-ATTACH-FIGMA
+  kind: other
   uri: ../../../docs/design/seed/scripts/patch_attach_figma_seed_release.py
 - requirement_version_uid: CAP-SEED-ATTACH-FIGMA
   kind: other
@@ -16512,9 +16518,6 @@ edges:
   to: ARCH-SEC-XPROJ-READ
   kind: uses
 - from: ARCH-ATTACH-SCOPE
-  to: ARCH-API-RBAC
-  kind: uses
-- from: ARCH-ATTACH-SCOPE
   to: CAP-SVC-STRUCTURED-LOG
   kind: uses
 - from: ARCH-ATTACH-SCOPE
@@ -16652,9 +16655,6 @@ edges:
 - from: ARCH-ATTACH-UPLOAD
   to: ARCH-ATTACH
   kind: refines
-- from: ARCH-ATTACH-UPLOAD
-  to: ARCH-API-RBAC
-  kind: uses
 - from: ARCH-ATTACH-UPLOAD
   to: ARCH-ATTACH-SCAN
   kind: uses
@@ -17030,6 +17030,12 @@ edges:
 - from: CAP-ATTACH-WRITE
   to: ARCH-ATTACH-ENCRYPT.1
   kind: satisfies
+- from: ARCH-ATTACH-SCOPE
+  to: ARCH-API-RBAC.1
+  kind: uses
+- from: ARCH-ATTACH-UPLOAD
+  to: ARCH-API-RBAC.1
+  kind: uses
 - from: CAP-SEED-ATTACH-FIGMA
   to: ARCH-ATTACH
   kind: satisfies

@@ -430,7 +430,7 @@ edges:
   to: ARCH-SEC-XPROJ-READ
   kind: uses
 - from: ARCH-ATTACH-SCOPE
-  to: ARCH-API-RBAC
+  to: ARCH-API-RBAC.1
   kind: uses
 - from: ARCH-ATTACH-SCOPE
   to: CAP-SVC-STRUCTURED-LOG
@@ -521,7 +521,7 @@ edges:
   to: ARCH-ATTACH
   kind: refines
 - from: ARCH-ATTACH-UPLOAD
-  to: ARCH-API-RBAC
+  to: ARCH-API-RBAC.1
   kind: uses
 - from: ARCH-ATTACH-UPLOAD
   to: ARCH-ATTACH-SCAN

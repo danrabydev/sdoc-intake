@@ -11352,7 +11352,6 @@ edge: ← refines from ARCH-API-RBAC.1
 edge: ← satisfies from CAP-CATALOGS-API
 edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR.1
 edge: ← uses from ARCH-ATTACH-SCOPE
-edge: ← uses from ARCH-ATTACH-UPLOAD
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -11404,6 +11403,8 @@ security.catalog_ref: REQALM-SEC-RBAC
 security.verification_note: Maps to ReqALM RBAC catalog item; .1 narrows honesty vs CAP-RBAC enforcement subset.
 edge: ← refines from ARCH-SEC-XPROJ-READ
 edge: ← satisfies from CAP-RBAC.1
+edge: ← uses from ARCH-ATTACH-SCOPE
+edge: ← uses from ARCH-ATTACH-UPLOAD
 edge: ← uses from ARCH-ATTACH-SCOPE.1
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -14348,6 +14349,9 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222444
   ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Uses
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
@@ -14559,7 +14563,7 @@ RELATIONS:
   VALUE: ARCH-ATTACH
   ROLE: Refines
 - TYPE: Parent
-  VALUE: ARCH-API-RBAC
+  VALUE: ARCH-API-RBAC.1
   ROLE: Uses
 - TYPE: Parent
   VALUE: ARCH-ATTACH-SCAN

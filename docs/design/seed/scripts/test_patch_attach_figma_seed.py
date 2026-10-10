@@ -60,5 +60,22 @@ class PatchAttachFigmaSeedTest(unittest.TestCase):
         self.assertEqual(after, before)
 
 
+    def test_validate_baseline_edges_fails_when_rbac_refines_removed(self) -> None:
+        baseline_mod = self.mod._baseline_edges_module()
+        required = baseline_mod.load_baseline_outbound_fixture()
+        target = ("ARCH-API-RBAC.1", "ARCH-API-RBAC", "refines", "")
+        self.assertIn(target, required)
+        y = YAML()
+        with self.mod.DOGFOOD.open("r", encoding="utf-8") as f:
+            data = y.load(f)
+        data["edges"] = [
+            e
+            for e in data.get("edges") or []
+            if baseline_mod.edge_key(e) != target
+        ]
+        with self.assertRaises(SystemExit):
+            baseline_mod.validate_baseline_edges_preserved(data, required=required)
+
+
 if __name__ == "__main__":
     unittest.main()

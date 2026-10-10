@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { DOGFOOD_SEED_PATH } from "../test/harness.js";
-import { readDogfoodFile } from "./load-dogfood.js";
+import { readDogfoodFile, type DogfoodContractSeedRow } from "./load-dogfood.js";
 
 const KEY_SCOPE = "ARCH-KEY-SCOPE";
 const KEY_SCOPE_DRAFT = "ARCH-KEY-SCOPE.1";
@@ -55,27 +55,33 @@ describe("attach-figma seed (ARCH-KEY-SCOPE)", () => {
 
   it("product contract omits draft .1 successors and includes ARCH-ATTACH-VERSIONS v0", async () => {
     const seed = await readDogfoodFile(DOGFOOD_SEED_PATH);
-    const prod = seed.contracts?.find((c) => c.id === "ctr-reqalm-product");
+    const prod = seed.contracts?.find(
+      (row: DogfoodContractSeedRow) => row.id === "ctr-reqalm-product",
+    );
     assert.ok(prod?.in_scope_of?.length);
-    assert.ok(prod.in_scope_of.includes(KEY_SCOPE));
-    assert.ok(prod.in_scope_of.includes("ARCH-ATTACH-VERSIONS"));
+    const scope = prod.in_scope_of;
+    assert.ok(scope.includes(KEY_SCOPE));
+    assert.ok(scope.includes("ARCH-ATTACH-VERSIONS"));
     for (const uid of DRAFT_SUCCESSORS) {
-      assert.ok(!prod.in_scope_of.includes(uid), `draft successor in scope: ${uid}`);
+      assert.ok(!scope.includes(uid), `draft successor in scope: ${uid}`);
     }
-    assert.ok(prod.in_scope_of.includes("ARCH-ATTACH-PIN-VERSION"));
-    assert.ok(prod.in_scope_of.includes("ARCH-ATTACH-SCOPE"));
-    assert.ok(prod.in_scope_of.includes("ARCH-ATTACH-ENCRYPT"));
+    assert.ok(scope.includes("ARCH-ATTACH-PIN-VERSION"));
+    assert.ok(scope.includes("ARCH-ATTACH-SCOPE"));
+    assert.ok(scope.includes("ARCH-ATTACH-ENCRYPT"));
   });
 
   it("product contract pins at most one version per requirement line (#38)", async () => {
     const seed = await readDogfoodFile(DOGFOOD_SEED_PATH);
-    const prod = seed.contracts?.find((c) => c.id === "ctr-reqalm-product");
+    const prod = seed.contracts?.find(
+      (row: DogfoodContractSeedRow) => row.id === "ctr-reqalm-product",
+    );
     assert.ok(prod?.in_scope_of?.length);
+    const scope = prod.in_scope_of;
     const baseByUid = new Map(
       (seed.requirement_versions ?? []).map((v) => [String(v.uid), String(v.base_uid)]),
     );
     const byLine = new Map<string, string[]>();
-    for (const uid of prod.in_scope_of) {
+    for (const uid of scope) {
       const base = baseByUid.get(uid);
       assert.ok(base, uid);
       const list = byLine.get(base) ?? [];
@@ -95,5 +101,16 @@ describe("attach-figma seed (ARCH-KEY-SCOPE)", () => {
     assert.ok(edges.some((e) => e.from === "ARCH-ATTACH-SCOPE"));
     assert.ok(edges.some((e) => e.from === "ARCH-ATTACH-SCOPE.1"));
     assert.ok(seed.requirement_lines?.some((l) => l.base_uid === "ARCH-ATTACH-VERSIONS"));
+  });
+
+  it("ARCH-ATTACH-SCOPE and UPLOAD v0 use ARCH-API-RBAC.1 (accepted deviation)", async () => {
+    const seed = await readDogfoodFile(DOGFOOD_SEED_PATH);
+    const edges = seed.edges ?? [];
+    const usesRbac = (from: string) =>
+      edges.some((e) => e.from === from && e.to === "ARCH-API-RBAC.1" && e.kind === "uses");
+    assert.ok(usesRbac("ARCH-ATTACH-SCOPE"));
+    assert.ok(usesRbac("ARCH-ATTACH-UPLOAD"));
+    assert.ok(!edges.some((e) => e.from === "ARCH-ATTACH-SCOPE" && e.to === "ARCH-API-RBAC"));
+    assert.ok(!edges.some((e) => e.from === "ARCH-ATTACH-UPLOAD" && e.to === "ARCH-API-RBAC"));
   });
 });

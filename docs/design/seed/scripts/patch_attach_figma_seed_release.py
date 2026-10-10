@@ -8,6 +8,7 @@ Run: python3 patch_attach_figma_seed_release.py && python3 yaml_to_strictdoc.py 
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
 import importlib.util
 import re
@@ -176,6 +177,19 @@ def statement_hash(text: str) -> str:
     return "sha256:" + hashlib.sha256(canon.encode("utf-8")).hexdigest()
 
 
+def _baseline_edges_module():
+    path = SEED / "scripts" / "seed_baseline_edges.py"
+    spec = importlib.util.spec_from_file_location("seed_baseline_edges", path)
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def validate_baseline_edges_preserved(data) -> None:
+    _baseline_edges_module().validate_baseline_edges_preserved(data)
+
+
 def _contracts_patch_module():
     path = SEED / "scripts" / "patch_reqalm_contracts_release.py"
     spec = importlib.util.spec_from_file_location("patch_reqalm_contracts_release", path)
@@ -301,6 +315,23 @@ def restore_preserve_v0_outbounds(data, snapshots: dict[str, list[dict]]) -> Non
             ensure_edge(edges, edge)
 
 
+def apply_accepted_rbac_uses_deviation(data) -> None:
+    """Cyber-accepted: attachment SCOPE/UPLOAD v0 uses active ARCH-API-RBAC.1, not superseded base."""
+    edges = data.setdefault("edges", [])
+    for from_uid in ("ARCH-ATTACH-SCOPE", "ARCH-ATTACH-UPLOAD"):
+        data["edges"] = [
+            e
+            for e in edges
+            if not (
+                e.get("from") == from_uid
+                and e.get("kind") == "uses"
+                and e.get("to") in ("ARCH-API-RBAC", "ARCH-API-RBAC.1")
+            )
+        ]
+        edges = data["edges"]
+        ensure_edge(edges, {"from": from_uid, "to": "ARCH-API-RBAC.1", "kind": "uses"})
+
+
 KEY_SCOPE_V0_OUTBOUND: list[dict] = [
     {"from": KEY_SCOPE, "to": "ARCH-KEY", "kind": "refines"},
     {"from": KEY_SCOPE, "to": "M03", "kind": "uses"},
@@ -422,9 +453,11 @@ def apply_cyber_fixtures(data, *fixtures: dict) -> None:
             ensure_edge(edges, resolved)
 
     restore_preserve_v0_outbounds(data, v0_outbound_before)
+    apply_accepted_rbac_uses_deviation(data)
     ensure_key_scope_v0_outbound(data)
     carry_key_scope_outbound_edges(data)
     assert_protected_edges_unchanged(protected_before, edges, managed_from)
+    validate_baseline_edges_preserved(data)
 
 
 CAP_STMT = (
@@ -439,6 +472,8 @@ CAP_ARTIFACTS = [
     f"{REPO}/docs/design/seed/dogfood.yaml",
     f"{REPO}/docs/design/seed/fixtures/cyber-attach-figma-snippet.yaml",
     f"{REPO}/docs/design/seed/fixtures/delta-versions.yaml",
+    f"{REPO}/docs/design/seed/fixtures/dogfood-baseline-outbound-edges.json",
+    f"{REPO}/docs/design/seed/scripts/seed_baseline_edges.py",
     f"{REPO}/docs/design/seed/scripts/patch_attach_figma_seed_release.py",
     f"{REPO}/docs/design/HANDOFF.md",
 ]
@@ -578,6 +613,22 @@ def verify_snippet_targets_all(data, *fixtures: dict) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--validate-baseline-edges",
+        action="store_true",
+        help="Load dogfood.yaml and verify baseline outbound edges preserved (no write)",
+    )
+    args = parser.parse_args()
+
+    with DOGFOOD.open("r", encoding="utf-8") as f:
+        data = yaml.load(f)
+
+    if args.validate_baseline_edges:
+        validate_baseline_edges_preserved(data)
+        print("baseline edge preservation ok")
+        return
+
     snippet = load_snippet()
     delta = load_delta()
     verify_fixture_inventory(
@@ -594,9 +645,6 @@ def main() -> None:
         expected_versions=DELTA_EXPECTED_VERSIONS,
         expected_edge_kinds=DELTA_EXPECTED_EDGE_KINDS,
     )
-
-    with DOGFOOD.open("r", encoding="utf-8") as f:
-        data = yaml.load(f)
 
     apply_cyber_fixtures(data, snippet, delta)
     verify_snippet_targets_all(data, snippet, delta)
