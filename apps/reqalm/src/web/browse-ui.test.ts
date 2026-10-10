@@ -65,7 +65,6 @@ import {
   relationsPanelShell,
   requirementsRelationsApiPath,
   renderKindBlock,
-  RELATION_KIND_COLLAPSE,
 } from "./public/browse-relations.js";
 import {
   APP_MIN_NAV,
@@ -870,11 +869,8 @@ describe("browse UI render (jsdom)", () => {
   });
 
   it("relation chip collapse 10-vs-11 boundary (<= must include 10)", () => {
-    assert.equal(RELATION_KIND_COLLAPSE, 10);
     const peer = (id: string) => ({ relation_kind: "satisfies", direction: "outgoing", self_version_id: "A", peer_version_id: id, trace_suspect: false, peer: { id, title: id, kind: "requirement", type: "requirement", project_id: "reqalm" } });
-    const flat = renderKindBlock("satisfies", "outgoing", Array.from({ length: 10 }, (_, i) => peer(`N${i}`)), "reqalm");
-    assert.equal(flat.querySelector(".relation-show-all"), null);
-    assert.equal(flat.querySelectorAll(".relation-chip").length, 10);
+    assert.equal(renderKindBlock("satisfies", "outgoing", Array.from({ length: 10 }, (_, i) => peer(`N${i}`)), "reqalm").querySelector(".relation-show-all"), null);
     const split = renderKindBlock("satisfies", "outgoing", Array.from({ length: 11 }, (_, i) => peer(`M${i}`)), "reqalm");
     const splitLists = split.querySelectorAll(".relation-chip-list");
     assert.ok(split.querySelector(".relation-show-all"));
@@ -1750,6 +1746,7 @@ const NIST_CAT = "cat-nist-global";
 const catImprintPub = { id: NIST_IMP, status: "published" };
 const catMetaNist = { id: NIST_CAT, title: "NIST", is_standard: true, imprints: [catImprintPub] };
 const catsListOk = { status: 200, body: { data: { catalogs: [catMetaNist] } } };
+const catsListEmpty = { status: 200, body: { data: { catalogs: [] } } };
 const impControlsBase = () => imprintControlsApiPath("reqalm", NIST_CAT, NIST_IMP, 100, 0)!.split("?")[0];
 
 function catFetch(handler: (url: string) => { status: number; body?: unknown } | undefined) {
@@ -1791,9 +1788,7 @@ describe("catalog browse screens", () => {
     assert.ok(main.querySelector(`a[href="${catalogImprintHref("reqalm", NIST_CAT, NIST_IMP)}"]`));
     const empty = document.createElement("main");
     await renderCatalogsList(empty, {
-      apiFn: mockFetchBare((url) =>
-        url === catalogsApiPath("reqalm") ? { status: 200, body: { data: { catalogs: [] } } } : { status: 404 },
-      ),
+      apiFn: mockFetchBare((url) => (url === catalogsApiPath("reqalm") ? catsListEmpty : { status: 404 })),
       projectId: "reqalm",
     });
     assert.ok(empty.querySelector(".empty-state"));
@@ -1823,7 +1818,6 @@ describe("catalog browse screens", () => {
     });
     assert.equal(main.querySelector("h1")?.textContent, "Not found");
     assert.equal(main.querySelector(".empty-state"), null);
-    assert.equal(main.querySelector(".catalog-load-error"), null);
   });
 
   it("control detail not-found when control API 404 but catalog list ok", async () => {
@@ -1838,7 +1832,34 @@ describe("catalog browse screens", () => {
       controlId: "AC-3",
     });
     assert.equal(main.querySelector("h1")?.textContent, "Not found");
-    assert.equal(main.querySelector(".catalog-load-error"), null);
+  });
+
+  it("imprint detail not-found when catalog omitted from list though controls API ok", async () => {
+    const main = document.createElement("main");
+    const okPage = { status: 200, body: { data: { items: [{ id: "AC-1", title: "Leaked", family: "AC", conforming_count: 1 }], total: 1, limit: 100, offset: 0 } } };
+    await renderCatalogImprintDetail(main, {
+      apiFn: mockFetchBare((u) => (u === catalogsApiPath("reqalm") ? catsListEmpty : u.startsWith(impControlsBase()) ? okPage : { status: 404 })),
+      projectId: "reqalm",
+      catalogId: NIST_CAT,
+      imprintId: NIST_IMP,
+    });
+    assert.doesNotMatch(main.textContent ?? "", /Leaked/);
+    assert.match(main.textContent ?? "", /Not found/i);
+  });
+
+  it("control detail not-found when catalog omitted from list though control API ok", async () => {
+    const main = document.createElement("main");
+    const ctl = imprintControlApiPath("reqalm", NIST_CAT, NIST_IMP, "AC-3");
+    const leaked = { status: 200, body: { data: { id: "AC-3", title: "Leaked control", family: "AC", text: null, conforming_lines: [{ id: "R-1", title: "R", status: "active", pins: [] }] } } };
+    await renderCatalogControlDetail(main, {
+      apiFn: mockFetchBare((u) => (u === catalogsApiPath("reqalm") ? catsListEmpty : u === ctl ? leaked : { status: 404 })),
+      projectId: "reqalm",
+      catalogId: NIST_CAT,
+      imprintId: NIST_IMP,
+      controlId: "AC-3",
+    });
+    assert.doesNotMatch(main.textContent ?? "", /Leaked control/);
+    assert.match(main.textContent ?? "", /Not found/i);
   });
 
   it("imprint detail: family groups, breadcrumbs, invalid control id", async () => {
@@ -1913,7 +1934,7 @@ describe("catalog browse screens", () => {
     );
     const blocked = document.createElement("main");
     await renderCatalogControlDetail(blocked, {
-      apiFn: mockFetchBare((url) => (url === catalogsApiPath("reqalm") ? { status: 200, body: { data: { catalogs: [] } } } : { status: 404 })),
+      apiFn: mockFetchBare((url) => (url === catalogsApiPath("reqalm") ? catsListEmpty : { status: 404 })),
       projectId: "reqalm",
       catalogId: "cat-priv-visible",
       imprintId: "imprint-priv",

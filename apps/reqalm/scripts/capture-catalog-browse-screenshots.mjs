@@ -123,7 +123,7 @@ async function hideAllCatalogsFromProject(pool, projectId) {
   }
 }
 
-async function issueWebSessionCookies(app, port, base) {
+async function issueWebSessionCookies(app, port, base, testPassword) {
   const inject = (opts) =>
     app.inject({
       ...opts,
@@ -143,7 +143,7 @@ async function issueWebSessionCookies(app, port, base) {
     method: "POST",
     url: "/api/v1/auth/local/login",
     headers: { "content-type": "application/json" },
-    payload: { username: "casey-reader@dev.local", password: TEST_PASSWORD, h },
+    payload: { username: "casey-reader@dev.local", password: testPassword, h },
   });
   if (login.statusCode !== 200) throw new Error(`login ${login.statusCode}: ${login.body}`);
   const setCookie = login.headers["set-cookie"];
@@ -185,7 +185,7 @@ async function main() {
   const ctx = await createTestApp({ dogfood: true });
   await seedScreenshotFixtures(ctx.pool);
   await ctx.app.listen({ port, host: "127.0.0.1" });
-  const cookies = await issueWebSessionCookies(ctx.app, port, base);
+  const cookies = await issueWebSessionCookies(ctx.app, port, base, TEST_PASSWORD);
 
   const chrome =
     process.env.CHROME_PATH ??
