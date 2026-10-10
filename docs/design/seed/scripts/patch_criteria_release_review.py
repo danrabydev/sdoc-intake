@@ -24,6 +24,27 @@ PLANNED = "2026-10-10"
 REL = "rel-r1-criteria-release-review"
 CAP = "CAP-CRITERIA-RELEASE-REVIEW"
 LEGACY_FIX_REL = "rel-fix-cap-review-uat"
+NIST = "nist-800-53@rev5-dogfood-20261006"
+SEC_PROPOSED = {
+    "catalog_ref": "CM-2",
+    "verification_note": "Proposed 2026-10-10 for project-lead review. Not activated.",
+}
+SEC_UAT = {
+    "catalog_ref": "CA-2",
+    "verification_note": "Cyber 2026-10-10: CA-2/SA-11 release UAT/review completes criteria; AU-2/3/12 on markers and carry audit.",
+}
+SEC_COPY = {
+    "catalog_ref": "CM-3",
+    "verification_note": "Cyber 2026-10-10: CM-3 review-driven copy; per-criterion carry or reset; AU-2/3/12 on carry choice.",
+}
+SEC_ROLLUP = {
+    "catalog_ref": "CA-7",
+    "verification_note": "Cyber 2026-10-10: CA-7 completeness rollup from facets; UAT gate ARCH-CRITERION-RELEASE-UAT.",
+}
+SEC_RECHECK_1 = {
+    "catalog_ref": "CM-3",
+    "verification_note": "Cyber 2026-10-10: CM-3 review-driven successor; copy carry or reset (not re-check); AU-2/3/12 on carry audit.",
+}
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from seed_baseline_edges import validate_baseline_edges_preserved  # noqa: E402
@@ -64,6 +85,14 @@ def ensure_edge(edges, edge):
             return 0
     edges.append(edge)
     return 1
+
+
+def ensure_conforms(edges, from_uid: str, controls: tuple[str, ...]) -> None:
+    for to in controls:
+        ensure_edge(
+            edges,
+            {"from": from_uid, "to": to, "kind": "conforms_to", "catalog_imprint_id": NIST},
+        )
 
 
 def remove_edge(edges, edge):
@@ -227,6 +256,7 @@ def draft_version(
     *,
     mint: str | None = None,
     rbac_op: str | None = None,
+    security: dict | None = None,
 ) -> CommentedMap:
     row = cm(
         uid=uid,
@@ -236,10 +266,7 @@ def draft_version(
         statement=statement,
         priority=15,
         iteration="iter-r1",
-        security={
-            "catalog_ref": "CM-2",
-            "verification_note": "Proposed 2026-10-10 for project-lead review. Not activated.",
-        },
+        security=deepcopy(security or SEC_PROPOSED),
         statement_hash=statement_hash(statement),
         grooming_state="detailed",
     )
@@ -285,20 +312,38 @@ def apply_patch(data) -> None:
         ]
 
     proposals = [
-        ("ARCH-REQ-AC-FACET.1", "ARCH-REQ-AC-FACET", 1, FACET_1, "content", "requirement:tree:read"),
-        ("ARCH-REQ-AC-ROLLUP.1", "ARCH-REQ-AC-ROLLUP", 1, ROLLUP_1, "content", "requirement:tree:read"),
-        ("ARCH-TRACE-RECHECK.1", "ARCH-TRACE-RECHECK", 1, RECHECK_1, "content", "trace:suspect"),
+        ("ARCH-REQ-AC-FACET.1", "ARCH-REQ-AC-FACET", 1, FACET_1, "content", "requirement:tree:read", SEC_PROPOSED),
+        ("ARCH-REQ-AC-ROLLUP.1", "ARCH-REQ-AC-ROLLUP", 1, ROLLUP_1, "content", "requirement:tree:read", SEC_ROLLUP),
+        ("ARCH-TRACE-RECHECK.1", "ARCH-TRACE-RECHECK", 1, RECHECK_1, "content", "trace:suspect", SEC_RECHECK_1),
     ]
-    for uid, base, n, statement, mint, rbac in proposals:
-        upsert(versions, "uid", draft_version(uid, base, n, statement, mint=mint, rbac_op=rbac))
+    for uid, base, n, statement, mint, rbac, sec in proposals:
+        upsert(
+            versions,
+            "uid",
+            draft_version(uid, base, n, statement, mint=mint, rbac_op=rbac, security=sec),
+        )
 
     new_reqs = [
-        ("ARCH-CRITERION-RELEASE-UAT", "SEC-RL", "requirement", "Criterion completion is release UAT or review", UAT),
-        ("ARCH-CAP-REVIEW-COPY", "SEC-RL", "requirement", "Accepted review that still requires a change", COPY),
+        (
+            "ARCH-CRITERION-RELEASE-UAT",
+            "SEC-RL",
+            "requirement",
+            "Criterion completion is release UAT or review",
+            UAT,
+            SEC_UAT,
+        ),
+        (
+            "ARCH-CAP-REVIEW-COPY",
+            "SEC-RL",
+            "requirement",
+            "Accepted review that still requires a change",
+            COPY,
+            SEC_COPY,
+        ),
     ]
-    for uid, parent, kind, title, statement in new_reqs:
+    for uid, parent, kind, title, statement, sec in new_reqs:
         upsert(lines, "base_uid", cm(base_uid=uid, project_id="reqalm", parent=parent, kind=kind, title=title))
-        upsert(versions, "uid", draft_version(uid, uid, 0, statement))
+        upsert(versions, "uid", draft_version(uid, uid, 0, statement, security=sec))
 
     upsert(
         versions,
@@ -463,6 +508,13 @@ def apply_patch(data) -> None:
         ("FIX-CAP-REVIEW.1", "FIX-REQ-REVIEW", "satisfies"),
     ):
         ensure_edge(edges, {"from": frm, "to": to, "kind": kind})
+
+    ensure_conforms(
+        edges,
+        "ARCH-CRITERION-RELEASE-UAT",
+        ("AC-3", "AU-2", "AU-3", "AU-12", "CA-2", "SA-11"),
+    )
+    ensure_conforms(edges, "ARCH-CAP-REVIEW-COPY", ("AC-3", "AU-2", "AU-3", "AU-12", "CM-3"))
 
     if product is not None:
         insert_alpha(product.setdefault("in_scope_of", []), CAP)

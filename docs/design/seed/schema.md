@@ -221,7 +221,7 @@ A verifiable shall-statement attached to **exactly one** requirement version **o
 | `id` | string | yes | stable criterion id |
 | `version_uid` | string | yes | → requirement_version.uid |
 | `statement` | string | yes | testable shall-statement |
-| `statement_hash` | string | yes | `sha256:` digest of canonical statement text (trimmed lines, LF); **unchanged** copy ⇔ equal `statement_hash` (ARCH-CAP-REVIEW-COPY) |
+| `statement_hash` | string | yes | `sha256:` digest of canonical statement text (same rules as requirement `statement_hash` — ARCH-SUCCESSION-HASH / ARCH-MINT-KIND); **unchanged** copy ⇔ equal `statement_hash` (ARCH-CAP-REVIEW-COPY) |
 | `position` | int | yes | order on that version |
 | `copied_from` | string \| null | no | predecessor criterion id when minted by ARCH-CAP-REVIEW-COPY |
 

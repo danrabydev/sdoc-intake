@@ -5267,8 +5267,8 @@ VERSION_N: 1
 rbac_op: requirement:tree:read
 priority: 15
 iteration: iter-r1
-security.catalog_ref: CM-2
-security.verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+security.catalog_ref: CA-7
+security.verification_note: Cyber 2026-10-10: CA-7 completeness rollup from facets; UAT gate ARCH-CRITERION-RELEASE-UAT.
 edge: ← refines from ARCH-CRITERION-RELEASE-UAT
 edge: ← satisfies from CAP-CRITERIA-RELEASE-REVIEW
 <<<
@@ -5322,9 +5322,15 @@ BASE_UID: ARCH-CRITERION-RELEASE-UAT
 VERSION_N: 0
 priority: 15
 iteration: iter-r1
-security.catalog_ref: CM-2
-security.verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+security.catalog_ref: CA-2
+security.verification_note: Cyber 2026-10-10: CA-2/SA-11 release UAT/review completes criteria; AU-2/3/12 on markers and carry audit.
 edge: ← satisfies from CAP-CRITERIA-RELEASE-REVIEW
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CA-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SA-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -5332,6 +5338,24 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-REQ-AC-ROLLUP.1
   ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CA-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SA-11
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-CAP-REVIEW-COPY
@@ -5346,9 +5370,14 @@ BASE_UID: ARCH-CAP-REVIEW-COPY
 VERSION_N: 0
 priority: 15
 iteration: iter-r1
-security.catalog_ref: CM-2
-security.verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+security.catalog_ref: CM-3
+security.verification_note: Cyber 2026-10-10: CM-3 review-driven copy; per-criterion carry or reset; AU-2/3/12 on carry choice.
 edge: ← satisfies from CAP-CRITERIA-RELEASE-REVIEW
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CM-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -5359,6 +5388,21 @@ RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-TRACE-RECHECK.1
   ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CM-3
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: CAP-CRITERIA-RELEASE-REVIEW
@@ -5813,8 +5857,8 @@ VERSION_N: 1
 rbac_op: trace:suspect
 priority: 15
 iteration: iter-r1
-security.catalog_ref: CM-2
-security.verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+security.catalog_ref: CM-3
+security.verification_note: Cyber 2026-10-10: CM-3 review-driven successor; copy carry or reset (not re-check); AU-2/3/12 on carry audit.
 edge: ← refines from ARCH-CAP-REVIEW-COPY
 <<<
 RELATIONS:

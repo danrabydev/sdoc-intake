@@ -9965,8 +9965,8 @@ requirement_versions:
   priority: 15
   iteration: iter-r1
   security:
-    catalog_ref: CM-2
-    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+    catalog_ref: CA-7
+    verification_note: 'Cyber 2026-10-10: CA-7 completeness rollup from facets; UAT gate ARCH-CRITERION-RELEASE-UAT.'
   statement_hash: sha256:9fdc773c1073d9d6e4264987723c9b4f68c8fbf279c6a128fe3704d9c99917e0
   grooming_state: detailed
   mint_kind: content
@@ -9979,8 +9979,8 @@ requirement_versions:
   priority: 15
   iteration: iter-r1
   security:
-    catalog_ref: CM-2
-    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+    catalog_ref: CA-2
+    verification_note: 'Cyber 2026-10-10: CA-2/SA-11 release UAT/review completes criteria; AU-2/3/12 on markers and carry audit.'
   statement_hash: sha256:b8766b176f61291f615f04ec112d6be5e11368a7ecdab1dcb31ac7e09e4b3477
   grooming_state: detailed
 - uid: ARCH-CAP-REVIEW-COPY
@@ -9991,8 +9991,8 @@ requirement_versions:
   priority: 15
   iteration: iter-r1
   security:
-    catalog_ref: CM-2
-    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+    catalog_ref: CM-3
+    verification_note: 'Cyber 2026-10-10: CM-3 review-driven copy; per-criterion carry or reset; AU-2/3/12 on carry choice.'
   statement_hash: sha256:03c79c43323c2862551719fd6d78f80c0e19bd419b5c4d92a4d156d970aa3146
   grooming_state: detailed
 - uid: CAP-CRITERIA-RELEASE-REVIEW
@@ -10060,8 +10060,8 @@ requirement_versions:
   priority: 15
   iteration: iter-r1
   security:
-    catalog_ref: CM-2
-    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+    catalog_ref: CM-3
+    verification_note: 'Cyber 2026-10-10: CM-3 review-driven successor; copy carry or reset (not re-check); AU-2/3/12 on carry audit.'
   statement_hash: sha256:66c7997136250267399e6d379cc2b2162f4e0c62012401552f39bd4f68dfc8e0
   grooming_state: detailed
   mint_kind: content
@@ -18176,6 +18176,50 @@ edges:
 - from: ARCH-TRACE-RECHECK.1
   to: ARCH-TRACE-RECHECK
   kind: refines
+- from: ARCH-CRITERION-RELEASE-UAT
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRITERION-RELEASE-UAT
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRITERION-RELEASE-UAT
+  to: AU-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRITERION-RELEASE-UAT
+  to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRITERION-RELEASE-UAT
+  to: CA-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CRITERION-RELEASE-UAT
+  to: SA-11
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CAP-REVIEW-COPY
+  to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CAP-REVIEW-COPY
+  to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CAP-REVIEW-COPY
+  to: AU-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CAP-REVIEW-COPY
+  to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-CAP-REVIEW-COPY
+  to: CM-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
