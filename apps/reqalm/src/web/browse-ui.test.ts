@@ -2446,6 +2446,37 @@ describe("contract browse screens", () => {
     assert.equal(main.querySelectorAll("table.data-table tbody tr").length, 0);
   });
 
+  it("contract detail load error h1 uses DTO title not name", async () => {
+    const titled = {
+      ...ctrProductDetailPayload,
+      title: "ReqALM product umbrella",
+      id: CTR_PRODUCT,
+      name: "legacy-name-field",
+    };
+    const scopeBase = contractScopeApiPath("reqalm", CTR_PRODUCT, 100, 0)!.split("?")[0];
+    for (const fail of ["scope", "releases"] as const) {
+      const main = document.createElement("main");
+      await renderContractDetail(main, {
+        apiFn: mockFetchBare((url) => {
+          if (url === contractApiPath("reqalm", CTR_PRODUCT)) {
+            return { status: 200, body: { data: titled } };
+          }
+          if (fail === "scope" && url.startsWith(scopeBase)) return { status: 503, body: {} };
+          if (fail === "scope" && url === contractReleasesApiPath("reqalm", CTR_PRODUCT)) return ctrReleasesEmptyOk;
+          if (fail === "releases" && url.startsWith(scopeBase)) return ctrScopeEmptyOk;
+          if (fail === "releases" && url === contractReleasesApiPath("reqalm", CTR_PRODUCT)) {
+            return { status: 503, body: {} };
+          }
+          return { status: 404 };
+        }),
+        projectId: "reqalm",
+        contractId: CTR_PRODUCT,
+      });
+      assert.equal(main.querySelector("h1")?.textContent, "ReqALM product umbrella");
+      assert.ok(main.querySelector(".contract-load-error"));
+    }
+  });
+
   it("fetchAllScope middle-page 404 shows not-found not partial scope table", async () => {
     const main = document.createElement("main");
     const scopeBase = contractScopeApiPath("reqalm", CTR_PRODUCT, 100, 0)!.split("?")[0];

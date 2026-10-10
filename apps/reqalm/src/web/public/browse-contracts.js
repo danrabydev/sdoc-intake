@@ -164,14 +164,14 @@ export async function renderContractDetail(container, { apiFn, projectId, contra
 
   const scopeRes = await fetchAllScope(apiFn, projectId, contractId);
   if (scopeRes.kind === "auth") return;
-  if (scopeRes.kind === "error") return renderLoadError(container, contract.name || contractId);
+  if (scopeRes.kind === "error") return renderLoadError(container, contract.title || contract.id || contractId);
   if (scopeRes.kind !== "ok") return renderNotFound(container);
 
   const relPath = contractReleasesApiPath(projectId, contractId);
   if (!relPath) return renderNotFound(container);
   const relRes = await loadJson(apiFn, relPath);
   if (relRes.kind === "auth") return;
-  if (relRes.kind === "error") return renderLoadError(container, contract.name || contractId);
+  if (relRes.kind === "error") return renderLoadError(container, contract.title || contract.id || contractId);
   if (relRes.kind !== "ok") return renderNotFound(container);
 
   const listHref = contractsListHref(projectId);
