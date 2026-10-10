@@ -146,9 +146,9 @@ export async function renderContractsList(container, { apiFn, projectId, offset 
   table.append(tbody);
   container.append(table);
   if (total > limit) {
-    container.append(
-      el("p", { className: "contracts-list-summary muted", text: `Showing ${items.length} of ${total}` }),
-    );
+    const end = Math.min(offset + items.length, total);
+    const text = offset ? `Showing ${offset + 1}–${end} of ${total}` : `Showing ${end} of ${total}`;
+    container.append(el("p", { className: "contracts-list-summary muted", text }));
   }
 }
 
