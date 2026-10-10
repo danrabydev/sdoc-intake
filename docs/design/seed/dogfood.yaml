@@ -3849,6 +3849,11 @@ requirement_lines:
   parent: SEC-CP
   kind: capability
   title: hardening follow-up (no-project gate, fetchAllScope, test kit)
+- base_uid: CAP-READ-ACCESS
+  project_id: reqalm
+  parent: SEC-IA
+  kind: capability
+  title: Read people and access (grants, roles, platform)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -9909,6 +9914,18 @@ requirement_versions:
     verification_note: Started 2026-10-10 (cloud agent bc-7132b537); not shipped.
   statement_hash: sha256:d5dafdbea5a4a3ff72e610aeac86192b0e8bfa7cc26894173011003d773a229a
   grooming_state: detailed
+- uid: CAP-READ-ACCESS
+  base_uid: CAP-READ-ACCESS
+  version_n: 0
+  status: draft
+  statement: 'Grant-scoped read-only people/access API: project people and grants, client grants, role catalog with permissions, and platform grants visible only to platform roles. RBAC grant:read; missing/forbidden project access returns 404; responses omit credential, session, and signing material.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-3
+    verification_note: Planned until people/access read API PR merges.
+  statement_hash: sha256:d3953796b28f860b814bb1611844390b9d4552b37d64d32cbe47240d4489e8c9
+  grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -10834,6 +10851,18 @@ capability_artifacts:
 - requirement_version_uid: CAP-SVC-HARDENING-FOLLOWUP
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_r1_release_state_seed.py
+- requirement_version_uid: CAP-READ-ACCESS
+  kind: other
+  uri: ../../../apps/reqalm/src/modules/access/
+- requirement_version_uid: CAP-READ-ACCESS
+  kind: other
+  uri: ../../../apps/reqalm/src/db/migrations/016_access_read.sql
+- requirement_version_uid: CAP-READ-ACCESS
+  kind: other
+  uri: ../../../apps/reqalm/openapi/openapi.yaml
+- requirement_version_uid: CAP-READ-ACCESS
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_read_access_release.py
 edges:
 - from: CAP-SSO
   to: A01
@@ -17974,6 +18003,15 @@ edges:
 - from: CAP-SVC-HARDENING-FOLLOWUP
   to: CAP-SVC-RBAC-NO-PROJECT
   kind: refines
+- from: CAP-READ-ACCESS
+  to: A11
+  kind: satisfies
+- from: CAP-READ-ACCESS
+  to: CAP-RBAC
+  kind: satisfies
+- from: CAP-READ-ACCESS
+  to: CAP-SVC-OPERATION-ROUTE
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family

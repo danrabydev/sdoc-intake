@@ -780,6 +780,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 least disclosure of grant listings; AU optional. ASD STIG V6R4 V-222430.
 edge: ← satisfies from CAP-RBAC
 edge: ← satisfies from CAP-RBAC.1
+edge: ← satisfies from CAP-READ-ACCESS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
@@ -919,6 +920,7 @@ edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← refines from CAP-RBAC.1
 edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR.1
 edge: ← satisfies from CAP-SVC-RBAC-NO-PROJECT
+edge: ← satisfies from CAP-READ-ACCESS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -2464,6 +2466,35 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r1-mfa-qr
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-READ-ACCESS
+STATUS: Draft
+TITLE: Read people and access (grants, roles, platform)
+STATEMENT: >>>
+Grant-scoped read-only people/access API: project people and grants, client grants, role catalog with permissions, and platform grants visible only to platform roles. RBAC grant:read; missing/forbidden project access returns 404; responses omit credential, session, and signing material.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-READ-ACCESS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Planned until people/access read API PR merges.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: A11
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-ROUTE
+  ROLE: Satisfies
 
 [[/SECTION]]
 
@@ -12985,6 +13016,7 @@ edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
 edge: ← satisfies from CAP-CONTRACTS-LOADER
 edge: ← satisfies from CAP-READ-CONTRACTS
+edge: ← satisfies from CAP-READ-ACCESS
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — defineOperationRoute (single business-route pipeline)
 <<<
