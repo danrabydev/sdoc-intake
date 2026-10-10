@@ -392,6 +392,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 self-read boundary; AU access logging where required. ASD STIG V6R4 V-222430.
 edge: ← satisfies from CAP-RBAC
 edge: ← satisfies from CAP-RBAC.1
+edge: ← satisfies from CAP-RBAC.2
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R0-sequences
@@ -440,6 +441,7 @@ edge: ← uses from ARCH-AUTH-FEDERATION
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← uses from ARCH-AUTH-CLAIM-MAP
 edge: ← satisfies from CAP-RBAC.1
+edge: ← satisfies from CAP-RBAC.2
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
@@ -512,6 +514,7 @@ edge: ← refines from ARCH-CRED-REAUTH
 edge: ← uses from FIX-DENY-PRIV-NO-MFA
 edge: ← uses from ARCH-AUTH-CLAIM-MAP
 edge: ← satisfies from CAP-RBAC.1
+edge: ← satisfies from CAP-RBAC.2
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
@@ -582,6 +585,7 @@ security.verification_note: AC-2/AC-3 revoke path; AU-2/3/12. ASD STIG V6R4 V-22
 edge: ← satisfies from CAP-RBAC
 edge: ← uses from ARCH-AUTH-UPSTREAM-REVOKE
 edge: ← satisfies from CAP-RBAC.1
+edge: ← satisfies from CAP-RBAC.2
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
@@ -651,6 +655,7 @@ security.catalog_ref: AC-2
 security.verification_note: AC-2 account management for steward roles; AU-2/3/12. ASD STIG V6R4 V-222407 / V-222467.
 edge: ← satisfies from CAP-RBAC
 edge: ← satisfies from CAP-RBAC.1
+edge: ← satisfies from CAP-RBAC.2
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
@@ -715,6 +720,7 @@ security.catalog_ref: AC-2
 security.verification_note: AC-2/AC-3 steward revoke; AU-2/3/12. ASD STIG V6R4 V-222467.
 edge: ← satisfies from CAP-RBAC
 edge: ← satisfies from CAP-RBAC.1
+edge: ← satisfies from CAP-RBAC.2
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
@@ -780,6 +786,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 least disclosure of grant listings; AU optional. ASD STIG V6R4 V-222430.
 edge: ← satisfies from CAP-RBAC
 edge: ← satisfies from CAP-RBAC.1
+edge: ← satisfies from CAP-RBAC.2
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
@@ -986,7 +993,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-RBAC.1
-STATUS: Active
+STATUS: Draft
 TITLE: RBAC enforcement on API mutations
 STATEMENT: >>>
 Capability pack for API RBAC enforcement (subset of the full permission matrix). Shipped foundation covers OAuth routes, defineOperationRoute business reads, and auth-flow-smoke beds — not every ARCH-API-RBAC mutating operation. MCP and grant-management mutators remain planned in core-ALM.
@@ -998,7 +1005,8 @@ VERSION_N: 1
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: Partial: foundation OAuth + defineOperationRoute read routes verified on PR #13/#17–#24; grant mutators and full matrix deferred to core-ALM.
+security.verification_note: Partial pass on .1: foundation + read routes verified; full matrix deferred to core-ALM. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes).
+edge: ← refines from CAP-RBAC.2
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -1050,6 +1058,69 @@ RELATIONS:
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-RBAC.2
+STATUS: Active
+TITLE: RBAC enforcement on API mutations
+STATEMENT: >>>
+Capability pack for API RBAC enforcement (subset of the full permission matrix). Shipped foundation covers OAuth routes, defineOperationRoute business reads, and auth-flow-smoke beds — not every ARCH-API-RBAC mutating operation. MCP and grant-management mutators remain planned in core-ALM.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-RBAC
+VERSION_N: 2
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Honesty mint .2 @ main 341330f: partial verification only — OAuth + defineOperationRoute read routes verified; grant mutators and full matrix remain unverified (pending).
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IA
+- TYPE: Parent
+  VALUE: CAP-RBAC.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: A05
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A07
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A09
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A10
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: A11
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Satisfies
 
 [REQUIREMENT]
 UID: ARCH-AUTH-AS
@@ -2323,6 +2394,7 @@ security.catalog_ref: SC-23
 security.verification_note: security_meta mint: inheritable SC-23 for uses inheritance seed bed.
 edge: ← uses from CAP-UI-FRAME.1
 edge: ← uses from CAP-UI-FRAME.2
+edge: ← uses from CAP-UI-FRAME.3
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006 inheritable)
 <<<
@@ -9716,10 +9788,10 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-REQALM-HONESTY
-STATUS: Active
+STATUS: Draft
 TITLE: ReqALM seed honesty (capability status vs code)
 STATEMENT: >>>
-Documentation-only seed pass aligning CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, CAP-UI-FRAME, ARCH-API-RBAC, R0 release notes, and browse-clients/projects UI wording with runtime on main @ 341330f (apps/reqalm/src). No application code changes.
+Documentation-only seed pass on main @ 341330f: mints CAP-RBAC.2 and CAP-UI-FRAME.3 as pending partial tips, CAP-BROWSE-UI-CP.2 browse wording, without changing application code. Release state ships in a follow-on seed commit after merge.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -9728,7 +9800,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Shipped seed honesty PR documenting main @ 341330fc8d43f2144193f1008503eacb7cfea903.
+security.verification_note: Planned until honesty seed PR merges; no verification pass in this patch.
 delivered_by_release: R1 — ReqALM seed honesty
 <<<
 RELATIONS:
@@ -11135,6 +11207,7 @@ edge: ← satisfies from CAP-BROWSE-UI-TREE.1
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS.1
 edge: ← satisfies from CAP-UI-HEADER-NAV.1
 edge: ← satisfies from CAP-UI-LAYOUT
+edge: ← satisfies from CAP-UI-FRAME.3
 edge: ← satisfies from CAP-BROWSE-UI-CP.2
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
@@ -11209,6 +11282,7 @@ edge: ← satisfies from CAP-UI-HEADER-NAV.1
 edge: ← satisfies from CAP-UI-LAYOUT
 edge: ← satisfies from CAP-BROWSE-UI-CATALOGS
 edge: ← satisfies from CAP-BROWSE-UI-CONTRACTS
+edge: ← satisfies from CAP-UI-FRAME.3
 edge: ← satisfies from CAP-BROWSE-UI-CP.2
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
@@ -11486,7 +11560,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-UI-FRAME.2
-STATUS: Active
+STATUS: Draft
 TITLE: UI frame: app shell, layout, guarded routes
 STATEMENT: >>>
 Web UI frame (shipped partial): internal-AS sign-in, HttpOnly session cookies, CSRF on cookie-mutating routes, and route guards that keep unauthenticated users off /app/*. Top header chrome only — no persistent sidebar rail (CAP-UI-HEADER-NAV). Implemented today: grant-scoped read-only browse for clients, projects, requirements (list, tree, detail, version history, relationships panel), and releases under the header. Not implemented in this frame: contract/version/trace/catalog/planning screens (see draft CAP-UI-VIEW-* and CAP-CONTRACT-UI.1 / CAP-VERSION-UI.1).
@@ -11498,7 +11572,8 @@ VERSION_N: 2
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: Partial: header-only built shell per CAP-UI-FRAME.2; verification pending until full ARCH-UI surfaces ship.
+security.verification_note: Content mint .2: header-only built shell; no sidebar rail.
+edge: ← refines from CAP-UI-FRAME.3
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
@@ -11526,6 +11601,45 @@ RELATIONS:
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-UI-FRAME.3
+STATUS: Active
+TITLE: UI frame: app shell, layout, guarded routes
+STATEMENT: >>>
+Web UI frame (shipped partial): internal-AS sign-in, HttpOnly session cookies, CSRF on cookie-mutating routes, and route guards that keep unauthenticated users off /app/*. Top header chrome only — no persistent sidebar rail (CAP-UI-HEADER-NAV). Implemented today: grant-scoped read-only browse for clients, projects, requirements (list, tree, detail, version history, relationships panel), and releases under the header. Not implemented in this frame: contract/version/trace/catalog/planning screens (see draft CAP-UI-VIEW-* and CAP-CONTRACT-UI.1 / CAP-VERSION-UI.1).
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-FRAME
+VERSION_N: 3
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Honesty mint .3 @ main 341330f: partial verification — header-only shell and grant-scoped browse reads shipped; full ARCH-UI / planning / trace surfaces not verified on this tip.
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: CAP-UI-FRAME.2
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-EXECUTOR.1
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CAP-AUTH-HARDEN.1
+  ROLE: Uses
 
 [REQUIREMENT]
 UID: ARCH-TRACE-VIEW-RTM
@@ -12360,6 +12474,7 @@ edge: ← satisfies from CAP-RBAC.1
 edge: ← uses from ARCH-ATTACH-SCOPE.1
 edge: ← uses from ARCH-ATTACH-SCOPE
 edge: ← uses from ARCH-ATTACH-UPLOAD
+edge: ← satisfies from CAP-RBAC.2
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -12595,6 +12710,7 @@ security.verification_note: Pin mint: inheritable AC-3, AU-2, AU-12 for uses inh
 edge: ← uses from CAP-SVC-OPERATION-ROUTE
 edge: ← uses from CAP-UI-FRAME.1
 edge: ← uses from CAP-UI-FRAME.2
+edge: ← uses from CAP-UI-FRAME.3
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006 inheritable)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006 inheritable)

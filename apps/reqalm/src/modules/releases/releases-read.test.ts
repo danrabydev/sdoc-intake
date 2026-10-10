@@ -72,11 +72,12 @@ describe("releases read API", () => {
     const planned = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=planned&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ status: string; id: string }>; total: number } };
-    assert.equal(planned.data.total, 6);
-    assert.equal(planned.data.items.length, 6);
+    assert.equal(planned.data.total, 7);
+    assert.equal(planned.data.items.length, 7);
     assert.ok(planned.data.items.some((i) => i.id === "rel-r1-planning-read-api"));
     assert.ok(planned.data.items.some((i) => i.id === "rel-r1-artifacts-read-api"));
     assert.ok(planned.data.items.some((i) => i.id === "rel-r1-hardening-followup-1"));
+    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-reqalm-honesty-seed"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-rbac-authorize-fail-closed"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-read-contracts"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-browse-ui-contracts"));
@@ -99,7 +100,7 @@ describe("releases read API", () => {
     const shipped = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=shipped&limit=100", headers: bearer })
     ).json() as { data: { total: number; items: Array<{ id: string; status: string }> } };
-    assert.equal(shipped.data.total, 36);
+    assert.equal(shipped.data.total, 35);
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-rbac-authorize-fail-closed"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-read-contracts"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-browse-ui-contracts"));
@@ -118,7 +119,7 @@ describe("releases read API", () => {
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-read-releases"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-browse-ui-releases"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-reqalm-contracts"));
-    assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-reqalm-honesty-seed"));
+    assert.ok(!shipped.data.items.some((i) => i.id === "rel-r1-reqalm-honesty-seed"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-trace-inherit-uses"));
     assert.ok(shipped.data.items.every((i) => i.status === "shipped"));
   });

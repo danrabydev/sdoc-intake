@@ -168,8 +168,9 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
 
-## Addendum — ReqALM seed honesty (main @ `341330f`, evidence baseline)
+## Addendum — ReqALM seed honesty (PR #58, evidence @ `341330f`)
 
-- **Ship (this PR’s seed patch):** `rel-r1-reqalm-honesty-seed` → **`CAP-REQALM-HONESTY`** @ **`341330fc8d43f2144193f1008503eacb7cfea903`** (2026-10-10), `active` / `pass`; aligns CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, CAP-UI-FRAME, ARCH-API-RBAC, R0 release notes, and browse-clients/projects UI wording with **`apps/reqalm/src`** on that main SHA.
-- **Patch (idempotent):** `docs/design/seed/scripts/patch_reqalm_honesty_seed.py` — **`--validate-baseline-edges`**; baseline fixture @ **`341330f`**; allow-list honesty mint rows only; regenerate **`docs/design/seed/out/`** after apply.
-- **Counts (post-patch):** 462 lines, 496 versions, **1966** edges, 42 releases.
+- **Release (planned, not shipped in feature PR):** `rel-r1-reqalm-honesty-seed` → **`CAP-REQALM-HONESTY`** (draft). Ship release state in a tiny follow-on seed commit after merge.
+- **Mints (this PR only):** **`CAP-RBAC.2`** and **`CAP-UI-FRAME.3`** (`verification_outcome: pending`; predecessors superseded with historical pass preserved); **`CAP-BROWSE-UI-CP.2`** browse wording (pass — UI shipped).
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_reqalm_honesty_seed.py` — add/mint only; baseline fixture @ **`341330f`**; **`--validate-baseline-edges`**.
+- **Counts (post-patch):** 462 lines, 498 versions, **1985** edges, 42 releases (7 planned incl. honesty).
