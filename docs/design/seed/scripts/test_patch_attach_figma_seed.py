@@ -62,19 +62,42 @@ class PatchAttachFigmaSeedTest(unittest.TestCase):
 
     def test_validate_baseline_edges_fails_when_rbac_refines_removed(self) -> None:
         baseline_mod = self.mod._baseline_edges_module()
-        required = baseline_mod.load_baseline_outbound_fixture()
-        target = ("ARCH-API-RBAC.1", "ARCH-API-RBAC", "refines", "")
-        self.assertIn(target, required)
+        version_uids, required = baseline_mod.load_baseline_outbound_fixture()
+        target_fp = baseline_mod.edge_fingerprint(
+            {"from": "ARCH-API-RBAC.1", "to": "ARCH-API-RBAC", "kind": "refines"}
+        )
+        self.assertTrue(any(baseline_mod.edge_fingerprint(e) == target_fp for e in required))
         y = YAML()
         with self.mod.DOGFOOD.open("r", encoding="utf-8") as f:
             data = y.load(f)
         data["edges"] = [
             e
             for e in data.get("edges") or []
-            if baseline_mod.edge_key(e) != target
+            if baseline_mod.edge_fingerprint(e) != target_fp
         ]
         with self.assertRaises(SystemExit):
-            baseline_mod.validate_baseline_edges_preserved(data, required=required)
+            baseline_mod.validate_baseline_edges_preserved(
+                data, required=required, version_uids=version_uids
+            )
+
+    def test_validate_baseline_edges_fails_when_trace_suspect_flipped(self) -> None:
+        baseline_mod = self.mod._baseline_edges_module()
+        version_uids, required = baseline_mod.load_baseline_outbound_fixture()
+        suspect = next(e for e in required if e.get("trace_suspect") is True)
+        y = YAML()
+        with self.mod.DOGFOOD.open("r", encoding="utf-8") as f:
+            data = y.load(f)
+        fp = baseline_mod.edge_fingerprint(suspect)
+        for e in data.get("edges") or []:
+            if baseline_mod.edge_fingerprint(e) == fp:
+                e["trace_suspect"] = not e.get("trace_suspect", False)
+                break
+        else:
+            self.fail("suspect baseline edge not found in dogfood")
+        with self.assertRaises(SystemExit):
+            baseline_mod.validate_baseline_edges_preserved(
+                data, required=required, version_uids=version_uids
+            )
 
 
 if __name__ == "__main__":

@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from collections import Counter
+from copy import deepcopy
 from pathlib import Path
 
 from ruamel.yaml import YAML
@@ -15,13 +17,13 @@ BASE_MAIN = "56bfc4d6a9fe04559ccddae636ec4052d84ae907"
 FIXTURE = SEED / "fixtures" / "dogfood-baseline-outbound-edges.json"
 
 
-def edge_key(edge: dict) -> tuple[str, str, str, str]:
-    return (
-        str(edge.get("from") or ""),
-        str(edge.get("to") or ""),
-        str(edge.get("kind") or ""),
-        str(edge.get("catalog_imprint_id") or ""),
-    )
+def canonical_edge(edge: dict) -> dict:
+    """Stable edge record: every field present on the baseline edge, sorted keys."""
+    return {k: deepcopy(edge[k]) for k in sorted(edge.keys())}
+
+
+def edge_fingerprint(edge: dict) -> str:
+    return json.dumps(canonical_edge(edge), sort_keys=True, default=str)
 
 
 def load_baseline_dogfood():
@@ -38,12 +40,12 @@ def baseline_version_uids(baseline) -> set[str]:
     return {str(v["uid"]) for v in baseline.get("requirement_versions") or [] if v.get("uid")}
 
 
-def baseline_outbound_edge_keys(baseline) -> set[tuple[str, str, str, str]]:
+def baseline_outbound_edges(baseline) -> list[dict]:
     uids = baseline_version_uids(baseline)
-    return {edge_key(e) for e in baseline.get("edges") or [] if str(e.get("from") or "") in uids}
+    return [canonical_edge(e) for e in baseline.get("edges") or [] if str(e.get("from") or "") in uids]
 
 
-def load_baseline_outbound_fixture() -> set[tuple[str, str, str, str]]:
+def load_baseline_outbound_fixture() -> tuple[set[str], list[dict]]:
     if not FIXTURE.is_file():
         raise FileNotFoundError(f"missing baseline fixture {FIXTURE}")
     payload = json.loads(FIXTURE.read_text(encoding="utf-8"))
@@ -51,43 +53,53 @@ def load_baseline_outbound_fixture() -> set[tuple[str, str, str, str]]:
         raise ValueError(
             f"baseline fixture main mismatch: {payload.get('baseline_main')!r} != {BASE_MAIN!r}"
         )
-    keys: set[tuple[str, str, str, str]] = set()
-    for row in payload.get("edges") or []:
-        keys.add(
-            (
-                str(row[0]),
-                str(row[1]),
-                str(row[2]),
-                str(row[3]) if len(row) > 3 else "",
-            )
-        )
-    return keys
+    version_uids = {str(u) for u in payload.get("version_uids") or []}
+    edges = [canonical_edge(e) for e in payload.get("edges") or []]
+    if not version_uids:
+        version_uids = {str(e["from"]) for e in edges}
+    return version_uids, edges
 
 
-def validate_baseline_edges_preserved(data, *, required: set[tuple[str, str, str, str]] | None = None) -> None:
-    """Every outbound edge from a baseline version uid must still exist unchanged."""
-    need = required if required is not None else load_baseline_outbound_fixture()
-    present = {edge_key(e) for e in data.get("edges") or []}
-    missing = need - present
+def validate_baseline_edges_preserved(
+    data,
+    *,
+    required: list[dict] | None = None,
+    version_uids: set[str] | None = None,
+) -> None:
+    """Every outbound edge from a baseline version uid must still exist with all fields unchanged."""
+    if required is None or version_uids is None:
+        version_uids, required = load_baseline_outbound_fixture()
+    req_counter = Counter(edge_fingerprint(e) for e in required)
+    present = [
+        canonical_edge(e)
+        for e in data.get("edges") or []
+        if str(e.get("from") or "") in version_uids
+    ]
+    pres_counter = Counter(edge_fingerprint(e) for e in present)
+    missing = req_counter - pres_counter
     if missing:
-        sample = sorted(missing)[:5]
+        sample_fps = list(missing.keys())[:3]
+        sample = [json.loads(fp) for fp in sample_fps]
         raise SystemExit(
-            f"baseline edge preservation failed: {len(missing)} outbound edge(s) missing "
+            f"baseline edge preservation failed: {sum(missing.values())} outbound edge(s) missing "
             f"or changed (sample: {sample})"
         )
 
 
 def write_baseline_outbound_fixture() -> int:
     baseline = load_baseline_dogfood()
-    keys = sorted(baseline_outbound_edge_keys(baseline))
+    version_uids = sorted(baseline_version_uids(baseline))
+    edges = baseline_outbound_edges(baseline)
+    edges.sort(key=edge_fingerprint)
     payload = {
         "baseline_main": BASE_MAIN,
-        "edge_count": len(keys),
-        "edges": [[a, b, c, d] for a, b, c, d in keys],
+        "version_uids": version_uids,
+        "edge_count": len(edges),
+        "edges": edges,
     }
     FIXTURE.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    print(f"wrote {FIXTURE} ({len(keys)} outbound edges @ {BASE_MAIN[:12]})")
-    return len(keys)
+    print(f"wrote {FIXTURE} ({len(edges)} outbound edges @ {BASE_MAIN[:12]})")
+    return len(edges)
 
 
 def main(argv: list[str] | None = None) -> None:
