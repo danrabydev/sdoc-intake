@@ -9987,13 +9987,13 @@ requirement_versions:
   base_uid: ARCH-CAP-REVIEW-COPY
   version_n: 0
   status: draft
-  statement: 'When a reviewed capability receives a new content version, each criterion on the reviewed version is copied onto the successor. Criteria on the reviewed version freeze: their statements and completion markers are not edited after the successor exists. Each copy is a new criterion id with copied_from pointing at the frozen criterion. Unchanged means the copy''s statement_hash equals the source criterion''s statement_hash (canonical shall-statement text). A changed criterion (different statement_hash) shall start with no completion marker and status open (incomplete). A copy of a criterion that was never complete on the source starts open (incomplete); that state is not re-check. An unchanged criterion may carry its prior completion only when the editor explicitly chooses carry for that criterion; the default when no choice is recorded is reset to open (incomplete). Carry is per criterion within one capability revision, not all-or-nothing. A carried completion marker shall record copied_from, carried_by, and carried_at separately from the source marker''s by and at. A user-chosen carry of an unchanged criterion is an explicit, recorded exemption from re-check under ARCH-TRACE-RECHECK. A copy of a previously complete criterion that is not carried is reset to open (incomplete), not re-check.'
+  statement: 'When a reviewed capability receives a new content version, each criterion on the reviewed version is copied onto the successor. Criteria on the reviewed version freeze: their statements and completion markers are not edited after the successor exists. Each copy is a new criterion id with copied_from pointing at the frozen criterion. Unchanged means the copy''s statement_hash equals the source criterion''s statement_hash (canonical shall-statement text). A changed criterion (different statement_hash) shall start with no completion marker and status open (incomplete). A copy of a criterion that was never complete on the source starts open (incomplete). An unchanged criterion may carry its prior completion only when the editor explicitly chooses carry for that criterion; the default when no choice is recorded is reset to open (incomplete). Carry is per criterion within one capability revision, not all-or-nothing. A carried completion marker shall record copied_from, carried_by, and carried_at separately from the source marker''s by and at. Copied criteria on a review-driven successor do not enter re-check (ARCH-TRACE-RECHECK.1); a user-chosen carry of an unchanged criterion records the carry audit; a copy that is not carried is reset to open (incomplete).'
   priority: 15
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
-  statement_hash: sha256:df7ef7d1eed27ab518a1bf6c6619ef65f7bc356e77096cd42c9ede960e8a8a8e
+  statement_hash: sha256:03c79c43323c2862551719fd6d78f80c0e19bd419b5c4d92a4d156d970aa3146
   grooming_state: detailed
 - uid: CAP-CRITERIA-RELEASE-REVIEW
   base_uid: CAP-CRITERIA-RELEASE-REVIEW
@@ -10052,6 +10052,20 @@ requirement_versions:
   grooming_state: detailed
   mint_kind: content
   rbac_op: workitem:create
+- uid: ARCH-TRACE-RECHECK.1
+  base_uid: ARCH-TRACE-RECHECK
+  version_n: 1
+  status: draft
+  statement: Re-check (needs re-check) remains distinct from incomplete and open per ARCH-TRACE-RECHECK. When a capability receives a review-driven content successor (ARCH-CAP-REVIEW-COPY), copied acceptance criteria on that successor do not enter re-check. Each copied criterion either carries its done state (unchanged statement_hash and an explicit editor carry choice with audit) or resets to open (incomplete). Re-check still applies to criteria and other trace targets when a conforming capability changes content by other means, loses verification, regresses, or when trace_suspect is set on inbound satisfies, refines, or uses edges.
+  priority: 15
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+  statement_hash: sha256:66c7997136250267399e6d379cc2b2162f4e0c62012401552f39bd4f68dfc8e0
+  grooming_state: detailed
+  mint_kind: content
+  rbac_op: trace:suspect
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -18150,15 +18164,18 @@ edges:
 - from: FIX-CAP-REVIEW.1
   to: FIX-REQ-REVIEW
   kind: satisfies
-- from: ARCH-CAP-REVIEW-COPY
-  to: ARCH-TRACE-RECHECK
-  kind: refines
 - from: J02.1
   to: J02
   kind: refines
 - from: CAP-CRITERIA-RELEASE-REVIEW
   to: J02.1
   kind: satisfies
+- from: ARCH-CAP-REVIEW-COPY
+  to: ARCH-TRACE-RECHECK.1
+  kind: refines
+- from: ARCH-TRACE-RECHECK.1
+  to: ARCH-TRACE-RECHECK
+  kind: refines
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family

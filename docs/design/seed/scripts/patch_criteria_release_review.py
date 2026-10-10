@@ -169,13 +169,20 @@ COPY = (
     "criterion. Unchanged means the copy's statement_hash equals the source criterion's statement_hash (canonical "
     "shall-statement text). A changed criterion (different statement_hash) shall start with no completion marker "
     "and status open (incomplete). A copy of a criterion that was never complete on the source starts open "
-    "(incomplete); that state is not re-check. An unchanged criterion may carry its prior completion only when "
-    "the editor explicitly chooses carry for that criterion; the default when no choice is recorded is reset to "
-    "open (incomplete). Carry is per criterion within one capability revision, not all-or-nothing. A carried "
-    "completion marker shall record copied_from, carried_by, and carried_at separately from the source marker's "
-    "by and at. A user-chosen carry of an unchanged criterion is an explicit, recorded exemption from re-check "
-    "under ARCH-TRACE-RECHECK. A copy of a previously complete criterion that is not carried is reset to open "
-    "(incomplete), not re-check."
+    "(incomplete). An unchanged criterion may carry its prior completion only when the editor explicitly chooses "
+    "carry for that criterion; the default when no choice is recorded is reset to open (incomplete). Carry is per "
+    "criterion within one capability revision, not all-or-nothing. A carried completion marker shall record "
+    "copied_from, carried_by, and carried_at separately from the source marker's by and at. Copied criteria on a "
+    "review-driven successor do not enter re-check (ARCH-TRACE-RECHECK.1); a user-chosen carry of an unchanged "
+    "criterion records the carry audit; a copy that is not carried is reset to open (incomplete)."
+)
+RECHECK_1 = (
+    "Re-check (needs re-check) remains distinct from incomplete and open per ARCH-TRACE-RECHECK. When a capability "
+    "receives a review-driven content successor (ARCH-CAP-REVIEW-COPY), copied acceptance criteria on that "
+    "successor do not enter re-check. Each copied criterion either carries its done state (unchanged "
+    "statement_hash and an explicit editor carry choice with audit) or resets to open (incomplete). Re-check still "
+    "applies to criteria and other trace targets when a conforming capability changes content by other means, "
+    "loses verification, regresses, or when trace_suspect is set on inbound satisfies, refines, or uses edges."
 )
 J02_1 = (
     "The initial work-item act compiles a briefing from a capability, not a one-to-one sync from a requirement "
@@ -258,6 +265,7 @@ def apply_patch(data) -> None:
     remove_edge(edges, {"from": "ARCH-WI-COMPILE.1", "to": "J02", "kind": "refines"})
     remove_edge(edges, {"from": "CAP-CRITERIA-RELEASE-REVIEW", "to": "ARCH-WI-COMPILE", "kind": "satisfies"})
     remove_edge(edges, {"from": "CAP-CRITERIA-RELEASE-REVIEW", "to": "ARCH-WI-COMPILE.1", "kind": "satisfies"})
+    remove_edge(edges, {"from": "ARCH-CAP-REVIEW-COPY", "to": "ARCH-TRACE-RECHECK", "kind": "refines"})
 
     product = find(data.get("contracts"), "id", "ctr-reqalm-product")
     if product is not None:
@@ -272,12 +280,14 @@ def apply_patch(data) -> None:
                 "ARCH-WI-COMPILE",
                 "ARCH-WI-COMPILE.1",
                 "J02.1",
+                "ARCH-TRACE-RECHECK.1",
             }
         ]
 
     proposals = [
         ("ARCH-REQ-AC-FACET.1", "ARCH-REQ-AC-FACET", 1, FACET_1, "content", "requirement:tree:read"),
         ("ARCH-REQ-AC-ROLLUP.1", "ARCH-REQ-AC-ROLLUP", 1, ROLLUP_1, "content", "requirement:tree:read"),
+        ("ARCH-TRACE-RECHECK.1", "ARCH-TRACE-RECHECK", 1, RECHECK_1, "content", "trace:suspect"),
     ]
     for uid, base, n, statement, mint, rbac in proposals:
         upsert(versions, "uid", draft_version(uid, base, n, statement, mint=mint, rbac_op=rbac))
@@ -441,7 +451,8 @@ def apply_patch(data) -> None:
         ("ARCH-REQ-AC-ROLLUP.1", "ARCH-REQ-AC-ROLLUP", "refines"),
         ("ARCH-CRITERION-RELEASE-UAT", "ARCH-REQ-AC-ROLLUP.1", "refines"),
         ("ARCH-CAP-REVIEW-COPY", "ARCH-REQ-AC-FACET.1", "refines"),
-        ("ARCH-CAP-REVIEW-COPY", "ARCH-TRACE-RECHECK", "refines"),
+        ("ARCH-CAP-REVIEW-COPY", "ARCH-TRACE-RECHECK.1", "refines"),
+        ("ARCH-TRACE-RECHECK.1", "ARCH-TRACE-RECHECK", "refines"),
         ("J02.1", "J02", "refines"),
         (CAP, "ARCH-REQ-AC-FACET.1", "satisfies"),
         (CAP, "ARCH-REQ-AC-ROLLUP.1", "satisfies"),

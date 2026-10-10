@@ -128,7 +128,7 @@ describe("requirements read API", () => {
     const content = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?type=content&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ type: string; id: string }>; total: number } };
-    assert.equal(content.data.total, 29);
+    assert.equal(content.data.total, 30);
     assert.ok(content.data.items.some((i) => i.id === "SEC-DEVENV" && i.type === "content"));
     const combo = (
       await inject({
