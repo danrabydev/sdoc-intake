@@ -186,6 +186,178 @@ paths:
           $ref: "#/components/responses/ProblemForbidden"
         "404":
           $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/contracts:
+    get:
+      operationId: listProjectContracts
+      summary: List contracts with scope and release counts
+      tags: [contracts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+      responses:
+        "200":
+          description: Paged contract summaries
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ContractSummaryPage"
+                  request_id:
+                    type: string
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/contracts/{contractId}:
+    get:
+      operationId: getProjectContract
+      summary: Read a contract
+      tags: [contracts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: contractId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9][a-z0-9-]{0,63}$"
+      responses:
+        "200":
+          description: Contract detail
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ContractDetail"
+                  request_id:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/contracts/{contractId}/scope:
+    get:
+      operationId: listContractScope
+      summary: Paged in_scope_of lines for a contract
+      tags: [contracts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: contractId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9][a-z0-9-]{0,63}$"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+      responses:
+        "200":
+          description: Paged scoped requirement/capability versions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ContractScopePage"
+                  request_id:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/contracts/{contractId}/releases:
+    get:
+      operationId: listContractReleases
+      summary: Releases covered by a contract
+      tags: [contracts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: contractId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z0-9][a-z0-9-]{0,63}$"
+      responses:
+        "200":
+          description: Release summaries for covers_releases
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ContractReleases"
+                  request_id:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
   /api/v1/projects/{projectId}/catalogs:
     get:
       operationId: listProjectCatalogs
@@ -600,6 +772,113 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConformingProjectLine"
+    ContractSummary:
+      type: object
+      additionalProperties: false
+      required: [id, title, kind, description, scope_count, release_count]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        kind:
+          type: string
+        description:
+          type: [string, "null"]
+        scope_count:
+          type: integer
+          minimum: 0
+        release_count:
+          type: integer
+          minimum: 0
+    ContractSummaryPage:
+      type: object
+      additionalProperties: false
+      required: [items, limit, offset, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContractSummary"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+    ContractDetail:
+      allOf:
+        - $ref: "#/components/schemas/ContractSummary"
+        - type: object
+          additionalProperties: false
+          required: [project_id, client_id, status, starts_on, ends_on, notes]
+          properties:
+            project_id:
+              type: string
+            client_id:
+              type: string
+            status:
+              type: string
+            starts_on:
+              type: [string, "null"]
+            ends_on:
+              type: [string, "null"]
+            notes:
+              type: [string, "null"]
+    ContractScopeLine:
+      type: object
+      additionalProperties: false
+      required: [uid, base, kind, status, version]
+      properties:
+        uid:
+          type: string
+        base:
+          type: string
+        kind:
+          type: string
+        status:
+          type: string
+        version:
+          type: integer
+    ContractScopePage:
+      type: object
+      additionalProperties: false
+      required: [items, limit, offset, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContractScopeLine"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+    ContractReleaseSummary:
+      type: object
+      additionalProperties: false
+      required: [id, name, status, planned_on, shipped_on]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        planned_on:
+          type: [string, "null"]
+        shipped_on:
+          type: [string, "null"]
+    ContractReleases:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContractReleaseSummary"
     RequirementRelations:
       type: object
       required: [id, project_id, outgoing, incoming]

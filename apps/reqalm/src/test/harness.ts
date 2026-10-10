@@ -113,17 +113,26 @@ export async function createTestApp(options?: { roles?: string; dogfood?: boolea
     readiness,
     keyProvider,
   };
-  const app = await buildApiServer(state);
-  return {
-    app,
-    pool,
-    config,
-    keyProvider,
-    close: async () => {
-      await app.close();
+  try {
+    const app = await buildApiServer(state);
+    return {
+      app,
+      pool,
+      config,
+      keyProvider,
+      close: async () => {
+        await app.close();
+        await pgFixture.close();
+      },
+    };
+  } catch (error) {
+    try {
       await pgFixture.close();
-    },
-  };
+    } catch {
+      // Preserve the original build/registration failure.
+    }
+    throw error;
+  }
 }
 
 export function pkcePair() {
