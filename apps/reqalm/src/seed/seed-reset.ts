@@ -211,6 +211,8 @@ async function wipeProjectSeedData(
   projectIds: string[],
 ): Promise<Record<string, number>> {
   const deleted: Record<string, number> = {};
+  const { wipeWorkflowTables } = await import("./load-dogfood-workflow.js");
+  Object.assign(deleted, await wipeWorkflowTables(client, projectIds));
   for (const table of ["contract_scope", "contract_releases", "contracts"] as const) {
     const r = await client.query(`DELETE FROM ${table} WHERE project_id = ANY($1::text[])`, [projectIds]);
     deleted[table] = r.rowCount ?? 0;

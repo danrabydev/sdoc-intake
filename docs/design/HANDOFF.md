@@ -167,3 +167,11 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
+
+## Addendum — workflow read API + loader (draft PR, migration 015)
+
+- **Release (planned, not in this PR’s seed patch):** `rel-r1-read-workflow` → **`CAP-READ-WORKFLOW`** — release state stays planned until a separate seed-only ship PR.
+- **Runtime:** `015_workflow_read.sql`; dogfood loader upserts `workflow_*` tables (profiles, gates, hooks, subject kinds, role bindings, approval records, gate signoffs for fixtures). Seed reset wipes workflow rows in FK order before requirement lines. Junction FKs **`ON DELETE RESTRICT`**.
+- **API:** grant-scoped GET routes under `/api/v1/projects/:projectId/workflow/*`; RBAC **`workflow:read`** (mirrors **`contract:read`** / browse Reader roles); missing/forbidden → **404** with header parity; **`gate_signoffs`** / **`cyber_gate`** omitted from DTOs.
+- **Validate:** `python3 docs/design/seed/scripts/patch_workflow_read_validate.py && python3 docs/design/seed/scripts/yaml_to_strictdoc.py --validate`.
+- **Patch:** `patch_workflow_read_validate.py` — baseline edge check only; **no release row edits** in the feature PR.

@@ -271,6 +271,29 @@ describe("seed reset", () => {
     await pg.close();
   });
 
+  it("wipes workflow rows before requirement lines (FK-safe)", async () => {
+    const pg = await createMigratedPglitePool();
+    const { config, env } = harness();
+    const seed = await readDogfoodFile(dogfoodPath);
+    await loadDogfoodSeed(pg.pool, config, seed);
+    const before = await pg.pool.query<{ c: number }>(
+      `SELECT count(*)::int AS c FROM workflow_approval_records WHERE project_id = 'reqalm'`,
+    );
+    assert.ok((before.rows[0]?.c ?? 0) > 0);
+    await resetDogfoodSeed(pg.pool, config, seed, {
+      confirm: true,
+      seedPath: dogfoodPath,
+      repoRoot,
+      env,
+      actor: "test-operator",
+    });
+    const after = await pg.pool.query<{ c: number }>(
+      `SELECT count(*)::int AS c FROM workflow_approval_records WHERE project_id = 'reqalm'`,
+    );
+    assert.equal(after.rows[0]?.c, before.rows[0]?.c);
+    await pg.close();
+  });
+
   it("wipes contract junction rows before releases (FK-safe)", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();

@@ -287,6 +287,7 @@ describe("requirements relations API", () => {
       );
     } finally {
       await q(`DELETE FROM trace_edges WHERE from_uid IN ('CAP-BROWSE-UI-REQS-dedupe-p2','QZ','QZ.7') AND to_uid = 'CAP-READ-REQS'`);
+      await q(`DELETE FROM workflow_approval_records WHERE base_uid IN ('CAP-BROWSE-UI-REQS','QZ','QZ.7') AND project_id IN ('dedupe-p2','reqalm')`);
       await q(`DELETE FROM requirement_versions WHERE uid IN ('CAP-BROWSE-UI-REQS-dedupe-p2','QZ','QZ.7')`);
       await q(`DELETE FROM requirement_lines WHERE base_uid IN ('CAP-BROWSE-UI-REQS','QZ','QZ.7') AND project_id IN ('dedupe-p2','reqalm')`);
       await q(`DELETE FROM project_grants WHERE id = 'grant-casey-dedupe-p2'`);

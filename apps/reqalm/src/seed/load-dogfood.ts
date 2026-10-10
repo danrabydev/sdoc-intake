@@ -129,6 +129,13 @@ export async function applyDogfoodSeed(
     contracts: 0,
     contract_scope: 0,
     contract_releases: 0,
+    workflow_subject_kinds: 0,
+    workflow_gates: 0,
+    workflow_action_hooks: 0,
+    workflow_profiles: 0,
+    workflow_role_bindings: 0,
+    workflow_approval_records: 0,
+    workflow_gate_signoffs: 0,
   };
 
   const countBefore = options?.skipUnchangedCheck ? null : await countSeedRows(client);
@@ -215,6 +222,22 @@ export async function applyDogfoodSeed(
     assertContractReferences(c, uidProject, releaseProject);
     await upsertContract(client, c, inserted);
   }
+
+  const baseUidProject = new Map<string, string>();
+  for (const line of seed.requirement_lines ?? []) {
+    baseUidProject.set(String(line.base_uid), String(line.project_id));
+  }
+  const identityIds = new Set((seed.identities ?? []).map((i) => String(i.id)));
+  const { loadWorkflowFromSeed } = await import("./load-dogfood-workflow.js");
+  await loadWorkflowFromSeed(
+    client,
+    seed as Record<string, unknown>,
+    inserted,
+    baseUidProject,
+    identityIds,
+    new Set(releaseProject.keys()),
+  );
+
   for (const e of seed.edges ?? []) {
     assertInheritableTraceEdge(e, uidProject, uidToBaseUid, lineKindByProjectBase);
     await upsertTraceEdge(client, e, uidProject, inserted);
@@ -284,6 +307,13 @@ export async function countSeedRows(client: pg.PoolClient) {
     "contracts",
     "contract_scope",
     "contract_releases",
+    "workflow_subject_kinds",
+    "workflow_gates",
+    "workflow_action_hooks",
+    "workflow_profiles",
+    "workflow_role_bindings",
+    "workflow_approval_records",
+    "workflow_gate_signoffs",
   ] as const;
   const counts: Record<string, number> = {};
   for (const t of tables) {
@@ -338,7 +368,12 @@ async function upsertProject(
       : `
     INSERT INTO projects (id, client_id, name, status, notes, workflow_profile_id)
     VALUES ($1, $2, $3, $4, $5, $6)
-    ON CONFLICT (id) DO NOTHING
+    ON CONFLICT (id) DO UPDATE SET
+      client_id = EXCLUDED.client_id,
+      name = EXCLUDED.name,
+      status = EXCLUDED.status,
+      notes = EXCLUDED.notes,
+      workflow_profile_id = COALESCE(EXCLUDED.workflow_profile_id, projects.workflow_profile_id)
     RETURNING id
   `,
     [
