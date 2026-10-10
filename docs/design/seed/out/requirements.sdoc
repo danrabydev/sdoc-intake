@@ -2321,6 +2321,7 @@ iteration: iter-r1
 security.catalog_ref: SC-23
 security.verification_note: security_meta mint: inheritable SC-23 for uses inheritance seed bed.
 edge: ← uses from CAP-UI-FRAME.1
+edge: ← uses from CAP-UI-FRAME.2
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to SC-23 (pin imprint=nist-800-53@rev5-dogfood-20261006 inheritable)
 <<<
@@ -2763,6 +2764,7 @@ security.catalog_ref: AC-3
 security.verification_note: Permission-filtered list; no cross-tenant leakage.
 edge: ← satisfies from CAP-BROWSE-CP
 edge: ← satisfies from CAP-BROWSE-UI-CP
+edge: ← satisfies from CAP-BROWSE-UI-CP.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 in_scope_of_contract: ReqALM product (build)
@@ -2807,6 +2809,7 @@ security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← satisfies from CAP-BROWSE-CP
 edge: ← satisfies from CAP-BROWSE-UI-CP
+edge: ← satisfies from CAP-BROWSE-UI-CP.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 in_scope_of_contract: ReqALM product (build)
@@ -3002,6 +3005,8 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Groomed 2026-10-09; pre-write or UI track. rbac_op capability:view proposed for future hierarchy browse.
+edge: ← satisfies from CAP-UI-VIEW-CAP-DETAIL
+edge: ← satisfies from CAP-UI-VIEW-CAP-FOCUS
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -3060,6 +3065,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with browse-clients-projects PR #22.
 edge: ← satisfies from CAP-BROWSE-UI-CP
+edge: ← satisfies from CAP-BROWSE-UI-CP.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — browse clients and projects (read-only)
 <<<
@@ -3087,7 +3093,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-CP
-STATUS: Active
+STATUS: Draft
 TITLE: Browse clients and projects UI (read-only)
 STATEMENT: >>>
 Read-only /app browse screens for grant-scoped clients and projects: paged clients list, client detail with projects, all-projects list with client name, and a project header stub (Requirements and Releases sections labelled coming next). Uses existing session/CSRF auth; API data rendered via safe DOM text only.
@@ -3100,7 +3106,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with browse UI PR #23.
-in_scope_of_contract: ReqALM product (build)
+edge: ← refines from CAP-BROWSE-UI-CP.1
 delivered_by_release: R1 — browse clients and projects UI (read-only)
 <<<
 RELATIONS:
@@ -3122,11 +3128,50 @@ RELATIONS:
   VALUE: CAP-BROWSE-CP
   ROLE: Satisfies
 - TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
-- TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-cp
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-BROWSE-UI-CP.1
+STATUS: Active
+TITLE: Browse clients and projects UI (read-only)
+STATEMENT: >>>
+Read-only /app browse screens for grant-scoped clients and projects: paged clients list, client detail with projects, all-projects list with client name, and a project header stub (Requirements and Releases sections labelled coming next). Uses existing session/CSRF auth; API data rendered via safe DOM text only. Layout: Clients entry lists grant-scoped clients; row opens client detail with projects table; All projects lists cross-client projects with client name; project stub shows Requirements/Releases placeholders linking into project routes. Header uses global Clients/Projects nav outside project tabs.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-UI-CP
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Layout prose added 2026-10-10 seed (CAP-UI-LAYOUT); shipped browse UI PR #23.
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-CP
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: B07
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: B08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-BROWSE-CP
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 
 [REQUIREMENT]
 UID: CAP-READ-REQS
@@ -3147,6 +3192,7 @@ edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
+edge: ← satisfies from CAP-BROWSE-UI-REQS.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — requirements read API
 <<<
@@ -3177,7 +3223,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-REQS
-STATUS: Active
+STATUS: Draft
 TITLE: Browse requirements UI (read-only)
 STATEMENT: >>>
 Read-only /app browse screens for grant-scoped requirements within a project: paged list with kind/type/status filters and q search (URL-driven), requirement detail (statement + attributes), and paged version history (newest first). Uses session/CSRF auth; safe DOM text only. Trace links deferred.
@@ -3192,7 +3238,9 @@ security.catalog_ref: CM-2
 security.verification_note: Shipped with requirements browse UI PR #26.
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
 edge: ← satisfies from CAP-UI-HEADER-NAV
-in_scope_of_contract: ReqALM product (build)
+edge: ← refines from CAP-BROWSE-UI-REQS.1
+edge: ← satisfies from CAP-BROWSE-UI-RELATIONS.1
+edge: ← satisfies from CAP-UI-HEADER-NAV.1
 delivered_by_release: R1 — browse requirements UI (read-only)
 <<<
 RELATIONS:
@@ -3214,11 +3262,50 @@ RELATIONS:
   VALUE: CAP-READ-REQS
   ROLE: Satisfies
 - TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
-- TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-reqs
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-BROWSE-UI-REQS.1
+STATUS: Active
+TITLE: Browse requirements UI (read-only)
+STATEMENT: >>>
+Read-only /app browse screens for grant-scoped requirements within a project: paged list with kind/type/status filters and q search (URL-driven), requirement detail (statement + attributes), and paged version history (newest first). Uses session/CSRF auth; safe DOM text only. Trace links deferred. Layout: Project Requirements tab — filter strip (kind/type/status/q) above a paged table; row navigates to detail with statement and attributes; version history is a secondary route; relationships panel sits below statement on detail (CAP-BROWSE-UI-RELATIONS). Breadcrumb: client → project → requirement uid.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-UI-REQS
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Layout prose added 2026-10-10 seed; shipped PR #26.
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-REQS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: C08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: D06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-READ-REQS
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 
 [REQUIREMENT]
 UID: CAP-READ-RELEASES
@@ -3236,6 +3323,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Shipped with releases read API PR #25 (merge eca9090802c415f78697cc8b9d000f7f7d67a702).
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
+edge: ← satisfies from CAP-BROWSE-UI-RELEASES.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — releases read API
 <<<
@@ -3263,7 +3351,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-RELEASES
-STATUS: Active
+STATUS: Draft
 TITLE: Browse releases UI (read-only)
 STATEMENT: >>>
 Read-only /app browse screens for grant-scoped releases within a project: paged list with status filter (planned | shipped, URL-driven), release detail (notes preserving line breaks and delivered capabilities linking to requirement detail). Uses session/CSRF auth; safe DOM text only. Trace links deferred.
@@ -3276,7 +3364,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with releases browse UI PR #27 (merge 0d9623815cd17b405c27172f5ffad1e5ae9d1cfb).
-in_scope_of_contract: ReqALM product (build)
+edge: ← refines from CAP-BROWSE-UI-RELEASES.1
 delivered_by_release: R1 — browse releases UI (read-only)
 <<<
 RELATIONS:
@@ -3298,15 +3386,54 @@ RELATIONS:
   VALUE: CAP-READ-RELEASES
   ROLE: Satisfies
 - TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
-- TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-releases
   ROLE: Delivers
 
 [REQUIREMENT]
-UID: CAP-BROWSE-UI-RELATIONS
+UID: CAP-BROWSE-UI-RELEASES.1
 STATUS: Active
+TITLE: Browse releases UI (read-only)
+STATEMENT: >>>
+Read-only /app browse screens for grant-scoped releases within a project: paged list with status filter (planned | shipped, URL-driven), release detail (notes preserving line breaks and delivered capabilities linking to requirement detail). Uses session/CSRF auth; safe DOM text only. Trace links deferred. Layout: Project Releases tab — status filter and paged table; row opens release detail with notes and delivered capabilities list linking to requirement/capability detail routes. Breadcrumb includes project name.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-UI-RELEASES
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Layout prose added 2026-10-10 seed; shipped PR #27.
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-RELEASES
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: C08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: D06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-READ-RELEASES
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-BROWSE-UI-RELATIONS
+STATUS: Draft
 TITLE: Browse requirement relationships UI (read-only)
 STATEMENT: >>>
 Read-only Relationships panel on the requirement detail browse screen: loads GET /api/v1/projects/:projectId/requirements/:id/relations and renders outgoing and incoming links grouped by kind. Requirement peers navigate to detail; catalog conforms_to peers show as non-navigating chips with imprint label; trace_suspect shows needs re-check; restricted peers show a muted stub with no peer id. Empty, loading, and error states included.
@@ -3319,7 +3446,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with relationships browse UI PR #32 (merge c8272340b67a0e505b63483bd2ef1550accb4635).
-in_scope_of_contract: ReqALM product (build)
+edge: ← refines from CAP-BROWSE-UI-RELATIONS.1
 delivered_by_release: R1 — browse requirement relationships UI (read-only)
 <<<
 RELATIONS:
@@ -3344,11 +3471,53 @@ RELATIONS:
   VALUE: CAP-BROWSE-UI-REQS
   ROLE: Satisfies
 - TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
-- TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-relations
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-BROWSE-UI-RELATIONS.1
+STATUS: Active
+TITLE: Browse requirement relationships UI (read-only)
+STATEMENT: >>>
+Read-only Relationships panel on the requirement detail browse screen: loads GET /api/v1/projects/:projectId/requirements/:id/relations and renders outgoing and incoming links grouped by kind. Requirement peers navigate to detail; catalog conforms_to peers show as non-navigating chips with imprint label; trace_suspect shows needs re-check; restricted peers show a muted stub with no peer id. Empty, loading, and error states included. Layout: Relationships region on requirement detail — outgoing and incoming groups by kind; requirement peers link to detail; catalog conforms_to peers render as non-navigating chips; restricted peers show muted stub.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-UI-RELATIONS
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Layout prose added 2026-10-10 seed; shipped PR #32.
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-RELATIONS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: C08
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: D06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-RELATIONS-API
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-REQS
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 
 [[/SECTION]]
 
@@ -3629,6 +3798,7 @@ edge: ← satisfies from CAP-TREE
 edge: ← uses from N01
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← satisfies from CAP-BROWSE-UI-TREE
+edge: ← satisfies from CAP-BROWSE-UI-TREE.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 in_scope_of_contract: ReqALM product (build)
@@ -3734,6 +3904,9 @@ edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 edge: ← satisfies from CAP-RELATIONS-API
 edge: ← satisfies from CAP-CATALOGS-API
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
+edge: ← satisfies from CAP-BROWSE-UI-REQS.1
+edge: ← satisfies from CAP-BROWSE-UI-RELEASES.1
+edge: ← satisfies from CAP-BROWSE-UI-RELATIONS.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -4063,6 +4236,9 @@ edge: ← satisfies from CAP-READ-REQS
 edge: ← satisfies from CAP-BROWSE-UI-REQS
 edge: ← satisfies from CAP-BROWSE-UI-RELEASES
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
+edge: ← satisfies from CAP-BROWSE-UI-REQS.1
+edge: ← satisfies from CAP-BROWSE-UI-RELEASES.1
+edge: ← satisfies from CAP-BROWSE-UI-RELATIONS.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -4655,6 +4831,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Shipped with requirement hierarchy read API PR #28 (merge ffd1d5c38ffc6f09c13dd877c82bf0d4bd891764).
 edge: ← satisfies from CAP-BROWSE-UI-TREE
+edge: ← satisfies from CAP-BROWSE-UI-TREE.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — requirement hierarchy read API
 <<<
@@ -4688,7 +4865,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-TREE
-STATUS: Active
+STATUS: Draft
 TITLE: Browse requirements tree UI (read-only)
 STATEMENT: >>>
 Read-only /app requirements tree for a grant-scoped project: lazy-loaded outline at /app/projects/:projectId/tree using GET .../requirements/tree?parent= (roots when omitted). Each node shows kind, uid, title; expanders load children once and cache in memory. Accessible WAI-ARIA tree (roles, aria-expanded/level, keyboard navigation). Requirement detail breadcrumbs from ancestors (sections link to tree). Session/CSRF auth; safe DOM text only.
@@ -4701,7 +4878,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with requirements tree browse UI PR #29 (merge ecf5d539cdcb7da35c9469b7e8e5794240de44f9).
-in_scope_of_contract: ReqALM product (build)
+edge: ← refines from CAP-BROWSE-UI-TREE.1
 delivered_by_release: R1 — browse requirements tree UI (read-only)
 <<<
 RELATIONS:
@@ -4723,11 +4900,50 @@ RELATIONS:
   VALUE: CAP-UI-KIT-TREE
   ROLE: Uses
 - TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
-- TYPE: Child
   VALUE: RELEASE-rel-r1-browse-ui-tree
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-BROWSE-UI-TREE.1
+STATUS: Active
+TITLE: Browse requirements tree UI (read-only)
+STATEMENT: >>>
+Read-only /app requirements tree for a grant-scoped project: lazy-loaded outline at /app/projects/:projectId/tree using GET .../requirements/tree?parent= (roots when omitted). Each node shows kind, uid, title; expanders load children once and cache in memory. Accessible WAI-ARIA tree (roles, aria-expanded/level, keyboard navigation). Requirement detail breadcrumbs from ancestors (sections link to tree). Session/CSRF auth; safe DOM text only. Layout: Project Requirements tree mode — lazy tree in the primary column (see also repo mockup 01-requirements-tree-detail.jpg); selecting a requirement navigates to the requirement detail route (no split-pane detail on the tree URL). Section ancestors in breadcrumb on detail link back to tree parent. List/tree toggle lives in the header tab strip.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-UI-TREE
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Layout prose added 2026-10-10 seed; shipped PR #29.
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RL
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-TREE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: C06
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-READ-HIERARCHY
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-KIT-TREE
+  ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 
 [REQUIREMENT]
 UID: ARCH-REQ-AC-FACET
@@ -4746,6 +4962,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 edge: ← refines from ARCH-REQ-AC-ROLLUP
+edge: ← satisfies from CAP-UI-VIEW-CRITERIA
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -4774,6 +4991,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← satisfies from CAP-UI-VIEW-CRITERIA
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -5150,6 +5368,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Shipped with requirement relations read API PR #31 (merge cb8a8c97895b651c8f25ce660482e7e5e7ae4454).
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
+edge: ← satisfies from CAP-BROWSE-UI-RELATIONS.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — requirement relations read API
 <<<
@@ -6182,7 +6401,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SEED-ATTACH-FIGMA
-STATUS: Draft
+STATUS: Active
 TITLE: Cyber attachments + Figma requirements (seed)
 STATEMENT: >>>
 Seed-only: Cyber attachments and Figma design-link requirement set in dogfood.yaml (ARCH-ATTACH-*, ARCH-ATTACH-VERSIONS, ARCH-ATTACH-SCAN, ARCH-FIGMA-*, SPIKE-FIGMA-FEASIBILITY, CAP-ATTACH-*, ARCH-KEY-SCOPE.1 and attachment .1 content mints) with conforms_to, refines, uses, and satisfies edges from fixtures/cyber-attach-figma-snippet.yaml and delta-versions.yaml. Regenerates out/ and HANDOFF.md. No application runtime changes; ships parallel PR #39 rel-r1-trace-inherit-uses only (this PR's release stays planned).
@@ -6194,7 +6413,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until attachments/Figma seed PR merges.
+security.verification_note: Shipped with attachments/Figma seed PR #40 (merge 1eb8482b533b5f656240bc7b53a60b1a58c5a203).
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — Cyber attachments + Figma requirements (seed)
 edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -6249,6 +6468,7 @@ security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← uses from L04
 edge: ← uses from G03
 edge: ← satisfies from CAP-REQALM-CONTRACTS
+edge: ← satisfies from CAP-UI-VIEW-CAP-FOCUS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -7637,6 +7857,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 edge: ← refines from ARCH-CAT-PROJECT-ROLLUP
+edge: ← satisfies from CAP-UI-VIEW-CATALOG
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -7693,6 +7914,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← satisfies from CAP-UI-VIEW-CATALOG
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -7833,6 +8055,7 @@ priority: 25
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← satisfies from CAP-UI-VIEW-CAP-DETAIL
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -7929,6 +8152,7 @@ priority: 30
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← satisfies from CAP-UI-VIEW-CAP-DETAIL
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -8153,6 +8377,29 @@ RELATIONS:
   ROLE: Delivers
 
 [REQUIREMENT]
+UID: CAP-CONTRACT-UI.1
+STATUS: Draft
+TITLE: Contracts & document view pack
+STATEMENT: >>>
+Planned capability pack for contract list/detail and document view (not built on main). Layout intent when implemented: contracts list with overlap timeline and in_scope_of counts; detail with membership linking to requirement versions; document view built from in_scope_of uids with optional context-parent walk. Reference mockups in repo: 02-contracts-list-detail.jpg, 03-document-view-from-contract.jpg.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-CONTRACT-UI
+VERSION_N: 1
+priority: 15
+iteration: iter-r0
+security.catalog_ref: AC-3
+security.verification_note: Draft .1 layout intent; active CAP-CONTRACT-UI unchanged until contract UI ships.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CAP
+- TYPE: Parent
+  VALUE: CAP-CONTRACT-UI
+  ROLE: Refines
+
+[REQUIREMENT]
 UID: CAP-CONTRACT-UI
 STATUS: Active
 TITLE: Contracts & document view pack
@@ -8169,6 +8416,7 @@ priority: 15
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from CAP-CONTRACT-UI.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -8212,6 +8460,29 @@ RELATIONS:
   ROLE: Delivers
 
 [REQUIREMENT]
+UID: CAP-VERSION-UI.1
+STATUS: Draft
+TITLE: Version lineage pack
+STATEMENT: >>>
+Planned capability pack for version succession, lineage, and compare UX (not built on main). Layout intent when implemented: lineage strip across obsolete → active → draft tips; compare with field-level diffs; successor mint actions on detail header. Reference mockup in repo: 04-requirement-lineage-versions.jpg.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-VERSION-UI
+VERSION_N: 1
+priority: 15
+iteration: iter-r0
+security.catalog_ref: AC-3
+security.verification_note: Draft .1 layout intent; active CAP-VERSION-UI unchanged until version UI ships.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CAP
+- TYPE: Parent
+  VALUE: CAP-VERSION-UI
+  ROLE: Refines
+
+[REQUIREMENT]
 UID: CAP-VERSION-UI
 STATUS: Active
 TITLE: Version lineage pack
@@ -8228,6 +8499,7 @@ priority: 15
 iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from CAP-VERSION-UI.1
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -10528,6 +10800,14 @@ edge: ← refines from ARCH-UI-KIT-SHARED
 edge: ← satisfies from CAP-UI-FRAME.1
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
 edge: ← satisfies from CAP-UI-HEADER-NAV
+edge: ← satisfies from CAP-UI-FRAME.2
+edge: ← satisfies from CAP-BROWSE-UI-CP.1
+edge: ← satisfies from CAP-BROWSE-UI-REQS.1
+edge: ← satisfies from CAP-BROWSE-UI-RELEASES.1
+edge: ← satisfies from CAP-BROWSE-UI-TREE.1
+edge: ← satisfies from CAP-BROWSE-UI-RELATIONS.1
+edge: ← satisfies from CAP-UI-HEADER-NAV.1
+edge: ← satisfies from CAP-UI-LAYOUT
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Platform baseline
 in_scope_of_contract: ReqALM product (build)
@@ -10591,6 +10871,14 @@ edge: ← satisfies from CAP-MFA-QR
 edge: ← satisfies from CAP-UI-FRAME.1
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS
 edge: ← satisfies from CAP-UI-HEADER-NAV
+edge: ← satisfies from CAP-UI-FRAME.2
+edge: ← satisfies from CAP-BROWSE-UI-CP.1
+edge: ← satisfies from CAP-BROWSE-UI-REQS.1
+edge: ← satisfies from CAP-BROWSE-UI-RELEASES.1
+edge: ← satisfies from CAP-BROWSE-UI-TREE.1
+edge: ← satisfies from CAP-BROWSE-UI-RELATIONS.1
+edge: ← satisfies from CAP-UI-HEADER-NAV.1
+edge: ← satisfies from CAP-UI-LAYOUT
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
@@ -10827,7 +11115,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-UI-FRAME.1
-STATUS: Active
+STATUS: Draft
 TITLE: UI frame: app shell, layout, guarded routes
 STATEMENT: >>>
 Web UI frame: navigation, client-scoped sidebar chrome, and route guards for /app/* via BFF session cookies and CSRF on cookie mutations. Partial: shell and sign-in work; not every ARCH-UI surface is implemented.
@@ -10840,7 +11128,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Partial pass on .1: shell + guards verified on PR #13; full UI catalog still planned. Verified: Local Docker 2026-10-07 on PR #13 follow-up (6a5f0db + verification fixes).
-in_scope_of_contract: ReqALM product (build)
+edge: ← refines from CAP-UI-FRAME.2
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 <<<
 RELATIONS:
@@ -10848,6 +11136,46 @@ RELATIONS:
   VALUE: SEC-UI
 - TYPE: Parent
   VALUE: CAP-UI-FRAME
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-EXECUTOR.1
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CAP-AUTH-HARDEN.1
+  ROLE: Uses
+
+[REQUIREMENT]
+UID: CAP-UI-FRAME.2
+STATUS: Active
+TITLE: UI frame: app shell, layout, guarded routes
+STATEMENT: >>>
+Web UI frame (shipped partial): internal-AS sign-in, HttpOnly session cookies, CSRF on cookie-mutating routes, and route guards that keep unauthenticated users off /app/*. Top header chrome only — no persistent sidebar rail (CAP-UI-HEADER-NAV). Implemented today: grant-scoped read-only browse for clients, projects, requirements (list, tree, detail, version history, relationships panel), and releases under the header. Not implemented in this frame: contract/version/trace/catalog/planning screens (see draft CAP-UI-VIEW-* and CAP-CONTRACT-UI.1 / CAP-VERSION-UI.1).
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-FRAME
+VERSION_N: 2
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Content mint .2: header-only built shell; no sidebar rail.
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: CAP-UI-FRAME.1
   ROLE: Refines
 - TYPE: Parent
   VALUE: ARCH-UI
@@ -10883,6 +11211,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← satisfies from CAP-UI-VIEW-RTM
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -10913,6 +11242,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← satisfies from CAP-UI-VIEW-CCM
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -10943,6 +11273,8 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← satisfies from CAP-UI-VIEW-RTM
+edge: ← satisfies from CAP-UI-VIEW-CCM
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -11020,7 +11352,7 @@ UID: CAP-UI-KIT
 STATUS: Draft
 TITLE: UI Kit (shared chrome and tree)
 STATEMENT: >>>
-Shared UI components for ReqALM browse surfaces: header chrome, badges, and the lazy tree control. Child capabilities hold concrete widgets; feature pages use them via uses edges.
+Shared UI components for ReqALM browse surfaces: header chrome (CAP-UI-KIT-CHROME), badges, and the lazy tree control (CAP-UI-KIT-TREE). Feature pages compose these widgets; layout regions are documented on CAP-UI-LAYOUT and per-view capabilities.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -11030,6 +11362,13 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned; not shipped on main.
+edge: ← uses from CAP-UI-VIEW-RTM
+edge: ← uses from CAP-UI-VIEW-CRITERIA
+edge: ← uses from CAP-UI-VIEW-CATALOG
+edge: ← uses from CAP-UI-VIEW-CCM
+edge: ← uses from CAP-UI-VIEW-CAP-DETAIL
+edge: ← uses from CAP-UI-VIEW-CAP-FOCUS
+edge: ← uses from CAP-UI-LAYOUT
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -11057,7 +11396,7 @@ UID: CAP-UI-KIT-TREE
 STATUS: Draft
 TITLE: Shared lazy tree widget
 STATEMENT: >>>
-Lazy tree with expand/collapse, WCAG 2.2 AA keyboard navigation per WAI-ARIA tree pattern, and parent paging label 'showing 100 of N' when more than 100 direct children exist. Shipped CAP-BROWSE-UI-TREE will be refactored to consume this widget later (see ARCH-UI-KIT-SHARED).
+Lazy tree with expand/collapse, WCAG 2.2 AA keyboard navigation per WAI-ARIA tree pattern, and parent paging label 'showing 100 of N' when more than 100 direct children exist. Layout role: primary column on the tree route; selecting a requirement navigates to the requirement detail route (no split-pane detail on the tree URL). Shipped CAP-BROWSE-UI-TREE will be refactored to consume this widget later (see ARCH-UI-KIT-SHARED).
 <<<
 COMMENT: >>>
 KIND: capability
@@ -11070,6 +11409,7 @@ security.verification_note: Planned; tree browse exists in CAP-BROWSE-UI-TREE wi
 edge: ← uses from ARCH-TRACE-VIEW-RTM
 edge: ← uses from ARCH-TRACE-VIEW-CCM
 edge: ← uses from CAP-BROWSE-UI-TREE
+edge: ← uses from CAP-BROWSE-UI-TREE.1
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -11087,7 +11427,7 @@ UID: CAP-UI-KIT-CHROME
 STATUS: Draft
 TITLE: Shared header and badges
 STATEMENT: >>>
-Top/sidebar chrome fragments and status badges reused by browse views; no business logic.
+Shared header chrome fragments and status badges for browse and trace views (brand slot, breadcrumb slot, tab strip host, account avatar). Consumed by CAP-UI-HEADER-NAV and feature pages via CAP-UI-KIT; no sidebar rail and no domain logic.
 <<<
 COMMENT: >>>
 KIND: capability
@@ -11098,6 +11438,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned; tree browse exists in CAP-BROWSE-UI-TREE without extracted kit.
 edge: ← uses from CAP-UI-HEADER-NAV
+edge: ← uses from CAP-UI-HEADER-NAV.1
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -11116,7 +11457,7 @@ TITLE: Children of CAP-UI-KIT-CHROME
 
 [REQUIREMENT]
 UID: CAP-UI-HEADER-NAV
-STATUS: Active
+STATUS: Draft
 TITLE: ReqALM header and project navigation
 STATEMENT: >>>
 ReqALM /app shell header aligned to product chrome: brand mark, client/project/page breadcrumb with safe text, project-scoped tabs (Requirements with list/tree toggle, Releases; coming-soon stubs for Traceability, Capabilities, Contracts, Audit), minimal Clients/Projects nav outside project context, user initials avatar and sign out. Accessible nav landmarks, aria-current on active items, aria-disabled on stub tabs, visible focus styles. No sidebar.
@@ -11129,7 +11470,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with header/nav UI PR #37 (merge dd43cc1523544d0f6375a628bc9d7d45a31fa738).
-in_scope_of_contract: ReqALM product (build)
+edge: ← refines from CAP-UI-HEADER-NAV.1
 delivered_by_release: R1 — ReqALM header and project navigation
 <<<
 RELATIONS:
@@ -11148,15 +11489,293 @@ RELATIONS:
   VALUE: CAP-UI-KIT-CHROME
   ROLE: Uses
 - TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
-- TYPE: Child
   VALUE: RELEASE-rel-r1-ui-header-nav
   ROLE: Delivers
 
+[REQUIREMENT]
+UID: CAP-UI-HEADER-NAV.1
+STATUS: Active
+TITLE: ReqALM header and project navigation
+STATEMENT: >>>
+ReqALM /app shell header aligned to product chrome: brand mark, client/project/page breadcrumb with safe text, project-scoped tabs (Requirements with list/tree toggle, Releases; coming-soon stubs for Traceability, Capabilities, Contracts, Audit), minimal Clients/Projects nav outside project context, user initials avatar and sign out. Accessible nav landmarks, aria-current on active items, aria-disabled on stub tabs, visible focus styles. No sidebar. Layout: Fixed top header — brand (links home), breadcrumb (client/project/page), project tab strip with Requirements list|tree toggle and Releases, stub tabs for Traceability/Capabilities/Contracts/Audit, avatar menu with sign-out. No sidebar; main content begins below the header.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-HEADER-NAV
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Layout cross-ref 2026-10-10 seed; shipped PR #37.
+edge: ← uses from CAP-UI-LAYOUT
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: CAP-UI-KIT-CHROME
+- TYPE: Parent
+  VALUE: CAP-UI-HEADER-NAV
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-REQS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-KIT-CHROME
+  ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
 [[/SECTION]]
 
 [[/SECTION]]
+
+[REQUIREMENT]
+UID: CAP-UI-LAYOUT
+STATUS: Draft
+TITLE: ReqALM application layout (regions and navigation)
+STATEMENT: >>>
+ReqALM /app layout (no persistent sidebar): a fixed header band (CAP-UI-HEADER-NAV) spans the viewport with brand, client/project/page breadcrumb, project tabs, and account menu; the remaining viewport is the main content region. Main patterns: (1) paged list with URL-driven filters and row links to detail; (2) list + detail split (tree or table beside a detail pane); (3) single-column detail with secondary panels (version history, relationships); (4) two- or three-column trace boards with cross-highlighted join paths; (5) catalog pickers with imprint/control columns. Navigation: header tabs switch major project modes (Requirements list/tree, Releases, future Traceability/Capabilities/Contracts/Audit stubs); breadcrumbs and in-content links drill to requirement, release, capability, contract, and catalog routes; client-scoped routes under /app/clients and /app/projects/:projectId/*. All feature views consume shared chrome via CAP-UI-KIT (header, badges, tree widget).
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-LAYOUT
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned layout architecture; seed-only 2026-10-10.
+in_scope_of_contract: ReqALM product (build)
+delivered_by_release: R1 — UI layout capability statements (seed)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: ARCH-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-HEADER-NAV.1
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CAP-UI-KIT
+  ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-ui-layout-capabilities
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-UI-VIEW-RTM
+STATUS: Draft
+TITLE: Requirements ↔ capabilities trace view (mock)
+STATEMENT: >>>
+Planned two-column trace view under the project header: left column lists system requirements (filterable, scrollable); right column lists capabilities; center join highlights satisfies (and shown refines) edges when a row is selected on either side. Header breadcrumb holds project context; a back link returns to Requirements list/tree. Uses shared header chrome and badges from CAP-UI-KIT.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-VIEW-RTM
+VERSION_N: 0
+priority: 12
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Mockup files (Grok Bot box): 01-two-column-overview-v2.png, 02-two-column-suspect-highlight-v2.png.
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: ARCH-TRACE-VIEW-RTM
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-TRACE-LAYOUT-WORKER
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-KIT
+  ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-UI-VIEW-CRITERIA
+STATUS: Draft
+TITLE: Requirement acceptance criteria view (mock)
+STATEMENT: >>>
+Planned requirement detail extension: below the statement, an Acceptance criteria region lists facet rows (shall statements) with satisfied / incomplete / needs re-check badges; each facet links to satisfying capabilities when present. Header breadcrumb includes requirement uid; tabs remain on Requirements. Rollup status surfaces on the parent requirement header per ARCH-REQ-AC-ROLLUP.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-VIEW-CRITERIA
+VERSION_N: 0
+priority: 12
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Mockup files (Grok Bot box): 04-criteria-v2.png, 05-criteria-suspect-why-v2.png.
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: ARCH-REQ-AC-FACET
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-REQ-AC-ROLLUP
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-KIT
+  ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-UI-VIEW-CATALOG
+STATUS: Draft
+TITLE: Catalog browse three-column view (mock)
+STATEMENT: >>>
+Planned catalog browse under Capabilities/Catalog tab: column one lists visible catalogs for the project (ARCH-CAT-VISIBILITY); column two lists imprints/versions for the selected catalog; column three lists controls with conforming counts. Row selection loads control detail in a slide-over or replaces column three. Links from control rows jump to catalog-to-capability trace (CAP-UI-VIEW-CCM) when trace is enabled.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-VIEW-CATALOG
+VERSION_N: 0
+priority: 12
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Mockup files (Grok Bot box): 06c-catalog-BC-three-column-v2.png, 06e-catalog-BC-three-column-AC3-v2.png.
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: ARCH-CAT-VISIBILITY
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-CAT-EXTERNAL
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-KIT
+  ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-UI-VIEW-CCM
+STATUS: Draft
+TITLE: Catalog ↔ capabilities trace view (mock)
+STATEMENT: >>>
+Planned two-column trace view: left column lists catalog controls (respecting visible catalog set); right column lists capabilities; joins follow conforms_to with solid direct pins and dashed inherited/heavy-bundle links per ARCH-TRACE-VIEW-CCM. Selection highlights paired rows; capability rows link to capability detail (CAP-UI-VIEW-CAP-DETAIL). Header shows catalog + project context.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-VIEW-CCM
+VERSION_N: 0
+priority: 12
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Mockup files (Grok Bot box): 07a-catalog-caps-collapsed-v2.png, 07b-catalog-caps-AC3-expanded-v2.png.
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: ARCH-TRACE-VIEW-CCM
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-TRACE-LAYOUT-WORKER
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-KIT
+  ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-UI-VIEW-CAP-DETAIL
+STATUS: Draft
+TITLE: Capability detail view (mock)
+STATEMENT: >>>
+Planned capability detail: header with uid, title, status, verification outcome; statement body; sections for part-of children, satisfies/requirements links, conforms_to control pins (with inherited-via-uses chips), artifacts/attachments list, and delivered-in releases. Relationships to catalog controls link to CAP-UI-VIEW-CCM; requirement peers open requirement detail. Uses CAP-UI-KIT header and badges.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-VIEW-CAP-DETAIL
+VERSION_N: 0
+priority: 12
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Mockup files (Grok Bot box): 09-capability-detail.png.
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: I01
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: I03
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-HIER-CAP-PARTOF
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-KIT
+  ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-UI-VIEW-CAP-FOCUS
+STATUS: Draft
+TITLE: Capability and release focus view (mock)
+STATEMENT: >>>
+Planned focus screen for a capability line within a release or iteration context: top summary shows capability uid/title, verification badge, and part-of parent; a Releases strip lists planned/shipped releases that deliver this capability with links to release detail; main body lists child capabilities (part-of) and satisfies targets. Breadcrumb: project → Capabilities → uid. Links to requirement/detail routes for satisfied requirements.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-UI-VIEW-CAP-FOCUS
+VERSION_N: 0
+priority: 12
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Mockup files (Grok Bot box): 10a-focus-cap-rbac.png, 10d-focus-picker-search.png, 11a-focus-release-r1-foundation-shipped.png.
+in_scope_of_contract: ReqALM product (build)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-UI
+- TYPE: Parent
+  VALUE: ARCH-HIER-CAP-PARTOF
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-RELEASE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-KIT
+  ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 
 [[/SECTION]]
 
@@ -11638,6 +12257,7 @@ security.catalog_ref: CM-2
 security.verification_note: Pin mint: inheritable AC-3, AU-2, AU-12 for uses inheritance seed bed.
 edge: ← uses from CAP-SVC-OPERATION-ROUTE
 edge: ← uses from CAP-UI-FRAME.1
+edge: ← uses from CAP-UI-FRAME.2
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006 inheritable)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006 inheritable)

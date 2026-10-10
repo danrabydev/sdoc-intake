@@ -109,3 +109,13 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_attach_figma_seed_release.py` — applies snippet + delta; product contract pins **`ARCH-ATTACH-VERSIONS`** v0 and active/draft v0 tips only (draft **`.1`** successors omitted per #38).
 - **Validate:** `python3 docs/design/seed/scripts/yaml_to_strictdoc.py --validate` (regenerates `docs/design/seed/out/`).
 - **Parallel PR pair (rule 3):** This PR ships **`rel-r1-trace-inherit-uses`** / **`CAP-TRACE-INHERIT-USES`** at main merge **`56bfc4d6a9fe04559ccddae636ec4052d84ae907`** (PR #39). **`rel-r1-seed-attach-figma`** stays planned.
+- **PR #42 ship (main @ `1eb8482`):** **`rel-r1-seed-attach-figma`** / **`CAP-SEED-ATTACH-FIGMA`** shipped **2026-10-09** at merge **`1eb8482b533b5f656240bc7b53a60b1a58c5a203`** via `patch_ui_layout_capabilities_release.py` (do not re-edit merged **`patch_attach_figma_seed_release.py`**).
+- **Patch idempotency:** Merged seed **`patch_*_release.py`** scripts are point-in-time history and are not re-run on later seeds; each follow-on PR ships through its own idempotent patch.
+
+## Addendum — UI layout capability statements (seed PR #42, main @ `1eb8482`)
+
+- **Release (planned):** `rel-r1-ui-layout-capabilities` → **`CAP-UI-LAYOUT`** (draft; documents header + content region patterns and navigation).
+- **Content mints (layout prose):** shipped browse caps **`CAP-BROWSE-UI-*`**, **`CAP-UI-HEADER-NAV`**, **`CAP-UI-FRAME.2`**; draft layout intent only on **`CAP-CONTRACT-UI.1`** / **`CAP-VERSION-UI.1`**; draft edits **`CAP-UI-KIT`**, **`CAP-UI-KIT-CHROME`**, **`CAP-UI-KIT-TREE`** (WAI-ARIA + paging label restored on tree draft).
+- **Mock view drafts:** six **`CAP-UI-VIEW-*`** capabilities; mock URIs under **`mockups/reqalm-two-column/shots/`** (see `docs/design/mockups/README.md`).
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_ui_layout_capabilities_release.py` — ships attach-figma release above; never removes baseline outbound edges; **`--validate-baseline-edges`**; baseline fixture **`docs/design/seed/fixtures/dogfood-baseline-outbound-edges.json`** @ **`1eb8482`**; run before `yaml_to_strictdoc.py --validate`.
+- **Counts (post-patch):** 453 lines, 486 versions, **1934** edges, 33 releases.

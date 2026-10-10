@@ -1,5 +1,5 @@
 {
-  "baseline_main": "56bfc4d6a9fe04559ccddae636ec4052d84ae907",
+  "baseline_main": "1eb8482b533b5f656240bc7b53a60b1a58c5a203",
   "version_uids": [
     "A01",
     "A02",
@@ -22,6 +22,18 @@
     "ARCH-APPROVAL-LINE",
     "ARCH-APPROVAL-VIEW",
     "ARCH-APPROVER-SLOTS",
+    "ARCH-ATTACH",
+    "ARCH-ATTACH-AUDIT",
+    "ARCH-ATTACH-ENCRYPT",
+    "ARCH-ATTACH-ENCRYPT.1",
+    "ARCH-ATTACH-PIN-VERSION",
+    "ARCH-ATTACH-PIN-VERSION.1",
+    "ARCH-ATTACH-SCAN",
+    "ARCH-ATTACH-SCOPE",
+    "ARCH-ATTACH-SCOPE.1",
+    "ARCH-ATTACH-SERVE",
+    "ARCH-ATTACH-UPLOAD",
+    "ARCH-ATTACH-VERSIONS",
     "ARCH-AUTH-AGENT-ATTRIBUTION",
     "ARCH-AUTH-AS",
     "ARCH-AUTH-AUDIENCE",
@@ -89,6 +101,9 @@
     "ARCH-DEVENV-PARITY.1",
     "ARCH-DEVENV-SECRETS",
     "ARCH-DEVENV-SEED",
+    "ARCH-FIGMA",
+    "ARCH-FIGMA-AUTH",
+    "ARCH-FIGMA-EGRESS",
     "ARCH-GANTT",
     "ARCH-GATE-MODEL",
     "ARCH-GATE-SIGNOFF",
@@ -107,6 +122,7 @@
     "ARCH-KEY-PROVIDER",
     "ARCH-KEY-RUNTIME-CACHE",
     "ARCH-KEY-SCOPE",
+    "ARCH-KEY-SCOPE.1",
     "ARCH-LOCKED",
     "ARCH-MINT-KIND",
     "ARCH-OTEL",
@@ -173,6 +189,8 @@
     "C08",
     "CAP-AGENT-ACCESS",
     "CAP-API-DOCS-SEED-SUMMARY",
+    "CAP-ATTACH-READ",
+    "CAP-ATTACH-WRITE",
     "CAP-AUDIT",
     "CAP-AUTH-AUDIT",
     "CAP-AUTH-HARDEN",
@@ -226,6 +244,7 @@
     "CAP-REQALM-CONTRACTS",
     "CAP-SCOPED-VIEW",
     "CAP-SCOPED-VIEW.1",
+    "CAP-SEED-ATTACH-FIGMA",
     "CAP-SEED-GROOMING",
     "CAP-SSO",
     "CAP-SSO.1",
@@ -447,12 +466,13 @@
     "SEC-UI",
     "SEC-WF",
     "SEC-WI",
+    "SPIKE-FIGMA-FEASIBILITY",
     "SYS-CYBER-UPKEEP",
     "UI-APPROVE-LINE",
     "UI-APPROVE-TREE",
     "WANT-CHANGESET-FIELD-UNDO"
   ],
-  "edge_count": 1708,
+  "edge_count": 1867,
   "edges": [
     {
       "catalog_imprint_id": "asd-stig@v6r4",
@@ -591,6 +611,120 @@
       "from": "ARCH-API-RBAC.1",
       "kind": "conforms_to",
       "to": "V-222429"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH",
+      "kind": "conforms_to",
+      "to": "V-222425"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-AUDIT",
+      "kind": "conforms_to",
+      "to": "V-222444"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-AUDIT",
+      "kind": "conforms_to",
+      "to": "V-222465"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-ENCRYPT",
+      "kind": "conforms_to",
+      "to": "V-222587"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-ENCRYPT",
+      "kind": "conforms_to",
+      "to": "V-222588"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-ENCRYPT.1",
+      "kind": "conforms_to",
+      "to": "V-222587"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-ENCRYPT.1",
+      "kind": "conforms_to",
+      "to": "V-222588"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-SCOPE",
+      "kind": "conforms_to",
+      "to": "V-222425"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-SCOPE",
+      "kind": "conforms_to",
+      "to": "V-222444"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-SCOPE",
+      "kind": "conforms_to",
+      "to": "V-222606"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-SCOPE.1",
+      "kind": "conforms_to",
+      "to": "V-222425"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-SCOPE.1",
+      "kind": "conforms_to",
+      "to": "V-222444"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-SCOPE.1",
+      "kind": "conforms_to",
+      "to": "V-222606"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-SERVE",
+      "kind": "conforms_to",
+      "to": "V-222602"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-SERVE",
+      "kind": "conforms_to",
+      "to": "V-222609"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-UPLOAD",
+      "kind": "conforms_to",
+      "to": "V-222429"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-UPLOAD",
+      "kind": "conforms_to",
+      "to": "V-222603"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-UPLOAD",
+      "kind": "conforms_to",
+      "to": "V-222606"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-ATTACH-VERSIONS",
+      "kind": "conforms_to",
+      "to": "V-222588"
     },
     {
       "catalog_imprint_id": "asd-stig@v6r4",
@@ -1044,6 +1178,42 @@
     },
     {
       "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-FIGMA",
+      "kind": "conforms_to",
+      "to": "V-222428"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-FIGMA",
+      "kind": "conforms_to",
+      "to": "V-222606"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-FIGMA-AUTH",
+      "kind": "conforms_to",
+      "to": "V-222588"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-FIGMA-AUTH",
+      "kind": "conforms_to",
+      "to": "V-222596"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-FIGMA-EGRESS",
+      "kind": "conforms_to",
+      "to": "V-222427"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-FIGMA-EGRESS",
+      "kind": "conforms_to",
+      "to": "V-222428"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
       "from": "ARCH-KEY-FIPS",
       "kind": "conforms_to",
       "to": "V-222570"
@@ -1093,6 +1263,24 @@
     {
       "catalog_imprint_id": "asd-stig@v6r4",
       "from": "ARCH-KEY-SCOPE",
+      "kind": "conforms_to",
+      "to": "V-222642"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-KEY-SCOPE.1",
+      "kind": "conforms_to",
+      "to": "V-222588"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-KEY-SCOPE.1",
+      "kind": "conforms_to",
+      "to": "V-222589"
+    },
+    {
+      "catalog_imprint_id": "asd-stig@v6r4",
+      "from": "ARCH-KEY-SCOPE.1",
       "kind": "conforms_to",
       "to": "V-222642"
     },
@@ -1677,6 +1865,222 @@
       "from": "ARCH-APPROVER-SLOTS",
       "kind": "conforms_to",
       "to": "AU-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH",
+      "kind": "conforms_to",
+      "to": "AC-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH",
+      "kind": "conforms_to",
+      "to": "MP-6"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH",
+      "kind": "conforms_to",
+      "to": "SI-12"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-AUDIT",
+      "kind": "conforms_to",
+      "to": "AU-12"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-AUDIT",
+      "kind": "conforms_to",
+      "to": "AU-2"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-AUDIT",
+      "kind": "conforms_to",
+      "to": "AU-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-ENCRYPT",
+      "kind": "conforms_to",
+      "to": "SC-12"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-ENCRYPT",
+      "kind": "conforms_to",
+      "to": "SC-28"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-ENCRYPT.1",
+      "kind": "conforms_to",
+      "to": "SC-12"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-ENCRYPT.1",
+      "kind": "conforms_to",
+      "to": "SC-28"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-PIN-VERSION",
+      "kind": "conforms_to",
+      "to": "AU-9"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-PIN-VERSION",
+      "kind": "conforms_to",
+      "to": "CM-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-PIN-VERSION",
+      "kind": "conforms_to",
+      "to": "SI-7"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-PIN-VERSION.1",
+      "kind": "conforms_to",
+      "to": "AU-9"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-PIN-VERSION.1",
+      "kind": "conforms_to",
+      "to": "CM-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-PIN-VERSION.1",
+      "kind": "conforms_to",
+      "to": "SI-7"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SCAN",
+      "kind": "conforms_to",
+      "to": "CM-7"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SCAN",
+      "kind": "conforms_to",
+      "to": "SI-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SCAN",
+      "kind": "conforms_to",
+      "to": "SI-8"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SCOPE",
+      "kind": "conforms_to",
+      "to": "AC-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SCOPE",
+      "kind": "conforms_to",
+      "to": "AC-4"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SCOPE",
+      "kind": "conforms_to",
+      "to": "SI-10"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SCOPE.1",
+      "kind": "conforms_to",
+      "to": "AC-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SCOPE.1",
+      "kind": "conforms_to",
+      "to": "AC-4"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SCOPE.1",
+      "kind": "conforms_to",
+      "to": "SI-10"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SERVE",
+      "kind": "conforms_to",
+      "to": "SC-18"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SERVE",
+      "kind": "conforms_to",
+      "to": "SI-10"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-SERVE",
+      "kind": "conforms_to",
+      "to": "SI-7"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-UPLOAD",
+      "kind": "conforms_to",
+      "to": "AC-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-UPLOAD",
+      "kind": "conforms_to",
+      "to": "CM-7"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-UPLOAD",
+      "kind": "conforms_to",
+      "to": "SI-10"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-VERSIONS",
+      "kind": "conforms_to",
+      "to": "AU-10"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-VERSIONS",
+      "kind": "conforms_to",
+      "to": "AU-9"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-VERSIONS",
+      "kind": "conforms_to",
+      "to": "CM-2"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-VERSIONS",
+      "kind": "conforms_to",
+      "to": "CM-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-ATTACH-VERSIONS",
+      "kind": "conforms_to",
+      "to": "SI-7"
     },
     {
       "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
@@ -2574,6 +2978,72 @@
     },
     {
       "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-FIGMA",
+      "kind": "conforms_to",
+      "to": "AC-20"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-FIGMA",
+      "kind": "conforms_to",
+      "to": "CA-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-FIGMA",
+      "kind": "conforms_to",
+      "to": "SA-9"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-FIGMA",
+      "kind": "conforms_to",
+      "to": "SI-10"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-FIGMA-AUTH",
+      "kind": "conforms_to",
+      "to": "IA-5"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-FIGMA-AUTH",
+      "kind": "conforms_to",
+      "to": "SC-28"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-FIGMA-AUTH",
+      "kind": "conforms_to",
+      "to": "SC-7"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-FIGMA-AUTH",
+      "kind": "conforms_to",
+      "to": "SC-8"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-FIGMA-EGRESS",
+      "kind": "conforms_to",
+      "to": "AC-21"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-FIGMA-EGRESS",
+      "kind": "conforms_to",
+      "to": "AC-4"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-FIGMA-EGRESS",
+      "kind": "conforms_to",
+      "to": "AU-2"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
       "from": "ARCH-GANTT",
       "kind": "conforms_to",
       "to": "AC-3"
@@ -2785,6 +3255,12 @@
     {
       "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
       "from": "ARCH-KEY-SCOPE",
+      "kind": "conforms_to",
+      "to": "SC-28.1"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "ARCH-KEY-SCOPE.1",
       "kind": "conforms_to",
       "to": "SC-28.1"
     },
@@ -3618,6 +4094,36 @@
     },
     {
       "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "CAP-ATTACH-READ",
+      "kind": "conforms_to",
+      "to": "AC-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "CAP-ATTACH-READ",
+      "kind": "conforms_to",
+      "to": "AU-12"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "CAP-ATTACH-READ",
+      "kind": "conforms_to",
+      "to": "SI-10"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "CAP-ATTACH-WRITE",
+      "kind": "conforms_to",
+      "to": "SC-28"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "CAP-ATTACH-WRITE",
+      "kind": "conforms_to",
+      "to": "SI-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
       "from": "CAP-AUDIT",
       "kind": "conforms_to",
       "to": "AC-3"
@@ -3880,6 +4386,12 @@
       "from": "CAP-SCOPED-VIEW.1",
       "kind": "conforms_to",
       "to": "AC-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "CAP-SEED-ATTACH-FIGMA",
+      "kind": "conforms_to",
+      "to": "CM-2"
     },
     {
       "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
@@ -6934,6 +7446,24 @@
     },
     {
       "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "SPIKE-FIGMA-FEASIBILITY",
+      "kind": "conforms_to",
+      "to": "CA-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "SPIKE-FIGMA-FEASIBILITY",
+      "kind": "conforms_to",
+      "to": "RA-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "SPIKE-FIGMA-FEASIBILITY",
+      "kind": "conforms_to",
+      "to": "SA-9"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
       "from": "SYS-CYBER-UPKEEP",
       "kind": "conforms_to",
       "to": "AC-2"
@@ -7070,6 +7600,226 @@
       "from": "ARCH-API-RBAC.1",
       "kind": "refines",
       "to": "ARCH-API-RBAC"
+    },
+    {
+      "from": "ARCH-ATTACH",
+      "kind": "refines",
+      "to": "ARCH-CP-SCOPE"
+    },
+    {
+      "from": "ARCH-ATTACH",
+      "kind": "refines",
+      "to": "C05"
+    },
+    {
+      "from": "ARCH-ATTACH-AUDIT",
+      "kind": "refines",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "ARCH-ATTACH-AUDIT",
+      "kind": "uses",
+      "to": "ARCH-WRITE-AUDIT-FLOOD"
+    },
+    {
+      "from": "ARCH-ATTACH-AUDIT",
+      "kind": "uses",
+      "to": "ARCH-WRITE-UOW-AUDIT"
+    },
+    {
+      "from": "ARCH-ATTACH-AUDIT",
+      "kind": "uses",
+      "to": "CAP-SVC-AUDIT-APPEND"
+    },
+    {
+      "from": "ARCH-ATTACH-ENCRYPT",
+      "kind": "refines",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "ARCH-ATTACH-ENCRYPT",
+      "kind": "refines",
+      "to": "ARCH-KEY-SCOPE.1"
+    },
+    {
+      "from": "ARCH-ATTACH-ENCRYPT",
+      "kind": "uses",
+      "to": "ARCH-KEY-FAILCLOSED"
+    },
+    {
+      "from": "ARCH-ATTACH-ENCRYPT",
+      "kind": "uses",
+      "to": "ARCH-KEY-PROVIDER"
+    },
+    {
+      "from": "ARCH-ATTACH-ENCRYPT.1",
+      "kind": "refines",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "ARCH-ATTACH-ENCRYPT.1",
+      "kind": "refines",
+      "to": "ARCH-KEY-SCOPE.1"
+    },
+    {
+      "from": "ARCH-ATTACH-ENCRYPT.1",
+      "kind": "uses",
+      "to": "ARCH-ATTACH-VERSIONS"
+    },
+    {
+      "from": "ARCH-ATTACH-ENCRYPT.1",
+      "kind": "uses",
+      "to": "ARCH-KEY-FAILCLOSED"
+    },
+    {
+      "from": "ARCH-ATTACH-ENCRYPT.1",
+      "kind": "uses",
+      "to": "ARCH-KEY-PROVIDER"
+    },
+    {
+      "from": "ARCH-ATTACH-PIN-VERSION",
+      "kind": "refines",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "ARCH-ATTACH-PIN-VERSION",
+      "kind": "refines",
+      "to": "ARCH-LOCKED"
+    },
+    {
+      "from": "ARCH-ATTACH-PIN-VERSION",
+      "kind": "refines",
+      "to": "ARCH-MINT-KIND"
+    },
+    {
+      "from": "ARCH-ATTACH-PIN-VERSION",
+      "kind": "uses",
+      "to": "ARCH-TRACE-RECHECK"
+    },
+    {
+      "from": "ARCH-ATTACH-PIN-VERSION.1",
+      "kind": "refines",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "ARCH-ATTACH-PIN-VERSION.1",
+      "kind": "refines",
+      "to": "ARCH-LOCKED"
+    },
+    {
+      "from": "ARCH-ATTACH-PIN-VERSION.1",
+      "kind": "refines",
+      "to": "ARCH-MINT-KIND"
+    },
+    {
+      "from": "ARCH-ATTACH-PIN-VERSION.1",
+      "kind": "uses",
+      "to": "ARCH-ATTACH-VERSIONS"
+    },
+    {
+      "from": "ARCH-ATTACH-PIN-VERSION.1",
+      "kind": "uses",
+      "to": "ARCH-TRACE-RECHECK"
+    },
+    {
+      "from": "ARCH-ATTACH-SCAN",
+      "kind": "refines",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "ARCH-ATTACH-SCAN",
+      "kind": "uses",
+      "to": "ARCH-ATTACH-AUDIT"
+    },
+    {
+      "from": "ARCH-ATTACH-SCOPE",
+      "kind": "refines",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "ARCH-ATTACH-SCOPE",
+      "kind": "uses",
+      "to": "ARCH-API-RBAC.1"
+    },
+    {
+      "from": "ARCH-ATTACH-SCOPE",
+      "kind": "uses",
+      "to": "ARCH-SEC-REL-STUB"
+    },
+    {
+      "from": "ARCH-ATTACH-SCOPE",
+      "kind": "uses",
+      "to": "ARCH-SEC-XPROJ-READ"
+    },
+    {
+      "from": "ARCH-ATTACH-SCOPE",
+      "kind": "uses",
+      "to": "CAP-SVC-STRUCTURED-LOG"
+    },
+    {
+      "from": "ARCH-ATTACH-SCOPE.1",
+      "kind": "refines",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "ARCH-ATTACH-SCOPE.1",
+      "kind": "uses",
+      "to": "ARCH-API-RBAC.1"
+    },
+    {
+      "from": "ARCH-ATTACH-SCOPE.1",
+      "kind": "uses",
+      "to": "ARCH-SEC-REL-STUB"
+    },
+    {
+      "from": "ARCH-ATTACH-SCOPE.1",
+      "kind": "uses",
+      "to": "ARCH-SEC-XPROJ-READ"
+    },
+    {
+      "from": "ARCH-ATTACH-SCOPE.1",
+      "kind": "uses",
+      "to": "CAP-SVC-STRUCTURED-LOG"
+    },
+    {
+      "from": "ARCH-ATTACH-SERVE",
+      "kind": "refines",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "ARCH-ATTACH-SERVE",
+      "kind": "refines",
+      "to": "ARCH-SEC-HEADERS"
+    },
+    {
+      "from": "ARCH-ATTACH-UPLOAD",
+      "kind": "refines",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "ARCH-ATTACH-UPLOAD",
+      "kind": "uses",
+      "to": "ARCH-API-RBAC.1"
+    },
+    {
+      "from": "ARCH-ATTACH-UPLOAD",
+      "kind": "uses",
+      "to": "ARCH-ATTACH-SCAN"
+    },
+    {
+      "from": "ARCH-ATTACH-VERSIONS",
+      "kind": "refines",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "ARCH-ATTACH-VERSIONS",
+      "kind": "refines",
+      "to": "ARCH-MINT-KIND"
+    },
+    {
+      "from": "ARCH-ATTACH-VERSIONS",
+      "kind": "uses",
+      "to": "ARCH-ATTACH-AUDIT"
     },
     {
       "from": "ARCH-AUTH-AGENT-ATTRIBUTION",
@@ -7926,6 +8676,51 @@
       "to": "ARCH-DEVENV-CLONE"
     },
     {
+      "from": "ARCH-FIGMA",
+      "kind": "uses",
+      "to": "ARCH-ATTACH-SERVE"
+    },
+    {
+      "from": "ARCH-FIGMA",
+      "kind": "uses",
+      "to": "ARCH-TRACE-RECHECK"
+    },
+    {
+      "from": "ARCH-FIGMA-AUTH",
+      "kind": "refines",
+      "to": "ARCH-FIGMA"
+    },
+    {
+      "from": "ARCH-FIGMA-AUTH",
+      "kind": "refines",
+      "to": "ARCH-KEY-SCOPE.1"
+    },
+    {
+      "from": "ARCH-FIGMA-AUTH",
+      "kind": "uses",
+      "to": "ARCH-CRED-REAUTH"
+    },
+    {
+      "from": "ARCH-FIGMA-AUTH",
+      "kind": "uses",
+      "to": "ARCH-KEY-PROVIDER"
+    },
+    {
+      "from": "ARCH-FIGMA-EGRESS",
+      "kind": "refines",
+      "to": "ARCH-FIGMA"
+    },
+    {
+      "from": "ARCH-FIGMA-EGRESS",
+      "kind": "uses",
+      "to": "ARCH-ATTACH-AUDIT"
+    },
+    {
+      "from": "ARCH-FIGMA-EGRESS",
+      "kind": "uses",
+      "to": "ARCH-SEC-REL-STUB"
+    },
+    {
       "from": "ARCH-GATE-SIGNOFF",
       "kind": "uses",
       "to": "ARCH-CYBER-GATE"
@@ -8054,6 +8849,16 @@
     },
     {
       "from": "ARCH-KEY-SCOPE",
+      "kind": "uses",
+      "to": "M03"
+    },
+    {
+      "from": "ARCH-KEY-SCOPE.1",
+      "kind": "refines",
+      "to": "ARCH-KEY"
+    },
+    {
+      "from": "ARCH-KEY-SCOPE.1",
       "kind": "uses",
       "to": "M03"
     },
@@ -8286,6 +9091,86 @@
       "from": "CAP-API-DOCS-SEED-SUMMARY",
       "kind": "satisfies",
       "to": "ARCH-DEVENV-CLONE"
+    },
+    {
+      "from": "CAP-ATTACH-READ",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "CAP-ATTACH-READ",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-AUDIT"
+    },
+    {
+      "from": "CAP-ATTACH-READ",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-PIN-VERSION"
+    },
+    {
+      "from": "CAP-ATTACH-READ",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-PIN-VERSION.1"
+    },
+    {
+      "from": "CAP-ATTACH-READ",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-SCOPE"
+    },
+    {
+      "from": "CAP-ATTACH-READ",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-SCOPE.1"
+    },
+    {
+      "from": "CAP-ATTACH-READ",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-SERVE"
+    },
+    {
+      "from": "CAP-ATTACH-READ",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-VERSIONS"
+    },
+    {
+      "from": "CAP-ATTACH-WRITE",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-ENCRYPT"
+    },
+    {
+      "from": "CAP-ATTACH-WRITE",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-ENCRYPT.1"
+    },
+    {
+      "from": "CAP-ATTACH-WRITE",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-PIN-VERSION"
+    },
+    {
+      "from": "CAP-ATTACH-WRITE",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-PIN-VERSION.1"
+    },
+    {
+      "from": "CAP-ATTACH-WRITE",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-SCAN"
+    },
+    {
+      "from": "CAP-ATTACH-WRITE",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-UPLOAD"
+    },
+    {
+      "from": "CAP-ATTACH-WRITE",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-VERSIONS"
+    },
+    {
+      "from": "CAP-ATTACH-WRITE",
+      "kind": "uses",
+      "to": "CAP-ATTACH-READ"
     },
     {
       "from": "CAP-AUDIT",
@@ -9172,6 +10057,16 @@
       "from": "CAP-SCOPED-VIEW.1",
       "kind": "satisfies",
       "to": "A04"
+    },
+    {
+      "from": "CAP-SEED-ATTACH-FIGMA",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH"
+    },
+    {
+      "from": "CAP-SEED-ATTACH-FIGMA",
+      "kind": "satisfies",
+      "to": "ARCH-FIGMA"
     },
     {
       "from": "CAP-SEED-GROOMING",
@@ -10169,6 +11064,11 @@
       "from": "SEC-DEVENV.1",
       "kind": "refines",
       "to": "SEC-DEVENV"
+    },
+    {
+      "from": "SPIKE-FIGMA-FEASIBILITY",
+      "kind": "refines",
+      "to": "ARCH-FIGMA"
     }
   ]
 }

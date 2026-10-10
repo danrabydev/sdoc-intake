@@ -31,6 +31,9 @@ function assertCapReadReqsStable(d: RequirementRelationsDto) {
     "CAP-READ-HIERARCHY",
     "CAP-RELATIONS-API",
   ]);
+  const browse = d.incoming.satisfies?.find((l) => !("restricted" in l) && vis(l).peer.id === "CAP-BROWSE-UI-REQS");
+  assert.ok(browse);
+  assert.equal(vis(browse!).peer_version_id, "CAP-BROWSE-UI-REQS.1");
   for (const link of Object.values(d.outgoing).flat().concat(Object.values(d.incoming).flat())) {
     assert.ok(!("restricted" in link) && vis(link).relation_kind);
   }
@@ -152,7 +155,8 @@ describe("requirements relations API", () => {
     assert.equal(vis(ac3).peer.project_id, "reqalm");
     const refIn = a01.incoming.refines ?? [];
     const devenv = refIn.filter((l) => vis(l).peer.id === "ARCH-DEVENV-IDENTITY");
-    assert.deepEqual(devenv.map((l) => [vis(l).peer_version_id, vis(l).peer.id]).sort(), [["ARCH-DEVENV-IDENTITY", "ARCH-DEVENV-IDENTITY"], ["ARCH-DEVENV-IDENTITY.1", "ARCH-DEVENV-IDENTITY"]]);
+    assert.equal(devenv.length, 1);
+    assert.equal(vis(devenv[0]!).peer_version_id, "ARCH-DEVENV-IDENTITY.1");
     await q(`UPDATE requirement_versions SET title = 'LATEST-DEVENV-TITLE' WHERE uid = 'ARCH-DEVENV-IDENTITY.1'`);
     try {
       const dev2 = (dataOf(await inject(REL("reqalm", "A01"))).incoming.refines ?? []).filter((l) => vis(l).peer.id === "ARCH-DEVENV-IDENTITY");
@@ -216,6 +220,76 @@ describe("requirements relations API", () => {
         DELETE FROM catalog_defs WHERE id = 'cat-test-private';
         DELETE FROM project_grants WHERE id = 'grant-casey-rel-cat-p2';
         DELETE FROM projects WHERE id = 'rel-cat-p2'`);
+    }
+  });
+
+  it("keeps restricted stub alongside visible row for the same peer line id", async () => {
+    await q(`INSERT INTO projects (id, client_id, name) VALUES ('rel-shared-p2', 'reqalm-client', 'Shared P2') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO requirement_lines (base_uid, project_id, kind, title) VALUES
+      ('SHARED-PEER-LINE', 'reqalm', 'requirement', 'Visible shared title'),
+      ('SHARED-PEER-LINE', 'rel-shared-p2', 'requirement', 'Secret shared title') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO requirement_versions (uid, base_uid, project_id, version_n, status, statement, title) VALUES
+      ('SHARED-PEER-LINE', 'SHARED-PEER-LINE', 'reqalm', 0, 'active', 'open', 'Visible shared title'),
+      ('SHARED-PEER-LINE-p2', 'SHARED-PEER-LINE', 'rel-shared-p2', 0, 'active', 'secret', 'Secret shared title') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO trace_edges (from_project_id, from_uid, to_project_id, to_uid, kind) VALUES
+      ('reqalm', 'CAP-READ-REQS', 'reqalm', 'SHARED-PEER-LINE', 'uses'),
+      ('reqalm', 'CAP-READ-REQS', 'rel-shared-p2', 'SHARED-PEER-LINE-p2', 'uses') ON CONFLICT DO NOTHING`);
+    try {
+      const raw = await inject(REL("reqalm", "CAP-READ-REQS"));
+      const uses = dataOf(raw).outgoing.uses ?? [];
+      const visible = uses.filter((l) => !("restricted" in l));
+      const stubs = uses.filter((l) => "restricted" in l);
+      assert.equal(visible.length, 1);
+      assert.equal(stubs.length, 1);
+      assert.equal(vis(visible[0]!).peer.id, "SHARED-PEER-LINE");
+      assert.equal(vis(visible[0]!).peer.title, "Visible shared title");
+      assert.deepEqual(stubs[0], { restricted: true, relation_kind: "uses", direction: "outgoing" });
+      const text = raw.payload as string;
+      assert.ok(!text.includes("Secret shared title"));
+      assert.ok(!text.includes("SHARED-PEER-LINE-p2"));
+    } finally {
+      await q(`DELETE FROM trace_edges WHERE from_uid = 'CAP-READ-REQS' AND to_uid IN ('SHARED-PEER-LINE','SHARED-PEER-LINE-p2')`);
+      await q(`DELETE FROM requirement_versions WHERE uid IN ('SHARED-PEER-LINE','SHARED-PEER-LINE-p2')`);
+      await q(`DELETE FROM requirement_lines WHERE base_uid = 'SHARED-PEER-LINE' AND project_id IN ('reqalm','rel-shared-p2')`);
+      await q(`DELETE FROM projects WHERE id = 'rel-shared-p2'`);
+    }
+  });
+
+  it("dedupes same peer line to active tip; keeps cross-project and QZ vs QZ.7 separate", async () => {
+    await q(`INSERT INTO projects (id, client_id, name) VALUES ('dedupe-p2', 'reqalm-client', 'Dedupe P2') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('grant-casey-dedupe-p2', 'dedupe-p2', 'casey-reader', 'Reader') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO requirement_lines (base_uid, project_id, kind, title) VALUES
+      ('CAP-BROWSE-UI-REQS', 'dedupe-p2', 'capability', 'Remote browse'),
+      ('QZ', 'reqalm', 'requirement', 'QZ line'),
+      ('QZ.7', 'reqalm', 'requirement', 'QZ.7 line') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO requirement_versions (uid, base_uid, project_id, version_n, status, statement) VALUES
+      ('CAP-BROWSE-UI-REQS-dedupe-p2', 'CAP-BROWSE-UI-REQS', 'dedupe-p2', 0, 'active', 'remote'),
+      ('QZ', 'QZ', 'reqalm', 0, 'active', 'qz'),
+      ('QZ.7', 'QZ.7', 'reqalm', 0, 'active', 'qz7') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO trace_edges (from_project_id, from_uid, to_project_id, to_uid, kind) VALUES
+      ('dedupe-p2', 'CAP-BROWSE-UI-REQS-dedupe-p2', 'reqalm', 'CAP-READ-REQS', 'satisfies'),
+      ('reqalm', 'QZ', 'reqalm', 'CAP-READ-REQS', 'satisfies'),
+      ('reqalm', 'QZ.7', 'reqalm', 'CAP-READ-REQS', 'satisfies') ON CONFLICT DO NOTHING`);
+    try {
+      const d = dataOf(await inject(REL("reqalm", "CAP-READ-REQS")));
+      const inc = (d.incoming.satisfies ?? []).filter((l) => !("restricted" in l));
+      const browse = inc.find((l) => vis(l).peer.id === "CAP-BROWSE-UI-REQS");
+      assert.ok(browse);
+      assert.equal(vis(browse!).peer_version_id, "CAP-BROWSE-UI-REQS.1");
+      assert.equal(vis(browse!).peer.project_id, "reqalm");
+      const remote = inc.find((l) => vis(l).peer.id === "CAP-BROWSE-UI-REQS" && vis(l).peer.project_id === "dedupe-p2");
+      assert.ok(remote);
+      assert.equal(vis(remote!).peer.project_id, "dedupe-p2");
+      assert.deepEqual(
+        inc.filter((l) => vis(l).peer.id === "QZ" || vis(l).peer.id === "QZ.7").map((l) => vis(l).peer.id).sort(),
+        ["QZ", "QZ.7"],
+      );
+    } finally {
+      await q(`DELETE FROM trace_edges WHERE from_uid IN ('CAP-BROWSE-UI-REQS-dedupe-p2','QZ','QZ.7') AND to_uid = 'CAP-READ-REQS'`);
+      await q(`DELETE FROM requirement_versions WHERE uid IN ('CAP-BROWSE-UI-REQS-dedupe-p2','QZ','QZ.7')`);
+      await q(`DELETE FROM requirement_lines WHERE base_uid IN ('CAP-BROWSE-UI-REQS','QZ','QZ.7') AND project_id IN ('dedupe-p2','reqalm')`);
+      await q(`DELETE FROM project_grants WHERE id = 'grant-casey-dedupe-p2'`);
+      await q(`DELETE FROM projects WHERE id = 'dedupe-p2'`);
     }
   });
 
