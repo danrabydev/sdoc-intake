@@ -902,6 +902,11 @@ pre {
   font-weight: 600;
 }
 
+a.contract-doc-view-btn {
+  text-decoration: none;
+  color: inherit;
+}
+
 .contract-doc-view-btn {
   display: flex;
   align-items: center;

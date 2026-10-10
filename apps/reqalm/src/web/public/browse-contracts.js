@@ -16,6 +16,9 @@ export const CONTRACT_SCOPE_CHIP_PREVIEW = 3;
 /** Scope rows in the expanded document-view membership table. */
 export const CONTRACT_SCOPE_DETAIL_PREVIEW = 25;
 
+/** Max scope API pages when loading document membership (bounds fetchAllScope). */
+export const FETCH_ALL_SCOPE_MAX_PAGES = 50;
+
 export const CONTRACT_LIST_FETCH_LIMIT = 100;
 
 export function isValidContractId(id) {
@@ -125,12 +128,26 @@ export function buildOverlapTimeline(contracts, selectedId) {
     const at = minMonth + Math.round((span * i) / (tickCount - 1));
     ticks.push(formatMonthTick(at));
   }
-  const positioned = bars.map((b) => ({
-    ...b,
-    leftPct: ((b.start - minMonth) / span) * 100,
-    widthPct: Math.max(2, ((b.end - b.start) / span) * 100),
-  }));
+  const positioned = bars.map((b) => {
+    const rawLeft = ((b.start - minMonth) / span) * 100;
+    const rawWidth = Math.max(2, ((b.end - b.start) / span) * 100);
+    const widthPct = Math.min(100, rawWidth);
+    const leftPct = Math.max(0, Math.min(rawLeft, 100 - widthPct));
+    return { ...b, leftPct, widthPct };
+  });
   return { ticks, bars: positioned, span };
+}
+
+function contractNewBtn() {
+  return el("button", {
+    type: "button",
+    className: "contract-new-btn",
+    disabled: true,
+    tabIndex: -1,
+    "aria-disabled": "true",
+    title: "Coming soon",
+    text: "+ New contract",
+  });
 }
 
 export function contractStatusClass(status) {
@@ -203,11 +220,14 @@ export function contractReleasesApiPath(projectId, contractId) {
   return `/api/v1/projects/${encodeURIComponent(projectId)}/contracts/${encodeURIComponent(contractId)}/releases`;
 }
 
-export async function fetchAllScope(apiFn, projectId, contractId, limit = 100) {
+export async function fetchAllScope(apiFn, projectId, contractId, limit = CONTRACT_SCOPE_DETAIL_PREVIEW) {
+  if (limit <= 0) return { kind: "error" };
   const items = [];
   let offset = 0;
   let total = 0;
+  let pages = 0;
   for (;;) {
+    if (pages >= FETCH_ALL_SCOPE_MAX_PAGES) break;
     const path = contractScopeApiPath(projectId, contractId, limit, offset);
     if (!path) return { kind: "error" };
     const res = await loadJson(apiFn, path);
@@ -215,9 +235,11 @@ export async function fetchAllScope(apiFn, projectId, contractId, limit = 100) {
     const page = res.data;
     total = page.total ?? 0;
     items.push(...(page.items ?? []));
+    pages += 1;
     offset += page.limit ?? limit;
     if (offset >= total || !(page.items?.length)) break;
   }
+  if (pages >= FETCH_ALL_SCOPE_MAX_PAGES && offset < total) return { kind: "error" };
   return { kind: "ok", data: { items, total } };
 }
 
@@ -332,6 +354,37 @@ function sampleRequirementsSection(anchorProjectId, scopeLines, scopeTotal) {
   return section;
 }
 
+function scopeMembershipTable(anchorProjectId, scopeLines) {
+  const rows = scopeLines.map((line) => [
+    el("td", {}, [scopeLineLink(anchorProjectId, line)]),
+    el("td", {}, [el("code", { text: line.uid ?? "—" })]),
+    el("td", { text: line.kind ?? "—" }),
+    el("td", { text: line.status ?? "—" }),
+    el("td", { className: "num", text: String(line.version ?? "—") }),
+    el("td", { className: "contract-scope-project", text: line.project_id ?? "—" }),
+  ]);
+  return contractsDataTable(
+    ["Line", "Version UID", "Kind", "Status", "Ver.", "Project"],
+    rows,
+    "data-table contracts-table contracts-scope-table",
+  );
+}
+
+function setDocumentScopeBlock(section, anchorProjectId, scopeLines, scopeTotal) {
+  const existing = section.querySelector(".contract-doc-scope-block");
+  existing?.remove();
+  const block = el("div", { className: "contract-doc-scope-block" });
+  if (!scopeLines.length && !scopeTotal) {
+    block.append(el("p", { className: "empty-state", text: "No scope lines visible for this contract." }));
+  } else {
+    block.append(scopeMembershipTable(anchorProjectId, scopeLines));
+    const more = scopeMoreLabel(scopeLines.length, scopeTotal);
+    if (more) block.append(el("p", { className: "contract-scope-more muted", text: more }));
+  }
+  const releasesHeading = section.querySelector(".contract-doc-releases-heading");
+  section.insertBefore(block, releasesHeading ?? null);
+}
+
 function documentViewSection(anchorProjectId, scopeLines, scopeTotal, releases, expanded) {
   const section = el("section", {
     className: "contract-document-view",
@@ -339,28 +392,9 @@ function documentViewSection(anchorProjectId, scopeLines, scopeTotal, releases, 
     hidden: expanded ? undefined : true,
   });
   section.append(el("h3", { className: "contract-panel-heading", text: "Document membership" }));
-  if (!scopeLines.length && !scopeTotal) {
-    section.append(el("p", { className: "empty-state", text: "No scope lines visible for this contract." }));
-  } else {
-    const rows = scopeLines.map((line) => [
-      el("td", {}, [scopeLineLink(anchorProjectId, line)]),
-      el("td", {}, [el("code", { text: line.uid ?? "—" })]),
-      el("td", { text: line.kind ?? "—" }),
-      el("td", { text: line.status ?? "—" }),
-      el("td", { className: "num", text: String(line.version ?? "—") }),
-      el("td", { className: "contract-scope-project", text: line.project_id ?? "—" }),
-    ]);
-    section.append(
-      contractsDataTable(
-        ["Line", "Version UID", "Kind", "Status", "Ver.", "Project"],
-        rows,
-        "data-table contracts-table contracts-scope-table",
-      ),
-    );
-    const more = scopeMoreLabel(scopeLines.length, scopeTotal);
-    if (more) section.append(el("p", { className: "contract-scope-more muted", text: more }));
-  }
-  section.append(el("h3", { className: "contract-panel-heading", text: "Covered releases" }));
+  setDocumentScopeBlock(section, anchorProjectId, scopeLines, scopeTotal);
+  const relHeading = el("h3", { className: "contract-panel-heading contract-doc-releases-heading", text: "Covered releases" });
+  section.append(relHeading);
   if (!releases.length) {
     section.append(el("p", { className: "empty-state", text: "No releases covered by this contract." }));
   } else {
@@ -383,7 +417,7 @@ function documentViewSection(anchorProjectId, scopeLines, scopeTotal, releases, 
   return section;
 }
 
-function detailPanel(projectId, listItems, selectedId, detail, chipScope, docScope, releases) {
+function detailPanel(projectId, listItems, selectedId, detail, chipScope, releases, apiFn) {
   const panel = el("aside", { className: "contracts-detail-panel" });
   if (!selectedId || !detail) {
     panel.append(el("p", { className: "muted contract-panel-empty", text: "Select a contract to view details." }));
@@ -409,26 +443,49 @@ function detailPanel(projectId, listItems, selectedId, detail, chipScope, docSco
   const chipTotal = chipScope?.total ?? 0;
   panel.append(sampleRequirementsSection(projectId, chipLines, chipTotal));
 
-  const docSection = documentViewSection(
-    projectId,
-    docScope?.items ?? [],
-    docScope?.total ?? 0,
-    releases ?? [],
-    false,
-  );
-  const openBtn = el("button", {
-    type: "button",
+  const scopeTotal = detail.scope_count ?? chipScope?.total ?? 0;
+  const docSection = documentViewSection(projectId, [], scopeTotal, releases ?? [], false);
+  const openDocLink = el("a", {
+    href: "#contract-document-view",
     className: "contract-doc-view-btn",
     "aria-expanded": "false",
     "aria-controls": "contract-document-view",
   }, [el("span", { className: "contract-doc-view-icon", "aria-hidden": "true" }), document.createTextNode("Open document view")]);
-  openBtn.addEventListener("click", () => {
-    const open = docSection.hasAttribute("hidden");
-    if (open) docSection.removeAttribute("hidden");
-    else docSection.setAttribute("hidden", "");
-    openBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  let scopeLoadPromise = null;
+  const ensureDocumentScope = () => {
+    if (docSection.dataset.scopeLoaded === "1") return Promise.resolve();
+    if (scopeLoadPromise) return scopeLoadPromise;
+    scopeLoadPromise = (async () => {
+      const full = await fetchAllScope(apiFn, projectId, selectedId, CONTRACT_SCOPE_DETAIL_PREVIEW);
+      if (full.kind !== "ok") {
+        setDocumentScopeBlock(
+          docSection,
+          projectId,
+          [],
+          0,
+        );
+        const err = el("p", { className: "contract-load-error error", role: "alert", text: "Could not load contract scope." });
+        docSection.querySelector(".contract-doc-scope-block")?.prepend(err);
+        return;
+      }
+      setDocumentScopeBlock(docSection, projectId, full.data.items ?? [], full.data.total ?? 0);
+      docSection.dataset.scopeLoaded = "1";
+    })();
+    return scopeLoadPromise;
+  };
+  openDocLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    const opening = docSection.hasAttribute("hidden");
+    if (opening) {
+      docSection.removeAttribute("hidden");
+      openDocLink.setAttribute("aria-expanded", "true");
+      void ensureDocumentScope();
+    } else {
+      docSection.setAttribute("hidden", "");
+      openDocLink.setAttribute("aria-expanded", "false");
+    }
   });
-  panel.append(openBtn, docSection);
+  panel.append(openDocLink, docSection);
   if (detail.notes) {
     panel.append(el("section", { className: "contract-notes-compact" }, [
       el("h3", { className: "contract-panel-heading", text: "Notes" }),
@@ -452,7 +509,7 @@ export async function renderContractsBrowse(container, { apiFn, projectId, contr
     container.replaceChildren(
       el("header", { className: "contracts-page-head" }, [
         el("h1", { text: "Contracts" }),
-        el("button", { type: "button", className: "contract-new-btn", disabled: true, title: "Coming soon", text: "+ New contract" }),
+        contractNewBtn(),
       ]),
       el("p", { className: "empty-state", text: "No contracts visible for this project." }),
     );
@@ -463,15 +520,13 @@ export async function renderContractsBrowse(container, { apiFn, projectId, contr
   if (contractId && isValidContractId(contractId) && selectedId === null) return renderNotFound(container);
   let detail = null;
   let chipScope = null;
-  let docScope = null;
   let releases = [];
 
   if (selectedId) {
     const detailPath = contractApiPath(projectId, selectedId);
     const chipPath = contractScopeApiPath(projectId, selectedId, CONTRACT_SCOPE_CHIP_PREVIEW, 0);
-    const docPath = contractScopeApiPath(projectId, selectedId, CONTRACT_SCOPE_DETAIL_PREVIEW, 0);
     const relPath = contractReleasesApiPath(projectId, selectedId);
-    if (!detailPath || !chipPath || !docPath || !relPath) return renderNotFound(container);
+    if (!detailPath || !chipPath || !relPath) return renderNotFound(container);
 
     const detailRes = await loadJson(apiFn, detailPath);
     if (detailRes.kind === "auth") return;
@@ -485,12 +540,6 @@ export async function renderContractsBrowse(container, { apiFn, projectId, contr
     if (chipRes.kind !== "ok") return renderNotFound(container);
     chipScope = chipRes.data;
 
-    const docRes = await loadJson(apiFn, docPath);
-    if (docRes.kind === "auth") return;
-    if (docRes.kind === "error") return renderLoadError(container, detail.title || detail.id);
-    if (docRes.kind !== "ok") return renderNotFound(container);
-    docScope = docRes.data;
-
     const relRes = await loadJson(apiFn, relPath);
     if (relRes.kind === "auth") return;
     if (relRes.kind === "error") return renderLoadError(container, detail.title || detail.id);
@@ -500,7 +549,7 @@ export async function renderContractsBrowse(container, { apiFn, projectId, contr
 
   const head = el("header", { className: "contracts-page-head contracts-page-head-split" }, [
     el("h1", { text: "Contracts" }),
-    el("button", { type: "button", className: "contract-new-btn", disabled: true, title: "Coming soon", text: "+ New contract" }),
+    contractNewBtn(),
   ]);
 
   const listPane = el("div", { className: "contracts-list-pane" });
@@ -514,7 +563,7 @@ export async function renderContractsBrowse(container, { apiFn, projectId, contr
 
   const layout = el("div", { className: "contracts-two-pane" }, [
     listPane,
-    detailPanel(projectId, listItems, selectedId, detail, chipScope, docScope, releases),
+    detailPanel(projectId, listItems, selectedId, detail, chipScope, releases, apiFn),
   ]);
 
   container.replaceChildren(head, layout);

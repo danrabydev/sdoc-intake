@@ -136,7 +136,9 @@ describe("contracts read API", () => {
   });
 
   it("releases visible set matches grant-filtered covers_releases order", async () => {
-    const rels = dataOf(await inject(RELS("reqalm", "ctr-reqalm-product"))) as { items: { id: string }[] };
+    const rels = dataOf(await inject(RELS("reqalm", "ctr-reqalm-product"))) as {
+      items: { id: string; project_id: string }[];
+    };
     const pos = (
       await q(
         `SELECT cr.release_id FROM contract_releases cr JOIN releases r ON r.id = cr.release_id

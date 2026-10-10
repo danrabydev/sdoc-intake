@@ -11,9 +11,12 @@ import {
   CONTRACT_LIST_FETCH_LIMIT,
   CONTRACT_SCOPE_CHIP_PREVIEW,
   CONTRACT_SCOPE_DETAIL_PREVIEW,
+  FETCH_ALL_SCOPE_MAX_PAGES,
   buildOverlapTimeline,
+  contractEffectiveEndMonth,
   contractScopeTag,
   fetchAllScope,
+  parseContractMonth,
   formatContractPeriod,
   isValidContractId,
   releaseNameLink,
@@ -126,6 +129,22 @@ function mainEl() {
   return document.createElement("main");
 }
 
+async function flushAsyncWork(rounds = 24) {
+  for (let i = 0; i < rounds; i++) await Promise.resolve();
+}
+
+async function openDocumentView(main: HTMLElement) {
+  const link = main.querySelector("a.contract-doc-view-btn") as HTMLAnchorElement | null;
+  assert.ok(link);
+  link.click();
+  for (let i = 0; i < 80; i++) {
+    const doc = main.querySelector("#contract-document-view");
+    if (doc?.getAttribute("data-scope-loaded") === "1") break;
+    await new Promise((r) => setTimeout(r, 5));
+  }
+  assert.equal(main.querySelector("#contract-document-view")?.getAttribute("data-scope-loaded"), "1");
+}
+
 export function registerContractBrowseTests(deps: {
   installDom: (url?: string) => unknown;
   shellMeta: unknown;
@@ -138,7 +157,8 @@ export function registerContractBrowseTests(deps: {
   const docPath = (id = CTR_PRODUCT) => contractScopeApiPath(PID, id, CONTRACT_SCOPE_DETAIL_PREVIEW, 0)!;
   const defaultProductDetailFetch: FetchHandler = (url) => {
     if (url === contractApiPath(PID, CTR_PRODUCT)) return { status: 200, body: { data: ctrProductDetail } };
-    if (url === chipPath() || url === docPath()) return scopeEmptyOk;
+    if (url === chipPath()) return scopeEmptyOk;
+    if (url.startsWith(scopeBase(CTR_PRODUCT))) return scopeEmptyOk;
     if (url === contractReleasesApiPath(PID, CTR_PRODUCT)) return relEmptyOk;
     return undefined;
   };
@@ -152,7 +172,7 @@ export function registerContractBrowseTests(deps: {
       if (isListUrl(url)) return ctrListOk;
       if (url === contractApiPath(PID, CTR_PRODUCT)) return { status: 200, body: { data: contractBody } };
       if (url === chipPath()) return scopeEmptyOk;
-      if (url === docPath()) return scopeEmptyOk;
+      if (url.startsWith(scopeBase())) return scopeEmptyOk;
       if (url === contractReleasesApiPath(PID, CTR_PRODUCT)) return relEmptyOk;
       return scope(url) ?? releases(url) ?? { status: 404 };
     });
@@ -165,7 +185,7 @@ export function registerContractBrowseTests(deps: {
     return mockFetchBare((url) => {
       if (isListUrl(url)) return ctrListOk;
       if (url === contractApiPath(PID, CTR_PRODUCT)) return overrides.contract ?? contractOk;
-      if (url === chipPath() || url === docPath()) return overrides.scope ?? scopeEmptyOk;
+      if (url === chipPath() || url.startsWith(scopeBase())) return overrides.scope ?? scopeEmptyOk;
       if (url === contractReleasesApiPath(PID, CTR_PRODUCT)) return overrides.releases ?? relEmptyOk;
       return { status: 404 };
     });
@@ -197,6 +217,57 @@ export function registerContractBrowseTests(deps: {
       assert.equal(resolveSelectedContractId(CTR_MAINT, ctrListOk.body.data.items), CTR_MAINT);
       assert.equal(contractScopeTag(ctrListOk.body.data.items[0], ctrListOk.body.data.items), "overlapping support");
       assert.ok(buildOverlapTimeline(ctrListOk.body.data.items, CTR_PRODUCT).bars.length >= 2);
+    });
+
+    it("buildOverlapTimeline bar geometry and clamp (mutant left/width/overflow)", () => {
+      const items = [
+        { id: "c1", title: "C1", starts_on: "2026-01-01", ends_on: "2026-04-30" },
+        { id: "c2", title: "C2", starts_on: "2026-07-01", ends_on: "2026-09-30" },
+      ];
+      const { bars, span } = buildOverlapTimeline(items, "c1");
+      const jan = parseContractMonth("2026-01-01")!;
+      const aprEnd = contractEffectiveEndMonth("2026-01-01", "2026-04-30")!;
+      const jul = parseContractMonth("2026-07-01")!;
+      const sepEnd = contractEffectiveEndMonth("2026-07-01", "2026-09-30")!;
+      const minM = Math.min(jan, jul);
+      const spanExpect = Math.max(1, Math.max(aprEnd, sepEnd) - minM);
+      assert.equal(span, spanExpect);
+      const c1 = bars.find((b) => b.id === "c1")!;
+      const c2 = bars.find((b) => b.id === "c2")!;
+      const expectLeft1 = 0;
+      const expectWidth1 = Math.min(100, Math.max(2, ((aprEnd - jan) / spanExpect) * 100));
+      assert.ok(Math.abs(c1.leftPct - expectLeft1) < 0.02, `left ${c1.leftPct}`);
+      assert.ok(Math.abs(c1.widthPct - expectWidth1) < 0.02, `width ${c1.widthPct}`);
+      const expectLeft2 = ((jul - minM) / spanExpect) * 100;
+      assert.notEqual(c1.widthPct, expectWidth1 / 2);
+      const expectWidth2 = Math.min(100, Math.max(2, ((sepEnd - jul) / spanExpect) * 100));
+      assert.ok(Math.abs(c2.leftPct - expectLeft2) < 0.02);
+      assert.notEqual(c2.leftPct, expectLeft2 / 2);
+      assert.ok(Math.abs(c2.widthPct - expectWidth2) < 0.02);
+      assert.notEqual(c2.widthPct, 10);
+      for (const b of bars) assert.ok(b.leftPct + b.widthPct <= 100.001);
+    });
+
+    it("selected contract card exposes aria-current page", async () => {
+      const m = mainEl();
+      await renderContractDetail(m, { apiFn: ctrFetch(() => undefined), projectId: PID, contractId: CTR_PRODUCT });
+      for (const card of m.querySelectorAll("a.contract-card")) {
+        const href = card.getAttribute("href") ?? "";
+        if (href.endsWith(`/${CTR_PRODUCT}`)) assert.equal(card.getAttribute("aria-current"), "page");
+        else assert.equal(card.getAttribute("aria-current"), null);
+      }
+    });
+
+    it("+ New contract control is aria-disabled and not tab-focusable", async () => {
+      const m = mainEl();
+      await renderContractsList(m, { apiFn: ctrFetch(() => undefined), projectId: PID });
+      const btns = m.querySelectorAll("button.contract-new-btn");
+      assert.equal(btns.length, 1);
+      for (const btn of btns) {
+        assert.equal(btn.getAttribute("aria-disabled"), "true");
+        assert.equal(btn.getAttribute("tabindex"), "-1");
+        assert.equal((btn as HTMLButtonElement).disabled, true);
+      }
     });
 
     it("contractScopeTag mutant (ignoring overlap count) fails tag choice", () => {
@@ -320,7 +391,7 @@ export function registerContractBrowseTests(deps: {
       await renderContractDetail(m1, {
         apiFn: ctrFetch((u) => {
           if (u === contractApiPath(PID, CTR_MAINT)) return { status: 200, body: { data: maint } };
-          if (u === chipPath(CTR_MAINT) || u === docPath(CTR_MAINT)) return scopePayload;
+          if (u === chipPath(CTR_MAINT) || u.startsWith(scopeBase(CTR_MAINT))) return scopePayload;
           if (u === contractReleasesApiPath(PID, CTR_MAINT)) return relEmptyOk;
           return undefined;
         }),
@@ -335,7 +406,7 @@ export function registerContractBrowseTests(deps: {
       await renderContractDetail(m2, {
         apiFn: ctrFetch((u) => {
           if (u === contractApiPath(PID, CTR_PRODUCT)) return { status: 200, body: { data: { ...ctrProductDetail, title: xss } } };
-          if (u === chipPath() || u === docPath()) return scopeEmptyOk;
+          if (u === chipPath() || u.startsWith(scopeBase())) return scopeEmptyOk;
           if (u === contractReleasesApiPath(PID, CTR_PRODUCT)) {
             return {
               status: 200,
@@ -391,7 +462,7 @@ export function registerContractBrowseTests(deps: {
     ] as const) {
       it(`fetchAllScope ${label}`, async () => {
         const mock = scopePagingMock(total, pages);
-        const out = await fetchAllScope(mockFetchBare(mock.handler), PID, CTR_PRODUCT);
+        const out = await fetchAllScope(mockFetchBare(mock.handler), PID, CTR_PRODUCT, 100);
         assert.equal(out.kind, "ok");
         assert.equal(out.data?.items.length, expectItems);
         assert.equal(out.data?.total, total);
@@ -399,6 +470,46 @@ export function registerContractBrowseTests(deps: {
         assert.equal(mock.offsets.length, expectOffsets.length);
       });
     }
+
+    it("fetchAllScope rejects non-positive page limit", async () => {
+      let calls = 0;
+      const out = await fetchAllScope(
+        async () => {
+          calls += 1;
+          return null;
+        },
+        PID,
+        CTR_PRODUCT,
+        0,
+      );
+      assert.equal(out.kind, "error");
+      assert.equal(calls, 0);
+    });
+
+    it("fetchAllScope stops at FETCH_ALL_SCOPE_MAX_PAGES (infinite total)", async () => {
+      const pageSize = 25;
+      const base = scopeBase();
+      let pages = 0;
+      const handler: FetchHandler = (url) => {
+        if (!url.startsWith(base)) return undefined;
+        pages += 1;
+        const off = scopeOffset(url);
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: Array.from({ length: pageSize }, (_, i) => scopeLine(off + i)),
+              total: 999_999,
+              limit: pageSize,
+              offset: off,
+            },
+          },
+        };
+      };
+      const out = await fetchAllScope(mockFetchBare(handler), PID, CTR_PRODUCT, pageSize);
+      assert.equal(out.kind, "error");
+      assert.equal(pages, FETCH_ALL_SCOPE_MAX_PAGES);
+    });
 
     it("contract detail scope chips and +N more (not full membership table by default)", async () => {
       const chip = CONTRACT_SCOPE_CHIP_PREVIEW;
@@ -416,7 +527,14 @@ export function registerContractBrowseTests(deps: {
               body: { data: { items: Array.from({ length: chip }, (_, i) => scopeLine(i)), total, limit: chip, offset: 0 } },
             };
           }
-          if (url === docPath()) {
+          if (url.startsWith(scopeBase())) {
+            const off = scopeOffset(url);
+            if (off > 0) {
+              return {
+                status: 200,
+                body: { data: { items: [], total, limit: CONTRACT_SCOPE_DETAIL_PREVIEW, offset: off } },
+              };
+            }
             return {
               status: 200,
               body: {
@@ -438,6 +556,10 @@ export function registerContractBrowseTests(deps: {
       assert.equal(m.querySelectorAll(".contract-req-chip").length, chip);
       assert.equal(m.querySelector(".contract-scope-more")?.textContent, scopeMoreLabel(chip, total));
       assert.ok(m.querySelector("#contract-document-view[hidden]"));
+      assert.equal(m.querySelectorAll("table.contracts-scope-table tbody tr").length, 0);
+      await openDocumentView(m);
+      assert.equal(m.querySelectorAll("table.contracts-scope-table tbody tr").length, CONTRACT_SCOPE_DETAIL_PREVIEW);
+      assert.ok(m.querySelector("a.contract-doc-view-btn[href='#contract-document-view']"));
     });
 
     for (const [label, failStatus, expect] of [
@@ -452,14 +574,14 @@ export function registerContractBrowseTests(deps: {
         assert.equal(m.querySelectorAll("table.contracts-scope-table tbody tr").length, 0);
       }],
     ] as const) {
-      it(`scope preview first-page ${label} not partial table`, async () => {
-        const mock = scopePagingMock(250, { 0: CONTRACT_SCOPE_DETAIL_PREVIEW }, { offset: 0, status: failStatus });
+      it(`scope chip preview ${label} not partial table`, async () => {
         const m = mainEl();
         await renderContractDetail(m, {
           apiFn: mockFetchBare((url) => {
             if (isListUrl(url)) return ctrListOk;
             if (url === contractApiPath(PID, CTR_PRODUCT)) return { status: 200, body: { data: ctrProductDetail } };
-            if (url === chipPath() || url === docPath()) return mock.handler(url) ?? { status: 503, body: {} };
+            if (url === chipPath()) return { status: failStatus, body: {} };
+            if (url.startsWith(scopeBase())) return scopeEmptyOk;
             if (url === contractReleasesApiPath(PID, CTR_PRODUCT)) return relEmptyOk;
             return { status: 404 };
           }),
@@ -478,9 +600,10 @@ export function registerContractBrowseTests(deps: {
           apiFn: mockFetchBare((u) => {
             if (isListUrl(u)) return ctrListOk;
             if (u === contractApiPath(PID, CTR_PRODUCT)) return { status: 200, body: { data: titled } };
-            if (fail === "scope" && (u === chipPath() || u === docPath())) return { status: 503, body: {} };
+            if (fail === "scope" && u === chipPath()) return { status: 503, body: {} };
             if (fail === "scope" && u === contractReleasesApiPath(PID, CTR_PRODUCT)) return relEmptyOk;
-            if (fail === "releases" && (u === chipPath() || u === docPath())) return scopeEmptyOk;
+            if (fail === "releases" && u === chipPath()) return scopeEmptyOk;
+            if (fail === "releases" && u.startsWith(scopeBase())) return scopeEmptyOk;
             if (fail === "releases" && u === contractReleasesApiPath(PID, CTR_PRODUCT)) return { status: 503, body: {} };
             return { status: 404 };
           }),
@@ -497,7 +620,9 @@ export function registerContractBrowseTests(deps: {
       await renderContractDetail(m, {
         apiFn: mockFetchBare((u) => {
           if (isListUrl(u)) return ctrListOk;
-          if (u === contractApiPath(PID, CTR_PRODUCT)) return { status: 200, body: { data: ctrProductDetail } };
+          if (u === contractApiPath(PID, CTR_PRODUCT)) {
+            return { status: 200, body: { data: { ...ctrProductDetail, scope_count: 3 } } };
+          }
           const scopeBody = {
             status: 200,
             body: {
@@ -514,7 +639,7 @@ export function registerContractBrowseTests(deps: {
             },
           };
           if (u === chipPath()) return scopeBody;
-          if (u === docPath()) {
+          if (u.startsWith(scopeBase())) {
             return {
               status: 200,
               body: {
@@ -544,6 +669,7 @@ export function registerContractBrowseTests(deps: {
         projectId: PID,
         contractId: CTR_PRODUCT,
       });
+      await openDocumentView(m);
       const tables = m.querySelectorAll("table.contracts-table");
       assert.ok(m.querySelector('a[href="/app/projects/reqalm/requirements/CAP-OK"]'));
       assert.ok(m.querySelector('a[href="/app/projects/twin-b/requirements/R-X"]'));
