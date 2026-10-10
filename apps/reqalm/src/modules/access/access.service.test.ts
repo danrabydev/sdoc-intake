@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import pino from "pino";
 import { after, before, describe, it } from "node:test";
+import type { FastifyBaseLogger } from "fastify";
 import type { ResolvedAuth } from "../../auth/request-auth.js";
 import type { RequestContext } from "../../core/request-context.js";
 import { loadConfig } from "../../config.js";
@@ -25,7 +25,19 @@ async function serviceContext(identityId: string): Promise<RequestContext> {
     pool: ctx.pool,
     config,
     keyProvider: createMemoryKeyProvider(),
-    logger: pino({ level: "silent" }),
+    logger: {
+      info() {},
+      error() {},
+      warn() {},
+      debug() {},
+      trace() {},
+      fatal() {},
+      child() {
+        return this;
+      },
+      silent: true,
+      level: "silent",
+    } as unknown as FastifyBaseLogger,
     clock: { now: () => Date.now() },
     auth,
     identityId,
