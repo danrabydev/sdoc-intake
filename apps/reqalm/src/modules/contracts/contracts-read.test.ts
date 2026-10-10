@@ -159,6 +159,37 @@ describe("contracts read API", () => {
     }
   });
 
+  it("regression: contract:read grant on p2 only returns 404 on reqalm contract routes", async () => {
+    const saved = (await q(`SELECT id, project_id, role FROM project_grants WHERE identity_id = 'casey-reader'`)).rows as {
+      id: string;
+      project_id: string;
+      role: string;
+    }[];
+    await q(`DELETE FROM project_grants WHERE identity_id = 'casey-reader'`);
+    await q(`INSERT INTO projects (id, client_id, name) VALUES ('ctr-p2', 'reqalm-client', 'P2') ON CONFLICT DO NOTHING`);
+    await q(
+      `INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('grant-p2-contract-read', 'ctr-p2', 'casey-reader', 'Reader')`,
+    );
+    await q(
+      `INSERT INTO contracts (id, project_id, client_id, name, status) VALUES ('ctr-p2-local', 'ctr-p2', 'reqalm-client', 'local', 'active') ON CONFLICT DO NOTHING`,
+    );
+    try {
+      assert.equal((await inject(LIST("reqalm"))).statusCode, 404);
+      assert.equal((await inject(DET("reqalm", "ctr-reqalm-product"))).statusCode, 404);
+      assert.equal((await inject(LIST("ctr-p2"))).statusCode, 200);
+      assert.equal((await inject(DET("ctr-p2", "ctr-p2-local"))).statusCode, 200);
+    } finally {
+      await q(`DELETE FROM contracts WHERE id = 'ctr-p2-local'`);
+      await q(`DELETE FROM project_grants WHERE id = 'grant-p2-contract-read'`);
+      await q(`DELETE FROM projects WHERE id = 'ctr-p2'`);
+      for (const g of saved) {
+        await q(
+          `INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('${g.id}', '${g.project_id}', 'casey-reader', '${g.role}') ON CONFLICT DO NOTHING`,
+        );
+      }
+    }
+  });
+
   it("regression: projectScoped cross-project contract id fails fast with 404", async () => {
     await q(`INSERT INTO projects (id, client_id, name) VALUES ('ctr-p2', 'reqalm-client', 'P2') ON CONFLICT DO NOTHING`);
     await q(`INSERT INTO contracts (id, project_id, client_id, name, status) VALUES ('ctr-p2-only', 'ctr-p2', 'reqalm-client', 'x', 'active') ON CONFLICT DO NOTHING`);

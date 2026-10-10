@@ -1466,7 +1466,7 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: Planned for contracts storage/loader PR.
+  notes: 'Capability active with verification pass after PR #44 merge a3ebdcdc23d9032eefa4109603e527b4e80d6c77; formal approval record not filed in seed.'
   approved_version_uid:
   approved_statement_hash:
 - id: ar-read-contracts
@@ -9754,15 +9754,16 @@ requirement_versions:
 - uid: CAP-CONTRACTS-LOADER
   base_uid: CAP-CONTRACTS-LOADER
   version_n: 0
-  status: draft
+  status: active
   statement: 'Dogfood loader persists contract overlays from dogfood.yaml into Postgres: contracts, contract_scope, and contract_releases (migration 012_contracts_read.sql). Validates in_scope_of version uids and covers_releases release ids; allows cross-project scope lines anchored on the contract project_id. Seed reset deletes contract junction rows before releases (FK-safe). No HTTP read API in this release.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: Planned until contracts loader PR merges.
+    verification_note: 'Shipped with contracts storage/loader PR #44 (merge a3ebdcdc23d9032eefa4109603e527b4e80d6c77).'
   statement_hash: sha256:9b5a0e1259efdb862be084174f331ff49ec25da9d839213bc5e5b6e1143b5637
   grooming_state: detailed
+  verification_outcome: pass
 - uid: CAP-READ-CONTRACTS
   base_uid: CAP-READ-CONTRACTS
   version_n: 0
@@ -18966,12 +18967,12 @@ releases:
   project_id: reqalm
   name: R1 — contracts loader (DB + seed)
   planned_on: '2026-10-10'
-  shipped_on:
-  status: planned
+  shipped_on: '2026-10-10'
+  status: shipped
   delivers:
   - CAP-CONTRACTS-LOADER
   cyber_gate: false
-  notes: Migration 012 + dogfood loader for contract_scope / contract_releases; no read API.
+  notes: 'PR #44 merged to main as a3ebdcdc23d9032eefa4109603e527b4e80d6c77 on 2026-10-10. Migration 012 + dogfood loader for contract_scope / contract_releases; no read API in that release.'
 - id: rel-r1-read-contracts
   project_id: reqalm
   name: R1 — contracts read API

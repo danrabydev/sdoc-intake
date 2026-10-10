@@ -58,10 +58,10 @@ function loadFixture(): BaselineFixture {
   return JSON.parse(readFileSync(fixturePath, "utf8")) as BaselineFixture;
 }
 
-describe("dogfood baseline outbound edges @ main 4d82bf9", () => {
+describe("dogfood baseline outbound edges @ main a3ebdcd", () => {
   it("preserves every baseline outbound edge record (all fields) in dogfood.yaml", async () => {
     const fixture = loadFixture();
-    assert.equal(fixture.baseline_main, "cbee54e9484d89430b461789052cea296e1669c5");
+    assert.equal(fixture.baseline_main, "a3ebdcdc23d9032eefa4109603e527b4e80d6c77");
     assert.equal(fixture.edges.length, fixture.edge_count);
     const versionUids = new Set(fixture.version_uids);
     const seed = await readDogfoodFile(DOGFOOD_SEED_PATH);

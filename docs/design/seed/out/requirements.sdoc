@@ -3563,7 +3563,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-CONTRACTS-LOADER
-STATUS: Draft
+STATUS: Active
 TITLE: Persist contracts from dogfood (migration + loader)
 STATEMENT: >>>
 Dogfood loader persists contract overlays from dogfood.yaml into Postgres: contracts, contract_scope, and contract_releases (migration 012_contracts_read.sql). Validates in_scope_of version uids and covers_releases release ids; allows cross-project scope lines anchored on the contract project_id. Seed reset deletes contract junction rows before releases (FK-safe). No HTTP read API in this release.
@@ -3575,7 +3575,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: Planned until contracts loader PR merges.
+security.verification_note: Shipped with contracts storage/loader PR #44 (merge a3ebdcdc23d9032eefa4109603e527b4e80d6c77).
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — contracts loader (DB + seed)
 <<<

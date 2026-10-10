@@ -126,7 +126,11 @@ export async function createTestApp(options?: { roles?: string; dogfood?: boolea
       },
     };
   } catch (error) {
-    await pgFixture.close();
+    try {
+      await pgFixture.close();
+    } catch {
+      // Preserve the original build/registration failure.
+    }
     throw error;
   }
 }

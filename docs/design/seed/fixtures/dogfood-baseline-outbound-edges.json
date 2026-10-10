@@ -1,5 +1,5 @@
 {
-  "baseline_main": "cbee54e9484d89430b461789052cea296e1669c5",
+  "baseline_main": "a3ebdcdc23d9032eefa4109603e527b4e80d6c77",
   "version_uids": [
     "A01",
     "A02",
@@ -212,6 +212,7 @@
     "CAP-CATALOGS-API",
     "CAP-CONTRACT-UI",
     "CAP-CONTRACT-UI.1",
+    "CAP-CONTRACTS-LOADER",
     "CAP-CRED-STORE",
     "CAP-DEVENV-COMPOSE",
     "CAP-DEVENV-DOCKERFILE-ROLES",
@@ -489,7 +490,7 @@
     "UI-APPROVE-TREE",
     "WANT-CHANGESET-FIELD-UNDO"
   ],
-  "edge_count": 1938,
+  "edge_count": 1941,
   "edges": [
     {
       "catalog_imprint_id": "asd-stig@v6r4",
@@ -9629,6 +9630,21 @@
       "from": "CAP-CONTRACT-UI.1",
       "kind": "refines",
       "to": "CAP-CONTRACT-UI"
+    },
+    {
+      "from": "CAP-CONTRACTS-LOADER",
+      "kind": "satisfies",
+      "to": "ARCH-CONTRACT.1"
+    },
+    {
+      "from": "CAP-CONTRACTS-LOADER",
+      "kind": "satisfies",
+      "to": "CAP-SVC-OPERATION-ROUTE"
+    },
+    {
+      "from": "CAP-CONTRACTS-LOADER",
+      "kind": "satisfies",
+      "to": "F10"
     },
     {
       "from": "CAP-CRED-STORE",

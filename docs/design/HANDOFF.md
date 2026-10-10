@@ -136,10 +136,10 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Validate:** `python3 patch_contracts_loader_release.py && python3 yaml_to_strictdoc.py --validate`.
 - **Counts (post-patch):** 455 lines, 488 versions, **1941** edges, 35 releases (4 planned including loader).
 
-## Addendum — contracts read API (PR #43 on #44)
+## Addendum — contracts read API (PR #43)
 
-- **Ship:** none in this PR (loader ship waits for #44 squash-merge SHA on `main`, then rebase + patch).
+- **Ship (this PR patch):** `rel-r1-contracts-loader` → **`CAP-CONTRACTS-LOADER`** @ **`a3ebdcdc23d9032eefa4109603e527b4e80d6c77`** (2026-10-10); baseline fixture @ **`a3ebdcd`**; allow-list loader ship rows only (earlier ship rows byte-identical).
 - **Release (planned):** `rel-r1-read-contracts` → **`CAP-READ-CONTRACTS`** (not shipped until Dan says so).
 - **API:** four GET routes under `/api/v1/projects/:projectId/contracts`; **`contract:read`** (no separate **`contract:list`** grant); grant-filtered counts; hidden scope lines omitted; authz/missing → **404**; releases routes stay **403** when denied.
-- **Patch:** `patch_read_contracts_release.py` — allow-list browse catalogs ship (#44) only; **`--validate-baseline-edges`**.
-- **Counts (post-patch):** 456 lines, 489 versions, **1945** edges, 36 releases (5 planned: loader + read API + core tranche).
+- **Patch:** `patch_read_contracts_release.py` — **`--validate-baseline-edges`**.
+- **Counts (post-patch):** 456 lines, 489 versions, **1945** edges, 36 releases (4 planned + read API tranche).
