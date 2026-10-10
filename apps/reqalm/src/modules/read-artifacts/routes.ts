@@ -36,8 +36,9 @@ function versionReadOp<TIn extends { projectId: string; versionUid: string }, TO
 ): OperationDef<TIn, TOut> {
   return {
     name,
-    permission: "requirement:read",
+    permission: "attachment:read",
     projectScoped: true,
+    validatePathProjectId: true,
     ...denyAsMissing,
     projectIdFromInput: (input) => input.projectId,
     auditMeta: (input) => ({

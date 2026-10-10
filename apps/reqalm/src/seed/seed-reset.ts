@@ -56,7 +56,7 @@ export type SeedResetAllowlistInput = {
   repoRoot: string;
 };
 
-const PRESERVED_TABLES = [
+export const SEED_RESET_PRESERVED_TABLES = [
   "identities",
   "project_grants",
   "platform_grants",
@@ -227,7 +227,7 @@ export async function summarizeSeedReset(
     projectIds,
     wipe,
     load: countDogfoodYamlEntities(seed),
-    preserved: [...PRESERVED_TABLES],
+    preserved: [...SEED_RESET_PRESERVED_TABLES],
   };
 }
 
@@ -240,6 +240,13 @@ async function wipeProjectSeedData(
     const r = await client.query(`DELETE FROM ${table} WHERE project_id = ANY($1::text[])`, [projectIds]);
     deleted[table] = r.rowCount ?? 0;
   }
+  const scopedBlobs = await client.query<{ blob_id: string }>(
+    `SELECT DISTINCT v.blob_id FROM file_attachment_versions v
+       JOIN file_attachments fa ON fa.id = v.attachment_id
+       WHERE fa.project_id = ANY($1::text[])`,
+    [projectIds],
+  );
+  const blobIds = scopedBlobs.rows.map((r) => r.blob_id);
   const fav = await client.query(
     `DELETE FROM file_attachment_versions v
        USING file_attachments fa
@@ -253,10 +260,14 @@ async function wipeProjectSeedData(
     projectIds,
   ]);
   deleted.capability_artifacts = artDel.rowCount ?? 0;
-  await client.query(
-    `DELETE FROM attachment_blobs b
-       WHERE NOT EXISTS (SELECT 1 FROM file_attachment_versions v WHERE v.blob_id = b.id)`,
-  );
+  if (blobIds.length > 0) {
+    await client.query(
+      `DELETE FROM attachment_blobs b
+         WHERE b.id = ANY($1::text[])
+           AND NOT EXISTS (SELECT 1 FROM file_attachment_versions v WHERE v.blob_id = b.id)`,
+      [blobIds],
+    );
+  }
   const rel = await client.query(
     "DELETE FROM releases WHERE project_id = ANY($1::text[])",
     [projectIds],

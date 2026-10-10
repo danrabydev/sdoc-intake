@@ -4,6 +4,7 @@ import { ROLE_PERMISSIONS } from "./enforce.js";
 
 const EXPECTED: Record<string, string[]> = {
   Reader: [
+    "attachment:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -15,6 +16,7 @@ const EXPECTED: Record<string, string[]> = {
     "requirement:read",
   ],
   Author: [
+    "attachment:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -27,6 +29,7 @@ const EXPECTED: Record<string, string[]> = {
     "requirement:write",
   ],
   Developer: [
+    "attachment:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -39,6 +42,7 @@ const EXPECTED: Record<string, string[]> = {
     "workitem:write",
   ],
   Tester: [
+    "attachment:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -51,6 +55,7 @@ const EXPECTED: Record<string, string[]> = {
     "verification:write",
   ],
   "Release manager": [
+    "attachment:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -64,6 +69,7 @@ const EXPECTED: Record<string, string[]> = {
     "requirement:read",
   ],
   Security: [
+    "attachment:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -76,6 +82,7 @@ const EXPECTED: Record<string, string[]> = {
     "security:apply",
   ],
   AO: [
+    "attachment:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -88,6 +95,7 @@ const EXPECTED: Record<string, string[]> = {
     "requirement:read",
   ],
   Auditor: [
+    "attachment:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -99,6 +107,7 @@ const EXPECTED: Record<string, string[]> = {
     "requirement:read",
   ],
   "Project admin": [
+    "attachment:read",
     "audit:read",
     "client:list",
     "contract:read",
@@ -112,6 +121,7 @@ const EXPECTED: Record<string, string[]> = {
     "requirement:write",
   ],
   "Client admin": [
+    "attachment:read",
     "audit:read",
     "client:list",
     "client:manage",
@@ -138,6 +148,7 @@ describe("ROLE_PERMISSIONS table", () => {
   it("Key custodian has no list/read-browse permissions", () => {
     const perms = ROLE_PERMISSIONS["Key custodian"] ?? new Set();
     for (const p of [
+      "attachment:read",
       "client:list",
       "project:list",
       "requirement:list",

@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { hashPassword } from "../credential/password.js";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -8,6 +8,7 @@ import type pg from "pg";
 import type { AppConfig } from "../config.js";
 import { isProduction } from "../config.js";
 import { ATTACHMENT_ID, ATTACHMENT_VERSION_ID, CONTRACT_ID } from "../http/project-id.js";
+import { stableCapabilityArtifactId } from "../modules/read-artifacts/artifacts.service.js";
 import {
   upsertCatalogMetadata,
   type CatalogImprintSeedRow,
@@ -844,11 +845,6 @@ export async function getSeedSummary(pool: pg.Pool) {
 
 const BLOB_ID = /^blob_[0-9a-f]{64}$/;
 const ARTIFACT_KINDS = new Set(["openapi", "wireframe", "mock", "other"]);
-
-function stableCapabilityArtifactId(versionUid: string, position: number): string {
-  const digest = createHash("sha256").update(`${versionUid}\0${position}`, "utf8").digest("hex");
-  return `art_${digest.slice(0, 26)}`;
-}
 
 async function loadCapabilityArtifacts(
   client: pg.PoolClient,

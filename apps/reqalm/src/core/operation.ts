@@ -27,6 +27,8 @@ export type OperationDef<TIn, TOut> = {
   /** Failed permission check returns not_found when set (optional detail via permissionDeniedDetail). */
   permissionDeniedAsNotFound?: true;
   permissionDeniedDetail?: string;
+  /** When true with projectScoped, an invalid :projectId slug fails as validation (400) before scope. */
+  validatePathProjectId?: true;
   auditMeta?: (input: TIn) => OperationAuditMeta;
   execute: (ctx: RequestContext, input: TIn) => Promise<ServiceResult<TOut>>;
 };
@@ -98,6 +100,8 @@ function operationSpanAttributes(
 export type OperationCall<TIn> = {
   projectId: string | undefined;
   parseInput: () => ServiceResult<TIn>;
+  /** Param validation that must run before project scope (e.g. invalid :projectId slug). */
+  earlyValidation?: ServiceResult<never>;
 };
 
 /** Run an operation on already-validated input (non-HTTP callers and tests). */
@@ -108,7 +112,7 @@ export async function runOperation<TIn, TOut>(
 ): Promise<ServiceResult<TOut>> {
   const meta = def.auditMeta?.(input) ?? {};
   const projectId = def.projectIdFromInput?.(input) ?? meta.projectId ?? undefined;
-  return runPipeline(ctx, def, projectId, meta, () => ok(input));
+  return runPipeline(ctx, def, projectId, meta, () => ok(input), undefined);
 }
 
 /**
@@ -120,7 +124,7 @@ export async function runOperationCall<TIn, TOut>(
   def: OperationDef<TIn, TOut>,
   call: OperationCall<TIn>,
 ): Promise<ServiceResult<TOut>> {
-  return runPipeline(ctx, def, call.projectId, {}, call.parseInput);
+  return runPipeline(ctx, def, call.projectId, {}, call.parseInput, call.earlyValidation);
 }
 
 async function runPipeline<TIn, TOut>(
@@ -129,6 +133,7 @@ async function runPipeline<TIn, TOut>(
   projectId: string | undefined,
   initialMeta: OperationAuditMeta,
   parseInput: () => ServiceResult<TIn>,
+  earlyValidation?: ServiceResult<never>,
 ): Promise<ServiceResult<TOut>> {
   const tracer = trace.getTracer(OP_TRACER);
   return tracer.startActiveSpan(`operation ${def.name}`, async (span) => {
@@ -181,6 +186,10 @@ async function runPipeline<TIn, TOut>(
         "deny",
         "deny",
       );
+    }
+
+    if (earlyValidation && !earlyValidation.ok) {
+      return finish(earlyValidation, serviceOutcomeToAudit(earlyValidation.error.code), "error");
     }
 
     if (def.listScope && def.projectScoped) {
