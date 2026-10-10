@@ -403,6 +403,12 @@ describe("seed reset", () => {
     // seed_meta records the reset, audit_events is checked below).
     const notOwned = async () => {
       const owned = new Set([
+        "contract_scope",
+        "contract_releases",
+        "contracts",
+        "work_item_links",
+        "change_sets",
+        "iterations",
         "requirement_lines",
         "requirement_versions",
         "releases",
