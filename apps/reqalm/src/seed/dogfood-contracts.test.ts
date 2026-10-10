@@ -11,6 +11,7 @@ import { SeedValidationError, loadDogfoodSeed, readDogfoodFile, type DogfoodSeed
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const dogfoodPath = path.join(repoRoot, "docs/design/seed/dogfood.yaml");
+const dogfoodSeedPromise = readDogfoodFile(dogfoodPath);
 
 type ContractRow = { id?: string; in_scope_of?: string[] };
 
@@ -44,7 +45,7 @@ describe("dogfood ReqALM product vs maintenance contracts", () => {
 
   it("loader persists contracts, scope, and releases from dogfood", async () => {
     const config = loadConfig(testConfigEnv());
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     await withMigratedPool(async (pool) => {
       await loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true });
       assert.equal(
@@ -124,7 +125,7 @@ describe("dogfood ReqALM product vs maintenance contracts", () => {
 
   it("DELETE contracts RESTRICTs when contract_scope children exist", async () => {
     const config = loadConfig(testConfigEnv());
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     await withMigratedPool(async (pool) => {
       await loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true });
       await assert.rejects(

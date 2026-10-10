@@ -5,11 +5,30 @@ import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import pg from "pg";
 import { listMigrationFiles } from "../db/migrate.js";
+import { notePglitePoolClosed, notePglitePoolOpened } from "./pglite-pool-tracker.js";
 
 const migrationsDir = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "../db/migrations",
 );
+
+let migrationSqlCache: Promise<Map<string, string>> | null = null;
+
+async function migrationSqlById(): Promise<Map<string, string>> {
+  if (!migrationSqlCache) {
+    migrationSqlCache = (async () => {
+      const ids = await listMigrationFiles();
+      const map = new Map<string, string>();
+      await Promise.all(
+        ids.map(async (id) => {
+          map.set(id, await readFile(path.join(migrationsDir, `${id}.sql`), "utf8"));
+        }),
+      );
+      return map;
+    })();
+  }
+  return migrationSqlCache;
+}
 
 async function runMigrationsOnPglite(db: PGlite): Promise<void> {
   await db.exec(`
@@ -18,14 +37,14 @@ async function runMigrationsOnPglite(db: PGlite): Promise<void> {
       applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  const sqlById = await migrationSqlById();
   for (const id of await listMigrationFiles()) {
     const existing = await db.query(
       "SELECT 1 FROM schema_migrations WHERE id = $1",
       [id],
     );
     if (existing.rowCount) continue;
-    const sql = await readFile(path.join(migrationsDir, `${id}.sql`), "utf8");
-    await db.exec(sql);
+    await db.exec(sqlById.get(id)!);
     await db.query("INSERT INTO schema_migrations (id) VALUES ($1)", [id]);
   }
 }
@@ -69,13 +88,18 @@ export async function createMigratedPglitePool(): Promise<MigratedPglitePgPool> 
     connectionTimeoutMillis: 5_000,
   });
 
+  notePglitePoolOpened();
   return {
     db,
     pool,
     close: async () => {
-      await pool.end();
-      await server.stop();
-      await db.close();
+      try {
+        await pool.end();
+        await server.stop();
+        await db.close();
+      } finally {
+        notePglitePoolClosed();
+      }
     },
   };
 }

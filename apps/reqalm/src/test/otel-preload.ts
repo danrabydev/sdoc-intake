@@ -3,5 +3,6 @@
  * Loaded via `node --import ./src/test/otel-preload.ts`.
  */
 import { startTestOpenTelemetry } from "./otel-testing.js";
+import "./pglite-pool-tracker.js";
 
 startTestOpenTelemetry();
