@@ -8,15 +8,15 @@ import { finishedSpans, resetTelemetrySpans } from "../../test/otel-testing.js";
 import { listRoutesForSecurityAudit } from "../../http/route-security.js";
 import type { ContractScopeLineDto } from "./contracts.service.js";
 
-let ctx: TestApp;
+let ctx: TestApp | undefined;
 let bearer: Record<string, string>;
 const LIST = (p: string) => `/api/v1/projects/${p}/contracts`;
 const DET = (p: string, id: string) => `${LIST(p)}/${id}`;
 const SCOPE = (p: string, id: string) => `${DET(p, id)}/scope`;
 const RELS = (p: string, id: string) => `${DET(p, id)}/releases`;
-const q = (sql: string) => ctx.pool.query(sql);
+const q = (sql: string) => ctx!.pool.query(sql);
 const inject = (url: string, headers = bearer) =>
-  ctx.app.inject({ method: "GET", url, remoteAddress: "203.0.113.50", headers: { host: "localhost:3000", ...headers } } as never);
+  ctx!.app.inject({ method: "GET", url, remoteAddress: "203.0.113.50", headers: { host: "localhost:3000", ...headers } } as never);
 const dataOf = (res: { statusCode: number; json: () => unknown }) => (assert.equal(res.statusCode, 200), (res.json() as { data: unknown }).data);
 const stripReqId = (b: Record<string, unknown>) => (({ request_id: _, ...r }) => r)(b);
 type InjectResponse = Awaited<ReturnType<typeof inject>>;
@@ -36,7 +36,7 @@ const assert404Parity = (ref: InjectResponse, res: InjectResponse, url: string) 
   assert.deepEqual(stripReqId(res.json() as Record<string, unknown>), stripReqId(ref.json() as Record<string, unknown>), url);
 };
 const audit = (rid: string) =>
-  ctx.pool.query(`SELECT operation, outcome, project_id, target_id FROM audit_events WHERE request_id = $1 ORDER BY id DESC LIMIT 1`, [rid]);
+  ctx!.pool.query(`SELECT operation, outcome, project_id, target_id FROM audit_events WHERE request_id = $1 ORDER BY id DESC LIMIT 1`, [rid]);
 const scopePage = async (projectId: string, contractId: string, limit = 100) => {
   const items: ContractScopeLineDto[] = [];
   let total = 0;
@@ -57,11 +57,13 @@ before(async () => {
   ctx = await createTestApp({ dogfood: true });
   bearer = { authorization: `Bearer ${await issueTestAccessToken(ctx.app)}` };
 });
-after(async () => ctx.close());
+after(async () => {
+  await ctx?.close();
+});
 
 describe("contracts route registration", () => {
   it("pins projectScoped contract:read on every contracts operation route", () => {
-    const routes = listRoutesForSecurityAudit(ctx.app).filter((r) => r.url.includes("/contracts"));
+    const routes = listRoutesForSecurityAudit(ctx!.app).filter((r) => r.url.includes("/contracts"));
     assert.ok(routes.length >= 4);
     for (const r of routes) {
       assert.equal(r.operationRoute, true, r.url);
