@@ -30,9 +30,6 @@ export const CONTROL_ID = REQUIREMENT_ID;
 /** Requirement or capability version uid in path params. */
 export const VERSION_UID = REQUIREMENT_ID;
 
-/** Capability design artifact id (^art_[0-9a-z]{26}$). */
-export const CAPABILITY_ARTIFACT_ID = /^art_[0-9a-z]{26}$/;
-
 /** File attachment line id (^att_[0-9a-z]{26}$). */
 export const ATTACHMENT_ID = /^att_[0-9a-z]{26}$/;
 

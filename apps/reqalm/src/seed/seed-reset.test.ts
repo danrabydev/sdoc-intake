@@ -298,43 +298,18 @@ describe("seed reset", () => {
     const { config, env } = harness();
     const seed = await readDogfoodFile(dogfoodPath);
     await loadDogfoodSeed(pg.pool, config, seed);
-    const sha = "a".repeat(64);
-    await pg.pool.query(
-      `INSERT INTO attachment_blobs (id, sha256, size_bytes, media_type, storage_key)
-       VALUES ($1, $2, 1, 'text/plain', 'seed/test') ON CONFLICT DO NOTHING`,
-      [`blob_${sha}`, sha],
+    const blob = `blob_${"a".repeat(64)}`;
+    await pg.pool.query(`INSERT INTO attachment_blobs (id, sha256, size_bytes, media_type, storage_key) VALUES ($1, $2, 1, 'text/plain', 't') ON CONFLICT DO NOTHING`, [blob, "a".repeat(64)]);
+    await pg.pool.query(`INSERT INTO file_attachments (id, client_id, project_id, parent_kind, parent_uid, display_name) VALUES ('att_a1b2c3d4e5f6g7h8i9j0k1l2m4', 'raby-family', 'reqalm', 'requirement_version', 'CAP-SSO', 'p')`);
+    await pg.pool.query(`INSERT INTO file_attachment_versions (id, attachment_id, version_n, blob_id, scan_state, uploaded_by) VALUES ('attv_b2c3d4e5f6g7h8i9j0k1l2m3n4', 'att_a1b2c3d4e5f6g7h8i9j0k1l2m4', 1, $1, 'clean', 't')`, [blob]);
+    await pg.pool.query(`INSERT INTO capability_artifacts (id, project_id, requirement_version_uid, kind, uri, position) VALUES ('art_c3d4e5f6g7h8i9j0k1l2m3n4o5', 'reqalm', 'CAP-SSO', 'other', 'probe://x', 99)`);
+    await resetDogfoodSeed(pg.pool, config, seed, { confirm: true, seedPath: dogfoodPath, repoRoot, env });
+    assert.equal((await pg.pool.query(`SELECT 1 FROM file_attachments WHERE id = 'att_a1b2c3d4e5f6g7h8i9j0k1l2m4'`)).rowCount, 0);
+    assert.equal((await pg.pool.query(`SELECT 1 FROM capability_artifacts WHERE id = 'art_c3d4e5f6g7h8i9j0k1l2m3n4o5'`)).rowCount, 0);
+    assert.equal(
+      (await pg.pool.query(`SELECT count(*)::int AS c FROM capability_artifacts WHERE requirement_version_uid = 'CAP-SSO'`)).rows[0]?.c,
+      2,
     );
-    await pg.pool.query(
-      `INSERT INTO file_attachments (id, client_id, project_id, parent_kind, parent_uid, display_name)
-       VALUES ('att_a1b2c3d4e5f6g7h8i9j0k1l2m4', 'raby-family', 'reqalm', 'requirement_version', 'CAP-SSO', 'probe')
-       ON CONFLICT DO NOTHING`,
-    );
-    await pg.pool.query(
-      `INSERT INTO file_attachment_versions (id, attachment_id, version_n, blob_id, scan_state, uploaded_by)
-       VALUES ('attv_b2c3d4e5f6g7h8i9j0k1l2m3n4', 'att_a1b2c3d4e5f6g7h8i9j0k1l2m4', 1, $1, 'clean', 'test')`,
-      [`blob_${sha}`],
-    );
-    await pg.pool.query(
-      `INSERT INTO capability_artifacts (id, project_id, requirement_version_uid, kind, uri, position)
-       VALUES ('art_c3d4e5f6g7h8i9j0k1l2m3n4o5', 'reqalm', 'CAP-SSO', 'other', 'probe://x', 99)
-       ON CONFLICT DO NOTHING`,
-    );
-    const beforeArts = await pg.pool.query(`SELECT count(*)::int AS c FROM capability_artifacts WHERE project_id = 'reqalm'`);
-    assert.ok((beforeArts.rows[0]?.c as number) > 0);
-    await resetDogfoodSeed(pg.pool, config, seed, {
-      confirm: true,
-      seedPath: dogfoodPath,
-      repoRoot,
-      env,
-    });
-    const probeAtt = await pg.pool.query(`SELECT 1 FROM file_attachments WHERE id = 'att_a1b2c3d4e5f6g7h8i9j0k1l2m4'`);
-    assert.equal(probeAtt.rowCount, 0);
-    const probeArt = await pg.pool.query(`SELECT 1 FROM capability_artifacts WHERE id = 'art_c3d4e5f6g7h8i9j0k1l2m3n4o5'`);
-    assert.equal(probeArt.rowCount, 0);
-    const ssoArts = await pg.pool.query(
-      `SELECT count(*)::int AS c FROM capability_artifacts WHERE requirement_version_uid = 'CAP-SSO'`,
-    );
-    assert.equal(ssoArts.rows[0]?.c, 2);
     await pg.close();
   });
 
