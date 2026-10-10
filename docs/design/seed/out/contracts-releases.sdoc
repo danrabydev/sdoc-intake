@@ -3338,17 +3338,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-ui-layout-capabilities
-STATUS: Draft
+STATUS: Active
 TITLE: Release R1 — UI layout capability statements (seed)
 STATEMENT: >>>
-ReqALM release `R1 — UI layout capability statements (seed)` (status=planned, planned_on=2026-10-10). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — UI layout capability statements (seed)` (status=shipped, planned_on=2026-10-10). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-ui-layout-capabilities
 project_id: reqalm
-shipped_on: None
-raw_status: planned
+shipped_on: 2026-10-09
+raw_status: shipped
 delivers: CAP-UI-LAYOUT
 delivers_count: 1
 <<<
@@ -3357,6 +3357,29 @@ RELATIONS:
   VALUE: SEC-RELEASES-EXPORT
 - TYPE: Parent
   VALUE: CAP-UI-LAYOUT
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: RELEASE-rel-r1-browse-ui-catalogs
+STATUS: Draft
+TITLE: Release R1 — browse catalogs UI (read-only)
+STATEMENT: >>>
+ReqALM release `R1 — browse catalogs UI (read-only)` (status=planned, planned_on=2026-10-09). delivers is a snapshot of requirement version UIDs.
+<<<
+COMMENT: >>>
+KIND: release
+release_id: rel-r1-browse-ui-catalogs
+project_id: reqalm
+shipped_on: None
+raw_status: planned
+delivers: CAP-BROWSE-UI-CATALOGS
+delivers_count: 1
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-RELEASES-EXPORT
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-CATALOGS
   ROLE: Delivers
 
 [[/SECTION]]

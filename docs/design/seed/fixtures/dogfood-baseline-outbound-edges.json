@@ -1,5 +1,5 @@
 {
-  "baseline_main": "1eb8482b533b5f656240bc7b53a60b1a58c5a203",
+  "baseline_main": "4d82bf9ab35ed63db675de8b187952cf60a434e5",
   "version_uids": [
     "A01",
     "A02",
@@ -199,12 +199,18 @@
     "CAP-BROWSE-CP",
     "CAP-BROWSE-ROADMAP",
     "CAP-BROWSE-UI-CP",
+    "CAP-BROWSE-UI-CP.1",
     "CAP-BROWSE-UI-RELATIONS",
+    "CAP-BROWSE-UI-RELATIONS.1",
     "CAP-BROWSE-UI-RELEASES",
+    "CAP-BROWSE-UI-RELEASES.1",
     "CAP-BROWSE-UI-REQS",
+    "CAP-BROWSE-UI-REQS.1",
     "CAP-BROWSE-UI-TREE",
+    "CAP-BROWSE-UI-TREE.1",
     "CAP-CATALOGS-API",
     "CAP-CONTRACT-UI",
+    "CAP-CONTRACT-UI.1",
     "CAP-CRED-STORE",
     "CAP-DEVENV-COMPOSE",
     "CAP-DEVENV-DOCKERFILE-ROLES",
@@ -274,15 +280,25 @@
     "CAP-TREE",
     "CAP-UI-FRAME",
     "CAP-UI-FRAME.1",
+    "CAP-UI-FRAME.2",
     "CAP-UI-HEADER-NAV",
+    "CAP-UI-HEADER-NAV.1",
     "CAP-UI-KIT",
     "CAP-UI-KIT-CHROME",
     "CAP-UI-KIT-TREE",
+    "CAP-UI-LAYOUT",
+    "CAP-UI-VIEW-CAP-DETAIL",
+    "CAP-UI-VIEW-CAP-FOCUS",
+    "CAP-UI-VIEW-CATALOG",
+    "CAP-UI-VIEW-CCM",
+    "CAP-UI-VIEW-CRITERIA",
+    "CAP-UI-VIEW-RTM",
     "CAP-UPKEEP-AUDIT-LOG-REVIEW",
     "CAP-UPKEEP-MONTHLY-DEPS-VULN",
     "CAP-UPKEEP-MONTHLY-SEC-AUDIT",
     "CAP-UPKEEP-QUARTERLY-ACCESS-RECERT",
     "CAP-VERSION-UI",
+    "CAP-VERSION-UI.1",
     "D01",
     "D02",
     "D03",
@@ -472,7 +488,7 @@
     "UI-APPROVE-TREE",
     "WANT-CHANGESET-FIELD-UNDO"
   ],
-  "edge_count": 1867,
+  "edge_count": 1934,
   "edges": [
     {
       "catalog_imprint_id": "asd-stig@v6r4",
@@ -4507,6 +4523,12 @@
     {
       "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
       "from": "CAP-UI-FRAME.1",
+      "kind": "conforms_to",
+      "to": "AC-3"
+    },
+    {
+      "catalog_imprint_id": "nist-800-53@rev5-dogfood-20261006",
+      "from": "CAP-UI-FRAME.2",
       "kind": "conforms_to",
       "to": "AC-3"
     },
@@ -9278,6 +9300,36 @@
       "to": "CAP-BROWSE-CP"
     },
     {
+      "from": "CAP-BROWSE-UI-CP.1",
+      "kind": "refines",
+      "to": "CAP-BROWSE-UI-CP"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CP.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CP.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI-GUARD"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CP.1",
+      "kind": "satisfies",
+      "to": "B07"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CP.1",
+      "kind": "satisfies",
+      "to": "B08"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CP.1",
+      "kind": "satisfies",
+      "to": "CAP-BROWSE-CP"
+    },
+    {
       "from": "CAP-BROWSE-UI-RELATIONS",
       "kind": "satisfies",
       "to": "ARCH-UI"
@@ -9308,6 +9360,41 @@
       "to": "D06"
     },
     {
+      "from": "CAP-BROWSE-UI-RELATIONS.1",
+      "kind": "refines",
+      "to": "CAP-BROWSE-UI-RELATIONS"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELATIONS.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELATIONS.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI-GUARD"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELATIONS.1",
+      "kind": "satisfies",
+      "to": "C08"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELATIONS.1",
+      "kind": "satisfies",
+      "to": "CAP-BROWSE-UI-REQS"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELATIONS.1",
+      "kind": "satisfies",
+      "to": "CAP-RELATIONS-API"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELATIONS.1",
+      "kind": "satisfies",
+      "to": "D06"
+    },
+    {
       "from": "CAP-BROWSE-UI-RELEASES",
       "kind": "satisfies",
       "to": "ARCH-UI"
@@ -9329,6 +9416,36 @@
     },
     {
       "from": "CAP-BROWSE-UI-RELEASES",
+      "kind": "satisfies",
+      "to": "D06"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELEASES.1",
+      "kind": "refines",
+      "to": "CAP-BROWSE-UI-RELEASES"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELEASES.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELEASES.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI-GUARD"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELEASES.1",
+      "kind": "satisfies",
+      "to": "C08"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELEASES.1",
+      "kind": "satisfies",
+      "to": "CAP-READ-RELEASES"
+    },
+    {
+      "from": "CAP-BROWSE-UI-RELEASES.1",
       "kind": "satisfies",
       "to": "D06"
     },
@@ -9358,6 +9475,36 @@
       "to": "D06"
     },
     {
+      "from": "CAP-BROWSE-UI-REQS.1",
+      "kind": "refines",
+      "to": "CAP-BROWSE-UI-REQS"
+    },
+    {
+      "from": "CAP-BROWSE-UI-REQS.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI"
+    },
+    {
+      "from": "CAP-BROWSE-UI-REQS.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI-GUARD"
+    },
+    {
+      "from": "CAP-BROWSE-UI-REQS.1",
+      "kind": "satisfies",
+      "to": "C08"
+    },
+    {
+      "from": "CAP-BROWSE-UI-REQS.1",
+      "kind": "satisfies",
+      "to": "CAP-READ-REQS"
+    },
+    {
+      "from": "CAP-BROWSE-UI-REQS.1",
+      "kind": "satisfies",
+      "to": "D06"
+    },
+    {
       "from": "CAP-BROWSE-UI-TREE",
       "kind": "satisfies",
       "to": "ARCH-UI"
@@ -9379,6 +9526,36 @@
     },
     {
       "from": "CAP-BROWSE-UI-TREE",
+      "kind": "uses",
+      "to": "CAP-UI-KIT-TREE"
+    },
+    {
+      "from": "CAP-BROWSE-UI-TREE.1",
+      "kind": "refines",
+      "to": "CAP-BROWSE-UI-TREE"
+    },
+    {
+      "from": "CAP-BROWSE-UI-TREE.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI"
+    },
+    {
+      "from": "CAP-BROWSE-UI-TREE.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI-GUARD"
+    },
+    {
+      "from": "CAP-BROWSE-UI-TREE.1",
+      "kind": "satisfies",
+      "to": "C06"
+    },
+    {
+      "from": "CAP-BROWSE-UI-TREE.1",
+      "kind": "satisfies",
+      "to": "CAP-READ-HIERARCHY"
+    },
+    {
+      "from": "CAP-BROWSE-UI-TREE.1",
       "kind": "uses",
       "to": "CAP-UI-KIT-TREE"
     },
@@ -9426,6 +9603,11 @@
       "from": "CAP-CONTRACT-UI",
       "kind": "satisfies",
       "to": "F10"
+    },
+    {
+      "from": "CAP-CONTRACT-UI.1",
+      "kind": "refines",
+      "to": "CAP-CONTRACT-UI"
     },
     {
       "from": "CAP-CRED-STORE",
@@ -10373,6 +10555,31 @@
       "to": "CAP-SVC-OPERATION-EXECUTOR.1"
     },
     {
+      "from": "CAP-UI-FRAME.2",
+      "kind": "refines",
+      "to": "CAP-UI-FRAME.1"
+    },
+    {
+      "from": "CAP-UI-FRAME.2",
+      "kind": "satisfies",
+      "to": "ARCH-UI"
+    },
+    {
+      "from": "CAP-UI-FRAME.2",
+      "kind": "satisfies",
+      "to": "ARCH-UI-GUARD"
+    },
+    {
+      "from": "CAP-UI-FRAME.2",
+      "kind": "uses",
+      "to": "CAP-AUTH-HARDEN.1"
+    },
+    {
+      "from": "CAP-UI-FRAME.2",
+      "kind": "uses",
+      "to": "CAP-SVC-OPERATION-EXECUTOR.1"
+    },
+    {
       "from": "CAP-UI-HEADER-NAV",
       "kind": "satisfies",
       "to": "ARCH-UI"
@@ -10389,6 +10596,31 @@
     },
     {
       "from": "CAP-UI-HEADER-NAV",
+      "kind": "uses",
+      "to": "CAP-UI-KIT-CHROME"
+    },
+    {
+      "from": "CAP-UI-HEADER-NAV.1",
+      "kind": "refines",
+      "to": "CAP-UI-HEADER-NAV"
+    },
+    {
+      "from": "CAP-UI-HEADER-NAV.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI"
+    },
+    {
+      "from": "CAP-UI-HEADER-NAV.1",
+      "kind": "satisfies",
+      "to": "ARCH-UI-GUARD"
+    },
+    {
+      "from": "CAP-UI-HEADER-NAV.1",
+      "kind": "satisfies",
+      "to": "CAP-BROWSE-UI-REQS"
+    },
+    {
+      "from": "CAP-UI-HEADER-NAV.1",
       "kind": "uses",
       "to": "CAP-UI-KIT-CHROME"
     },
@@ -10416,6 +10648,121 @@
       "from": "CAP-UI-KIT-TREE",
       "kind": "satisfies",
       "to": "ARCH-UI-KIT-SHARED"
+    },
+    {
+      "from": "CAP-UI-LAYOUT",
+      "kind": "satisfies",
+      "to": "ARCH-UI"
+    },
+    {
+      "from": "CAP-UI-LAYOUT",
+      "kind": "satisfies",
+      "to": "ARCH-UI-GUARD"
+    },
+    {
+      "from": "CAP-UI-LAYOUT",
+      "kind": "uses",
+      "to": "CAP-UI-HEADER-NAV.1"
+    },
+    {
+      "from": "CAP-UI-LAYOUT",
+      "kind": "uses",
+      "to": "CAP-UI-KIT"
+    },
+    {
+      "from": "CAP-UI-VIEW-CAP-DETAIL",
+      "kind": "satisfies",
+      "to": "ARCH-HIER-CAP-PARTOF"
+    },
+    {
+      "from": "CAP-UI-VIEW-CAP-DETAIL",
+      "kind": "satisfies",
+      "to": "I01"
+    },
+    {
+      "from": "CAP-UI-VIEW-CAP-DETAIL",
+      "kind": "satisfies",
+      "to": "I03"
+    },
+    {
+      "from": "CAP-UI-VIEW-CAP-DETAIL",
+      "kind": "uses",
+      "to": "CAP-UI-KIT"
+    },
+    {
+      "from": "CAP-UI-VIEW-CAP-FOCUS",
+      "kind": "satisfies",
+      "to": "ARCH-HIER-CAP-PARTOF"
+    },
+    {
+      "from": "CAP-UI-VIEW-CAP-FOCUS",
+      "kind": "satisfies",
+      "to": "ARCH-RELEASE"
+    },
+    {
+      "from": "CAP-UI-VIEW-CAP-FOCUS",
+      "kind": "uses",
+      "to": "CAP-UI-KIT"
+    },
+    {
+      "from": "CAP-UI-VIEW-CATALOG",
+      "kind": "satisfies",
+      "to": "ARCH-CAT-EXTERNAL"
+    },
+    {
+      "from": "CAP-UI-VIEW-CATALOG",
+      "kind": "satisfies",
+      "to": "ARCH-CAT-VISIBILITY"
+    },
+    {
+      "from": "CAP-UI-VIEW-CATALOG",
+      "kind": "uses",
+      "to": "CAP-UI-KIT"
+    },
+    {
+      "from": "CAP-UI-VIEW-CCM",
+      "kind": "satisfies",
+      "to": "ARCH-TRACE-LAYOUT-WORKER"
+    },
+    {
+      "from": "CAP-UI-VIEW-CCM",
+      "kind": "satisfies",
+      "to": "ARCH-TRACE-VIEW-CCM"
+    },
+    {
+      "from": "CAP-UI-VIEW-CCM",
+      "kind": "uses",
+      "to": "CAP-UI-KIT"
+    },
+    {
+      "from": "CAP-UI-VIEW-CRITERIA",
+      "kind": "satisfies",
+      "to": "ARCH-REQ-AC-FACET"
+    },
+    {
+      "from": "CAP-UI-VIEW-CRITERIA",
+      "kind": "satisfies",
+      "to": "ARCH-REQ-AC-ROLLUP"
+    },
+    {
+      "from": "CAP-UI-VIEW-CRITERIA",
+      "kind": "uses",
+      "to": "CAP-UI-KIT"
+    },
+    {
+      "from": "CAP-UI-VIEW-RTM",
+      "kind": "satisfies",
+      "to": "ARCH-TRACE-LAYOUT-WORKER"
+    },
+    {
+      "from": "CAP-UI-VIEW-RTM",
+      "kind": "satisfies",
+      "to": "ARCH-TRACE-VIEW-RTM"
+    },
+    {
+      "from": "CAP-UI-VIEW-RTM",
+      "kind": "uses",
+      "to": "CAP-UI-KIT"
     },
     {
       "from": "CAP-UPKEEP-AUDIT-LOG-REVIEW",
@@ -10451,6 +10798,11 @@
       "from": "CAP-VERSION-UI",
       "kind": "satisfies",
       "to": "D07"
+    },
+    {
+      "from": "CAP-VERSION-UI.1",
+      "kind": "refines",
+      "to": "CAP-VERSION-UI"
     },
     {
       "from": "D02",

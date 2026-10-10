@@ -8,7 +8,7 @@ import { SeedValidationError, loadDogfoodSeed, readDogfoodFile, type DogfoodSeed
 
 describe("loadDogfoodSeed trace edges", () => {
   it("preserves baseline outbound edges from the committed fixture", () => {
-    const patch = "docs/design/seed/scripts/patch_ui_layout_capabilities_release.py";
+    const patch = "docs/design/seed/scripts/patch_browse_ui_catalogs_release.py";
     const r = spawnSync("python3", [patch, "--validate-baseline-edges"], {
       cwd: new URL("../../../../", import.meta.url).pathname,
       encoding: "utf-8",
@@ -24,7 +24,7 @@ describe("loadDogfoodSeed trace edges", () => {
     try {
       await loadDogfoodSeed(pg.pool, config, seed, { skipUnchangedCheck: true });
       const edges = await pg.pool.query<{ c: number }>(`SELECT count(*)::int AS c FROM trace_edges`);
-      assert.equal(edges.rows[0]?.c, 1934);
+      assert.equal(edges.rows[0]?.c, 1938);
       const inheritable = await pg.pool.query<{ c: number }>(
         `SELECT count(*)::int AS c FROM trace_edges WHERE inheritable = true`,
       );

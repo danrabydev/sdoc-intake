@@ -1,27 +1,43 @@
 #!/usr/bin/env python3
-"""Ship rel-r1-trace-inherit-uses (PR #39); add rel-r1-browse-ui-catalogs / CAP-BROWSE-UI-CATALOGS. Idempotent."""
+"""Ship rel-r1-ui-layout-capabilities (PR #42 @ main); add rel-r1-browse-ui-catalogs. Idempotent."""
 from __future__ import annotations
 
+import argparse
 import hashlib
+import sys
 from copy import deepcopy
 from pathlib import Path
 
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
-SEED = Path(__file__).resolve().parent.parent
+_SCRIPTS = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPTS))
+from seed_baseline_edges import (  # noqa: E402
+    validate_baseline_edges_preserved,
+    validate_baseline_records_preserved,
+)
+
+SEED = _SCRIPTS.parent
 DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
 SHIPPED_DATE = "2026-10-09"
-TRACE_INHERIT_MERGE = "56bfc4d6a9fe04559ccddae636ec4052d84ae907"
-CAP_TRACE = "CAP-TRACE-INHERIT-USES"
-REL_TRACE = "rel-r1-trace-inherit-uses"
+UI_LAYOUT_MERGE = "4d82bf9ab35ed63db675de8b187952cf60a434e5"
+CAP_LAYOUT = "CAP-UI-LAYOUT"
+REL_LAYOUT = "rel-r1-ui-layout-capabilities"
 CAP_UI = "CAP-BROWSE-UI-CATALOGS"
 REL_UI = "rel-r1-browse-ui-catalogs"
 
+BASELINE_RECORD_ALLOW_VERSIONS = frozenset({CAP_LAYOUT})
+BASELINE_RECORD_ALLOW_RELEASES = frozenset({REL_LAYOUT})
+
+EXPECTED_LINES = 454
+EXPECTED_VERSIONS = 487
+EXPECTED_EDGES = 1938
+
 yaml = YAML()
 yaml.preserve_quotes = True
-yaml.width = 1200
+yaml.width = 4096
 yaml.indent(mapping=2, sequence=2, offset=0)
 
 
@@ -47,7 +63,7 @@ def find(seq, key, val):
 def upsert(seq, key, item):
     cur = find(seq, key, item[key])
     if cur is None:
-        seq.append(item)
+        seq.append(deepcopy(item))
         return 1
     for k, v in item.items():
         if k == "statement":
@@ -56,48 +72,49 @@ def upsert(seq, key, item):
     return 0
 
 
-def ensure_edge(edges, edge):
-    key = (
+def edge_key(edge: dict) -> tuple:
+    return (
         edge.get("from"),
         edge.get("to"),
         edge.get("kind"),
         edge.get("catalog_imprint_id") or "",
+        edge.get("inheritable") if edge.get("inheritable") is not None else "",
+        edge.get("trace_suspect") if edge.get("trace_suspect") is not None else "",
     )
+
+
+def ensure_edge(edges, edge):
     for e in edges:
-        if (
-            e.get("from"),
-            e.get("to"),
-            e.get("kind"),
-            e.get("catalog_imprint_id") or "",
-        ) == key:
+        if edge_key(e) == edge_key(edge):
             return 0
-    edges.append(edge)
+    edges.append(deepcopy(edge))
     return 1
 
 
-def ship_trace_inherit_uses(data) -> None:
-    rel = find(data.get("releases"), "id", REL_TRACE)
+def ship_ui_layout_capabilities(data) -> None:
+    """Ship PR #42 UI layout release at full main merge SHA (this PR's seed patch)."""
+    rel = find(data.get("releases"), "id", REL_LAYOUT)
     if rel:
         rel["status"] = "shipped"
         rel["shipped_on"] = SHIPPED_DATE
         rel["notes"] = (
-            f"PR #39 merged to main as {TRACE_INHERIT_MERGE} on {SHIPPED_DATE}. "
-            "trace_edges.inheritable column + seed beds for common-control inheritance over uses."
+            f"PR #42 merged to main as {UI_LAYOUT_MERGE} on {SHIPPED_DATE}. "
+            "UI layout capability statements + mock view drafts in dogfood seed."
         )
-    ver = find(data.get("requirement_versions"), "uid", CAP_TRACE)
+    ver = find(data.get("requirement_versions"), "uid", CAP_LAYOUT)
     if ver:
         catalog_ref = (ver.get("security") or {}).get("catalog_ref", "CM-2")
         ver["status"] = "active"
         ver["verification_outcome"] = "pass"
         ver["security"] = {
             "catalog_ref": catalog_ref,
-            "verification_note": f"Shipped with inherit-uses loader PR #39 (merge {TRACE_INHERIT_MERGE}).",
+            "verification_note": f"Shipped with UI layout seed PR #42 (merge {UI_LAYOUT_MERGE}).",
         }
-    ar = find(data.get("approval_records"), "id", "ar-trace-inherit-uses")
+    ar = find(data.get("approval_records"), "id", "ar-ui-layout")
     if ar:
         ar["status"] = "unapproved"
         ar["notes"] = (
-            f"Capability active with verification pass after PR #39 merge {TRACE_INHERIT_MERGE}; "
+            f"Capability active with verification pass after PR #42 merge {UI_LAYOUT_MERGE}; "
             "formal approval record not filed in seed."
         )
         ar["approved_version_uid"] = None
@@ -186,21 +203,61 @@ def add_browse_ui_catalogs(data) -> None:
             status="planned",
             delivers=[CAP_UI],
             cyber_gate=False,
-            notes=f"Catalogs browse screens; ships inherit-uses release at merge {TRACE_INHERIT_MERGE}.",
+            notes=(
+                f"Catalogs browse screens; ships UI layout release at merge {UI_LAYOUT_MERGE} "
+                f"({SHIPPED_DATE})."
+            ),
         ),
     )
 
 
+def apply_patch(data) -> None:
+    ship_ui_layout_capabilities(data)
+    add_browse_ui_catalogs(data)
+    validate_baseline_records_preserved(
+        data,
+        allow_version_uids=BASELINE_RECORD_ALLOW_VERSIONS,
+        allow_release_ids=BASELINE_RECORD_ALLOW_RELEASES,
+    )
+    validate_baseline_edges_preserved(data)
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--validate-baseline-edges",
+        action="store_true",
+        help="Load dogfood.yaml and verify baseline outbound edges preserved (no write)",
+    )
+    args = parser.parse_args()
+
     with DOGFOOD.open("r", encoding="utf-8") as f:
         data = yaml.load(f)
 
-    ship_trace_inherit_uses(data)
-    add_browse_ui_catalogs(data)
+    if args.validate_baseline_edges:
+        validate_baseline_edges_preserved(data)
+        print("baseline edge preservation ok")
+        return
+
+    apply_patch(data)
+
+    lines = len(data.get("requirement_lines") or [])
+    vers = len(data.get("requirement_versions") or [])
+    edge_c = len(data.get("edges") or [])
+    if (lines, vers, edge_c) != (EXPECTED_LINES, EXPECTED_VERSIONS, EXPECTED_EDGES):
+        print(
+            f"COUNT MISMATCH: lines={lines} (expected {EXPECTED_LINES}), "
+            f"versions={vers} (expected {EXPECTED_VERSIONS}), edges={edge_c} (expected {EXPECTED_EDGES})",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     with DOGFOOD.open("w", encoding="utf-8") as f:
         yaml.dump(data, f)
-    print(f"Patched dogfood.yaml: shipped {REL_TRACE} @ {TRACE_INHERIT_MERGE}, {REL_UI} / {CAP_UI}")
+    print(
+        f"Patched dogfood.yaml: shipped {REL_LAYOUT} @ {UI_LAYOUT_MERGE}, planned {REL_UI} / {CAP_UI}, "
+        f"lines={lines} versions={vers} edges={edge_c}"
+    )
 
 
 if __name__ == "__main__":

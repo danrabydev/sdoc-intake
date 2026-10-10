@@ -3241,6 +3241,7 @@ edge: ← satisfies from CAP-UI-HEADER-NAV
 edge: ← refines from CAP-BROWSE-UI-REQS.1
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS.1
 edge: ← satisfies from CAP-UI-HEADER-NAV.1
+edge: ← satisfies from CAP-BROWSE-UI-CATALOGS
 delivered_by_release: R1 — browse requirements UI (read-only)
 <<<
 RELATIONS:
@@ -3518,6 +3519,42 @@ RELATIONS:
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-BROWSE-UI-CATALOGS
+STATUS: Draft
+TITLE: Browse catalogs UI (read-only)
+STATEMENT: >>>
+Read-only /app browse screens for grant-scoped catalogs within a project: catalog list (title, primary imprint, control count), imprint detail with controls grouped by family and conforming-line counts, and control detail (statement + conforming requirement/capability chips). Uses catalogs read API; restricted catalogs follow API 404/redaction. Safe DOM (textContent only); Catalogs project tab in header nav.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-UI-CATALOGS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until catalogs browse UI PR merges.
+delivered_by_release: R1 — browse catalogs UI (read-only)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: CAP-CATALOGS-API
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-REQS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-HEADER-NAV
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-browse-ui-catalogs
+  ROLE: Delivers
 
 [[/SECTION]]
 
@@ -7996,6 +8033,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Shipped with catalogs read API PR #33 (merge ed372358fb1a04546ea884c9cbcee69f959517b1).
+edge: ← satisfies from CAP-BROWSE-UI-CATALOGS
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — catalogs read API
 <<<
@@ -10879,6 +10917,7 @@ edge: ← satisfies from CAP-BROWSE-UI-TREE.1
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS.1
 edge: ← satisfies from CAP-UI-HEADER-NAV.1
 edge: ← satisfies from CAP-UI-LAYOUT
+edge: ← satisfies from CAP-BROWSE-UI-CATALOGS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
@@ -11471,6 +11510,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Shipped with header/nav UI PR #37 (merge dd43cc1523544d0f6375a628bc9d7d45a31fa738).
 edge: ← refines from CAP-UI-HEADER-NAV.1
+edge: ← satisfies from CAP-BROWSE-UI-CATALOGS
 delivered_by_release: R1 — ReqALM header and project navigation
 <<<
 RELATIONS:
@@ -11538,7 +11578,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-UI-LAYOUT
-STATUS: Draft
+STATUS: Active
 TITLE: ReqALM application layout (regions and navigation)
 STATEMENT: >>>
 ReqALM /app layout (no persistent sidebar): a fixed header band (CAP-UI-HEADER-NAV) spans the viewport with brand, client/project/page breadcrumb, project tabs, and account menu; the remaining viewport is the main content region. Main patterns: (1) paged list with URL-driven filters and row links to detail; (2) list + detail split (tree or table beside a detail pane); (3) single-column detail with secondary panels (version history, relationships); (4) two- or three-column trace boards with cross-highlighted join paths; (5) catalog pickers with imprint/control columns. Navigation: header tabs switch major project modes (Requirements list/tree, Releases, future Traceability/Capabilities/Contracts/Audit stubs); breadcrumbs and in-content links drill to requirement, release, capability, contract, and catalog routes; client-scoped routes under /app/clients and /app/projects/:projectId/*. All feature views consume shared chrome via CAP-UI-KIT (header, badges, tree widget).
@@ -11550,7 +11590,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned layout architecture; seed-only 2026-10-10.
+security.verification_note: Shipped with UI layout seed PR #42 (merge 4d82bf9ab35ed63db675de8b187952cf60a434e5).
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — UI layout capability statements (seed)
 <<<
