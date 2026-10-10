@@ -21,9 +21,24 @@ export const ROLE_PERMISSIONS: Record<string, Set<string>> = {
     "audit:read",
     "grant:read",
   ),
-  Security: withBrowse("requirement:read", "contract:read", "security:apply", "release:read", "audit:read", "grant:read"),
+  Security: withBrowse(
+    "requirement:read",
+    "contract:read",
+    "security:apply",
+    "release:read",
+    "audit:read",
+    "grant:read",
+    "access:read",
+  ),
   AO: withBrowse("requirement:read", "contract:read", "gate:approve", "release:read", "audit:read", "grant:read"),
-  Auditor: withBrowse("requirement:read", "contract:read", "release:read", "audit:read", "grant:read"),
+  Auditor: withBrowse(
+    "requirement:read",
+    "contract:read",
+    "release:read",
+    "audit:read",
+    "grant:read",
+    "access:read",
+  ),
   "Project admin": withBrowse(
     "requirement:read",
     "contract:read",
@@ -32,6 +47,7 @@ export const ROLE_PERMISSIONS: Record<string, Set<string>> = {
     "grant:manage",
     "audit:read",
     "grant:read",
+    "access:read",
   ),
   "Client admin": withBrowse(
     "requirement:read",
@@ -41,6 +57,7 @@ export const ROLE_PERMISSIONS: Record<string, Set<string>> = {
     "grant:manage",
     "audit:read",
     "grant:read",
+    "access:read",
   ),
   "Key custodian": new Set(["key:manage", "audit:read"]),
 };
@@ -119,6 +136,47 @@ export async function projectIdsWithPermission(
     }
   }
   return allowed;
+}
+
+export async function callerHasAccessRead(ctx: RequestContext): Promise<boolean> {
+  if (!ctx.identityId || !ctx.auth) return false;
+  for (const projectId of ctx.projectIds) {
+    if (await authorize(ctx.pool, ctx.identityId, "access:read", projectId, ctx.auth.accessToken)) {
+      return true;
+    }
+  }
+  const clientRoles = await ctx.pool.query<{ role: string }>(
+    `SELECT role FROM client_grants WHERE identity_id = $1`,
+    [ctx.identityId],
+  );
+  for (const row of clientRoles.rows) {
+    if ((ROLE_PERMISSIONS[row.role] ?? new Set()).has("access:read")) return true;
+  }
+  const platformRoles = await ctx.pool.query<{ role: string }>(
+    `SELECT role FROM platform_grants WHERE identity_id = $1`,
+    [ctx.identityId],
+  );
+  for (const row of platformRoles.rows) {
+    if ((ROLE_PERMISSIONS[row.role] ?? new Set()).has("access:read")) return true;
+  }
+  return false;
+}
+
+export async function callerHasAnyGrant(ctx: RequestContext): Promise<boolean> {
+  if (!ctx.identityId) return false;
+  const r = await ctx.pool.query<{ ok: boolean }>(
+    `
+    SELECT EXISTS (
+      SELECT 1 FROM project_grants WHERE identity_id = $1 AND revoked_at IS NULL
+      UNION ALL
+      SELECT 1 FROM client_grants WHERE identity_id = $1
+      UNION ALL
+      SELECT 1 FROM platform_grants WHERE identity_id = $1
+    ) AS ok
+    `,
+    [ctx.identityId],
+  );
+  return r.rows[0]?.ok === true;
 }
 
 export async function clientIdsForProjects(

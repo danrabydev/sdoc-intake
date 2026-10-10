@@ -43,6 +43,7 @@ export type DogfoodSeed = {
   requirement_versions?: Record<string, unknown>[];
   releases?: Record<string, unknown>[];
   platform_grants?: Record<string, unknown>[];
+  client_grants?: Record<string, unknown>[];
   edges?: DogfoodTraceEdgeSeedRow[];
   contracts?: DogfoodContractSeedRow[];
   catalogs?: CatalogSeedRow[];
@@ -123,6 +124,7 @@ export async function applyDogfoodSeed(
     dev_local_accounts: 0,
     local_credentials: 0,
     platform_grants: 0,
+    client_grants: 0,
     trace_edges: 0,
     catalog_defs: 0,
     catalog_item_labels: 0,
@@ -181,6 +183,9 @@ export async function applyDogfoodSeed(
   }
   for (const g of seed.platform_grants ?? []) {
     await upsertPlatformGrant(client, g, inserted);
+  }
+  for (const g of seed.client_grants ?? []) {
+    await upsertClientGrant(client, g, inserted);
   }
 
   const seedDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../docs/design/seed");
@@ -278,6 +283,7 @@ export async function countSeedRows(client: pg.PoolClient) {
     "dev_local_accounts",
     "local_credentials",
     "platform_grants",
+    "client_grants",
     "trace_edges",
     "catalog_defs",
     "catalog_item_labels",
@@ -652,6 +658,26 @@ async function upsertRelease(
     );
     if (d.rows[0]?.inserted) inserted.release_delivers++;
   }
+}
+
+async function upsertClientGrant(
+  client: pg.PoolClient,
+  row: Record<string, unknown>,
+  inserted: Record<string, number>,
+) {
+  const id =
+    row.id ??
+    `client-${row.client_id}-${row.identity_id}-${row.role}`.replace(/\s+/g, "-");
+  const r = await client.query(
+    `
+    INSERT INTO client_grants (id, client_id, identity_id, role, notes)
+    VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (id) DO NOTHING
+    RETURNING id
+  `,
+    [id, row.client_id, row.identity_id, row.role, row.notes ?? null],
+  );
+  if (r.rowCount) inserted.client_grants++;
 }
 
 async function upsertPlatformGrant(

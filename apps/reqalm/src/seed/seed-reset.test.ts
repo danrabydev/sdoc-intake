@@ -401,7 +401,7 @@ describe("seed reset", () => {
     const auditRows = async () =>
       (await pg.pool.query(`SELECT * FROM audit_events ORDER BY id`)).rows;
     const keptBefore = await notOwned();
-    for (const t of ["identities", "project_grants", "platform_grants", "local_credentials", "web_sessions", "auth_sessions"]) {
+    for (const t of ["identities", "project_grants", "platform_grants", "client_grants", "local_credentials", "web_sessions", "auth_sessions"]) {
       assert.ok((keptBefore[t]?.length ?? 0) > 0, `${t} has rows before the reset`);
     }
     const auditBefore = await auditRows();

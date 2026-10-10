@@ -537,6 +537,220 @@ paths:
           $ref: "#/components/responses/ProblemForbidden"
         "404":
           $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/access/people:
+    get:
+      operationId: listProjectAccessPeople
+      summary: List people with active roles on a project
+      tags: [access]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+      responses:
+        "200":
+          description: Paged people with roles on the project
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AccessPeoplePage"
+                  request_id:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/access/grants:
+    get:
+      operationId: listProjectAccessGrants
+      summary: List active project role grants
+      tags: [access]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+      responses:
+        "200":
+          description: Paged project grants
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AccessGrantPage"
+                  request_id:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/clients/{clientId}/access/grants:
+    get:
+      operationId: listClientAccessGrants
+      summary: List client-level role grants visible to caller
+      tags: [access]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+      responses:
+        "200":
+          description: Paged client grants
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AccessGrantPage"
+                  request_id:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/access/roles:
+    get:
+      operationId: listAccessRoles
+      summary: Paged role catalog with permissions
+      tags: [access]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+      responses:
+        "200":
+          description: Role catalog page
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AccessRolePage"
+                  request_id:
+                    type: string
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+  /api/v1/access/platform-grants:
+    get:
+      operationId: listPlatformAccessGrants
+      summary: List deployment platform grants (platform roles only)
+      tags: [access]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+      responses:
+        "200":
+          description: Platform grants page
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/PlatformGrantPage"
+                  request_id:
+                    type: string
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
   /api/v1/projects/{projectId}/grants:
     post:
       operationId: postProjectGrants
@@ -879,6 +1093,124 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ContractReleaseSummary"
+    AccessPerson:
+      type: object
+      additionalProperties: false
+      required: [display_name, roles]
+      properties:
+        display_name:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+    AccessPeoplePage:
+      type: object
+      additionalProperties: false
+      required: [items, limit, offset, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessPerson"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+    AccessGrantPerson:
+      type: object
+      additionalProperties: false
+      required: [display_name]
+      properties:
+        display_name:
+          type: string
+    AccessGrant:
+      type: object
+      additionalProperties: false
+      required: [id, role, person]
+      properties:
+        id:
+          type: string
+        role:
+          type: string
+        person:
+          $ref: "#/components/schemas/AccessGrantPerson"
+    AccessGrantPage:
+      type: object
+      additionalProperties: false
+      required: [items, limit, offset, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessGrant"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+    AccessRole:
+      type: object
+      additionalProperties: false
+      required: [name, permissions]
+      properties:
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    AccessRolePage:
+      type: object
+      additionalProperties: false
+      required: [items, limit, offset, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessRole"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+    PlatformGrantPerson:
+      type: object
+      additionalProperties: false
+      required: [display_name]
+      properties:
+        display_name:
+          type: string
+    PlatformGrant:
+      type: object
+      additionalProperties: false
+      required: [id, role, person]
+      properties:
+        id:
+          type: string
+        role:
+          type: string
+        person:
+          $ref: "#/components/schemas/PlatformGrantPerson"
+    PlatformGrantPage:
+      type: object
+      additionalProperties: false
+      required: [items, limit, offset, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlatformGrant"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
     RequirementRelations:
       type: object
       required: [id, project_id, outgoing, incoming]
