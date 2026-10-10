@@ -104,7 +104,7 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Requirements (draft):** **`ARCH-ATTACH*`**, **`ARCH-ATTACH-SCAN`**, **`ARCH-FIGMA*`**, **`SPIKE-FIGMA-FEASIBILITY`**; **`ARCH-KEY-SCOPE.1`** content mint (v0 stays active, unedited; outbound edges duplicated on `.1`).
 - **Capabilities (draft):** **`CAP-ATTACH-READ`**, **`CAP-ATTACH-WRITE`** (`CAP-FIGMA-LINK` removed in Cyber v2).
 - **Edges (snippet v2):** 113 trace edges — 65 `conforms_to`, 18 `refines`, 21 `uses`, 9 `satisfies`; targets resolve to active version uids where applicable.
-- **Product contract:** **`ctr-reqalm-product`** `in_scope_of` refreshed (drops **`CAP-FIGMA-LINK`**; adds **`ARCH-ATTACH-SCAN`**, **`SPIKE-FIGMA-FEASIBILITY`**, **`ARCH-KEY-SCOPE.1`** alongside active **`ARCH-KEY-SCOPE`**).
+- **Product contract:** **`ctr-reqalm-product`** `in_scope_of` refreshed (drops **`CAP-FIGMA-LINK`**; adds **`ARCH-ATTACH-SCAN`**, **`SPIKE-FIGMA-FEASIBILITY`**; pins active **`ARCH-KEY-SCOPE`** v0 only per #38 — draft **`.1`** omitted until activation).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_attach_figma_seed_release.py` — source snippet `docs/design/seed/fixtures/cyber-attach-figma-snippet.yaml`.
 - **Validate:** `python3 docs/design/seed/scripts/yaml_to_strictdoc.py --validate` (regenerates `docs/design/seed/out/`).
 - **Parallel PRs:** Catalogs browse UI and Contracts API may merge first; whichever PR merges after them owns shipping their planned releases — this PR does not ship any release.

@@ -16393,6 +16393,28 @@ edges:
 - from: CAP-UI-FRAME.1
   to: CAP-AUTH-HARDEN.1
   kind: uses
+- from: ARCH-KEY-SCOPE
+  to: ARCH-KEY
+  kind: refines
+- from: ARCH-KEY-SCOPE
+  to: M03
+  kind: uses
+- from: ARCH-KEY-SCOPE
+  to: SC-28.1
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+- from: ARCH-KEY-SCOPE
+  to: V-222588
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-SCOPE
+  to: V-222589
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
+- from: ARCH-KEY-SCOPE
+  to: V-222642
+  kind: conforms_to
+  catalog_imprint_id: asd-stig@v6r4
 - from: ARCH-ATTACH
   to: ARCH-CP-SCOPE
   kind: refines
@@ -17119,7 +17141,6 @@ contracts:
   - ARCH-KEY-PROVIDER
   - ARCH-KEY-RUNTIME-CACHE
   - ARCH-KEY-SCOPE
-  - ARCH-KEY-SCOPE.1
   - ARCH-LOCKED
   - ARCH-MINT-KIND
   - ARCH-OTEL

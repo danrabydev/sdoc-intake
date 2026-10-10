@@ -9801,6 +9801,7 @@ security.catalog_ref: AU-12
 security.verification_note: AU-12 audit generation pipeline config.
 edge: ← refines from ARCH-CRED-TOKENS
 edge: ← uses from ARCH-KEY-SCOPE.1
+edge: ← uses from ARCH-KEY-SCOPE
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13380,6 +13381,7 @@ edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from FIX-ALLOW-CRED-HASH-ONLY
 edge: ← satisfies from CAP-KEY-ENVELOPE
 edge: ← refines from ARCH-KEY-SCOPE.1
+edge: ← refines from ARCH-KEY-SCOPE
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13487,7 +13489,6 @@ security.catalog_ref: SC-28.1
 security.verification_note: Cyber 2026-10-09 attachments-figma mapping; content mint .1 (statement adds attachment DEKs, object-store creds, outbound integration OAuth tokens); v0 is delivered by shipped rel-r1-foundation-shell-auth and in ctr-reqalm-product, so v0 is never edited; v0 becomes superseded only when .1 is activated (D04).
 edge: ← refines from ARCH-ATTACH-ENCRYPT
 edge: ← refines from ARCH-FIGMA-AUTH
-in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to SC-28.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to V-222588 (pin imprint=asd-stig@v6r4)
 edge: → conforms_to to V-222589 (pin imprint=asd-stig@v6r4)
@@ -13514,9 +13515,6 @@ RELATIONS:
 - TYPE: Parent
   VALUE: V-222642
   ROLE: ConformsTo
-- TYPE: Child
-  VALUE: CONTRACT-ctr-reqalm-product
-  ROLE: InScopeOf
 
 [REQUIREMENT]
 UID: ARCH-KEY-SCOPE
@@ -13539,10 +13537,32 @@ edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← satisfies from CAP-KEY-ENVELOPE
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
+edge: → conforms_to to SC-28.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222588 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222589 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222642 (pin imprint=asd-stig@v6r4)
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: M03
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-28.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222588
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222589
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222642
+  ROLE: ConformsTo
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf

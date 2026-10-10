@@ -165,12 +165,9 @@ def refresh_product_contract_scope(data) -> None:
     if prod:
         prod["in_scope_of"] = scope
         prod["covers_releases"] = mod.reqalm_release_ids(data)
-        # Active v0 stays pinned for delivered KEY-SCOPE; draft .1 is in-flight product work.
-        extra = KEY_SCOPE_DRAFT
-        if find(data.get("requirement_versions"), "uid", extra):
-            pins = set(prod.get("in_scope_of") or [])
-            if extra not in pins:
-                prod["in_scope_of"] = sorted(pins | {extra})
+        # One version per line (#38): active ARCH-KEY-SCOPE v0 only until .1 activates.
+        pins = [u for u in prod.get("in_scope_of") or [] if u != KEY_SCOPE_DRAFT]
+        prod["in_scope_of"] = sorted(set(pins))
 
 
 def load_snippet() -> dict:
@@ -199,12 +196,46 @@ def remove_cap_figma_link(data) -> None:
     ]
 
 
-def snippet_from_uids(snippet: dict) -> set[str]:
-    refs: set[str] = {KEY_SCOPE_DRAFT}
-    for v in snippet.get("requirement_versions") or []:
-        refs.add(str(v["uid"]))
-        refs.add(str(v.get("base_uid")))
-    return refs
+def snippet_managed_from_uids(snippet: dict) -> set[str]:
+    """Version uids whose outbound edges this patch may replace (not line base_uids)."""
+    return {str(v["uid"]) for v in snippet.get("requirement_versions") or [] if v.get("uid")}
+
+
+KEY_SCOPE_V0_OUTBOUND: list[dict] = [
+    {"from": KEY_SCOPE, "to": "ARCH-KEY", "kind": "refines"},
+    {"from": KEY_SCOPE, "to": "M03", "kind": "uses"},
+    {
+        "from": KEY_SCOPE,
+        "to": "SC-28.1",
+        "kind": "conforms_to",
+        "catalog_imprint_id": NIST,
+    },
+    {
+        "from": KEY_SCOPE,
+        "to": "V-222588",
+        "kind": "conforms_to",
+        "catalog_imprint_id": "asd-stig@v6r4",
+    },
+    {
+        "from": KEY_SCOPE,
+        "to": "V-222589",
+        "kind": "conforms_to",
+        "catalog_imprint_id": "asd-stig@v6r4",
+    },
+    {
+        "from": KEY_SCOPE,
+        "to": "V-222642",
+        "kind": "conforms_to",
+        "catalog_imprint_id": "asd-stig@v6r4",
+    },
+]
+
+
+def ensure_key_scope_v0_outbound(data) -> None:
+    """Restore shipped v0 outbound edges (never move — copy to .1 separately)."""
+    edges = data.setdefault("edges", [])
+    for edge in KEY_SCOPE_V0_OUTBOUND:
+        ensure_edge(edges, edge)
 
 
 def carry_key_scope_outbound_edges(data) -> None:
@@ -224,12 +255,29 @@ def carry_key_scope_outbound_edges(data) -> None:
         ensure_edge(edges, dup)
 
 
+def protected_edge_keys(edges: list, managed_from: set[str]) -> set[tuple]:
+    return {edge_key(e) for e in edges if e.get("from") not in managed_from}
+
+
+def assert_protected_edges_unchanged(before: set[tuple], after_edges: list, managed_from: set[str]) -> None:
+    after = protected_edge_keys(after_edges, managed_from)
+    missing = before - after
+    if missing:
+        sample = sorted(missing)[:8]
+        raise RuntimeError(
+            f"protected outbound edges removed or changed ({len(missing)}): {sample}"
+        )
+
+
 def apply_snippet(data, snippet: dict) -> None:
     remove_cap_figma_link(data)
 
     lines = data.setdefault("requirement_lines", [])
     versions = data.setdefault("requirement_versions", [])
     edges = data.setdefault("edges", [])
+
+    managed_from = snippet_managed_from_uids(snippet)
+    protected_before = protected_edge_keys(edges, managed_from)
 
     for ln in snippet.get("requirement_lines") or []:
         upsert_line(lines, dict(ln))
@@ -249,7 +297,6 @@ def apply_snippet(data, snippet: dict) -> None:
 
     ver_uids = {v["uid"] for v in versions if v.get("uid")}
 
-    managed_from = snippet_from_uids(snippet)
     edges[:] = [
         e
         for e in edges
@@ -264,7 +311,9 @@ def apply_snippet(data, snippet: dict) -> None:
         resolved["to"] = resolve_endpoint(data, str(raw["to"]), ver_uids=ver_uids)
         ensure_edge(edges, resolved)
 
+    ensure_key_scope_v0_outbound(data)
     carry_key_scope_outbound_edges(data)
+    assert_protected_edges_unchanged(protected_before, edges, managed_from)
 
 
 CAP_STMT = (
