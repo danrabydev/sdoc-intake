@@ -13,6 +13,24 @@ import {
   type CatalogSeedRow,
 } from "./catalog-labels.js";
 
+export type DogfoodContractSeedRow = {
+  id?: string;
+  client_id?: string;
+  project_id?: string;
+  name?: string;
+  in_scope_of?: string[];
+  covers_releases?: string[];
+  [key: string]: unknown;
+};
+
+export type DogfoodTraceEdgeSeedRow = {
+  from?: string;
+  to?: string;
+  kind?: string;
+  catalog_imprint_id?: string;
+  [key: string]: unknown;
+};
+
 export type DogfoodSeed = {
   schema_version?: string;
   client: Record<string, unknown>;
@@ -24,7 +42,8 @@ export type DogfoodSeed = {
   requirement_versions?: Record<string, unknown>[];
   releases?: Record<string, unknown>[];
   platform_grants?: Record<string, unknown>[];
-  edges?: Record<string, unknown>[];
+  edges?: DogfoodTraceEdgeSeedRow[];
+  contracts?: DogfoodContractSeedRow[];
   catalogs?: CatalogSeedRow[];
   catalog_imprints?: CatalogImprintSeedRow[];
 };

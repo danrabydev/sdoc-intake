@@ -2929,6 +2929,7 @@ edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← uses from FIX-DENY-CROSS-TENANT-CONNECTOR
 edge: ← refines from ARCH-WRITE-TRUNCATE-GUARD
+edge: ← refines from ARCH-ATTACH
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
@@ -3578,6 +3579,7 @@ priority: 50
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← refines from ARCH-ATTACH
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -5198,6 +5200,9 @@ security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 edge: ← uses from ARCH-HIER-USES-DEP
 edge: ← uses from ARCH-SUSPECT.1
 edge: ← refines from ARCH-TRACE-INHERIT-USES
+edge: ← uses from ARCH-ATTACH-PIN-VERSION
+edge: ← uses from ARCH-FIGMA
+edge: ← uses from ARCH-ATTACH-PIN-VERSION.1
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -5311,6 +5316,8 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← uses from ARCH-ATTACH-SCOPE
+edge: ← uses from ARCH-ATTACH-SCOPE.1
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -5339,6 +5346,9 @@ iteration: iter-r1
 security.catalog_ref: AC-4
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 edge: ← satisfies from CAP-RELATIONS-API
+edge: ← uses from ARCH-ATTACH-SCOPE
+edge: ← uses from ARCH-FIGMA-EGRESS
+edge: ← uses from ARCH-ATTACH-SCOPE.1
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -5465,7 +5475,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-TRACE-INHERIT-USES
-STATUS: Draft
+STATUS: Active
 TITLE: Trace inheritable ConformsTo loader + seed beds
 STATEMENT: >>>
 Dogfood seed loader persists trace_edges.inheritable on capability conforms_to pins; validation rejects inheritable on non-capability sources or non-conforms_to edges. Read APIs resolve inherited and hybrid control state at read time in a follow-on PR.
@@ -5477,7 +5487,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until inherit-uses loader PR merges.
+security.verification_note: Shipped with inherit-uses loader PR #39 (merge 56bfc4d6a9fe04559ccddae636ec4052d84ae907).
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — trace inheritable controls over uses
 <<<
@@ -6168,6 +6178,44 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-reqalm-contracts
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SEED-ATTACH-FIGMA
+STATUS: Draft
+TITLE: Cyber attachments + Figma requirements (seed)
+STATEMENT: >>>
+Seed-only: Cyber attachments and Figma design-link requirement set in dogfood.yaml (ARCH-ATTACH-*, ARCH-ATTACH-VERSIONS, ARCH-ATTACH-SCAN, ARCH-FIGMA-*, SPIKE-FIGMA-FEASIBILITY, CAP-ATTACH-*, ARCH-KEY-SCOPE.1 and attachment .1 content mints) with conforms_to, refines, uses, and satisfies edges from fixtures/cyber-attach-figma-snippet.yaml and delta-versions.yaml. Regenerates out/ and HANDOFF.md. No application runtime changes; ships parallel PR #39 rel-r1-trace-inherit-uses only (this PR's release stays planned).
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SEED-ATTACH-FIGMA
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-2
+security.verification_note: Planned until attachments/Figma seed PR merges.
+in_scope_of_contract: ReqALM product (build)
+delivered_by_release: R1 — Cyber attachments + Figma requirements (seed)
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CT
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-FIGMA
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-seed-attach-figma
   ROLE: Delivers
 
 [[/SECTION]]
@@ -7541,6 +7589,8 @@ priority: 25
 iteration: iter-r1
 security.catalog_ref: CM-3
 security.verification_note: Derived lock; CM-3 change control on in_scope/delivers pins.
+edge: ← refines from ARCH-ATTACH-PIN-VERSION
+edge: ← refines from ARCH-ATTACH-PIN-VERSION.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -9348,6 +9398,226 @@ RELATIONS:
   VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
 
+[REQUIREMENT]
+UID: ARCH-FIGMA
+STATUS: Draft
+TITLE: Figma design links (draft)
+STATEMENT: >>>
+A capability or requirement version may link to Figma nodes by file key and node id (file, frame, or component). Linked ids must match ^[A-Za-z0-9]{10,128}$ (file key) and ^[0-9]+[:-][0-9]+(;[0-9]+[:-][0-9]+)*$ (node id); anything else is rejected with 400. Previews are fetched server-side from api.figma.com, rasterized to PNG, cached per project, and served same-origin as images through ARCH-ATTACH-SERVE rules (images only); the UI does not embed Figma iframes or load third-party scripts, and CSP frame-src stays 'none'. A link records the node's lastModified/version at link time; when the server observes a newer value (scheduled polling, or a Figma webhook whose signature/passcode is verified before processing), the link and its version are flagged needs re-check. Figma content returned to ReqALM is untrusted input: names are sanitized and length-capped, and nothing returned is executed or rendered as HTML.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-FIGMA
+VERSION_N: 0
+rbac_op: figma:link
+priority: 30
+iteration: iter-r2
+security.catalog_ref: SA-9
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Draft, needs-spike (SPIKE-FIGMA-FEASIBILITY); external service integration. Figma is an external system (AC-20, SA-9, CA-3).
+edge: ← refines from ARCH-FIGMA-AUTH
+edge: ← refines from ARCH-FIGMA-EGRESS
+edge: ← refines from SPIKE-FIGMA-FEASIBILITY
+edge: ← satisfies from CAP-SEED-ATTACH-FIGMA
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to AC-20 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SA-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CA-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222606 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222428 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-IO
+- TYPE: Parent
+  VALUE: ARCH-TRACE-RECHECK
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-SERVE
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-20
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SA-9
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CA-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222606
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222428
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[[SECTION]]
+UID: ARCH-FIGMA-CHILDREN
+TITLE: Children of ARCH-FIGMA
+
+[REQUIREMENT]
+UID: ARCH-FIGMA-AUTH
+STATUS: Draft
+TITLE: Figma outbound OAuth: PKCE, least scope, encrypted tokens
+STATEMENT: >>>
+Each project connects to Figma separately, which requires figma:connection:admin (Project admin) and step-up re-authentication, and is audited. The connection uses OAuth 2.0 authorization code with PKCE (S256) and the minimum read-only scopes needed (file content read, plus webhooks only if enabled). Access and refresh tokens are encrypted at rest under the KeyProvider (ARCH-KEY-SCOPE.1), refresh tokens are rotated on use, and a connection is revoked by setting revoked_at and calling the provider's revocation endpoint where supported. Tokens are never logged, never returned to the browser or MCP clients, and never placed in URLs. Outbound HTTP is restricted to an allowlist (api.figma.com, www.figma.com for the OAuth endpoints) over TLS with certificate validation.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-FIGMA-AUTH
+VERSION_N: 0
+rbac_op: figma:connection:admin
+priority: 30
+iteration: iter-r2
+security.catalog_ref: IA-5
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Draft, needs-spike. Outbound credentials join ARCH-KEY-SCOPE item (2).
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to IA-5 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-28 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222588 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222596 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-FIGMA
+- TYPE: Parent
+  VALUE: ARCH-FIGMA
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-SCOPE.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-PROVIDER
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-CRED-REAUTH
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: IA-5
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-28
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-8
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222588
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222596
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: ARCH-FIGMA-EGRESS
+STATUS: Draft
+TITLE: Figma data egress: classification, explicit export, audit
+STATEMENT: >>>
+By default ReqALM sends Figma only the file keys and node ids needed to fetch previews. Pushing trace data into Figma (for example uids and titles on a frame) is an explicit export that requires figma:export on the project, sends only uid, title, and status of items the caller can read, and writes an audit row listing the exported uids and destination file key. Items or projects marked restricted are never exported, are not counted, and are not named in errors. Statements, attachments, evidence, audit data, and identities are never sent to Figma.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-FIGMA-EGRESS
+VERSION_N: 0
+rbac_op: figma:export
+priority: 30
+iteration: iter-r2
+security.catalog_ref: AC-4
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Draft, needs-spike. Information-flow control for data leaving ReqALM.
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to AC-4 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-21 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222428 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222427 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-FIGMA
+- TYPE: Parent
+  VALUE: ARCH-FIGMA
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-AUDIT
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-SEC-REL-STUB
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-4
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-21
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222428
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222427
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: SPIKE-FIGMA-FEASIBILITY
+STATUS: Draft
+TITLE: Spike: Figma integration feasibility (go/no-go)
+STATEMENT: >>>
+Before any Figma capability is planned, a time-boxed spike assesses and documents: Figma REST API rate limits and plan tiers; scale (files, nodes, and previews per project and cache size); the auth model (OAuth 2.0 with PKCE, available read-only scopes, token lifetime and refresh, per-project versus per-user connection); preview feasibility (server-side image export of frames and components, formats, latency); webhook availability, plan requirements, and signature or passcode verification; cost; and data egress (exactly what ReqALM must send to Figma). The outcome is a recorded go or no-go decision. Go updates ARCH-FIGMA, ARCH-FIGMA-AUTH, and ARCH-FIGMA-EGRESS by successor and then allows an implementation capability; no-go withdraws them.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: SPIKE-FIGMA-FEASIBILITY
+VERSION_N: 0
+rbac_op: figma:link
+priority: 30
+iteration: iter-r2
+security.catalog_ref: SA-9
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Spike modeled as a draft requirement (seed has no spike/task kind). Outcome refines or withdraws ARCH-FIGMA*.
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to SA-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CA-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to RA-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-FIGMA
+- TYPE: Parent
+  VALUE: ARCH-FIGMA
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SA-9
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CA-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: RA-3
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[[/SECTION]]
+
 [[/SECTION]]
 
 [[SECTION]]
@@ -9535,6 +9805,7 @@ security.catalog_ref: AU-12
 security.verification_note: AU-12 audit generation pipeline config.
 edge: ← refines from ARCH-CRED-TOKENS
 edge: ← uses from ARCH-KEY-SCOPE
+edge: ← uses from ARCH-KEY-SCOPE.1
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11131,6 +11402,9 @@ security.catalog_ref: REQALM-SEC-RBAC
 security.verification_note: Maps to ReqALM RBAC catalog item; .1 narrows honesty vs CAP-RBAC enforcement subset.
 edge: ← refines from ARCH-SEC-XPROJ-READ
 edge: ← satisfies from CAP-RBAC.1
+edge: ← uses from ARCH-ATTACH-SCOPE.1
+edge: ← uses from ARCH-ATTACH-SCOPE
+edge: ← uses from ARCH-ATTACH-UPLOAD
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AC-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -11409,6 +11683,7 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+edge: ← uses from ARCH-ATTACH-AUDIT
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
@@ -11437,6 +11712,8 @@ priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
+edge: ← uses from ARCH-ATTACH-SCOPE
+edge: ← uses from ARCH-ATTACH-SCOPE.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
@@ -12094,6 +12371,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AU-9
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← uses from ARCH-ATTACH-AUDIT
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -12175,6 +12453,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AU-9
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← uses from ARCH-ATTACH-AUDIT
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -12962,6 +13241,7 @@ security.verification_note: IA-11 re-authentication; ASD V-222520.
 edge: ← uses from FIX-DENY-STEPUP-STALE-AUTH
 edge: ← uses from ARCH-AUTH-UPSTREAM-CONNECTOR
 edge: ← satisfies from CAP-CRED-STORE
+edge: ← uses from ARCH-FIGMA-AUTH
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 platform follow-ups (deferred from foundation PR)
 edge: → conforms_to to IA-11 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13096,7 +13376,6 @@ iteration: iter-r1
 security.catalog_ref: SC-12
 security.verification_note: SC-12 key establishment/management; SC-28(3) cryptographic keys at rest.
 edge: ← refines from ARCH-KEY-PROVIDER
-edge: ← refines from ARCH-KEY-SCOPE
 edge: ← refines from ARCH-KEY-JWKS
 edge: ← refines from ARCH-KEY-LIFECYCLE
 edge: ← refines from ARCH-KEY-CUSTODIAN
@@ -13107,6 +13386,8 @@ edge: ← uses from ARCH-DEPLOY-PERIPHERALS
 edge: ← uses from ARCH-BUILD-FOUNDATION
 edge: ← uses from FIX-ALLOW-CRED-HASH-ONLY
 edge: ← satisfies from CAP-KEY-ENVELOPE
+edge: ← refines from ARCH-KEY-SCOPE
+edge: ← refines from ARCH-KEY-SCOPE.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13164,6 +13445,9 @@ edge: ← satisfies from CAP-DEVENV-OPENBAO-BOOTSTRAP
 edge: ← satisfies from CAP-KEY-ENVELOPE
 edge: ← satisfies from CAP-TEST-MEMORY-KEYPROVIDER
 edge: ← satisfies from CAP-TEST-PROD-BUILD-EXCLUDE
+edge: ← uses from ARCH-ATTACH-ENCRYPT
+edge: ← uses from ARCH-FIGMA-AUTH
+edge: ← uses from ARCH-ATTACH-ENCRYPT.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to IA-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13194,6 +13478,51 @@ RELATIONS:
 - TYPE: Child
   VALUE: RELEASE-rel-r1-foundation-shell-auth
   ROLE: Delivers
+
+[REQUIREMENT]
+UID: ARCH-KEY-SCOPE.1
+STATUS: Draft
+TITLE: What the key store protects (signing keys, secrets, sensitive fields)
+STATEMENT: >>>
+The key store protects: (1) OAuth token signing keys (ARCH-KEY-JWKS); (2) secrets the app must use (DB credentials, SMTP credentials, Azure DevOps connector tokens, upstream IdP client secrets, OTEL sink credentials, MFA secrets, object-store credentials, and outbound integration OAuth access and refresh tokens such as Figma), encrypted under DEKs; (3) peppers or HMAC keys used to hash server-side tokens (ARCH-CRED-TOKENS); (4) per-object data encryption keys for file attachments (ARCH-ATTACH-ENCRYPT), each wrapped by the KeyProvider KEK and stored beside the attachment metadata. Verify-only credentials are hashed, not encrypted. Field-level encryption applies only to columns that hold such secrets. Requirement content is not field-encrypted and relies on storage-level encryption at rest per deployment.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-KEY-SCOPE
+VERSION_N: 1
+priority: 10
+iteration: iter-r1
+security.catalog_ref: SC-28.1
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; content mint .1 (statement adds attachment DEKs, object-store creds, outbound integration OAuth tokens); v0 is delivered by shipped rel-r1-foundation-shell-auth and in ctr-reqalm-product, so v0 is never edited; v0 becomes superseded only when .1 is activated (D04).
+edge: ← refines from ARCH-ATTACH-ENCRYPT
+edge: ← refines from ARCH-FIGMA-AUTH
+edge: ← refines from ARCH-ATTACH-ENCRYPT.1
+edge: → conforms_to to SC-28.1 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222588 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222589 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222642 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-KEY
+- TYPE: Parent
+  VALUE: ARCH-KEY
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: M03
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-28.1
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222588
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222589
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222642
+  ROLE: ConformsTo
 
 [REQUIREMENT]
 UID: ARCH-KEY-SCOPE
@@ -13520,6 +13849,8 @@ security.verification_note: SC-24 fail in known state; SC-12(1).
 edge: ← uses from FIX-DENY-KEK-UNREACHABLE-PROD
 edge: ← satisfies from CAP-READY-PROBES
 edge: ← satisfies from CAP-KEY-ENVELOPE
+edge: ← uses from ARCH-ATTACH-ENCRYPT
+edge: ← uses from ARCH-ATTACH-ENCRYPT.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — foundation shell + internal auth
 edge: → conforms_to to SC-24 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -13734,6 +14065,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: SC-8
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
+edge: ← refines from ARCH-ATTACH-SERVE
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -13789,6 +14121,805 @@ RELATIONS:
 - TYPE: Parent
   VALUE: AU-6
   ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-ATTACH
+STATUS: Draft
+TITLE: File attachments: parent levels, scope, lifecycle
+STATEMENT: >>>
+ReqALM stores file attachments (bytes in an object store, metadata in Postgres) on exactly one parent: a client, a project, a requirement version, a capability version, a release, a contract, or a catalog control within a project-owned catalog imprint. Attachments are never parented to trace edges, approval records, gate signoffs, change sets, audit events, or controls in a standard (shared) imprint; evidence for those is attached to the owning version, release, or contract and referenced by id. Every attachment row carries client_id and project_id (null only for client-level), and all reads and writes enforce ARCH-CP-SCOPE. Attachments are soft-deleted (deleted_at, deleted_by) and hidden from default lists; bytes are retained for auditors. Permanent wipe of a restricted or legally held attachment is a separate Client admin operation (attachment:wipe) that needs step-up re-authentication and writes an audit row; it never runs from the normal delete path.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH
+VERSION_N: 0
+rbac_op: attachment:read
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Umbrella. Valid parents: client, project, requirement version, capability version, release, contract, catalog control (project-owned imprint only). Not: trace edges, approvals/gate_signoffs, audit_events, change_sets.
+edge: ← refines from ARCH-ATTACH-PIN-VERSION
+edge: ← refines from ARCH-ATTACH-SCOPE
+edge: ← refines from ARCH-ATTACH-ENCRYPT
+edge: ← refines from ARCH-ATTACH-AUDIT
+edge: ← refines from ARCH-ATTACH-SERVE
+edge: ← refines from ARCH-ATTACH-UPLOAD
+edge: ← refines from ARCH-ATTACH-SCAN
+edge: ← satisfies from CAP-ATTACH-READ
+edge: ← refines from ARCH-ATTACH-VERSIONS
+edge: ← refines from ARCH-ATTACH-PIN-VERSION.1
+edge: ← refines from ARCH-ATTACH-SCOPE.1
+edge: ← refines from ARCH-ATTACH-ENCRYPT.1
+edge: ← satisfies from CAP-SEED-ATTACH-FIGMA
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to MP-6 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222425 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: ARCH-CP-SCOPE
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: C05
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: MP-6
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222425
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[[SECTION]]
+UID: ARCH-ATTACH-CHILDREN
+TITLE: Children of ARCH-ATTACH
+
+[REQUIREMENT]
+UID: ARCH-ATTACH-PIN-VERSION
+STATUS: Draft
+TITLE: Attachments pin to the parent version, not the line
+STATEMENT: >>>
+An attachment on a requirement or capability binds to that exact version uid, never to the line. A new version (.N) starts with no attachments; the author may carry selected attachments forward explicitly, which creates new rows that reference the same content sha256 and record carried_from. Attachments on a shipped or locked version are append-only: they can be added (as later evidence) but not replaced or soft-deleted except by attachment:wipe. Adding or removing an attachment is not a content mint and does not change statement_hash, but it flags needs re-check on the version's verification. Clients, projects, releases, contracts, and catalog controls have no versions; attachments bind to them directly, and attachments on a shipped release or signed contract are append-only.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH-PIN-VERSION
+VERSION_N: 0
+rbac_op: attachment:read
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-3
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Version pinning matches the mint rule (ARCH-MINT-KIND, ARCH-LOCKED): evidence is immutable once shipped.
+edge: ← satisfies from CAP-ATTACH-READ
+edge: ← satisfies from CAP-ATTACH-WRITE
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to CM-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-MINT-KIND
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-LOCKED
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-TRACE-RECHECK
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-9
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-7
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: ARCH-ATTACH-PIN-VERSION.1
+STATUS: Draft
+TITLE: Attachments pin to the parent version, not the line
+STATEMENT: >>>
+Parent requirement and capability versions pin a specific attachment version id, never an attachment line or a blob directly, so stepping through a parent's version history shows the exact file version each parent version pinned. A new parent version (.N) starts with no pins; carry-forward to it is explicit and links the same blob (ARCH-ATTACH-VERSIONS). Pins on a shipped or locked parent version, a shipped release, or a signed contract are immutable and append-only: pins can be added as later evidence, but not re-pinned, replaced, or soft-deleted except by attachment:wipe. On an unlocked parent, re-pinning to a newer attachment version is an explicit, audited action that flags needs re-check on the parent's verification. Pin changes are not content mints and do not change statement_hash. Download URLs always reference an attachment version id; only the list view may show the latest version by default, and it labels it as latest. Clients, projects, releases, contracts, and catalog controls have no versions; their pins bind to them directly under the same rules.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH-PIN-VERSION
+VERSION_N: 1
+rbac_op: attachment:read
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-3
+security.verification_note: Cyber 2026-10-09 attachments delta v3; content mint: pins target attachment version ids; carry-forward by link.
+edge: ← satisfies from CAP-ATTACH-READ
+edge: ← satisfies from CAP-ATTACH-WRITE
+edge: → conforms_to to CM-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-MINT-KIND
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-LOCKED
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-TRACE-RECHECK
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CM-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-9
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-VERSIONS
+  ROLE: Uses
+
+[REQUIREMENT]
+UID: ARCH-ATTACH-SCOPE
+STATUS: Draft
+TITLE: Attachment read inherits parent scope, redaction, and id validation
+STATEMENT: >>>
+Access to an attachment follows its parent object's scope and role permissions at every parent level: listing or downloading requires the read permission of the parent as granted by the caller's role (client read for a client-level attachment, project read for a project, requirement:read for a requirement version, and so on), checked server-side on every request; creating or deleting requires the parent's write-level permission plus attachment:create. There is no attachment-specific grant model. If the caller cannot read the parent, or the parent or attachment is restricted for the caller, or the attachment is soft-deleted, the response is the same 404 as a nonexistent id, with no difference in body, headers, or timing class. Attachment ids are server-generated and must match the allowlist ^att_[0-9a-z]{26}$; any other value is rejected with 400 before any lookup, and the raw value is not logged (logs record a redacted placeholder). List responses return metadata only: id, sanitized display name, size in bytes, media type (as detected), sha256, scan state, uploaded_by identity_id, created_at. They never return storage keys, object-store URLs, or content.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH-SCOPE
+VERSION_N: 0
+rbac_op: attachment:read
+priority: 5
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Same-404 rule as restricted relations (ARCH-SEC-REL-STUB, ARCH-SEC-XPROJ-READ).
+edge: ← satisfies from CAP-ATTACH-READ
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-4 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222425 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222606 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222444 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-SEC-REL-STUB
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-SEC-XPROJ-READ
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CAP-SVC-STRUCTURED-LOG
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-4
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222425
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222606
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222444
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: ARCH-ATTACH-SCOPE.1
+STATUS: Draft
+TITLE: Attachment read inherits parent scope, redaction, and id validation
+STATEMENT: >>>
+Access to an attachment follows its parent object's scope and role permissions at every parent level: listing or downloading requires the read permission of the parent as granted by the caller's role (client read for a client-level attachment, project read for a project, requirement:read for a requirement version, and so on), checked server-side on every request; creating or deleting requires the parent's write-level permission plus attachment:create. There is no attachment-specific grant model. If the caller cannot read the parent, or the parent or attachment is restricted for the caller, or the attachment is soft-deleted, the response is the same 404 as a nonexistent id, with no difference in body, headers, or timing class. Attachment ids, attachment version ids, and blob ids are server-generated and must match their allowlists (^att_[0-9a-z]{26}$, ^attv_[0-9a-z]{26}$, ^blob_[0-9a-f]{64}$); blob ids are internal and never accepted from clients; any other value is rejected with 400 before any lookup, and the raw value is not logged (logs record a redacted placeholder). List responses return metadata only: attachment id, attachment version id and version number (latest labeled), sanitized display name, size in bytes, media type (as detected), sha256, scan state, uploaded_by identity_id, created_at. They never return storage keys, object-store URLs, or content.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH-SCOPE
+VERSION_N: 1
+rbac_op: attachment:read
+priority: 5
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Cyber 2026-10-09 attachments delta v3; content mint: id allowlists for attachment version and blob ids; list shows version.
+edge: ← satisfies from CAP-ATTACH-READ
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-4 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222425 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222606 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222444 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-SEC-REL-STUB
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-SEC-XPROJ-READ
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CAP-SVC-STRUCTURED-LOG
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-4
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222425
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222606
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222444
+  ROLE: ConformsTo
+
+[REQUIREMENT]
+UID: ARCH-ATTACH-AUDIT
+STATUS: Draft
+TITLE: Every attachment access and change is audited
+STATEMENT: >>>
+Every attachment download, upload, carry-forward, soft delete, and wipe, whether allowed or denied, writes one append-only audit_events row with: actor identity_id, client_id, project_id, action, attachment id, parent ref (kind and uid), content sha256, outcome, and trace_id. Audit rows never contain file content, file names supplied by the user before sanitization, or storage keys. List calls are audited as one row per request, not per item. Audit writes go through the write unit of work; if the audit row cannot be written, the download is refused.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH-AUDIT
+VERSION_N: 0
+rbac_op: attachment:read
+priority: 5
+iteration: iter-r1
+security.catalog_ref: AU-2
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Object-access audit per STIG V-222465.
+edge: ← uses from ARCH-ATTACH-SCAN
+edge: ← uses from ARCH-FIGMA-EGRESS
+edge: ← satisfies from CAP-ATTACH-READ
+edge: ← uses from ARCH-ATTACH-VERSIONS
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222465 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222444 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-WRITE-UOW-AUDIT
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: CAP-SVC-AUDIT-APPEND
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-WRITE-AUDIT-FLOOD
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: AU-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222465
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222444
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: ARCH-ATTACH-SERVE
+STATUS: Draft
+TITLE: Attachments are served as downloads, never rendered inline
+STATEMENT: >>>
+Attachment bytes are served only from a dedicated download route with Content-Disposition: attachment and an RFC 6266 filename (ASCII fallback plus filename* UTF-8 percent-encoding, with path separators, control characters, and quotes removed), Content-Type set from the detected type (application/octet-stream when unknown or not on the allowlist), X-Content-Type-Options: nosniff, Content-Security-Policy: sandbox; default-src 'none', Cache-Control: private, no-store, and Cross-Origin-Resource-Policy: same-origin. The UI never renders attachment content inline (no img, iframe, object, or embed of the raw bytes). SVG, HTML, XML, and other active-content types are always served as application/octet-stream downloads. Before returning bytes, the server recomputes sha256 and compares it with the stored value; a mismatch returns an error, is audited, and marks the attachment integrity_failed.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH-SERVE
+VERSION_N: 0
+rbac_op: attachment:read
+priority: 5
+iteration: iter-r1
+security.catalog_ref: SI-10
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Stored-XSS containment; extends ARCH-SEC-HEADERS.
+edge: ← uses from ARCH-FIGMA
+edge: ← satisfies from CAP-ATTACH-READ
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to SI-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-18 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222602 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222609 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-SEC-HEADERS
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: SI-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-18
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222602
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222609
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: ARCH-ATTACH-UPLOAD
+STATUS: Draft
+TITLE: Upload: write permission, validation, size and quota
+STATEMENT: >>>
+Uploading requires attachment:create on the parent's project, which is separate from read and is granted to Author and above. Upload is a same-origin POST protected by the session CSRF defenses (ARCH-SEC-HEADERS, SameSite cookies, Origin check). The server rejects any file larger than 25 MB (26,214,400 bytes) and any upload that would take the project's total attachment storage above 5 GB (5,368,709,120 bytes), counting soft-deleted attachments until wiped, before accepting the bytes. The type is decided from magic bytes against an allowlist (initially PDF, PNG, JPEG, plain text, CSV, and Office Open XML), never from the extension or client Content-Type; a mismatch is rejected with 400. Accepted files enter quarantine and become available only per ARCH-ATTACH-SCAN.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH-UPLOAD
+VERSION_N: 0
+rbac_op: attachment:create
+priority: 20
+iteration: iter-r1
+security.catalog_ref: SI-10
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Write phase (later). Scanning is in ARCH-ATTACH-SCAN.
+edge: ← satisfies from CAP-ATTACH-WRITE
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to SI-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222606 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222603 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222429 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-SCAN
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SI-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222606
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222603
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222429
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC.1
+  ROLE: Uses
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: ARCH-ATTACH-ENCRYPT
+STATUS: Draft
+TITLE: Attachment encryption at rest via KeyProvider envelope
+STATEMENT: >>>
+Each attachment object is encrypted at rest with its own data encryption key (AES-256-GCM); the DEK is wrapped by the KeyProvider KEK (ARCH-KEY-PROVIDER) and stored beside the metadata row, scoped to the client. Plaintext DEKs exist only in memory for one request. If the KeyProvider is unavailable, uploads and downloads fail closed (ARCH-KEY-FAILCLOSED). Wipe destroys the wrapped DEK as well as the object (crypto-shred). Object-store credentials are held in the key store and never logged.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH-ENCRYPT
+VERSION_N: 0
+rbac_op: attachment:create
+priority: 20
+iteration: iter-r1
+security.catalog_ref: SC-28
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Extends ARCH-KEY-SCOPE item list with attachment DEKs.
+edge: ← satisfies from CAP-ATTACH-WRITE
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to SC-28 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222588 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222587 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-PROVIDER
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-KEY-SCOPE.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-FAILCLOSED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-28
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222588
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222587
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: ARCH-ATTACH-ENCRYPT.1
+STATUS: Draft
+TITLE: Attachment encryption at rest via KeyProvider envelope
+STATEMENT: >>>
+Each blob is encrypted at rest with its own data encryption key (AES-256-GCM); the DEK is wrapped by the KeyProvider KEK (ARCH-KEY-PROVIDER) and stored beside the blob metadata, scoped to the client. All attachment versions and pins that link the same blob share its DEK. Plaintext DEKs exist only in memory for one request. If the KeyProvider is unavailable, uploads and downloads fail closed (ARCH-KEY-FAILCLOSED). The wrapped DEK is destroyed together with the blob when its reference count reaches zero or when the blob is wiped (crypto-shred). Object-store credentials are held in the key store and never logged.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH-ENCRYPT
+VERSION_N: 1
+rbac_op: attachment:create
+priority: 20
+iteration: iter-r1
+security.catalog_ref: SC-28
+security.verification_note: Cyber 2026-10-09 attachments delta v3; content mint: per-blob DEK shared by links; destroyed at refcount zero or wipe.
+edge: ← satisfies from CAP-ATTACH-WRITE
+edge: → conforms_to to SC-28 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222588 (pin imprint=asd-stig@v6r4)
+edge: → conforms_to to V-222587 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-PROVIDER
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-KEY-SCOPE.1
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-KEY-FAILCLOSED
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SC-28
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222588
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222587
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-VERSIONS
+  ROLE: Uses
+
+[REQUIREMENT]
+UID: ARCH-ATTACH-SCAN
+STATUS: Draft
+TITLE: Pluggable malware scanner; quarantine until clean
+STATEMENT: >>>
+Every uploaded attachment is scanned through a pluggable scanner interface scan(stream) -> clean | infected | error, and each result records the engine name, engine version, and signature version. A new attachment stays in scan_state pending (quarantined) and cannot be listed as available or downloaded until a scan returns clean. An error or timeout leaves it quarantined (fail closed) and it may be retried. An infected attachment moves to scan_state infected, is never served, stays quarantined, and is retained per the soft-delete rule (ARCH-ATTACH) until wiped. Every scan result is written as an audit_events row (attachment id, parent ref, sha256, result, engine and signature version) and an infected result raises an alert. Rescanning clean attachments after a signature update is optional per deployment. The ClamAV (clamd) adapter is allowed in development only; production scanner selection is deferred, and production startup refuses to start with the dev adapter unless an operator explicitly configures it.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH-SCAN
+VERSION_N: 0
+rbac_op: attachment:create
+priority: 20
+iteration: iter-r1
+security.catalog_ref: SI-3
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; No ASD V6R4 seed item covers malicious-code scanning; SI-3/SI-8 stand without a STIG pair.
+edge: ← uses from ARCH-ATTACH-UPLOAD
+edge: ← satisfies from CAP-ATTACH-WRITE
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to SI-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-8 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CM-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-AUDIT
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: SI-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-8
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CM-7
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: ARCH-ATTACH-VERSIONS
+STATUS: Draft
+TITLE: Attachments are versioned lines over content-addressed blobs
+STATEMENT: >>>
+An attachment is a line with a stable attachment id (^att_[0-9a-z]{26}$) and immutable versions numbered 1, 2, and so on. Each attachment version has its own id (^attv_[0-9a-z]{26}$) and references exactly one stored blob, identified by its sha256 and blob id (^blob_[0-9a-f]{64}$, the hex sha256). Blobs are content-addressed and written once; an attachment version's blob, sha256, size, media type, and scan result never change. Adding a file version creates a new attachment version and never changes existing pins. Carry-forward is an explicit request that creates a new pin from a target parent to an existing attachment version and links the same blob; bytes are never copied. It requires attachment:create on the target parent and read on the source, the source and target must be in the same project (no cross-project carry-forward), and every link and unlink is audited. Blobs are reference-counted over live pins. Soft-deleting a pin decrements nothing until wipe; a blob and its wrapped DEK are destroyed when no live or soft-deleted pin references it. attachment:wipe on a blob is an explicit Client admin action with step-up that tombstones every pin referencing the blob in that project, destroys the blob and its DEK, and writes one audit row listing every affected pin.
+<<<
+COMMENT: >>>
+KIND: requirement
+BASE_UID: ARCH-ATTACH-VERSIONS
+VERSION_N: 0
+rbac_op: attachment:read
+priority: 10
+iteration: iter-r1
+security.catalog_ref: CM-3
+security.verification_note: Cyber 2026-10-09 attachments delta v3; versioned attachment lines, content-addressed blobs, same-project carry-forward by link, refcounted wipe.
+edge: ← uses from ARCH-ATTACH-PIN-VERSION.1
+edge: ← uses from ARCH-ATTACH-ENCRYPT.1
+edge: ← satisfies from CAP-ATTACH-READ
+edge: ← satisfies from CAP-ATTACH-WRITE
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to CM-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to CM-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-7 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to V-222588 (pin imprint=asd-stig@v6r4)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-AUDIT
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-MINT-KIND
+  ROLE: Refines
+- TYPE: Parent
+  VALUE: CM-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CM-2
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-9
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-7
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: V-222588
+  ROLE: ConformsTo
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[[/SECTION]]
+
+[REQUIREMENT]
+UID: CAP-ATTACH-READ
+STATUS: Draft
+TITLE: Attachment metadata list + download (read-only)
+STATEMENT: >>>
+Attachment tables (migration with scope, soft delete, scan_state, sha256, wrapped DEK columns), metadata list and download routes under the requirement-read guard, id allowlist with 400 beds, same-404 restricted beds, append-only download audit, and download headers per ARCH-ATTACH-SERVE. Seed attachments are loaded by the dogfood loader only.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-ATTACH-READ
+VERSION_N: 0
+rbac_op: attachment:read
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Planned; phase 1.
+edge: ← uses from CAP-ATTACH-WRITE
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SI-10 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: ARCH-ATTACH
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-SCOPE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-AUDIT
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-SERVE
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-PIN-VERSION
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: AC-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: AU-12
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SI-10
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-VERSIONS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-PIN-VERSION.1
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-SCOPE.1
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-ATTACH-WRITE
+STATUS: Draft
+TITLE: Attachment upload, scan, encryption, soft delete
+STATEMENT: >>>
+Upload route with attachment:create, CSRF and Origin checks, size cap and project quota, magic-byte type allowlist, pending/clean/quarantined scan pipeline, KeyProvider envelope encryption per object, explicit carry-forward to a new version, soft delete, and Client admin wipe with step-up.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-ATTACH-WRITE
+VERSION_N: 0
+rbac_op: attachment:create
+priority: 20
+iteration: iter-r1
+security.catalog_ref: SI-3
+security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Planned; phase 2.
+in_scope_of_contract: ReqALM product (build)
+edge: → conforms_to to SI-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+edge: → conforms_to to SC-28 (pin imprint=nist-800-53@rev5-dogfood-20261006)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-UPLOAD
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-SCAN
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-ENCRYPT
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-PIN-VERSION
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: SI-3
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: SC-28
+  ROLE: ConformsTo
+- TYPE: Parent
+  VALUE: CAP-ATTACH-READ
+  ROLE: Uses
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-VERSIONS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-PIN-VERSION.1
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-ENCRYPT.1
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: CONTRACT-ctr-reqalm-product
+  ROLE: InScopeOf
 
 [[/SECTION]]
 
@@ -17647,6 +18778,9 @@ security.verification_note: CM-3 change control; mint kinds / succession.
 edge: ← uses from FIX-DENY-NOOP-CONTENT
 edge: ← uses from FIX-ALLOW-PIN-MIGRATE-MINT
 edge: ← refines from ARCH-WRITE-RESERVED-IDS
+edge: ← refines from ARCH-ATTACH-PIN-VERSION
+edge: ← refines from ARCH-ATTACH-VERSIONS
+edge: ← refines from ARCH-ATTACH-PIN-VERSION.1
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
