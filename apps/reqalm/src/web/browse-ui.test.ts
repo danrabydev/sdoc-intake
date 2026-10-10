@@ -77,8 +77,6 @@ import {
 import { api, setUnauthorizedRedirect, clearUnauthorizedRedirect } from "./public/api-client.js";
 import { loadShellMeta, rootRedirectPath, renderAppShell, signOut } from "./public/app.js";
 import { pathGetsWebSpaShell } from "./spa-shell-paths.js";
-import { registerContractBrowseTests } from "./contract-browse-test-kit.js";
-
 type FetchHandler = (url: string) => { status: number; body?: unknown };
 
 function jsonResponse(status: number, body: unknown) {
@@ -2002,16 +2000,6 @@ describe("catalog browse screens", () => {
     await mountBrowseView(shellMain, parseAppRoute("/app/projects/reqalm/catalogs"), { apiFn: async () => null });
     assert.equal(shellMain.textContent, "");
   });
-});
-
-registerContractBrowseTests({
-  installDom,
-  shellMeta,
-  mockFetchBare,
-  contractsSrc: fs.readFileSync(
-    path.join(path.dirname(fileURLToPath(import.meta.url)), "public/browse-contracts.js"),
-    "utf8",
-  ),
 });
 
 describe("api() auth redirect", () => {

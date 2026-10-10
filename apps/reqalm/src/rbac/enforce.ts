@@ -97,7 +97,7 @@ export async function authorize(
   /** Verified access-token claims; a bound `reqalm_role` (agent tokens) narrows the grants. */
   token?: { readonly [claim: string]: unknown },
 ): Promise<boolean> {
-  if (projectId === undefined && !PERMISSIONS_WITHOUT_PROJECT.has(permission)) {
+  if (!projectId && !PERMISSIONS_WITHOUT_PROJECT.has(permission)) {
     return false;
   }
   const roles = effectiveRoles(await listActiveRoles(pool, identityId, projectId), token);

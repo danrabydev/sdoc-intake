@@ -77,19 +77,27 @@ export function contractReleasesApiPath(projectId, contractId) {
   return `/api/v1/projects/${encodeURIComponent(projectId)}/contracts/${encodeURIComponent(contractId)}/releases`;
 }
 
+/** Hard cap on scope pagination loops (contract detail must not spin on bad totals/limits). */
+export const MAX_SCOPE_FETCH_PAGES = 50;
+
 export async function fetchAllScope(apiFn, projectId, contractId, limit = 100) {
   const items = [];
   let offset = 0;
   let total = 0;
+  let pages = 0;
   for (;;) {
+    if (pages >= MAX_SCOPE_FETCH_PAGES) break;
     const path = contractScopeApiPath(projectId, contractId, limit, offset);
     if (!path) return { kind: "error" };
     const res = await loadJson(apiFn, path);
     if (res.kind !== "ok") return res;
     const page = res.data;
     total = page.total ?? 0;
+    const pageLimit = page.limit ?? limit;
+    if (!(Number(pageLimit) > 0)) break;
     items.push(...(page.items ?? []));
-    offset += page.limit ?? limit;
+    offset += pageLimit;
+    pages += 1;
     if (offset >= total || !(page.items?.length)) break;
   }
   return { kind: "ok", data: { items, total } };
