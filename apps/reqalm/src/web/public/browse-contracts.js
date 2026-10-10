@@ -237,10 +237,32 @@ export async function fetchAllScope(apiFn, projectId, contractId, limit = CONTRA
     items.push(...(page.items ?? []));
     pages += 1;
     offset += page.limit ?? limit;
-    if (offset >= total || !(page.items?.length)) break;
+    if (offset >= total) break;
+    if (!(page.items?.length)) return { kind: "error" };
   }
-  if (pages >= FETCH_ALL_SCOPE_MAX_PAGES && offset < total) return { kind: "error" };
+  if (items.length < total) return { kind: "error" };
   return { kind: "ok", data: { items, total } };
+}
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+function overlapBarSvg(bar) {
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("class", "contract-overlap-svg");
+  svg.setAttribute("viewBox", "0 0 100 1");
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.setAttribute("aria-hidden", "true");
+  const rect = document.createElementNS(SVG_NS, "rect");
+  rect.setAttribute(
+    "class",
+    bar.selected ? "contract-overlap-bar contract-overlap-bar-selected" : "contract-overlap-bar",
+  );
+  rect.setAttribute("x", bar.leftPct.toFixed(4));
+  rect.setAttribute("width", bar.widthPct.toFixed(4));
+  rect.setAttribute("y", "0");
+  rect.setAttribute("height", "1");
+  svg.append(rect);
+  return svg;
 }
 
 export function scopeLineLink(anchorProjectId, line) {
@@ -327,13 +349,8 @@ function overlapTimelineSection(contracts, selectedId) {
   for (const bar of model.bars) {
     const row = el("div", { className: "contract-overlap-row" });
     row.append(el("span", { className: "contract-overlap-label", text: bar.title }));
-    const track = el("div", { className: "contract-overlap-track" });
-    const pill = el("span", {
-      className: bar.selected ? "contract-overlap-bar contract-overlap-bar-selected" : "contract-overlap-bar",
-      style: `margin-left:${bar.leftPct.toFixed(2)}%;width:${bar.widthPct.toFixed(2)}%`,
-      title: bar.title,
-    });
-    track.append(pill);
+    const track = el("div", { className: "contract-overlap-track", title: bar.title });
+    track.append(overlapBarSvg(bar));
     row.append(track);
     tracks.append(row);
   }

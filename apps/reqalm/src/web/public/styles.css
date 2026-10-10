@@ -868,18 +868,21 @@ pre {
   height: 0.55rem;
   border-radius: 999px;
   background: #f1f5f9;
+  overflow: hidden;
 }
 
-.contract-overlap-bar {
+.contract-overlap-svg {
   display: block;
+  width: 100%;
   height: 100%;
-  border-radius: 999px;
-  background: #cbd5e1;
-  min-width: 4px;
 }
 
-.contract-overlap-bar-selected {
-  background: var(--accent);
+.contract-overlap-svg .contract-overlap-bar {
+  fill: #cbd5e1;
+}
+
+.contract-overlap-svg .contract-overlap-bar-selected {
+  fill: var(--accent);
 }
 
 .contract-req-chips {
