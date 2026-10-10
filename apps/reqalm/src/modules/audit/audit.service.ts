@@ -182,10 +182,16 @@ async function listBusinessPage(
   const limitIdx = where.params.length + 1;
   const offsetIdx = where.params.length + 2;
   const res = await ctx.pool.query<BusinessRow>(
-    `SELECT id::text, occurred_at::text, operation, outcome, identity_id, client_id, agent_name,
-            token_role, acting_for, project_id, target_type, target_id, detail
-     FROM audit_events WHERE ${where.sql}
-     ORDER BY occurred_at DESC, id DESC
+    `SELECT sorted.id::text AS id, sorted.occurred_at::text AS occurred_at, sorted.operation, sorted.outcome,
+            sorted.identity_id, sorted.client_id, sorted.agent_name, sorted.token_role, sorted.acting_for,
+            sorted.project_id, sorted.target_type, sorted.target_id, sorted.detail
+     FROM (
+       SELECT id, occurred_at, operation, outcome, identity_id, client_id, agent_name, token_role, acting_for,
+              project_id, target_type, target_id, detail
+       FROM audit_events
+       WHERE ${where.sql}
+     ) sorted
+     ORDER BY sorted.occurred_at DESC, sorted.id DESC
      LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
     [...where.params, input.limit, input.offset],
   );

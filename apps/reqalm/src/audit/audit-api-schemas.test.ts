@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  auditFilterQuerySchema,
   MAX_AUDIT_RANGE_MS,
   redactInvalidAuditQueryParams,
   resolveAuditTimeBounds,
@@ -23,6 +24,14 @@ describe("redactInvalidAuditQueryParams", () => {
 
 describe("resolveAuditTimeBounds", () => {
   const t0 = Date.parse("2026-06-01T12:00:00Z");
+
+  it("rejects date-only strings that parse but are not full ISO instants", () => {
+    assert.equal(
+      auditFilterQuerySchema.safeParse({ from: "2026-01-01", to: "2026-02-01T00:00:00.000Z" }).success,
+      false,
+    );
+    assert.equal(auditFilterQuerySchema.safeParse({ to: "2026-01-01" }).success, false);
+  });
 
   it("allows exactly 90 days and rejects 90 days plus one second", () => {
     const from = "2026-01-01T00:00:00Z";

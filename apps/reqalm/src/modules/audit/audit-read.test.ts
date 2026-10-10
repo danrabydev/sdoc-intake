@@ -114,9 +114,9 @@ describe("audit read API", () => {
     await q(
       `WITH t AS (SELECT now() AS ts)
        INSERT INTO audit_events (id, occurred_at, request_id, operation, outcome, identity_id, project_id, detail)
-       SELECT 9000009, ts, 'audit-tie-9', 'audit.tie.project', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb FROM t
+       SELECT 999999999, ts, 'audit-tie-lo', 'audit.tie.project', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb FROM t
        UNION ALL
-       SELECT 9000010, ts, 'audit-tie-10', 'audit.tie.project', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb FROM t`,
+       SELECT 1000000000, ts, 'audit-tie-hi', 'audit.tie.project', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb FROM t`,
     );
     await bumpAuditSeq();
     const page = dataOf(await inject(`${PROJ("reqalm")}?limit=5&action=audit.tie.project`)) as {
@@ -124,8 +124,30 @@ describe("audit read API", () => {
     };
     assert.deepEqual(
       page.items.map((i) => i.id),
-      ["b:9000010", "b:9000009"],
+      ["b:1000000000", "b:999999999"],
     );
+  });
+
+  it("project route orders by occurred_at before id tie-break", async () => {
+    const inserted = (await q(
+      `WITH mx AS (SELECT COALESCE(max(id), 0)::bigint AS v FROM audit_events),
+            ins AS (
+              INSERT INTO audit_events (id, occurred_at, request_id, operation, outcome, identity_id, project_id, detail)
+              SELECT mx.v + 20, now() - interval '2 days', 'audit-time-old', 'audit.time.project', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb FROM mx
+              UNION ALL
+              SELECT mx.v + 10, now(), 'audit-time-new', 'audit.time.project', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb FROM mx
+              RETURNING id, request_id, occurred_at
+            )
+       SELECT id, request_id, occurred_at FROM ins ORDER BY occurred_at DESC`,
+    )).rows as { id: string; request_id: string }[];
+    await bumpAuditSeq();
+    const page = dataOf(await inject(`${PROJ("reqalm")}?limit=5&action=audit.time.project`)) as {
+      items: { id: string; occurred_at: string }[];
+    };
+    assert.equal(page.items.length, 2);
+    assert.equal(page.items[0]!.id, `b:${inserted[0]!.id}`);
+    assert.equal(page.items[1]!.id, `b:${inserted[1]!.id}`);
+    assert.equal(inserted[0]!.request_id, "audit-time-new");
   });
 
   it("paging with positive offset and filter params", async () => {
@@ -179,6 +201,9 @@ describe("audit read API", () => {
 
   it("malformed project id and query params: 404 vs 400 with audit", async () => {
     assert.equal((await inject(PROJ("Not_A_Slug"))).statusCode, 404);
+    assert.equal((await inject(PROJ("REQALM"))).statusCode, 404);
+    assert.equal((await inject(`${PROJ("reqalm")}?from=2026-01-01&to=2026-02-01T00:00:00Z`)).statusCode, 400);
+    assert.equal((await inject(`${PROJ("reqalm")}?to=2026-01-01`)).statusCode, 400);
     assert.equal((await inject(`${PROJ("reqalm")}?actor=${encodeURIComponent("!!bad!!")}`)).statusCode, 400);
     assert.equal((await inject(`${PROJ("reqalm")}?action=INVALID`)).statusCode, 400);
     assert.equal((await inject(`${PROJ("reqalm")}?target_type=Bad-Type`)).statusCode, 400);
@@ -288,18 +313,47 @@ describe("audit read API", () => {
       await q(
         `WITH t AS (SELECT now() AS ts)
          INSERT INTO auth_audit_events (id, occurred_at, event_type, outcome, identity_id, ip, detail)
-         SELECT 8000009, ts, 'audit.platform.tie', 'success', 'casey-reader', '203.0.113.9', '{}'::jsonb FROM t
+         SELECT 999999999, ts, 'audit.platform.tie', 'success', 'casey-reader', '203.0.113.9', '{}'::jsonb FROM t
          UNION ALL
-         SELECT 8000010, ts, 'audit.platform.tie', 'success', 'casey-reader', '203.0.113.10', '{}'::jsonb FROM t`,
+         SELECT 1000000000, ts, 'audit.platform.tie', 'success', 'casey-reader', '203.0.113.10', '{}'::jsonb FROM t`,
       );
       await q(`SELECT setval(pg_get_serial_sequence('auth_audit_events', 'id'), (SELECT max(id) FROM auth_audit_events))`);
       const page = dataOf(await inject(`${PLATFORM}?limit=5&action=audit.platform.tie`)) as { items: { id: string }[] };
       assert.deepEqual(
         page.items.map((i) => i.id),
-        ["a:8000010", "a:8000009"],
+        ["a:1000000000", "a:999999999"],
       );
     } finally {
       await q(`DELETE FROM platform_grants WHERE id = 'plat-casey-kc-sort'`);
+    }
+  });
+
+  it("platform route orders by occurred_at before id tie-break", async () => {
+    await q(
+      `INSERT INTO platform_grants (id, identity_id, role) VALUES ('plat-casey-kc-time', 'casey-reader', 'Key custodian') ON CONFLICT DO NOTHING`,
+    );
+    try {
+      const inserted = (await q(
+        `WITH mx AS (SELECT COALESCE(max(id), 0)::bigint AS v FROM auth_audit_events),
+              ins AS (
+                INSERT INTO auth_audit_events (id, occurred_at, event_type, outcome, identity_id, ip, detail)
+                SELECT mx.v + 20, now() - interval '2 days', 'audit.platform.time', 'success', 'casey-reader', '203.0.113.1', '{}'::jsonb FROM mx
+                UNION ALL
+                SELECT mx.v + 10, now(), 'audit.platform.time', 'success', 'casey-reader', '203.0.113.2', '{}'::jsonb FROM mx
+                RETURNING id, occurred_at
+              )
+         SELECT id, occurred_at FROM ins ORDER BY occurred_at DESC`,
+      )).rows as { id: string }[];
+      await q(`SELECT setval(pg_get_serial_sequence('auth_audit_events', 'id'), (SELECT max(id) FROM auth_audit_events))`);
+      const page = dataOf(await inject(`${PLATFORM}?limit=5&action=audit.platform.time`)) as {
+        items: { id: string; occurred_at: string }[];
+      };
+      assert.equal(page.items.length, 2);
+      assert.equal(page.items[0]!.id, `a:${inserted[0]!.id}`);
+      assert.equal(page.items[1]!.id, `a:${inserted[1]!.id}`);
+      assert.ok(Number(inserted[0]!.id) < Number(inserted[1]!.id));
+    } finally {
+      await q(`DELETE FROM platform_grants WHERE id = 'plat-casey-kc-time'`);
     }
   });
 
