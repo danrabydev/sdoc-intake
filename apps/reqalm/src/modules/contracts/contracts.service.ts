@@ -10,6 +10,10 @@ export type ContractSummaryDto = {
   description: string | null;
   scope_count: number;
   release_count: number;
+  status: string;
+  starts_on: string | null;
+  ends_on: string | null;
+  client_id: string;
 };
 
 export type ContractDetailDto = ContractSummaryDto & {
@@ -27,6 +31,7 @@ export type VisibleScopeLineDto = {
   kind: string;
   status: string;
   version: number;
+  project_id: string;
 };
 
 export type ContractScopeLineDto = VisibleScopeLineDto;
@@ -37,6 +42,7 @@ export type ContractReleaseDto = {
   status: string;
   planned_on: string | null;
   shipped_on: string | null;
+  project_id: string;
 };
 
 export type ListContractsInput = PageQuery & { projectId: string };
@@ -66,6 +72,10 @@ const toSummary = (r: SummaryRow): ContractSummaryDto => ({
   description: r.notes,
   scope_count: r.scope_count,
   release_count: r.release_count,
+  status: r.status ?? "—",
+  starts_on: r.starts_on ?? null,
+  ends_on: r.ends_on ?? null,
+  client_id: r.client_id ?? "",
 });
 
 const visibleScopeCount = (n: number) =>
@@ -103,7 +113,8 @@ export async function listContracts(
     (await ctx.pool.query<{ c: number }>(`SELECT count(*)::int AS c FROM contracts c WHERE c.project_id = $1`, [input.projectId]))
       .rows[0]?.c ?? 0;
   const res = await ctx.pool.query<SummaryRow>(
-    `SELECT c.id, c.name, c.notes, ${visibleScopeCount(2)} AS scope_count, ${visibleReleaseCount(3)} AS release_count
+    `SELECT c.id, c.client_id, c.name, c.notes, c.status, c.starts_on::text AS starts_on, c.ends_on::text AS ends_on,
+            ${visibleScopeCount(2)} AS scope_count, ${visibleReleaseCount(3)} AS release_count
        FROM contracts c WHERE c.project_id = $1 ORDER BY c.id ASC LIMIT $4 OFFSET $5`,
     [input.projectId, reqProjects, relProjects, input.limit, input.offset],
   );
@@ -161,6 +172,7 @@ export async function listContractScope(
       kind: r.line_kind,
       status: r.version_status,
       version: r.version_n,
+      project_id: r.line_project_id,
     });
   }
   const total = visible.length;
@@ -180,7 +192,7 @@ export async function listContractReleases(
 
   const relProjects = await projectIdsWithPermission(ctx, "release:read");
   const res = await ctx.pool.query<ContractReleaseDto>(
-    `SELECT r.id, r.name, r.status, r.planned_on::text AS planned_on, r.shipped_on::text AS shipped_on
+    `SELECT r.id, r.name, r.status, r.project_id, r.planned_on::text AS planned_on, r.shipped_on::text AS shipped_on
        FROM contract_releases cr
        JOIN releases r ON r.id = cr.release_id
       WHERE cr.project_id = $1 AND cr.contract_id = $2 AND r.project_id = ANY($3::text[])

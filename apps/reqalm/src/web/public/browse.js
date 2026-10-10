@@ -17,8 +17,7 @@ import {
   catalogsListHref,
 } from "./browse-catalogs.js";
 import {
-  renderContractsList,
-  renderContractDetail,
+  renderContractsBrowse,
   contractsListHref,
 } from "./browse-contracts.js";
 
@@ -981,13 +980,11 @@ export async function mountBrowseView(container, route, deps) {
       });
       break;
     case "contracts-list":
-      await renderContractsList(container, { apiFn, projectId: route.projectId, offset });
-      break;
     case "contract-detail":
-      await renderContractDetail(container, {
+      await renderContractsBrowse(container, {
         apiFn,
         projectId: route.projectId,
-        contractId: route.contractId,
+        contractId: route.view === "contract-detail" ? route.contractId : null,
       });
       break;
     case "unknown":

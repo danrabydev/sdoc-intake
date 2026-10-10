@@ -129,10 +129,16 @@ describe("contracts read API", () => {
       "CAP-UPKEEP-MONTHLY-SEC-AUDIT",
       "CAP-UPKEEP-QUARTERLY-ACCESS-RECERT",
     ]);
+    for (const line of page0.items) {
+      assert.equal(typeof line.project_id, "string");
+      assert.ok(line.project_id.length > 0);
+    }
   });
 
   it("releases visible set matches grant-filtered covers_releases order", async () => {
-    const rels = dataOf(await inject(RELS("reqalm", "ctr-reqalm-product"))) as { items: { id: string }[] };
+    const rels = dataOf(await inject(RELS("reqalm", "ctr-reqalm-product"))) as {
+      items: { id: string; project_id: string }[];
+    };
     const pos = (
       await q(
         `SELECT cr.release_id FROM contract_releases cr JOIN releases r ON r.id = cr.release_id
@@ -141,6 +147,9 @@ describe("contracts read API", () => {
       )
     ).rows.map((r) => r.release_id as string);
     assert.deepEqual(rels.items.map((r) => r.id), pos);
+    for (const rel of rels.items) {
+      assert.equal(rel.project_id, "reqalm");
+    }
   });
 
   it("regression: releases list returns 403 (not contract-style 404) when release:read denied", async () => {

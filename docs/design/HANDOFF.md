@@ -167,3 +167,10 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
+
+## Addendum — contracts browse mockup 02 two-pane (PR cursor/contracts-mockup-02-restyle)
+
+- **UI:** Read-only contracts browse matches **`docs/design/mockups/02-contracts-list-detail.jpg`**: left pane contract cards (icon, title, client, status, period, req count, scope tag, chevron); right pane detail (KV, overlap timeline from list periods, sample requirement chips + **`+N more`**, **Open document view** for full scope/releases tables). Card selection updates URL; **+ New contract** disabled (coming soon).
+- **Detail scope:** **`CONTRACT_SCOPE_CHIP_PREVIEW`** chips in panel; document view shows first **`CONTRACT_SCOPE_DETAIL_PREVIEW`** scope rows with **`+N more`** when total exceeds preview.
+- **Cross-project links:** Scope and covered-release DTOs include **`project_id`**; browse links target the peer project (plain **`code`** when ids are invalid).
+- **Verify:** `pnpm test` (Node 22); contract browse tests cover two-pane layout, overlap timeline, scope tags, link guards, **`+N more`** boundary, and scope/release **`project_id`** routing.
