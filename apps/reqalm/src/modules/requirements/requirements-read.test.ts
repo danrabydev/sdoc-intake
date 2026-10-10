@@ -87,7 +87,7 @@ describe("requirements read API", () => {
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-BROWSE-UI-RELATIONS"));
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-UI-HEADER-NAV"));
     assert.ok(!draft.data.items.some((i) => i.id === "CAP-REQALM-CONTRACTS"));
-    assert.ok(draft.data.items.some((i) => i.id === "CAP-TRACE-INHERIT-USES"));
+    assert.ok(!draft.data.items.some((i) => i.id === "CAP-TRACE-INHERIT-USES"));
     assert.ok(draft.data.items.some((i) => i.id === "CAP-UPKEEP-MONTHLY-SEC-AUDIT"));
     const uiActive = (
       await inject({
@@ -116,6 +116,15 @@ describe("requirements read API", () => {
     ).json() as { data: { items: Array<{ id: string; status: string }> } };
     assert.deepEqual(headerActive.data.items.map((i) => i.id), ["CAP-UI-HEADER-NAV"]);
     assert.equal(headerActive.data.items[0]?.status, "active");
+    const traceActive = (
+      await inject({
+        method: "GET",
+        url: "/api/v1/projects/reqalm/requirements?status=active&q=CAP-TRACE-INHERIT-USES&limit=5",
+        headers: bearer,
+      })
+    ).json() as { data: { items: Array<{ id: string; status: string }> } };
+    assert.deepEqual(traceActive.data.items.map((i) => i.id), ["CAP-TRACE-INHERIT-USES"]);
+    assert.equal(traceActive.data.items[0]?.status, "active");
     const content = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/requirements?type=content&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ type: string; id: string }>; total: number } };

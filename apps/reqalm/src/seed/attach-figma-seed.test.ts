@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { DOGFOOD_SEED_PATH } from "../test/harness.js";
 import { readDogfoodFile, type DogfoodContractSeedRow } from "./load-dogfood.js";
 
+const TRACE_MERGE = "56bfc4d6a9fe04559ccddae636ec4052d84ae907";
 const KEY_SCOPE = "ARCH-KEY-SCOPE";
 const KEY_SCOPE_DRAFT = "ARCH-KEY-SCOPE.1";
 const NIST = "nist-800-53@rev5-dogfood-20261006";
@@ -101,6 +102,21 @@ describe("attach-figma seed (ARCH-KEY-SCOPE)", () => {
     assert.ok(edges.some((e) => e.from === "ARCH-ATTACH-SCOPE"));
     assert.ok(edges.some((e) => e.from === "ARCH-ATTACH-SCOPE.1"));
     assert.ok(seed.requirement_lines?.some((l) => l.base_uid === "ARCH-ATTACH-VERSIONS"));
+  });
+
+  it("ships parallel PR #39 trace-inherit release at full main merge SHA (rule 3)", async () => {
+    const seed = await readDogfoodFile(DOGFOOD_SEED_PATH);
+    const rel = seed.releases?.find((r) => r.id === "rel-r1-trace-inherit-uses");
+    assert.ok(rel);
+    assert.equal(rel.status, "shipped");
+    assert.equal(rel.shipped_on, "2026-10-09");
+    assert.match(String(rel.notes ?? ""), new RegExp(TRACE_MERGE));
+    const cap = seed.requirement_versions?.find((v) => v.uid === "CAP-TRACE-INHERIT-USES");
+    assert.ok(cap);
+    assert.equal(cap.status, "active");
+    assert.equal(cap.verification_outcome, "pass");
+    const sec = cap.security as { verification_note?: string } | undefined;
+    assert.match(String(sec?.verification_note ?? ""), new RegExp(TRACE_MERGE));
   });
 
   it("ARCH-ATTACH-SCOPE and UPLOAD v0 use ARCH-API-RBAC.1 (accepted deviation)", async () => {

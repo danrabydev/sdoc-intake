@@ -2,7 +2,8 @@
 """Cyber attachments + Figma requirement set (seed-only). Idempotent.
 
 Applies docs/design/seed/fixtures/cyber-attach-figma-snippet.yaml verbatim (text, hashes, edges).
-Adds rel-r1-seed-attach-figma / CAP-SEED-ATTACH-FIGMA (planned; no release ship).
+Adds rel-r1-seed-attach-figma / CAP-SEED-ATTACH-FIGMA (planned). Ships parallel PR #39
+rel-r1-trace-inherit-uses / CAP-TRACE-INHERIT-USES @ main merge SHA.
 
 Run: python3 patch_attach_figma_seed_release.py && python3 yaml_to_strictdoc.py --validate
 """
@@ -28,8 +29,13 @@ REPO = "../../.."
 NIST = "nist-800-53@rev5-dogfood-20261006"
 PLANNED = "2026-10-10"
 BASE_MAIN = "56bfc4d6a9fe04559ccddae636ec4052d84ae907"
+TRACE_SHIPPED = "2026-10-09"
+CAP_TRACE = "CAP-TRACE-INHERIT-USES"
+REL_TRACE = "rel-r1-trace-inherit-uses"
 REL = "rel-r1-seed-attach-figma"
 CAP = "CAP-SEED-ATTACH-FIGMA"
+BASELINE_RECORD_ALLOW_VERSIONS = frozenset({CAP_TRACE})
+BASELINE_RECORD_ALLOW_RELEASES = frozenset({REL_TRACE})
 REMOVED_CAP = "CAP-FIGMA-LINK"
 KEY_SCOPE = "ARCH-KEY-SCOPE"
 KEY_SCOPE_DRAFT = "ARCH-KEY-SCOPE.1"
@@ -188,6 +194,44 @@ def _baseline_edges_module():
 
 def validate_baseline_edges_preserved(data) -> None:
     _baseline_edges_module().validate_baseline_edges_preserved(data)
+
+
+def validate_baseline_records_preserved(data) -> None:
+    _baseline_edges_module().validate_baseline_records_preserved(
+        data,
+        allow_version_uids=BASELINE_RECORD_ALLOW_VERSIONS,
+        allow_release_ids=BASELINE_RECORD_ALLOW_RELEASES,
+    )
+
+
+def ship_trace_inherit_uses_release(data) -> None:
+    """Parallel PR pair (rule 3): ship PR #39 inherit-uses release at full main merge SHA."""
+    rel = find(data.get("releases"), "id", REL_TRACE)
+    if rel:
+        rel["status"] = "shipped"
+        rel["shipped_on"] = TRACE_SHIPPED
+        rel["notes"] = (
+            f"PR #39 merged to main as {BASE_MAIN} on {TRACE_SHIPPED}. "
+            "trace_edges.inheritable column + seed beds for common-control inheritance over uses."
+        )
+    ver = find(data.get("requirement_versions"), "uid", CAP_TRACE)
+    if ver:
+        catalog_ref = (ver.get("security") or {}).get("catalog_ref", "CM-2")
+        ver["status"] = "active"
+        ver["verification_outcome"] = "pass"
+        ver["security"] = {
+            "catalog_ref": catalog_ref,
+            "verification_note": f"Shipped with inherit-uses loader PR #39 (merge {BASE_MAIN}).",
+        }
+    ar = find(data.get("approval_records"), "id", "ar-trace-inherit-uses")
+    if ar:
+        ar["status"] = "unapproved"
+        ar["notes"] = (
+            f"Capability active with verification pass after PR #39 merge {BASE_MAIN}; "
+            "formal approval record not filed in seed."
+        )
+        ar["approved_version_uid"] = None
+        ar["approved_statement_hash"] = None
 
 
 def _contracts_patch_module():
@@ -465,7 +509,8 @@ CAP_STMT = (
     "(ARCH-ATTACH-*, ARCH-ATTACH-VERSIONS, ARCH-ATTACH-SCAN, ARCH-FIGMA-*, SPIKE-FIGMA-FEASIBILITY, "
     "CAP-ATTACH-*, ARCH-KEY-SCOPE.1 and attachment .1 content mints) with conforms_to, refines, uses, "
     "and satisfies edges from fixtures/cyber-attach-figma-snippet.yaml and delta-versions.yaml. "
-    "Regenerates out/ and HANDOFF.md. No application runtime changes; does not ship any release."
+    "Regenerates out/ and HANDOFF.md. No application runtime changes; ships parallel PR #39 "
+    "rel-r1-trace-inherit-uses only (this PR's release stays planned)."
 )
 
 CAP_ARTIFACTS = [
@@ -648,16 +693,18 @@ def main() -> None:
 
     apply_cyber_fixtures(data, snippet, delta)
     verify_snippet_targets_all(data, snippet, delta)
+    ship_trace_inherit_uses_release(data)
     upsert_this_release(data)
     refresh_product_contract_scope(data)
+    validate_baseline_records_preserved(data)
 
     with DOGFOOD.open("w", encoding="utf-8") as f:
         yaml.dump(data, f)
     delta_edges = sum(DELTA_EXPECTED_EDGE_KINDS.values())
     print(
-        f"Patched dogfood.yaml: snippet {EXPECTED_LINES}/{EXPECTED_VERSIONS}/"
-        f"{sum(EXPECTED_EDGE_KINDS.values())} edges + delta {DELTA_EXPECTED_LINES}/"
-        f"{DELTA_EXPECTED_VERSIONS}/{delta_edges} edges, {REL} / {CAP} (planned)"
+        f"Patched dogfood.yaml: shipped {REL_TRACE} @ {BASE_MAIN[:12]}, snippet "
+        f"{EXPECTED_LINES}/{EXPECTED_VERSIONS}/{sum(EXPECTED_EDGE_KINDS.values())} edges + delta "
+        f"{DELTA_EXPECTED_LINES}/{DELTA_EXPECTED_VERSIONS}/{delta_edges} edges, {REL} / {CAP} (planned)"
     )
 
 

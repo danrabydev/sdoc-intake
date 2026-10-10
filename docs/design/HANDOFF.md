@@ -108,4 +108,4 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Delta v3 (file versioning):** `docs/design/seed/fixtures/delta-versions.yaml` — **`ARCH-ATTACH-VERSIONS`** line + **`.1`** content mints on **`ARCH-ATTACH-PIN-VERSION`**, **`ARCH-ATTACH-SCOPE`**, **`ARCH-ATTACH-ENCRYPT`** (v0 unchanged; 43 edges).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_attach_figma_seed_release.py` — applies snippet + delta; product contract pins **`ARCH-ATTACH-VERSIONS`** v0 and active/draft v0 tips only (draft **`.1`** successors omitted per #38).
 - **Validate:** `python3 docs/design/seed/scripts/yaml_to_strictdoc.py --validate` (regenerates `docs/design/seed/out/`).
-- **Parallel PRs:** Catalogs browse UI and Contracts API may merge first; whichever PR merges after them owns shipping their planned releases — this PR does not ship any release.
+- **Parallel PR pair (rule 3):** This PR ships **`rel-r1-trace-inherit-uses`** / **`CAP-TRACE-INHERIT-USES`** at main merge **`56bfc4d6a9fe04559ccddae636ec4052d84ae907`** (PR #39). **`rel-r1-seed-attach-figma`** stays planned.

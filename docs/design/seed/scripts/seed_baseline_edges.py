@@ -60,6 +60,48 @@ def load_baseline_outbound_fixture() -> tuple[set[str], list[dict]]:
     return version_uids, edges
 
 
+def _record_fingerprint(record: dict) -> str:
+    return json.dumps({k: deepcopy(record[k]) for k in sorted(record.keys())}, sort_keys=True, default=str)
+
+
+def validate_baseline_records_preserved(
+    data,
+    *,
+    allow_version_uids: frozenset[str] | None = None,
+    allow_release_ids: frozenset[str] | None = None,
+) -> None:
+    """Every baseline version/release row must match main @ BASE_MAIN unless allow-listed."""
+    allow_version_uids = allow_version_uids or frozenset()
+    allow_release_ids = allow_release_ids or frozenset()
+    baseline = load_baseline_dogfood()
+    changed: list[str] = []
+    for ver in baseline.get("requirement_versions") or []:
+        uid = str(ver.get("uid") or "")
+        if not uid or uid in allow_version_uids:
+            continue
+        cur = next((v for v in data.get("requirement_versions") or [] if str(v.get("uid") or "") == uid), None)
+        if cur is None:
+            changed.append(f"version {uid} missing")
+            continue
+        if _record_fingerprint(cur) != _record_fingerprint(ver):
+            changed.append(f"version {uid} mutated")
+    for rel in baseline.get("releases") or []:
+        rid = str(rel.get("id") or "")
+        if not rid or rid in allow_release_ids:
+            continue
+        cur = next((r for r in data.get("releases") or [] if str(r.get("id") or "") == rid), None)
+        if cur is None:
+            changed.append(f"release {rid} missing")
+            continue
+        if _record_fingerprint(cur) != _record_fingerprint(rel):
+            changed.append(f"release {rid} mutated")
+    if changed:
+        sample = changed[:5]
+        raise SystemExit(
+            f"baseline record preservation failed: {len(changed)} row(s) changed @ {BASE_MAIN[:12]} (sample: {sample})"
+        )
+
+
 def validate_baseline_edges_preserved(
     data,
     *,

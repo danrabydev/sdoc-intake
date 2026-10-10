@@ -5475,7 +5475,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-TRACE-INHERIT-USES
-STATUS: Draft
+STATUS: Active
 TITLE: Trace inheritable ConformsTo loader + seed beds
 STATEMENT: >>>
 Dogfood seed loader persists trace_edges.inheritable on capability conforms_to pins; validation rejects inheritable on non-capability sources or non-conforms_to edges. Read APIs resolve inherited and hybrid control state at read time in a follow-on PR.
@@ -5487,7 +5487,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Planned until inherit-uses loader PR merges.
+security.verification_note: Shipped with inherit-uses loader PR #39 (merge 56bfc4d6a9fe04559ccddae636ec4052d84ae907).
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — trace inheritable controls over uses
 <<<
@@ -6185,7 +6185,7 @@ UID: CAP-SEED-ATTACH-FIGMA
 STATUS: Draft
 TITLE: Cyber attachments + Figma requirements (seed)
 STATEMENT: >>>
-Seed-only: Cyber attachments and Figma design-link requirement set in dogfood.yaml (ARCH-ATTACH-*, ARCH-ATTACH-VERSIONS, ARCH-ATTACH-SCAN, ARCH-FIGMA-*, SPIKE-FIGMA-FEASIBILITY, CAP-ATTACH-*, ARCH-KEY-SCOPE.1 and attachment .1 content mints) with conforms_to, refines, uses, and satisfies edges from fixtures/cyber-attach-figma-snippet.yaml and delta-versions.yaml. Regenerates out/ and HANDOFF.md. No application runtime changes; does not ship any release.
+Seed-only: Cyber attachments and Figma design-link requirement set in dogfood.yaml (ARCH-ATTACH-*, ARCH-ATTACH-VERSIONS, ARCH-ATTACH-SCAN, ARCH-FIGMA-*, SPIKE-FIGMA-FEASIBILITY, CAP-ATTACH-*, ARCH-KEY-SCOPE.1 and attachment .1 content mints) with conforms_to, refines, uses, and satisfies edges from fixtures/cyber-attach-figma-snippet.yaml and delta-versions.yaml. Regenerates out/ and HANDOFF.md. No application runtime changes; ships parallel PR #39 rel-r1-trace-inherit-uses only (this PR's release stays planned).
 <<<
 COMMENT: >>>
 KIND: capability
