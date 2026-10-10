@@ -120,11 +120,12 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_ui_layout_capabilities_release.py` — ships attach-figma release above; never removes baseline outbound edges; **`--validate-baseline-edges`**; baseline fixture **`docs/design/seed/fixtures/dogfood-baseline-outbound-edges.json`** @ **`1eb8482`**; run before `yaml_to_strictdoc.py --validate`.
 - **Counts (post-patch):** 453 lines, 486 versions, **1934** edges, 33 releases.
 
-## Addendum — browse catalogs UI (PR #41, main @ `cbee54e`)
+## Addendum — browse catalogs UI (PR #41, rebased main @ `4d82bf9`)
 
-- **Ship (merged):** `rel-r1-browse-ui-catalogs` → **`CAP-BROWSE-UI-CATALOGS`** at merge **`cbee54e9484d89430b461789052cea296e1669c5`** (2026-10-09), `active` / `pass` (ship step in **`patch_browse_ui_catalogs_release.py`** on main only).
-- **Patch (idempotent):** `docs/design/seed/scripts/patch_browse_ui_catalogs_release.py` — ships UI layout @ **`4d82bf9`**; adds planned browse catalogs until #41 merged.
-- **Counts (main @ cbee54e):** 454 lines, 487 versions, **1938** edges, 34 releases (4 planned including shipped layout).
+- **Ship (this PR’s seed patch):** `rel-r1-ui-layout-capabilities` → **`CAP-UI-LAYOUT`** at merge **`4d82bf9ab35ed63db675de8b187952cf60a434e5`** (2026-10-09), `active` / `pass` (PR #42 landed on main; ship step lives in **`patch_browse_ui_catalogs_release.py`** only).
+- **Release (planned):** `rel-r1-browse-ui-catalogs` → **`CAP-BROWSE-UI-CATALOGS`** (read-only `/app/.../catalogs` list, imprint detail, control detail; Catalogs project tab).
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_browse_ui_catalogs_release.py` — baseline fixture **`docs/design/seed/fixtures/dogfood-baseline-outbound-edges.json`** @ **`4d82bf9`**; **`--validate-baseline-edges`**; allow-list ship rows **`rel-r1-ui-layout-capabilities`** / **`CAP-UI-LAYOUT`** only; regenerate **`docs/design/seed/out/`** after apply.
+- **Counts (post-patch):** 454 lines, 487 versions, **1938** edges, 34 releases.
 
 ## Addendum — contracts loader (storage PR #44, baseline @ `cbee54e`)
 
