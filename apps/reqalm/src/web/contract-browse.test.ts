@@ -108,6 +108,7 @@ describe("contract browse screens", () => {
       assert.doesNotMatch(contractsSrc, /\.innerHTML\s*=/);
       assert.match(contractsSrc, /encodeURIComponent/);
       assert.match(contractsSrc, /isValidContractId/);
+      assert.match(contractsSrc, /items\.length\s*<\s*total/);
       assert.equal(contractsListHref(PID), `/app/projects/${PID}/contracts`);
       assert.equal(contractsListHref("INVALID!"), null);
       assert.equal(contractDetailHref(PID, CTR_PRODUCT), `/app/projects/${PID}/contracts/${CTR_PRODUCT}`);
@@ -253,7 +254,6 @@ describe("contract browse screens", () => {
       ["250 in three pages", { 0: 100, 100: 100, 200: 50 }, 250, [0, 100, 200], 250],
       ["125 short final page", { 0: 100, 100: 25 }, 125, [0, 100], 125],
       ["200 exact two full pages", { 0: 100, 100: 100 }, 200, [0, 100], 200],
-      ["empty page stops paging", { 0: 100, 100: 0 }, 250, [0, 100], 100],
     ] as const) {
       it(`fetchAllScope ${label}`, async () => {
         const mock = scopePagingMock(total, pages);
@@ -265,6 +265,13 @@ describe("contract browse screens", () => {
         assert.equal(mock.offsets.length, expectOffsets.length);
       });
     }
+
+    it("fetchAllScope fails closed when an empty page leaves scope truncated", async () => {
+      const mock = scopePagingMock(250, { 0: 100, 100: 0 });
+      const out = await fetchAllScope(mockFetchBare(mock.handler), PID, CTR_PRODUCT);
+      assert.equal(out.kind, "error");
+      assert.deepEqual(mock.offsets, [0, 100]);
+    });
 
     it("fetchAllScope stops when server returns limit zero with large total", async () => {
       let fetches = 0;
@@ -285,9 +292,7 @@ describe("contract browse screens", () => {
         };
       };
       const out = await fetchAllScope(mockFetchBare(handler), PID, CTR_PRODUCT);
-      assert.equal(out.kind, "ok");
-      assert.equal(out.data?.items.length, 0);
-      assert.equal(out.data?.total, 999_999);
+      assert.equal(out.kind, "error");
       assert.equal(fetches, 1);
     });
 
@@ -311,11 +316,71 @@ describe("contract browse screens", () => {
         };
       };
       const out = await fetchAllScope(mockFetchBare(handler), PID, CTR_PRODUCT, 1);
-      assert.equal(out.kind, "ok");
+      assert.equal(out.kind, "error");
       assert.equal(fetches, MAX_SCOPE_FETCH_PAGES);
-      assert.equal(out.data?.items.length, MAX_SCOPE_FETCH_PAGES);
-      assert.equal(out.data?.total, 999_999);
     });
+
+    for (const [label, apiFnFactory] of [
+      [
+        "non-positive page limit",
+        () => {
+          const base = scopeBase();
+          const scopeHandler: FetchHandler = (url) => {
+            if (!url.startsWith(base)) return undefined;
+            return {
+              status: 200,
+              body: {
+                data: {
+                  items: [{ uid: "uid-bad-limit", base: "CAP-BAD-LIMIT", kind: "capability", status: "active", version: 0 }],
+                  total: 999_999,
+                  limit: 0,
+                  offset: 0,
+                },
+              },
+            };
+          };
+          return detailFetch(ctrProductDetail, scopeHandler, () => relEmptyOk);
+        },
+      ],
+      [
+        "page cap",
+        () => {
+          const base = scopeBase();
+          const scopeHandler: FetchHandler = (url) => {
+            if (!url.startsWith(base)) return undefined;
+            const off = Number(new URLSearchParams(url.split("?")[1] ?? "").get("offset") ?? "0");
+            return {
+              status: 200,
+              body: {
+                data: {
+                  items: [{ uid: `uid-${off}`, base: `CAP-PAGE-${off}`, kind: "capability", status: "active", version: 0 }],
+                  total: 999_999,
+                  limit: 1,
+                  offset: off,
+                },
+              },
+            };
+          };
+          return detailFetch(ctrProductDetail, scopeHandler, () => relEmptyOk);
+        },
+      ],
+      [
+        "empty follow-up page",
+        () => detailFetch(ctrProductDetail, scopePagingMock(250, { 0: 100, 100: 0 }).handler, () => relEmptyOk),
+      ],
+    ] as const) {
+      it(`renderContractDetail load error when scope fetch is truncated (${label})`, async () => {
+        const m = mainEl();
+        await renderContractDetail(m, {
+          apiFn: apiFnFactory(),
+          projectId: PID,
+          contractId: CTR_PRODUCT,
+        });
+        assert.ok(m.querySelector(".contract-load-error"));
+        assert.equal(m.querySelector("h2"), null);
+        assert.equal(m.querySelectorAll("table.data-table tbody tr").length, 0);
+      });
+    }
 
     it("fetchAllScope 250 rows render on contract detail", async () => {
       const mock = scopePagingMock(250, { 0: 100, 100: 100, 200: 50 });

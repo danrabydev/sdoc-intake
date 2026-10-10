@@ -101,6 +101,26 @@ describe("authorize without projectId", () => {
     }
   });
 
+  it("denies requirement:read when projectId is whitespace only", async () => {
+    const fixture = await createMigratedPglitePool();
+    try {
+      const { pool } = fixture;
+      await pool.query(`INSERT INTO identities (id, display_name) VALUES ('rbac-ws-proj', 'ws') ON CONFLICT DO NOTHING`);
+      await pool.query(`INSERT INTO clients (id, name) VALUES ('rbac-client', 'C') ON CONFLICT DO NOTHING`);
+      await pool.query(
+        `INSERT INTO projects (id, client_id, name) VALUES ('rbac-p2', 'rbac-client', 'P2') ON CONFLICT DO NOTHING`,
+      );
+      await pool.query(
+        `INSERT INTO project_grants (id, project_id, identity_id, role)
+         VALUES ('grant-rbac-ws-proj-reader', 'rbac-p2', 'rbac-ws-proj', 'Reader') ON CONFLICT DO NOTHING`,
+      );
+      assert.equal(await authorize(pool, "rbac-ws-proj", "requirement:read", "   "), false);
+      assert.equal(await authorize(pool, "rbac-ws-proj", "requirement:read", "rbac-p2"), true);
+    } finally {
+      await fixture.close();
+    }
+  });
+
   it("denies requirement:read when projectId is an empty string", async () => {
     const fixture = await createMigratedPglitePool();
     try {

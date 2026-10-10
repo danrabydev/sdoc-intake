@@ -100,6 +100,7 @@ export async function fetchAllScope(apiFn, projectId, contractId, limit = 100) {
     pages += 1;
     if (offset >= total || !(page.items?.length)) break;
   }
+  if (items.length < total) return { kind: "error" };
   return { kind: "ok", data: { items, total } };
 }
 
