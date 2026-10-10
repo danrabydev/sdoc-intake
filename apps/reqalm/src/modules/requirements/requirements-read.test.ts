@@ -68,7 +68,7 @@ describe("requirements read API", () => {
         headers: bearer,
       })
     ).json() as { data: { items: Array<{ kind: string }>; total: number } };
-    assert.equal(cap.data.total, 99);
+    assert.equal(cap.data.total, 100);
     assert.ok(cap.data.items.length > 0);
     assert.ok(cap.data.items.every((i) => i.kind === "capability"));
     const draft = (

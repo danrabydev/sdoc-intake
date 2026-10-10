@@ -171,6 +171,9 @@ export async function summarizeSeedReset(
   const projectIds = seed.projects.map((p) => String(p.id));
   const wipe: Record<string, number> = {};
   for (const table of [
+    "contract_scope",
+    "contract_releases",
+    "contracts",
     "release_delivers",
     "releases",
     "requirement_versions",
@@ -208,6 +211,10 @@ async function wipeProjectSeedData(
   projectIds: string[],
 ): Promise<Record<string, number>> {
   const deleted: Record<string, number> = {};
+  for (const table of ["contract_scope", "contract_releases", "contracts"] as const) {
+    const r = await client.query(`DELETE FROM ${table} WHERE project_id = ANY($1::text[])`, [projectIds]);
+    deleted[table] = r.rowCount ?? 0;
+  }
   const rel = await client.query(
     "DELETE FROM releases WHERE project_id = ANY($1::text[])",
     [projectIds],

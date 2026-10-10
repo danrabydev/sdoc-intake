@@ -271,6 +271,27 @@ describe("seed reset", () => {
     await pg.close();
   });
 
+  it("wipes contract junction rows before releases (FK-safe)", async () => {
+    const pg = await createMigratedPglitePool();
+    const { config, env } = harness();
+    const seed = await readDogfoodFile(dogfoodPath);
+    await loadDogfoodSeed(pg.pool, config, seed);
+    const linked = await pg.pool.query<{ c: number }>(
+      `SELECT count(*)::int AS c FROM contract_releases cr JOIN releases r ON r.id = cr.release_id WHERE r.project_id = 'reqalm'`,
+    );
+    assert.ok((linked.rows[0]?.c ?? 0) > 0, "dogfood contracts must cover releases");
+    await resetDogfoodSeed(pg.pool, config, seed, {
+      confirm: true,
+      seedPath: dogfoodPath,
+      repoRoot,
+      env,
+      actor: "test-operator",
+    });
+    const after = await pg.pool.query<{ c: number }>(`SELECT count(*)::int AS c FROM contract_releases`);
+    assert.equal(after.rows[0]?.c, linked.rows[0]?.c);
+    await pg.close();
+  });
+
   it("is idempotent on a second run", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();

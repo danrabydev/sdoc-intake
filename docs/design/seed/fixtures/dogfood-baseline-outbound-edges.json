@@ -1,5 +1,5 @@
 {
-  "baseline_main": "4d82bf9ab35ed63db675de8b187952cf60a434e5",
+  "baseline_main": "cbee54e9484d89430b461789052cea296e1669c5",
   "version_uids": [
     "A01",
     "A02",
@@ -198,6 +198,7 @@
     "CAP-AUTH-UPSTREAM-SEAM",
     "CAP-BROWSE-CP",
     "CAP-BROWSE-ROADMAP",
+    "CAP-BROWSE-UI-CATALOGS",
     "CAP-BROWSE-UI-CP",
     "CAP-BROWSE-UI-CP.1",
     "CAP-BROWSE-UI-RELATIONS",
@@ -488,7 +489,7 @@
     "UI-APPROVE-TREE",
     "WANT-CHANGESET-FIELD-UNDO"
   ],
-  "edge_count": 1934,
+  "edge_count": 1938,
   "edges": [
     {
       "catalog_imprint_id": "asd-stig@v6r4",
@@ -9273,6 +9274,26 @@
       "from": "CAP-BROWSE-ROADMAP",
       "kind": "satisfies",
       "to": "ARCH-BROWSE-ROADMAP"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CATALOGS",
+      "kind": "satisfies",
+      "to": "ARCH-UI-GUARD"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CATALOGS",
+      "kind": "satisfies",
+      "to": "CAP-BROWSE-UI-REQS"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CATALOGS",
+      "kind": "satisfies",
+      "to": "CAP-CATALOGS-API"
+    },
+    {
+      "from": "CAP-BROWSE-UI-CATALOGS",
+      "kind": "satisfies",
+      "to": "CAP-UI-HEADER-NAV"
     },
     {
       "from": "CAP-BROWSE-UI-CP",

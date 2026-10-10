@@ -126,3 +126,12 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Release (planned):** `rel-r1-browse-ui-catalogs` → **`CAP-BROWSE-UI-CATALOGS`** (read-only `/app/.../catalogs` list, imprint detail, control detail; Catalogs project tab).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_browse_ui_catalogs_release.py` — baseline fixture **`docs/design/seed/fixtures/dogfood-baseline-outbound-edges.json`** @ **`4d82bf9`**; **`--validate-baseline-edges`**; allow-list ship rows **`rel-r1-ui-layout-capabilities`** / **`CAP-UI-LAYOUT`** only; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 454 lines, 487 versions, **1938** edges, 34 releases.
+
+## Addendum — contracts loader (storage PR #44, baseline @ `cbee54e`)
+
+- **Ship (this PR’s seed patch):** `rel-r1-browse-ui-catalogs` → **`CAP-BROWSE-UI-CATALOGS`** at merge **`cbee54e9484d89430b461789052cea296e1669c5`** (2026-10-09), `active` / `pass` (merged #41; do not edit **`patch_browse_ui_catalogs_release.py`**).
+- **Release (planned):** `rel-r1-contracts-loader` → **`CAP-CONTRACTS-LOADER`** (migration + dogfood loader only; read API is PR #43).
+- **Runtime:** `012_contracts_read.sql`; loader upserts `contracts`, `contract_scope`, `contract_releases`; seed reset wipes junction tables before `releases`; junction FKs **`ON DELETE RESTRICT`**; loader validates **`CONTRACT_ID`**, product/maintenance scope disjointness, and cross-project scope lines (intended).
+- **Patch:** `docs/design/seed/scripts/patch_contracts_loader_release.py` — baseline fixture @ **`cbee54e`**; allow-list ship rows browse catalogs + planned loader only; **`--validate-baseline-edges`**.
+- **Validate:** `python3 patch_contracts_loader_release.py && python3 yaml_to_strictdoc.py --validate`.
+- **Counts (post-patch):** 455 lines, 488 versions, **1941** edges, 35 releases (4 planned including loader).
