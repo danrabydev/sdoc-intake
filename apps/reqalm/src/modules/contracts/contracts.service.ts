@@ -13,6 +13,7 @@ export type ContractSummaryDto = {
   status: string;
   starts_on: string | null;
   ends_on: string | null;
+  client_id: string;
 };
 
 export type ContractDetailDto = ContractSummaryDto & {
@@ -74,6 +75,7 @@ const toSummary = (r: SummaryRow): ContractSummaryDto => ({
   status: r.status ?? "—",
   starts_on: r.starts_on ?? null,
   ends_on: r.ends_on ?? null,
+  client_id: r.client_id ?? "",
 });
 
 const visibleScopeCount = (n: number) =>
@@ -111,7 +113,7 @@ export async function listContracts(
     (await ctx.pool.query<{ c: number }>(`SELECT count(*)::int AS c FROM contracts c WHERE c.project_id = $1`, [input.projectId]))
       .rows[0]?.c ?? 0;
   const res = await ctx.pool.query<SummaryRow>(
-    `SELECT c.id, c.name, c.notes, c.status, c.starts_on::text AS starts_on, c.ends_on::text AS ends_on,
+    `SELECT c.id, c.client_id, c.name, c.notes, c.status, c.starts_on::text AS starts_on, c.ends_on::text AS ends_on,
             ${visibleScopeCount(2)} AS scope_count, ${visibleReleaseCount(3)} AS release_count
        FROM contracts c WHERE c.project_id = $1 ORDER BY c.id ASC LIMIT $4 OFFSET $5`,
     [input.projectId, reqProjects, relProjects, input.limit, input.offset],
