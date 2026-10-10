@@ -2,11 +2,22 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { ROLE_PERMISSIONS } from "./enforce.js";
 
+/** Pinned with planning:read in browse roles; planning-read.test.ts asserts live route ops match. */
+export const PLANNING_ROUTE_OPS = [
+  "planning.iterations.list",
+  "planning.iterations.get",
+  "planning.change_sets.list",
+  "planning.change_sets.get",
+  "planning.work_item_links.list",
+  "planning.work_item_links.get",
+] as const;
+
 const EXPECTED: Record<string, string[]> = {
   Reader: [
     "audit:read",
     "client:list",
     "contract:read",
+    "planning:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -18,6 +29,7 @@ const EXPECTED: Record<string, string[]> = {
     "audit:read",
     "client:list",
     "contract:read",
+    "planning:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -30,6 +42,7 @@ const EXPECTED: Record<string, string[]> = {
     "audit:read",
     "client:list",
     "contract:read",
+    "planning:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -42,6 +55,7 @@ const EXPECTED: Record<string, string[]> = {
     "audit:read",
     "client:list",
     "contract:read",
+    "planning:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -54,6 +68,7 @@ const EXPECTED: Record<string, string[]> = {
     "audit:read",
     "client:list",
     "contract:read",
+    "planning:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -67,6 +82,7 @@ const EXPECTED: Record<string, string[]> = {
     "audit:read",
     "client:list",
     "contract:read",
+    "planning:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -79,6 +95,7 @@ const EXPECTED: Record<string, string[]> = {
     "audit:read",
     "client:list",
     "contract:read",
+    "planning:read",
     "gate:approve",
     "grant:read",
     "project:list",
@@ -91,6 +108,7 @@ const EXPECTED: Record<string, string[]> = {
     "audit:read",
     "client:list",
     "contract:read",
+    "planning:read",
     "grant:read",
     "project:list",
     "release:list",
@@ -102,6 +120,7 @@ const EXPECTED: Record<string, string[]> = {
     "audit:read",
     "client:list",
     "contract:read",
+    "planning:read",
     "grant:manage",
     "grant:read",
     "project:list",
@@ -116,6 +135,7 @@ const EXPECTED: Record<string, string[]> = {
     "client:list",
     "client:manage",
     "contract:read",
+    "planning:read",
     "grant:manage",
     "grant:read",
     "project:list",
@@ -146,8 +166,16 @@ describe("ROLE_PERMISSIONS table", () => {
       "release:read",
       "contract:list",
       "contract:read",
+      "planning:read",
     ]) {
       assert.equal(perms.has(p), false, p);
     }
+  });
+
+  it("pins planning:read on browse roles and six route operation names", () => {
+    for (const role of ["Reader", "Author", "Auditor"] as const) {
+      assert.ok(ROLE_PERMISSIONS[role]?.has("planning:read"), role);
+    }
+    assert.equal(PLANNING_ROUTE_OPS.length, 6);
   });
 });

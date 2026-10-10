@@ -358,6 +358,87 @@ paths:
           $ref: "#/components/responses/ProblemUnauthorized"
         "404":
           $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/iterations:
+    get:
+      operationId: listProjectIterations
+      summary: List iterations
+      tags: [planning]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: projectId, in: path, required: true, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 100000, default: 0 } }
+      responses:
+        "200": { description: Paged iterations }
+        "400": { $ref: "#/components/responses/ProblemBadRequest" }
+        "404": { $ref: "#/components/responses/ProblemNotFound" }
+  /api/v1/projects/{projectId}/iterations/{iterationId}:
+    get:
+      operationId: getProjectIteration
+      summary: Read an iteration
+      tags: [planning]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: projectId, in: path, required: true, schema: { type: string } }
+        - { name: iterationId, in: path, required: true, schema: { type: string, pattern: "^[a-z0-9][a-z0-9-]{0,63}$" } }
+      responses:
+        "200": { description: Iteration detail }
+        "400": { $ref: "#/components/responses/ProblemBadRequest" }
+        "404": { $ref: "#/components/responses/ProblemNotFound" }
+  /api/v1/projects/{projectId}/change-sets:
+    get:
+      operationId: listProjectChangeSets
+      summary: List change sets
+      tags: [planning]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: projectId, in: path, required: true, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 100000, default: 0 } }
+      responses:
+        "200": { description: Paged change sets }
+        "400": { $ref: "#/components/responses/ProblemBadRequest" }
+        "404": { $ref: "#/components/responses/ProblemNotFound" }
+  /api/v1/projects/{projectId}/change-sets/{changeSetId}:
+    get:
+      operationId: getProjectChangeSet
+      summary: Read a change set
+      tags: [planning]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: projectId, in: path, required: true, schema: { type: string } }
+        - { name: changeSetId, in: path, required: true, schema: { type: string, pattern: "^[a-z0-9][a-z0-9-]{0,63}$" } }
+      responses:
+        "200": { description: Change set detail }
+        "400": { $ref: "#/components/responses/ProblemBadRequest" }
+        "404": { $ref: "#/components/responses/ProblemNotFound" }
+  /api/v1/projects/{projectId}/work-item-links:
+    get:
+      operationId: listProjectWorkItemLinks
+      summary: List work item links
+      tags: [planning]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: projectId, in: path, required: true, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 100000, default: 0 } }
+      responses:
+        "200": { description: Paged work item links }
+        "400": { $ref: "#/components/responses/ProblemBadRequest" }
+        "404": { $ref: "#/components/responses/ProblemNotFound" }
+  /api/v1/projects/{projectId}/work-item-links/{linkId}:
+    get:
+      operationId: getProjectWorkItemLink
+      summary: Read a work item link
+      tags: [planning]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: projectId, in: path, required: true, schema: { type: string } }
+        - { name: linkId, in: path, required: true, schema: { type: string, pattern: "^[a-z0-9][a-z0-9-]{0,63}$" } }
+      responses:
+        "200": { description: Work item link detail }
+        "400": { $ref: "#/components/responses/ProblemBadRequest" }
+        "404": { $ref: "#/components/responses/ProblemNotFound" }
   /api/v1/projects/{projectId}/catalogs:
     get:
       operationId: listProjectCatalogs
