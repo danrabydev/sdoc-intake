@@ -57,20 +57,29 @@ export function loadBaselineOutboundFixture(): BaselineOutboundFixture {
   return JSON.parse(readFileSync(baselineOutboundFixturePath(), "utf8")) as BaselineOutboundFixture;
 }
 
-/** Same check as `seed_baseline_edges.validate_baseline_edges_preserved` on parsed dogfood seed. */
-export function missingBaselineOutboundEdges(seed: DogfoodSeed): Map<string, number> {
-  const fixture = loadBaselineOutboundFixture();
+/** Seed input for outbound-edge checks (only `edges` is read). */
+export type BaselineOutboundSeedInput = Pick<DogfoodSeed, "edges">;
+
+export function assertBaselineFixtureMain(fixture: BaselineOutboundFixture): void {
   if (fixture.baseline_main !== BASELINE_MAIN_SHA) {
     throw new Error(
       `baseline fixture main mismatch: ${fixture.baseline_main} != ${BASELINE_MAIN_SHA}`,
     );
   }
+}
+
+/** Same check as `seed_baseline_edges.validate_baseline_edges_preserved` on parsed dogfood seed. */
+export function missingBaselineOutboundEdges(
+  seed: BaselineOutboundSeedInput,
+  fixture: BaselineOutboundFixture = loadBaselineOutboundFixture(),
+): Map<string, number> {
+  assertBaselineFixtureMain(fixture);
   const versionUids = new Set(fixture.version_uids);
   const outbound = (seed.edges ?? []).filter((e) => versionUids.has(String(e.from ?? "")));
   return subtractRequired(counter(fixture.edges), counter(outbound));
 }
 
-export function assertBaselineOutboundEdgesPreserved(seed: DogfoodSeed): void {
+export function assertBaselineOutboundEdgesPreserved(seed: BaselineOutboundSeedInput): void {
   const missing = missingBaselineOutboundEdges(seed);
   if (missing.size > 0) {
     const sample = [...missing.keys()].slice(0, 2).join("; ");

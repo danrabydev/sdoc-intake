@@ -3,11 +3,13 @@ import { describe, it } from "node:test";
 import { DOGFOOD_SEED_PATH } from "../test/harness.js";
 import {
   BASELINE_MAIN_SHA,
+  assertBaselineFixtureMain,
   assertBaselineOutboundEdgesPreserved,
   canonicalEdge,
   edgeFingerprint,
   loadBaselineOutboundFixture,
   missingBaselineOutboundEdges,
+  type BaselineOutboundSeedInput,
 } from "./baseline-outbound-edges.js";
 import { readDogfoodFile } from "./load-dogfood.js";
 
@@ -45,7 +47,18 @@ describe("dogfood baseline outbound edges @ main d54c5a6", () => {
     const flipped = { ...canonicalEdge(suspect), trace_suspect: false };
     assert.notEqual(edgeFingerprint(suspect), edgeFingerprint(flipped));
     const present = fixture.edges.map((e) => (e === suspect ? flipped : e));
-    const missing = missingBaselineOutboundEdges({ edges: present });
+    const edgeSeed: BaselineOutboundSeedInput = { edges: present };
+    const missing = missingBaselineOutboundEdges(edgeSeed);
     assert.ok(missing.size > 0);
+  });
+
+  it("missingBaselineOutboundEdges rejects a fixture with the wrong baseline_main SHA", () => {
+    const fixture = loadBaselineOutboundFixture();
+    const badFixture = { ...fixture, baseline_main: "0000000000000000000000000000000000000000" };
+    assert.throws(() => assertBaselineFixtureMain(badFixture), /baseline fixture main mismatch/);
+    assert.throws(
+      () => missingBaselineOutboundEdges({ edges: [] }, badFixture),
+      /baseline fixture main mismatch/,
+    );
   });
 });
