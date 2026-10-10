@@ -140,6 +140,6 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 
 - **Ship:** none in this PR (loader ship waits for #44 squash-merge SHA on `main`, then rebase + patch).
 - **Release (planned):** `rel-r1-read-contracts` → **`CAP-READ-CONTRACTS`** (not shipped until Dan says so).
-- **API:** four GET routes under `/api/v1/projects/:projectId/contracts`; **`contract:read`**; grant-filtered counts; hidden scope lines omitted; authz/missing → **404**.
+- **API:** four GET routes under `/api/v1/projects/:projectId/contracts`; **`contract:read`** (no separate **`contract:list`** grant); grant-filtered counts; hidden scope lines omitted; authz/missing → **404**; releases routes stay **403** when denied.
 - **Patch:** `patch_read_contracts_release.py` — allow-list browse catalogs ship (#44) only; **`--validate-baseline-edges`**.
 - **Counts (post-patch):** 456 lines, 489 versions, **1945** edges, 36 releases (5 planned: loader + read API + core tranche).

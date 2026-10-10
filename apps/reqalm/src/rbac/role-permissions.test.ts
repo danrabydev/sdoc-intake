@@ -6,7 +6,6 @@ const EXPECTED: Record<string, string[]> = {
   Reader: [
     "audit:read",
     "client:list",
-    "contract:list",
     "contract:read",
     "grant:read",
     "project:list",
@@ -18,7 +17,6 @@ const EXPECTED: Record<string, string[]> = {
   Author: [
     "audit:read",
     "client:list",
-    "contract:list",
     "contract:read",
     "grant:read",
     "project:list",
@@ -31,7 +29,6 @@ const EXPECTED: Record<string, string[]> = {
   Developer: [
     "audit:read",
     "client:list",
-    "contract:list",
     "contract:read",
     "grant:read",
     "project:list",
@@ -44,7 +41,6 @@ const EXPECTED: Record<string, string[]> = {
   Tester: [
     "audit:read",
     "client:list",
-    "contract:list",
     "contract:read",
     "grant:read",
     "project:list",
@@ -57,7 +53,6 @@ const EXPECTED: Record<string, string[]> = {
   "Release manager": [
     "audit:read",
     "client:list",
-    "contract:list",
     "contract:read",
     "grant:read",
     "project:list",
@@ -71,7 +66,6 @@ const EXPECTED: Record<string, string[]> = {
   Security: [
     "audit:read",
     "client:list",
-    "contract:list",
     "contract:read",
     "grant:read",
     "project:list",
@@ -84,7 +78,6 @@ const EXPECTED: Record<string, string[]> = {
   AO: [
     "audit:read",
     "client:list",
-    "contract:list",
     "contract:read",
     "gate:approve",
     "grant:read",
@@ -97,7 +90,6 @@ const EXPECTED: Record<string, string[]> = {
   Auditor: [
     "audit:read",
     "client:list",
-    "contract:list",
     "contract:read",
     "grant:read",
     "project:list",
@@ -109,7 +101,6 @@ const EXPECTED: Record<string, string[]> = {
   "Project admin": [
     "audit:read",
     "client:list",
-    "contract:list",
     "contract:read",
     "grant:manage",
     "grant:read",
@@ -124,7 +115,6 @@ const EXPECTED: Record<string, string[]> = {
     "audit:read",
     "client:list",
     "client:manage",
-    "contract:list",
     "contract:read",
     "grant:manage",
     "grant:read",

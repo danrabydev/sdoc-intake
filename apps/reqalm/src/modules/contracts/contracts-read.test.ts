@@ -141,6 +141,37 @@ describe("contracts read API", () => {
     assert.deepEqual(rels.items.map((r) => r.id), pos);
   });
 
+  it("regression: releases list returns 403 (not contract-style 404) when release:read denied", async () => {
+    const saved = (await q(`SELECT id, role FROM project_grants WHERE identity_id = 'casey-reader' AND project_id = 'reqalm'`)).rows as {
+      id: string;
+      role: string;
+    }[];
+    await q(`DELETE FROM project_grants WHERE identity_id = 'casey-reader' AND project_id = 'reqalm'`);
+    await q(`INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('grant-kc-rel-ctr', 'reqalm', 'casey-reader', 'Key custodian')`);
+    try {
+      assert.equal((await inject("/api/v1/projects/reqalm/releases?limit=1")).statusCode, 403);
+      assert.equal((await inject(LIST("reqalm"))).statusCode, 404);
+    } finally {
+      await q(`DELETE FROM project_grants WHERE id = 'grant-kc-rel-ctr'`);
+      for (const g of saved) await q(`INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('${g.id}', 'reqalm', 'casey-reader', '${g.role}') ON CONFLICT DO NOTHING`);
+    }
+  });
+
+  it("regression: projectScoped cross-project contract id fails fast with 404", async () => {
+    await q(`INSERT INTO projects (id, client_id, name) VALUES ('ctr-p2', 'reqalm-client', 'P2') ON CONFLICT DO NOTHING`);
+    await q(`INSERT INTO contracts (id, project_id, client_id, name, status) VALUES ('ctr-p2-only', 'ctr-p2', 'reqalm-client', 'x', 'active') ON CONFLICT DO NOTHING`);
+    try {
+      assert.equal((await inject(DET("reqalm", "ctr-p2-only"))).statusCode, 404);
+    } finally {
+      await q(`DELETE FROM contracts WHERE id = 'ctr-p2-only'; DELETE FROM projects WHERE id = 'ctr-p2'`);
+    }
+  });
+
+  it("regression: scope_count grant filter pins maintenance visible scope at 4", async () => {
+    const detail = dataOf(await inject(DET("reqalm", "ctr-reqalm-maintenance"))) as { scope_count: number };
+    assert.equal(detail.scope_count, 4);
+  });
+
   it("missing, forbidden, and cross-project contract paths share 404", async () => {
     const ref = await inject(DET("reqalm", "no-such-contract"));
     assert.equal(ref.statusCode, 404);

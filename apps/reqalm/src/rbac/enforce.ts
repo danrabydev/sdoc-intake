@@ -3,7 +3,7 @@ import type { RequestContext } from "../core/request-context.js";
 import { effectiveRoles } from "./agent-role.js";
 
 /** Minimal v1 role → permission map (aligned to permission-matrix-flat.md). */
-const browseList = ["client:list", "project:list", "requirement:list", "release:list", "contract:list"] as const;
+const browseList = ["client:list", "project:list", "requirement:list", "release:list"] as const;
 const withBrowse = (...perms: string[]) => new Set([...perms, ...browseList]);
 
 /** Exact role → permission map (tests pin this table). */
