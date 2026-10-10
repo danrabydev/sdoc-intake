@@ -918,6 +918,7 @@ edge: ← satisfies from CAP-READ-RELEASES
 edge: ← satisfies from CAP-READ-HIERARCHY
 edge: ← refines from CAP-RBAC.1
 edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR.1
+edge: ← satisfies from CAP-SVC-RBAC-NO-PROJECT
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: Platform baseline
@@ -3642,7 +3643,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-BROWSE-UI-CONTRACTS
-STATUS: Draft
+STATUS: Active
 TITLE: Browse contracts UI (read-only)
 STATEMENT: >>>
 Read-only /app browse screens for grant-scoped contracts within a project: contract list (title, scope and release counts), contract detail with in_scope_of lines linking to requirement/capability detail and covers_releases linking to release detail. Uses contracts read API; restricted/missing contracts follow API 404. Safe DOM (textContent only); Contracts project tab in header nav. Document view and overlap timeline deferred (mockups 02–03; no read API yet).
@@ -3654,7 +3655,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: Planned until contracts browse UI PR merges.
+security.verification_note: Shipped with contracts browse UI PR #45 (merge 86d315462b67446e605d6c898c15df2c8066b5d3).
 delivered_by_release: R1 — browse contracts UI (read-only)
 <<<
 RELATIONS:
@@ -12140,6 +12141,7 @@ edge: ← satisfies from CAP-RELATIONS-API
 edge: ← refines from ARCH-API-RBAC.1
 edge: ← satisfies from CAP-CATALOGS-API
 edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR.1
+edge: ← satisfies from CAP-SVC-RBAC-NO-PROJECT
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -12395,6 +12397,7 @@ iteration: iter-r1
 security.catalog_ref: CM-2
 security.verification_note: Planned until service-foundation PR merges.
 edge: ← refines from CAP-SVC-OPERATION-EXECUTOR.1
+edge: ← satisfies from CAP-SVC-RBAC-NO-PROJECT
 delivered_by_release: R1 — API service foundation (context, RBAC ops, audit, envelope)
 <<<
 RELATIONS:
@@ -15712,6 +15715,39 @@ RELATIONS:
 - TYPE: Child
   VALUE: CONTRACT-ctr-reqalm-product
   ROLE: InScopeOf
+
+[REQUIREMENT]
+UID: CAP-SVC-RBAC-NO-PROJECT
+STATUS: Draft
+TITLE: RBAC authorize fails closed without project scope
+STATEMENT: >>>
+authorize() and listActiveRoles() fail closed when no project id is supplied: project_grants roles apply only when projectId matches; permissions other than platform Key custodian key:manage and audit:read are denied without a project scope, so a route that omits projectScoped cannot authorize via another project's grant.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-RBAC-NO-PROJECT
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Planned until RBAC authorize fail-closed PR merges.
+delivered_by_release: R1 — RBAC authorize fail closed (no project scope)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-SEC
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-OPERATION-EXECUTOR
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-rbac-authorize-fail-closed
+  ROLE: Delivers
 
 [[/SECTION]]
 
