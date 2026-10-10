@@ -18,6 +18,15 @@ export const RELEASE_ID = SLUG_ID;
 /** Contract id in dogfood: slug (same rules as project id). */
 export const CONTRACT_ID = SLUG_ID;
 
+/** Iteration id in dogfood: slug. */
+export const ITERATION_ID = SLUG_ID;
+
+/** Change set id in dogfood: slug. */
+export const CHANGE_SET_ID = SLUG_ID;
+
+/** Work item link id in dogfood: slug. */
+export const WORK_ITEM_LINK_ID = SLUG_ID;
+
 /** Catalog def id in dogfood: slug (same rules as project id). */
 export const CATALOG_ID = SLUG_ID;
 
@@ -33,6 +42,9 @@ const DEFAULT_SEGMENT_RULES: PathSegmentRedactionRule[] = [
   { prefix: "/requirements/", valid: (s) => REQUIREMENT_ID.test(s) },
   { prefix: "/releases/", valid: (s) => RELEASE_ID.test(s) },
   { prefix: "/contracts/", valid: (s) => CONTRACT_ID.test(s) },
+  { prefix: "/iterations/", valid: (s) => ITERATION_ID.test(s) },
+  { prefix: "/change-sets/", valid: (s) => CHANGE_SET_ID.test(s) },
+  { prefix: "/work-item-links/", valid: (s) => WORK_ITEM_LINK_ID.test(s) },
   { prefix: "/catalogs/", valid: (s) => CATALOG_ID.test(s) },
   { prefix: "/imprints/", valid: (s) => IMPRINT_ID.test(s) },
   { prefix: "/controls/", valid: (s) => CONTROL_ID.test(s) },
