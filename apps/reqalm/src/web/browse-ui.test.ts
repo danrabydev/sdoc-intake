@@ -77,6 +77,7 @@ import {
 import { api, setUnauthorizedRedirect, clearUnauthorizedRedirect } from "./public/api-client.js";
 import { loadShellMeta, rootRedirectPath, renderAppShell, signOut } from "./public/app.js";
 import { pathGetsWebSpaShell } from "./spa-shell-paths.js";
+import { registerContractBrowseTests } from "./contract-browse-test-kit.js";
 
 type FetchHandler = (url: string) => { status: number; body?: unknown };
 
@@ -132,6 +133,12 @@ describe("browse routes and helpers", () => {
       releaseId: "rel-r1",
     });
     assert.deepEqual(parseAppRoute("/app/projects/reqalm/tree"), { view: "requirements-tree", projectId: "reqalm" });
+    assert.deepEqual(parseAppRoute("/app/projects/reqalm/contracts"), { view: "contracts-list", projectId: "reqalm" });
+    assert.deepEqual(parseAppRoute("/app/projects/reqalm/contracts/ctr-reqalm-product"), {
+      view: "contract-detail",
+      projectId: "reqalm",
+      contractId: "ctr-reqalm-product",
+    });
     assert.deepEqual(parseAppRoute("/app/projects/reqalm/catalogs"), { view: "catalogs-list", projectId: "reqalm" });
     assert.deepEqual(parseAppRoute("/app/projects/reqalm/catalogs/cat-nist-global/imprints/nist%408"), {
       view: "catalog-imprint-detail",
@@ -1563,6 +1570,12 @@ describe("app shell", () => {
         href: "/app/projects/reqalm/catalogs",
         hideTopNav: true,
       },
+      {
+        path: "/app/projects/reqalm/contracts",
+        label: "Contracts",
+        href: "/app/projects/reqalm/contracts",
+        hideTopNav: true,
+      },
       { path: "/app/clients", minNav: true },
     ];
     for (const { path, label, href, hideTopNav, releaseActiveHref, comingSoon, minNav } of cases) {
@@ -1590,7 +1603,7 @@ describe("app shell", () => {
         );
       }
       if (comingSoon) {
-        for (const tabLabel of ["Traceability", "Capabilities", "Contracts", "Audit"]) {
+        for (const tabLabel of ["Traceability", "Capabilities", "Audit"]) {
           const tab = [...document.querySelectorAll("#project-nav .project-tab-disabled")].find(
             (n) => n.textContent === tabLabel,
           );
@@ -1599,7 +1612,7 @@ describe("app shell", () => {
           assert.equal(tab?.getAttribute("title"), "Coming soon");
           assert.equal(tab?.tagName, "SPAN");
         }
-        assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 4);
+        assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 3);
       }
     }
   });
@@ -1957,7 +1970,8 @@ describe("catalog browse screens", () => {
     const listSegs = breadcrumbSegments(parseAppRoute("/app/projects/reqalm/catalogs"), shellMeta);
     assert.equal(listSegs.at(-1)?.label, "Catalogs");
     assert.equal(breadcrumbSegments(parseAppRoute(`/app/projects/reqalm/catalogs/${NIST_CAT}/imprints/x/controls/AC-3`), shellMeta).at(-1)?.label, "Control");
-    assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 4);
+    assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 3);
+    assert.deepEqual(projectTabItems("INVALID!", "/app/projects/reqalm/contracts"), []);
   });
 
   it("401 leaves views empty; API errors show alert", async () => {
@@ -1988,6 +2002,16 @@ describe("catalog browse screens", () => {
     await mountBrowseView(shellMain, parseAppRoute("/app/projects/reqalm/catalogs"), { apiFn: async () => null });
     assert.equal(shellMain.textContent, "");
   });
+});
+
+registerContractBrowseTests({
+  installDom,
+  shellMeta,
+  mockFetchBare,
+  contractsSrc: fs.readFileSync(
+    path.join(path.dirname(fileURLToPath(import.meta.url)), "public/browse-contracts.js"),
+    "utf8",
+  ),
 });
 
 describe("api() auth redirect", () => {

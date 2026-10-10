@@ -3243,6 +3243,7 @@ edge: ← refines from CAP-BROWSE-UI-REQS.1
 edge: ← satisfies from CAP-BROWSE-UI-RELATIONS.1
 edge: ← satisfies from CAP-UI-HEADER-NAV.1
 edge: ← satisfies from CAP-BROWSE-UI-CATALOGS
+edge: ← satisfies from CAP-BROWSE-UI-CONTRACTS
 delivered_by_release: R1 — browse requirements UI (read-only)
 <<<
 RELATIONS:
@@ -3600,7 +3601,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-READ-CONTRACTS
-STATUS: Draft
+STATUS: Active
 TITLE: Read contracts (list, detail, scope, releases)
 STATEMENT: >>>
 Grant-scoped read-only contracts API under /api/v1/projects/:projectId/contracts: paged list with scope and release counts; detail; paged in_scope_of scope lines (uid, base, kind, status, version) with cross-project lines omitted when the caller lacks requirement:read on the line project; covers_releases release summaries. RBAC contract:read mirrors requirement:read roles; missing/forbidden contract access returns 404.
@@ -3612,7 +3613,8 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: Planned until contracts read API PR merges.
+security.verification_note: Shipped with contracts read API PR #43 (merge aa7e85631819d45ac04852831ab305d655f1eddd).
+edge: ← satisfies from CAP-BROWSE-UI-CONTRACTS
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — contracts read API
 <<<
@@ -3636,6 +3638,45 @@ RELATIONS:
   ROLE: InScopeOf
 - TYPE: Child
   VALUE: RELEASE-rel-r1-read-contracts
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-BROWSE-UI-CONTRACTS
+STATUS: Draft
+TITLE: Browse contracts UI (read-only)
+STATEMENT: >>>
+Read-only /app browse screens for grant-scoped contracts within a project: contract list (title, scope and release counts), contract detail with in_scope_of lines linking to requirement/capability detail and covers_releases linking to release detail. Uses contracts read API; restricted/missing contracts follow API 404. Safe DOM (textContent only); Contracts project tab in header nav. Document view and overlap timeline deferred (mockups 02–03; no read API yet).
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-BROWSE-UI-CONTRACTS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Planned until contracts browse UI PR merges.
+delivered_by_release: R1 — browse contracts UI (read-only)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: CAP-READ-CONTRACTS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-BROWSE-UI-REQS
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-UI-HEADER-NAV
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-CONTRACT-UI
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-UI-GUARD
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-browse-ui-contracts
   ROLE: Delivers
 
 [[/SECTION]]
@@ -8541,6 +8582,7 @@ iteration: iter-r0
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
 edge: ← refines from CAP-CONTRACT-UI.1
+edge: ← satisfies from CAP-BROWSE-UI-CONTRACTS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1-core-ALM
@@ -11004,6 +11046,7 @@ edge: ← satisfies from CAP-BROWSE-UI-RELATIONS.1
 edge: ← satisfies from CAP-UI-HEADER-NAV.1
 edge: ← satisfies from CAP-UI-LAYOUT
 edge: ← satisfies from CAP-BROWSE-UI-CATALOGS
+edge: ← satisfies from CAP-BROWSE-UI-CONTRACTS
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 in_scope_of_contract: ReqALM product (build)
@@ -11597,6 +11640,7 @@ security.catalog_ref: CM-2
 security.verification_note: Shipped with header/nav UI PR #37 (merge dd43cc1523544d0f6375a628bc9d7d45a31fa738).
 edge: ← refines from CAP-UI-HEADER-NAV.1
 edge: ← satisfies from CAP-BROWSE-UI-CATALOGS
+edge: ← satisfies from CAP-BROWSE-UI-CONTRACTS
 delivered_by_release: R1 — ReqALM header and project navigation
 <<<
 RELATIONS:

@@ -143,3 +143,11 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **API:** four GET routes under `/api/v1/projects/:projectId/contracts`; **`contract:read`** (no separate **`contract:list`** grant); grant-filtered counts; hidden scope lines omitted; authz/missing → **404**; releases routes stay **403** when denied.
 - **Patch:** `patch_read_contracts_release.py` — **`--validate-baseline-edges`**.
 - **Counts (post-patch):** 456 lines, 489 versions, **1945** edges, 36 releases (4 planned + read API tranche).
+
+## Addendum — browse contracts UI (PR browse-ui-contracts, main @ `aa7e856`)
+
+- **Ship (this PR’s seed patch):** `rel-r1-read-contracts` → **`CAP-READ-CONTRACTS`** @ **`aa7e85631819d45ac04852831ab305d655f1eddd`** (2026-10-10), `active` / `pass`; baseline fixture @ **`aa7e856`**; allow-list read API ship rows only.
+- **Release (planned):** `rel-r1-browse-ui-contracts` → **`CAP-BROWSE-UI-CONTRACTS`** (read-only `/app/.../contracts` list + detail; Contracts project tab).
+- **Out of scope (mockups 02–03 / CAP-CONTRACT-UI):** document view from contract, overlap timeline, cyber_gate display — no read API fields yet.
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_browse_ui_contracts_release.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
+- **Counts (post-patch):** 457 lines, 490 versions, **1950** edges, 37 releases.
