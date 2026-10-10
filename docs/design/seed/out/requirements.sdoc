@@ -5706,7 +5706,7 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: CM-2
-security.verification_note: Shipped with inherit-uses loader PR #39 (merge 1eb8482b533b5f656240bc7b53a60b1a58c5a203).
+security.verification_note: Shipped with inherit-uses loader PR #39 (merge 56bfc4d6a9fe04559ccddae636ec4052d84ae907).
 in_scope_of_contract: ReqALM product (build)
 delivered_by_release: R1 — trace inheritable controls over uses
 <<<

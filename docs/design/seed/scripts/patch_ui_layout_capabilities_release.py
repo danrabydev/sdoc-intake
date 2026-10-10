@@ -31,6 +31,10 @@ REPO = "../../.."
 REPO_ROOT = SEED.parent.parent
 PLANNED = "2026-10-10"
 BASE_MAIN = "1eb8482b533b5f656240bc7b53a60b1a58c5a203"
+TRACE_MERGE = "56bfc4d6a9fe04559ccddae636ec4052d84ae907"
+ATTACH_SHIPPED = "2026-10-09"
+ATTACH_CAP = "CAP-SEED-ATTACH-FIGMA"
+ATTACH_REL = "rel-r1-seed-attach-figma"
 REL = "rel-r1-ui-layout-capabilities"
 CAP = "CAP-UI-LAYOUT"
 MOCK_SHOTS = "mockups/reqalm-two-column/shots/"
@@ -256,6 +260,51 @@ def refresh_product_contract_scope(data) -> None:
     prod = find(data.get("contracts"), "id", _contracts_patch_module().PRODUCT_CONTRACT)
     if prod:
         prod["covers_releases"] = _contracts_patch_module().reqalm_release_ids(data)
+
+
+def restore_trace_inherit_uses_ship(data) -> None:
+    """Keep PR #39 ship metadata frozen at its merge SHA (not this PR's main)."""
+    rel = find(data.get("releases"), "id", "rel-r1-trace-inherit-uses")
+    if rel:
+        rel["notes"] = (
+            f"PR #39 merged to main as {TRACE_MERGE} on {ATTACH_SHIPPED}. "
+            "trace_edges.inheritable column + seed beds for common-control inheritance over uses."
+        )
+    ver = find(data.get("requirement_versions"), "uid", "CAP-TRACE-INHERIT-USES")
+    if ver:
+        sec = dict(ver.get("security") or {})
+        sec["verification_note"] = f"Shipped with inherit-uses loader PR #39 (merge {TRACE_MERGE})."
+        ver["security"] = sec
+
+
+def ship_attach_figma_seed_release(data) -> None:
+    """Ship PR #40 attachments/Figma seed release at full main merge SHA (PR #42)."""
+    rel = find(data.get("releases"), "id", ATTACH_REL)
+    if rel:
+        rel["status"] = "shipped"
+        rel["shipped_on"] = ATTACH_SHIPPED
+        rel["notes"] = (
+            f"PR #40 merged to main as {BASE_MAIN} on {ATTACH_SHIPPED}. "
+            "Cyber attachments + Figma requirement set in dogfood seed."
+        )
+    ver = find(data.get("requirement_versions"), "uid", ATTACH_CAP)
+    if ver:
+        catalog_ref = (ver.get("security") or {}).get("catalog_ref", "CM-2")
+        ver["status"] = "active"
+        ver["verification_outcome"] = "pass"
+        ver["security"] = {
+            "catalog_ref": catalog_ref,
+            "verification_note": f"Shipped with attachments/Figma seed PR #40 (merge {BASE_MAIN}).",
+        }
+    ar = find(data.get("approval_records"), "id", "ar-seed-attach-figma")
+    if ar:
+        ar["status"] = "unapproved"
+        ar["notes"] = (
+            f"Capability active with verification pass after PR #40 merge {BASE_MAIN}; "
+            "formal approval record not filed in seed."
+        )
+        ar["approved_version_uid"] = None
+        ar["approved_statement_hash"] = None
 
 
 def update_planned_release_tips(data) -> None:
@@ -537,6 +586,8 @@ ARTIFACTS = [
 
 
 def apply_patch(data) -> None:
+    restore_trace_inherit_uses_ship(data)
+
     upsert(
         data.setdefault("requirement_lines", []),
         "base_uid",
@@ -680,6 +731,7 @@ def apply_patch(data) -> None:
 
     normalize_layout_statements(data)
     update_planned_release_tips(data)
+    ship_attach_figma_seed_release(data)
     refresh_product_contract_scope(data)
     validate_baseline_edges_preserved(data)
 

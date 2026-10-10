@@ -9192,7 +9192,7 @@ requirement_versions:
   iteration: iter-r1
   security:
     catalog_ref: CM-2
-    verification_note: 'Shipped with inherit-uses loader PR #39 (merge 1eb8482b533b5f656240bc7b53a60b1a58c5a203).'
+    verification_note: 'Shipped with inherit-uses loader PR #39 (merge 56bfc4d6a9fe04559ccddae636ec4052d84ae907).'
   statement_hash: sha256:c0c9ee34dd005fb6b8f9c79ccce303be368fe6c1acba7103650c613135b9214a
   grooming_state: detailed
   verification_outcome: pass
@@ -18767,7 +18767,7 @@ releases:
   delivers:
   - CAP-TRACE-INHERIT-USES
   cyber_gate: false
-  notes: 'PR #39 merged to main as 1eb8482b533b5f656240bc7b53a60b1a58c5a203 on 2026-10-09. trace_edges.inheritable column + seed beds for common-control inheritance over uses.'
+  notes: 'PR #39 merged to main as 56bfc4d6a9fe04559ccddae636ec4052d84ae907 on 2026-10-09. trace_edges.inheritable column + seed beds for common-control inheritance over uses.'
 - id: rel-r1-seed-attach-figma
   project_id: reqalm
   name: R1 — Cyber attachments + Figma requirements (seed)

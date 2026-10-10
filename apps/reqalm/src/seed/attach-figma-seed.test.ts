@@ -3,7 +3,8 @@ import { describe, it } from "node:test";
 import { DOGFOOD_SEED_PATH } from "../test/harness.js";
 import { readDogfoodFile, type DogfoodContractSeedRow } from "./load-dogfood.js";
 
-const MAIN_MERGE = "1eb8482b533b5f656240bc7b53a60b1a58c5a203";
+const TRACE_MERGE = "56bfc4d6a9fe04559ccddae636ec4052d84ae907";
+const ATTACH_MERGE = "1eb8482b533b5f656240bc7b53a60b1a58c5a203";
 const KEY_SCOPE = "ARCH-KEY-SCOPE";
 const KEY_SCOPE_DRAFT = "ARCH-KEY-SCOPE.1";
 const NIST = "nist-800-53@rev5-dogfood-20261006";
@@ -110,13 +111,13 @@ describe("attach-figma seed (ARCH-KEY-SCOPE)", () => {
     assert.ok(rel);
     assert.equal(rel.status, "shipped");
     assert.equal(rel.shipped_on, "2026-10-09");
-    assert.match(String(rel.notes ?? ""), new RegExp(MAIN_MERGE));
+    assert.match(String(rel.notes ?? ""), new RegExp(TRACE_MERGE));
     const cap = seed.requirement_versions?.find((v) => v.uid === "CAP-TRACE-INHERIT-USES");
     assert.ok(cap);
     assert.equal(cap.status, "active");
     assert.equal(cap.verification_outcome, "pass");
     const sec = cap.security as { verification_note?: string } | undefined;
-    assert.match(String(sec?.verification_note ?? ""), new RegExp(MAIN_MERGE));
+    assert.match(String(sec?.verification_note ?? ""), new RegExp(TRACE_MERGE));
   });
 
   it("ships PR #40 attach-figma seed release at full main merge SHA", async () => {
@@ -125,13 +126,13 @@ describe("attach-figma seed (ARCH-KEY-SCOPE)", () => {
     assert.ok(rel);
     assert.equal(rel.status, "shipped");
     assert.equal(rel.shipped_on, "2026-10-09");
-    assert.match(String(rel.notes ?? ""), new RegExp(MAIN_MERGE));
+    assert.match(String(rel.notes ?? ""), new RegExp(ATTACH_MERGE));
     const cap = seed.requirement_versions?.find((v) => v.uid === "CAP-SEED-ATTACH-FIGMA");
     assert.ok(cap);
     assert.equal(cap.status, "active");
     assert.equal(cap.verification_outcome, "pass");
     const sec = cap.security as { verification_note?: string } | undefined;
-    assert.match(String(sec?.verification_note ?? ""), new RegExp(MAIN_MERGE));
+    assert.match(String(sec?.verification_note ?? ""), new RegExp(ATTACH_MERGE));
   });
 
   it("ARCH-ATTACH-SCOPE and UPLOAD v0 use ARCH-API-RBAC.1 (accepted deviation)", async () => {
