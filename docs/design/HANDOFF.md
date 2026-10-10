@@ -100,10 +100,10 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 
 ## Addendum — main @ `56bfc4d` (2026-10-10, seed attachments + Figma)
 
-- **Release (planned):** `rel-r1-seed-attach-figma` → **`CAP-SEED-ATTACH-FIGMA`** (seed-only; no release shipped in this PR).
+- **Release (planned):** `rel-r1-seed-attach-figma` → **`CAP-SEED-ATTACH-FIGMA`** (seed-only; this capability release stays planned while this PR ships PR #39’s trace-inherit release per rule 3 below).
 - **Requirements (draft):** **`ARCH-ATTACH*`**, **`ARCH-ATTACH-SCAN`**, **`ARCH-FIGMA*`**, **`SPIKE-FIGMA-FEASIBILITY`**; **`ARCH-KEY-SCOPE.1`** content mint (v0 stays active, unedited; outbound edges duplicated on `.1`).
 - **Capabilities (draft):** **`CAP-ATTACH-READ`**, **`CAP-ATTACH-WRITE`** (`CAP-FIGMA-LINK` removed in Cyber v2).
-- **Edges (snippet v2):** 113 trace edges — 65 `conforms_to`, 18 `refines`, 21 `uses`, 9 `satisfies`; targets resolve to active version uids where applicable.
+- **Edges:** **156** trace edges total (**113** from snippet v2 + **43** from delta v3). Snippet kinds: 65 `conforms_to`, 18 `refines`, 21 `uses`, 9 `satisfies`; targets resolve to active version uids where applicable.
 - **Product contract:** **`ctr-reqalm-product`** `in_scope_of` refreshed (drops **`CAP-FIGMA-LINK`**; adds **`ARCH-ATTACH-SCAN`**, **`SPIKE-FIGMA-FEASIBILITY`**; pins active **`ARCH-KEY-SCOPE`** v0 only per #38 — draft **`.1`** omitted until activation).
 - **Delta v3 (file versioning):** `docs/design/seed/fixtures/delta-versions.yaml` — **`ARCH-ATTACH-VERSIONS`** line + **`.1`** content mints on **`ARCH-ATTACH-PIN-VERSION`**, **`ARCH-ATTACH-SCOPE`**, **`ARCH-ATTACH-ENCRYPT`** (v0 unchanged; 43 edges).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_attach_figma_seed_release.py` — applies snippet + delta; product contract pins **`ARCH-ATTACH-VERSIONS`** v0 and active/draft v0 tips only (draft **`.1`** successors omitted per #38).
