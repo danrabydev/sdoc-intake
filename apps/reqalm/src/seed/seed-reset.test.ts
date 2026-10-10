@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -273,25 +273,61 @@ describe("seed reset", () => {
 
   it("wipes planning and contract rows in FK-safe order before releases", async () => {
     const pg = await createMigratedPglitePool();
-    const { config, env } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
-    await loadDogfoodSeed(pg.pool, config, seed);
-    for (const [sql, msg] of [
-      [`SELECT count(*)::int AS c FROM work_item_links WHERE project_id = 'reqalm'`, "work_item_links"],
-      [`SELECT count(*)::int AS c FROM change_sets WHERE project_id = 'reqalm'`, "change_sets"],
-      [`SELECT count(*)::int AS c FROM iterations WHERE project_id = 'reqalm'`, "iterations"],
-    ] as const) {
-      assert.ok(((await pg.pool.query<{ c: number }>(sql)).rows[0]?.c ?? 0) > 0, msg);
+    try {
+      const { config, env } = harness();
+      const seed = await readDogfoodFile(dogfoodPath);
+      await loadDogfoodSeed(pg.pool, config, seed);
+      for (const [sql, msg] of [
+        [`SELECT count(*)::int AS c FROM work_item_links WHERE project_id = 'reqalm'`, "work_item_links"],
+        [`SELECT count(*)::int AS c FROM change_sets WHERE project_id = 'reqalm'`, "change_sets"],
+        [`SELECT count(*)::int AS c FROM iterations WHERE project_id = 'reqalm'`, "iterations"],
+      ] as const) {
+        assert.ok(((await pg.pool.query<{ c: number }>(sql)).rows[0]?.c ?? 0) > 0, msg);
+      }
+      await pg.pool.query(
+        `INSERT INTO iterations (id, project_id, name) VALUES ('FIX-PLAN-STALE-ITER', 'reqalm', 'stale') ON CONFLICT DO NOTHING`,
+      );
+      await pg.pool.query(
+        `INSERT INTO change_sets (id, project_id, kind, scope, status, opened_by, opened_at)
+         VALUES ('FIX-PLAN-STALE-CS', 'reqalm', 'leaf', 'project', 'open', 'dan', now()) ON CONFLICT DO NOTHING`,
+      );
+      await pg.pool.query(
+        `INSERT INTO work_item_links (id, project_id, requirement_version_uid, devops_id)
+         VALUES ('FIX-PLAN-STALE-WIL', 'reqalm', 'CAP-DEVENV-SEED-RESET', 'ADO-STALE') ON CONFLICT DO NOTHING`,
+      );
+      await resetDogfoodSeed(pg.pool, config, seed, {
+        confirm: true,
+        seedPath: dogfoodPath,
+        repoRoot,
+        env,
+        actor: "test-operator",
+      });
+      const count = async (table: string) =>
+        (await pg.pool.query<{ c: number }>(`SELECT count(*)::int AS c FROM ${table} WHERE project_id = 'reqalm'`)).rows[0]?.c;
+      assert.equal(await count("iterations"), 3);
+      assert.equal(await count("change_sets"), 5);
+      assert.equal(await count("work_item_links"), 2);
+      assert.equal(
+        (await pg.pool.query(`SELECT count(*)::int AS c FROM iterations WHERE id = 'FIX-PLAN-STALE-ITER'`)).rows[0]?.c,
+        0,
+      );
+      assert.equal(
+        (await pg.pool.query(`SELECT count(*)::int AS c FROM change_sets WHERE id = 'FIX-PLAN-STALE-CS'`)).rows[0]?.c,
+        0,
+      );
+      assert.equal(
+        (await pg.pool.query(`SELECT count(*)::int AS c FROM work_item_links WHERE id = 'FIX-PLAN-STALE-WIL'`)).rows[0]?.c,
+        0,
+      );
+    } finally {
+      await pg.close();
     }
-    await resetDogfoodSeed(pg.pool, config, seed, {
-      confirm: true,
-      seedPath: dogfoodPath,
-      repoRoot,
-      env,
-      actor: "test-operator",
-    });
-    assert.equal((await pg.pool.query(`SELECT count(*)::int AS c FROM iterations WHERE project_id = 'reqalm'`)).rows[0]?.c, 3);
-    await pg.close();
+  });
+
+  it("pins FK-safe wipe of change_sets and iterations in seed-reset (mutant guard)", () => {
+    const src = readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "seed-reset.ts"), "utf8");
+    assert.match(src, /DELETE FROM change_sets WHERE project_id = ANY/);
+    assert.match(src, /DELETE FROM iterations WHERE project_id = ANY/);
   });
 
   it("wipes contract junction rows before releases (FK-safe)", async () => {

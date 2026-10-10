@@ -161,7 +161,7 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_rbac_authorize_fail_closed_release.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 458 lines, 491 versions, **1953** edges, 38 releases.
 
-## Addendum — release state seed (main @ `341330f`, PR #49)
+## Addendum — release state seed (main @ `d54c5a6`, PR #46 shipped)
 
 - **Ship (this PR’s seed patch):** `rel-r1-rbac-authorize-fail-closed` → **`CAP-SVC-RBAC-NO-PROJECT`** @ **`d54c5a67235fd56e49bdbc2a939dce89ff5a4f36`** (2026-10-10), `active` / `pass`; baseline fixture @ **`d54c5a6`**; allow-list RBAC ship rows only.
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).

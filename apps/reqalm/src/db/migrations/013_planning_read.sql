@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS iterations (
   id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL REFERENCES projects(id),
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
   name TEXT NOT NULL,
   starts_on DATE,
   ends_on DATE
@@ -8,12 +8,12 @@ CREATE TABLE IF NOT EXISTS iterations (
 
 CREATE TABLE IF NOT EXISTS change_sets (
   id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL REFERENCES projects(id),
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
   kind TEXT NOT NULL,
   parent_id TEXT REFERENCES change_sets(id) ON DELETE RESTRICT,
   scope TEXT NOT NULL DEFAULT 'project',
   status TEXT NOT NULL,
-  opened_by TEXT NOT NULL REFERENCES identities(id),
+  opened_by TEXT NOT NULL REFERENCES identities(id) ON DELETE RESTRICT,
   opened_at TIMESTAMPTZ NOT NULL,
   closed_at TIMESTAMPTZ,
   summary TEXT,
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS change_sets (
 
 CREATE TABLE IF NOT EXISTS work_item_links (
   id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL REFERENCES projects(id),
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
   requirement_version_uid TEXT NOT NULL REFERENCES requirement_versions(uid) ON DELETE RESTRICT,
   devops_id TEXT NOT NULL,
   system TEXT,
