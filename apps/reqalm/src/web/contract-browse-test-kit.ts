@@ -9,6 +9,7 @@ import {
   contractScopeApiPath,
   contractReleasesApiPath,
   fetchAllScope,
+  isValidContractId,
   renderContractsList,
   renderContractDetail,
 } from "./public/browse-contracts.js";
@@ -147,6 +148,8 @@ export function registerContractBrowseTests(deps: {
       assert.equal(contractDetailHref(PID, CTR_PRODUCT), `/app/projects/${PID}/contracts/${CTR_PRODUCT}`);
       assert.equal(contractDetailHref(PID, "Bad_ID"), null);
       assert.equal(contractsApiPath(PID, 20, 0), `/api/v1/projects/${PID}/contracts?limit=20&offset=0`);
+      assert.equal(contractsApiPath("bad!", 20, 0), null);
+      assert.ok(isValidContractId(CTR_PRODUCT) && !isValidContractId("Bad_ID"));
     });
 
     it("list empty, invalid ids, summary, list 404", async () => {
@@ -188,6 +191,7 @@ export function registerContractBrowseTests(deps: {
         projectId: PID,
         offset: 0,
       });
+      assert.equal(sum.querySelectorAll("table.data-table tbody tr").length, 20);
       assert.equal(sum.querySelector(".contracts-list-summary")?.textContent, "Showing 20 of 45");
       const sum2 = mainEl();
       await renderContractsList(sum2, {
@@ -291,6 +295,7 @@ export function registerContractBrowseTests(deps: {
         const out = await fetchAllScope(mockFetchBare(mock.handler), PID, CTR_PRODUCT);
         assert.equal(out.kind, "ok");
         assert.equal(out.data?.items.length, expectItems);
+        assert.equal(out.data?.total, total);
         assert.deepEqual(mock.offsets, expectOffsets);
         assert.equal(mock.offsets.length, expectOffsets.length);
       });
