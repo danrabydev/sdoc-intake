@@ -40,6 +40,37 @@ const assert404Parity = (ref: InjectResponse, res: InjectResponse, label: string
   assert.deepEqual(stripReqId(res.json() as Record<string, unknown>), stripReqId(ref.json() as Record<string, unknown>), label);
 };
 
+async function captureAppLogs(fn: () => Promise<void>): Promise<string> {
+  const log = ctx.app.log as unknown as Record<symbol, { write: (s: string) => unknown }>;
+  const sym = Object.getOwnPropertySymbols(log).find((s) => s.description === "pino.stream");
+  assert.ok(sym, "pino stream symbol");
+  const stream = log[sym!]!;
+  const original = stream.write;
+  let captured = "";
+  stream.write = function (this: unknown, chunk: string) {
+    captured += chunk;
+    return original.call(this, chunk);
+  };
+  try {
+    await fn();
+  } finally {
+    stream.write = original;
+  }
+  return captured;
+}
+
+async function insertBizIds(ids: { id: number; req: string; op: string; projectId: string | null }) {
+  await q(
+    `INSERT INTO audit_events (id, occurred_at, request_id, operation, outcome, identity_id, project_id, detail)
+     VALUES ($1, now(), $2, $3, 'allow', 'casey-reader', $4, '{}'::jsonb)`,
+    [ids.id, ids.req, ids.op, ids.projectId],
+  );
+}
+
+async function bumpAuditSeq() {
+  await q(`SELECT setval(pg_get_serial_sequence('audit_events', 'id'), (SELECT COALESCE(max(id), 1) FROM audit_events))`);
+}
+
 before(async () => {
   ctx = await createTestApp({ dogfood: true });
   bearer = { authorization: `Bearer ${await issueTestAccessToken(ctx.app)}` };
@@ -68,6 +99,8 @@ describe("audit route registration", () => {
     assert.match(routesSrc, /permission: "audit:read"/);
     assert.match(routesSrc, /projectScoped: true/);
     assert.match(routesSrc, /listScope: true/);
+    const svc = readFileSync(path.join(dir, "audit.service.ts"), "utf8");
+    assert.match(svc, /project_id IS NULL/);
   });
 
   it("Auditor role includes audit:read in the pinned role table", () => {
@@ -77,20 +110,22 @@ describe("audit route registration", () => {
 });
 
 describe("audit read API", () => {
-  it("sort order newest first with tie-break id", async () => {
+  it("sort order newest first with numeric id tie-break on project route", async () => {
     await q(
-      `INSERT INTO audit_events (occurred_at, request_id, operation, outcome, identity_id, project_id, detail)
-       VALUES ('2020-01-01T00:00:00Z', 'audit-sort-old', 'audit.test.old', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb)`,
+      `WITH t AS (SELECT now() AS ts)
+       INSERT INTO audit_events (id, occurred_at, request_id, operation, outcome, identity_id, project_id, detail)
+       SELECT 9000009, ts, 'audit-tie-9', 'audit.tie.project', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb FROM t
+       UNION ALL
+       SELECT 9000010, ts, 'audit-tie-10', 'audit.tie.project', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb FROM t`,
     );
-    await q(
-      `INSERT INTO audit_events (occurred_at, request_id, operation, outcome, identity_id, project_id, detail)
-       VALUES ('2030-01-01T00:00:00Z', 'audit-sort-new', 'audit.test.new', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb)`,
-    );
-    const page = dataOf(await inject(`${PROJ("reqalm")}?limit=50&actor=casey-reader`)) as {
-      items: { action: string; id: string }[];
+    await bumpAuditSeq();
+    const page = dataOf(await inject(`${PROJ("reqalm")}?limit=5&action=audit.tie.project`)) as {
+      items: { id: string }[];
     };
-    const actions = page.items.filter((i) => i.action.startsWith("audit.test.")).map((i) => i.action);
-    assert.deepEqual(actions.slice(0, 2), ["audit.test.new", "audit.test.old"]);
+    assert.deepEqual(
+      page.items.map((i) => i.id),
+      ["b:9000010", "b:9000009"],
+    );
   });
 
   it("paging with positive offset and filter params", async () => {
@@ -144,15 +179,22 @@ describe("audit read API", () => {
 
   it("malformed project id and query params: 404 vs 400 with audit", async () => {
     assert.equal((await inject(PROJ("Not_A_Slug"))).statusCode, 404);
-    assert.equal((await inject(`${PROJ("reqalm")}?actor=!!bad!!`)).statusCode, 400);
+    assert.equal((await inject(`${PROJ("reqalm")}?actor=${encodeURIComponent("!!bad!!")}`)).statusCode, 400);
     assert.equal((await inject(`${PROJ("reqalm")}?action=INVALID`)).statusCode, 400);
     assert.equal((await inject(`${PROJ("reqalm")}?target_type=Bad-Type`)).statusCode, 400);
     assert.equal((await inject(`${PROJ("reqalm")}?from=not-a-time`)).statusCode, 400);
-    const wide = await inject(
-      `${PROJ("reqalm")}?from=2020-01-01T00:00:00Z&to=2021-06-01T00:00:00Z`,
+    assert.equal(
+      (await inject(`${PROJ("reqalm")}?from=2026-01-01T00:00:00.000Z&to=2026-04-01T00:00:01.000Z`)).statusCode,
+      400,
     );
-    assert.equal(wide.statusCode, 400);
-    const bad = await inject(`${PROJ("reqalm")}?actor=!!bad!!`, { ...bearer, "x-request-id": "audit-bad-q" });
+    assert.equal(
+      (await inject(`${PROJ("reqalm")}?from=2026-01-01T00:00:00.000Z&to=2026-04-01T00:00:00.000Z`)).statusCode,
+      200,
+    );
+    const bad = await inject(`${PROJ("reqalm")}?actor=${encodeURIComponent("!!bad!!")}`, {
+      ...bearer,
+      "x-request-id": "audit-bad-q",
+    });
     assert.equal(bad.statusCode, 400);
     assert.equal(
       (await q(`SELECT outcome FROM audit_events WHERE request_id = 'audit-bad-q'`)).rows[0]?.outcome,
@@ -203,6 +245,87 @@ describe("audit read API", () => {
     }
   });
 
+  it("defaults to the last 90 days when from and to are omitted", async () => {
+    await q(
+      `INSERT INTO audit_events (occurred_at, request_id, operation, outcome, identity_id, project_id, detail)
+       VALUES ('2010-01-01T00:00:00Z', 'audit-old-default', 'audit.default.window', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb)`,
+    );
+    await q(
+      `INSERT INTO audit_events (occurred_at, request_id, operation, outcome, identity_id, project_id, detail)
+       VALUES (now(), 'audit-fresh-default', 'audit.default.window', 'allow', 'casey-reader', 'reqalm', '{}'::jsonb)`,
+    );
+    const page = dataOf(await inject(`${PROJ("reqalm")}?limit=50&action=audit.default.window`)) as {
+      items: { id: string }[];
+    };
+    assert.equal(page.items.length, 1);
+    assert.equal(page.items[0]!.id.startsWith("b:"), true);
+  });
+
+  it("platform route excludes project-scoped business rows", async () => {
+    await q(
+      `INSERT INTO platform_grants (id, identity_id, role) VALUES ('plat-casey-kc-scope', 'casey-reader', 'Key custodian') ON CONFLICT DO NOTHING`,
+    );
+    try {
+      await insertBizIds({ id: 901, req: "audit-scope-proj", op: "audit.scope.filter", projectId: "reqalm" });
+      await insertBizIds({ id: 902, req: "audit-scope-plat", op: "audit.scope.filter", projectId: null });
+      await bumpAuditSeq();
+      const page = dataOf(await inject(`${PLATFORM}?limit=20&action=audit.scope.filter`)) as {
+        items: { project_id: string | null; id: string }[];
+      };
+      assert.equal(page.items.length, 1);
+      assert.equal(page.items[0]!.project_id, null);
+      assert.equal(page.items[0]!.id, "b:902");
+    } finally {
+      await q(`DELETE FROM platform_grants WHERE id = 'plat-casey-kc-scope'`);
+    }
+  });
+
+  it("platform sort uses numeric id tie-break", async () => {
+    await q(
+      `INSERT INTO platform_grants (id, identity_id, role) VALUES ('plat-casey-kc-sort', 'casey-reader', 'Key custodian') ON CONFLICT DO NOTHING`,
+    );
+    try {
+      await q(
+        `WITH t AS (SELECT now() AS ts)
+         INSERT INTO auth_audit_events (id, occurred_at, event_type, outcome, identity_id, ip, detail)
+         SELECT 8000009, ts, 'audit.platform.tie', 'success', 'casey-reader', '203.0.113.9', '{}'::jsonb FROM t
+         UNION ALL
+         SELECT 8000010, ts, 'audit.platform.tie', 'success', 'casey-reader', '203.0.113.10', '{}'::jsonb FROM t`,
+      );
+      await q(`SELECT setval(pg_get_serial_sequence('auth_audit_events', 'id'), (SELECT max(id) FROM auth_audit_events))`);
+      const page = dataOf(await inject(`${PLATFORM}?limit=5&action=audit.platform.tie`)) as { items: { id: string }[] };
+      assert.deepEqual(
+        page.items.map((i) => i.id),
+        ["a:8000010", "a:8000009"],
+      );
+    } finally {
+      await q(`DELETE FROM platform_grants WHERE id = 'plat-casey-kc-sort'`);
+    }
+  });
+
+  it("project-level Auditor cannot use the platform route (404)", async () => {
+    const saved = (await q(`SELECT id, role FROM project_grants WHERE identity_id = 'casey-reader' AND project_id = 'reqalm'`)).rows as {
+      id: string;
+      role: string;
+    }[];
+    await q(`DELETE FROM project_grants WHERE identity_id = 'casey-reader' AND project_id = 'reqalm'`);
+    await q(
+      `INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ('grant-auditor-proj-only', 'reqalm', 'casey-reader', 'Auditor')`,
+    );
+    try {
+      assert.equal((await inject(PLATFORM)).statusCode, 404);
+      assert.equal((await inject(PROJ("reqalm") + "?limit=1")).statusCode, 200);
+    } finally {
+      await q(`DELETE FROM project_grants WHERE id = 'grant-auditor-proj-only'`);
+      for (const g of saved) {
+        await q(`INSERT INTO project_grants (id, project_id, identity_id, role) VALUES ($1, 'reqalm', 'casey-reader', $2) ON CONFLICT DO NOTHING`, [
+          g.id,
+          g.role,
+        ]);
+      }
+    }
+  });
+
   it("platform route requires platform grant; project grant alone is 404", async () => {
     const ref = await inject(PLATFORM);
     assert.equal(ref.statusCode, 404);
@@ -239,6 +362,48 @@ describe("audit read API", () => {
     } finally {
       await q(`DELETE FROM platform_grants WHERE id = 'plat-casey-sec-audit'`);
     }
+  });
+
+  it("platform Auditor sees auth client_ip null; Security sees raw ip", async () => {
+    await writeAuthAudit(ctx.pool, {
+      eventType: "audit.ip.policy",
+      outcome: "success",
+      identityId: "casey-reader",
+      ip: "203.0.113.44",
+      detail: {},
+    });
+    await q(
+      `INSERT INTO platform_grants (id, identity_id, role) VALUES ('plat-auditor-ip', 'casey-reader', 'Auditor') ON CONFLICT DO NOTHING`,
+    );
+    try {
+      const aud = dataOf(await inject(`${PLATFORM}?limit=5&action=audit.ip.policy`)) as {
+        items: { client_ip: string | null }[];
+      };
+      assert.equal(aud.items[0]?.client_ip, null);
+    } finally {
+      await q(`DELETE FROM platform_grants WHERE id = 'plat-auditor-ip'`);
+    }
+    await q(
+      `INSERT INTO platform_grants (id, identity_id, role) VALUES ('plat-sec-ip', 'casey-reader', 'Security') ON CONFLICT DO NOTHING`,
+    );
+    try {
+      const sec = dataOf(await inject(`${PLATFORM}?limit=5&action=audit.ip.policy`)) as {
+        items: { client_ip: string | null }[];
+      };
+      assert.equal(sec.items[0]?.client_ip, "203.0.113.44");
+    } finally {
+      await q(`DELETE FROM platform_grants WHERE id = 'plat-sec-ip'`);
+    }
+  });
+
+  it("redacts invalid query params in request logs", async () => {
+    const badActor = encodeURIComponent("!!bad!!");
+    const logs = await captureAppLogs(async () => {
+      assert.equal((await inject(`${PROJ("reqalm")}?actor=${badActor}`)).statusCode, 400);
+    });
+    assert.ok(logs.includes("audit-events"));
+    assert.ok(!logs.includes("!!bad!!"));
+    assert.ok(!logs.includes(badActor));
   });
 
   it("write verbs on audit paths return 404 or 405 only", async () => {

@@ -233,8 +233,8 @@ export async function listPlatformAuditEvents(
   const unionParts: string[] = [];
   const unionParams: unknown[] = [...biz.params];
   unionParts.push(`
-    SELECT 'business' AS source, id::text, occurred_at::text, operation, outcome, identity_id, client_id,
-           agent_name, token_role, acting_for, project_id, target_type, target_id, detail,
+    SELECT 'business' AS source, id AS sort_id, occurred_at AS sort_at, id::text, occurred_at::text, operation, outcome,
+           identity_id, client_id, agent_name, token_role, acting_for, project_id, target_type, target_id, detail,
            NULL::text AS event_type, NULL::text AS resource, NULL::text AS ip
     FROM audit_events WHERE ${biz.sql}`);
 
@@ -243,9 +243,9 @@ export async function listPlatformAuditEvents(
     const authSql = auth.sql.replace(/\$(\d+)/g, (_, n) => `$${Number(n) + authStart - 1}`);
     unionParams.push(...auth.params);
     unionParts.push(`
-    SELECT 'auth' AS source, id::text, occurred_at::text, event_type AS operation, outcome, identity_id, client_id,
-           NULL::text, NULL::text, NULL::text, NULL::text, NULL::text, NULL::text, detail,
-           event_type, resource, ip
+    SELECT 'auth' AS source, id AS sort_id, occurred_at AS sort_at, id::text, occurred_at::text, event_type AS operation,
+           outcome, identity_id, client_id, NULL::text, NULL::text, NULL::text, NULL::text, NULL::text, NULL::text,
+           detail, event_type, resource, ip
     FROM auth_audit_events WHERE ${authSql}`);
   }
 
@@ -254,8 +254,10 @@ export async function listPlatformAuditEvents(
   const res = await ctx.pool.query<
     BusinessRow & { source: string; event_type?: string | null; resource?: string | null; ip?: string | null }
   >(
-    `SELECT * FROM (${unionParts.join(" UNION ALL ")}) u
-     ORDER BY occurred_at DESC, id DESC
+    `SELECT source, id, occurred_at, operation, outcome, identity_id, client_id, agent_name, token_role, acting_for,
+            project_id, target_type, target_id, detail, event_type, resource, ip
+     FROM (${unionParts.join(" UNION ALL ")}) u
+     ORDER BY sort_at DESC, sort_id DESC
      LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
     [...unionParams, input.limit, input.offset],
   );
