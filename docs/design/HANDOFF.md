@@ -167,3 +167,9 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
+
+## Addendum — ReqALM seed honesty (main @ `341330f`, evidence baseline)
+
+- **Ship (this PR’s seed patch):** `rel-r1-reqalm-honesty-seed` → **`CAP-REQALM-HONESTY`** @ **`341330fc8d43f2144193f1008503eacb7cfea903`** (2026-10-10), `active` / `pass`; aligns CAP-SSO, CAP-SCOPED-VIEW, CAP-RBAC, CAP-UI-FRAME, ARCH-API-RBAC, R0 release notes, and browse-clients/projects UI wording with **`apps/reqalm/src`** on that main SHA.
+- **Patch (idempotent):** `docs/design/seed/scripts/patch_reqalm_honesty_seed.py` — **`--validate-baseline-edges`**; baseline fixture @ **`341330f`**; allow-list honesty mint rows only; regenerate **`docs/design/seed/out/`** after apply.
+- **Counts (post-patch):** 462 lines, 496 versions, **1966** edges, 42 releases.
