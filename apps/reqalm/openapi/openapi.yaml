@@ -358,6 +358,110 @@ paths:
           $ref: "#/components/responses/ProblemUnauthorized"
         "404":
           $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/requirement-versions/{versionUid}/artifacts:
+    get:
+      operationId: listVersionArtifacts
+      summary: Paged design artifacts (URI metadata) for a requirement version
+      tags: [artifacts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: versionUid
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+      responses:
+        "200":
+          description: Capability/design artifact metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/CapabilityArtifactPage"
+                  request_id:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
+  /api/v1/projects/{projectId}/requirement-versions/{versionUid}/attachments:
+    get:
+      operationId: listVersionAttachments
+      summary: Paged file attachment metadata (latest version) for a requirement version
+      tags: [attachments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: versionUid
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100000
+            default: 0
+      responses:
+        "200":
+          description: File attachment metadata (no bytes or storage keys)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, request_id]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/FileAttachmentPage"
+                  request_id:
+                    type: string
+        "400":
+          $ref: "#/components/responses/ProblemBadRequest"
+        "401":
+          $ref: "#/components/responses/ProblemUnauthorized"
+        "404":
+          $ref: "#/components/responses/ProblemNotFound"
   /api/v1/projects/{projectId}/catalogs:
     get:
       operationId: listProjectCatalogs
@@ -879,6 +983,92 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ContractReleaseSummary"
+    CapabilityArtifact:
+      type: object
+      additionalProperties: false
+      required: [id, kind, uri, position]
+      properties:
+        id:
+          type: string
+          pattern: "^art_[0-9a-z]{26}$"
+        kind:
+          type: string
+          enum: [openapi, wireframe, mock, other]
+        uri:
+          type: string
+        position:
+          type: integer
+    CapabilityArtifactPage:
+      type: object
+      additionalProperties: false
+      required: [items, limit, offset, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CapabilityArtifact"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+    FileAttachmentLatest:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - version_id
+        - version_n
+        - display_name
+        - size_bytes
+        - media_type
+        - sha256
+        - scan_state
+        - uploaded_by
+        - created_at
+        - is_latest
+      properties:
+        id:
+          type: string
+          pattern: "^att_[0-9a-z]{26}$"
+        version_id:
+          type: string
+          pattern: "^attv_[0-9a-z]{26}$"
+        version_n:
+          type: integer
+        display_name:
+          type: string
+        size_bytes:
+          type: integer
+        media_type:
+          type: string
+        sha256:
+          type: string
+        scan_state:
+          type: string
+        uploaded_by:
+          type: string
+        created_at:
+          type: string
+        is_latest:
+          type: boolean
+          const: true
+    FileAttachmentPage:
+      type: object
+      additionalProperties: false
+      required: [items, limit, offset, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileAttachmentLatest"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
     RequirementRelations:
       type: object
       required: [id, project_id, outgoing, incoming]

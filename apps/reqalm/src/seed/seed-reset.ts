@@ -174,12 +174,37 @@ export async function summarizeSeedReset(
     "contract_scope",
     "contract_releases",
     "contracts",
+    "file_attachment_versions",
+    "file_attachments",
+    "capability_artifacts",
+    "attachment_blobs",
     "release_delivers",
     "releases",
     "requirement_versions",
     "requirement_lines",
   ] as const) {
-    if (table === "release_delivers") {
+    if (table === "file_attachment_versions") {
+      const r = await client.query(
+        `
+        SELECT count(*)::int AS c FROM file_attachment_versions v
+        JOIN file_attachments fa ON fa.id = v.attachment_id
+        WHERE fa.project_id = ANY($1::text[])
+      `,
+        [projectIds],
+      );
+      wipe[table] = r.rows[0].c as number;
+    } else if (table === "attachment_blobs") {
+      const r = await client.query(
+        `
+        SELECT count(DISTINCT b.id)::int AS c FROM attachment_blobs b
+        JOIN file_attachment_versions v ON v.blob_id = b.id
+        JOIN file_attachments fa ON fa.id = v.attachment_id
+        WHERE fa.project_id = ANY($1::text[])
+      `,
+        [projectIds],
+      );
+      wipe[table] = r.rows[0].c as number;
+    } else if (table === "release_delivers") {
       const r = await client.query(
         `
         SELECT count(*)::int AS c FROM release_delivers d
@@ -215,6 +240,23 @@ async function wipeProjectSeedData(
     const r = await client.query(`DELETE FROM ${table} WHERE project_id = ANY($1::text[])`, [projectIds]);
     deleted[table] = r.rowCount ?? 0;
   }
+  const fav = await client.query(
+    `DELETE FROM file_attachment_versions v
+       USING file_attachments fa
+       WHERE fa.id = v.attachment_id AND fa.project_id = ANY($1::text[])`,
+    [projectIds],
+  );
+  deleted.file_attachment_versions = fav.rowCount ?? 0;
+  const faDel = await client.query(`DELETE FROM file_attachments WHERE project_id = ANY($1::text[])`, [projectIds]);
+  deleted.file_attachments = faDel.rowCount ?? 0;
+  const artDel = await client.query(`DELETE FROM capability_artifacts WHERE project_id = ANY($1::text[])`, [
+    projectIds,
+  ]);
+  deleted.capability_artifacts = artDel.rowCount ?? 0;
+  await client.query(
+    `DELETE FROM attachment_blobs b
+       WHERE NOT EXISTS (SELECT 1 FROM file_attachment_versions v WHERE v.blob_id = b.id)`,
+  );
   const rel = await client.query(
     "DELETE FROM releases WHERE project_id = ANY($1::text[])",
     [projectIds],

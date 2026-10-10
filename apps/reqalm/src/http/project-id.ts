@@ -27,6 +27,18 @@ export const IMPRINT_ID = /^[a-z0-9][a-z0-9.@_-]{0,159}$/;
 /** Catalog control id (item uid): same rules as requirement line id. */
 export const CONTROL_ID = REQUIREMENT_ID;
 
+/** Requirement or capability version uid in path params. */
+export const VERSION_UID = REQUIREMENT_ID;
+
+/** Capability design artifact id (^art_[0-9a-z]{26}$). */
+export const CAPABILITY_ARTIFACT_ID = /^art_[0-9a-z]{26}$/;
+
+/** File attachment line id (^att_[0-9a-z]{26}$). */
+export const ATTACHMENT_ID = /^att_[0-9a-z]{26}$/;
+
+/** File attachment version id (^attv_[0-9a-z]{26}$). */
+export const ATTACHMENT_VERSION_ID = /^attv_[0-9a-z]{26}$/;
+
 const DEFAULT_SEGMENT_RULES: PathSegmentRedactionRule[] = [
   { prefix: "/projects/", valid: (s) => SLUG_ID.test(s) },
   { prefix: "/clients/", valid: (s) => SLUG_ID.test(s) },
@@ -36,6 +48,8 @@ const DEFAULT_SEGMENT_RULES: PathSegmentRedactionRule[] = [
   { prefix: "/catalogs/", valid: (s) => CATALOG_ID.test(s) },
   { prefix: "/imprints/", valid: (s) => IMPRINT_ID.test(s) },
   { prefix: "/controls/", valid: (s) => CONTROL_ID.test(s) },
+  { prefix: "/requirement-versions/", valid: (s) => VERSION_UID.test(s) },
+  { prefix: "/attachments/", valid: (s) => ATTACHMENT_ID.test(s) },
 ];
 
 export function redactInvalidPathParamIds(
