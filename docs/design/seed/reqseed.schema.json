@@ -132,16 +132,20 @@
     },
     "acceptance_criteria": {
       "type": "array",
-      "description": "Shall-statement facets on one requirement or capability version. Completeness is criterion_completions (ARCH-CRITERION-RELEASE-UAT). Copy-on-change uses statement_hash unchanged test (ARCH-CAP-REVIEW-COPY).",
+      "description": "Shall-statement facets on one requirement version or one capability version. Completion is criterion_completions.",
       "items": {
-        "$ref": "#/definitions/acceptance_criterion"
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["id", "version_uid", "statement", "position"]
       }
     },
     "criterion_completions": {
       "type": "array",
-      "description": "Release UAT/review completion marker, or an explicit carry (copied_from + carried_by + carried_at). No auto-carry; default on copy is reset to open.",
+      "description": "UAT or review of a release marked one criterion complete. Not written by work-item sync.",
       "items": {
-        "$ref": "#/definitions/criterion_completion"
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["id", "criterion_id", "release_id", "by", "at"]
       }
     },
     "subject_kinds": {
@@ -1467,96 +1471,6 @@
             "string",
             "null"
           ]
-        }
-      }
-    },
-    "acceptance_criterion": {
-      "type": "object",
-      "additionalProperties": true,
-      "required": [
-        "id",
-        "version_uid",
-        "statement",
-        "statement_hash",
-        "position"
-      ],
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "version_uid": {
-          "type": "string"
-        },
-        "statement": {
-          "type": "string"
-        },
-        "statement_hash": {
-          "type": "string",
-          "description": "sha256: digest; same canonicalization as requirement version statement_hash (ARCH-SUCCESSION-HASH)."
-        },
-        "position": {
-          "type": "integer"
-        },
-        "copied_from": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Source criterion id when minted by ARCH-CAP-REVIEW-COPY."
-        }
-      }
-    },
-    "criterion_completion": {
-      "type": "object",
-      "additionalProperties": true,
-      "required": [
-        "id",
-        "criterion_id",
-        "release_id",
-        "by",
-        "at"
-      ],
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "criterion_id": {
-          "type": "string"
-        },
-        "release_id": {
-          "type": "string"
-        },
-        "by": {
-          "type": "string",
-          "description": "Original UAT/review actor (source marker)."
-        },
-        "at": {
-          "type": "string",
-          "description": "Original UAT/review time (source marker), ISO-8601."
-        },
-        "copied_from": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Source criterion_completion.id when marker is carried onto a successor criterion."
-        },
-        "carried_by": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Required when copied_from is set: identity who chose carry."
-        },
-        "carried_at": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Required when copied_from is set: ISO-8601 when carry was recorded."
-        },
-        "notes": {
-          "type": "string"
         }
       }
     }

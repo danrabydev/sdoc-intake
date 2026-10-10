@@ -24,27 +24,10 @@ PLANNED = "2026-10-10"
 REL = "rel-r1-criteria-release-review"
 CAP = "CAP-CRITERIA-RELEASE-REVIEW"
 LEGACY_FIX_REL = "rel-fix-cap-review-uat"
-NIST = "nist-800-53@rev5-dogfood-20261006"
-SEC_PROPOSED = {
-    "catalog_ref": "CM-2",
-    "verification_note": "Proposed 2026-10-10 for project-lead review. Not activated.",
-}
-SEC_UAT = {
-    "catalog_ref": "CA-2",
-    "verification_note": "Cyber 2026-10-10: CA-2/SA-11 release UAT/review completes criteria; AU-2/3/12 on markers and carry audit.",
-}
-SEC_COPY = {
-    "catalog_ref": "CM-3",
-    "verification_note": "Cyber 2026-10-10: CM-3 review-driven copy; per-criterion carry or reset; AU-2/3/12 on carry choice.",
-}
-SEC_ROLLUP = {
-    "catalog_ref": "CA-7",
-    "verification_note": "Cyber 2026-10-10: CA-7 completeness rollup from facets; UAT gate ARCH-CRITERION-RELEASE-UAT.",
-}
-SEC_RECHECK_1 = {
-    "catalog_ref": "CM-3",
-    "verification_note": "Cyber 2026-10-10: CM-3 review-driven successor; copy carry or reset (not re-check); AU-2/3/12 on carry audit.",
-}
+
+
+def security_meta(catalog_ref: str, note: str = "Proposed 2026-10-10 for project-lead review. Not activated.") -> dict:
+    return {"catalog_ref": catalog_ref, "verification_note": note}
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from seed_baseline_edges import validate_baseline_edges_preserved  # noqa: E402
@@ -87,12 +70,12 @@ def ensure_edge(edges, edge):
     return 1
 
 
-def ensure_conforms(edges, from_uid: str, controls: tuple[str, ...]) -> None:
-    for to in controls:
-        ensure_edge(
-            edges,
-            {"from": from_uid, "to": to, "kind": "conforms_to", "catalog_imprint_id": NIST},
-        )
+def remove_outbound_conforms(edges, from_uid: str) -> None:
+    edges[:] = [
+        e
+        for e in edges
+        if not (str(e.get("from") or "") == from_uid and e.get("kind") == "conforms_to")
+    ]
 
 
 def remove_edge(edges, edge):
@@ -175,21 +158,24 @@ FACET_1 = (
 ROLLUP_1 = (
     "Completeness of a requirement rolls up from that requirement version's own facets. Completeness of a "
     "capability rolls up from that capability version's own facets. A facet is complete only when a release "
-    "UAT or review records a completion marker for it (ARCH-CRITERION-RELEASE-UAT). A satisfies link, a closed "
-    "work item, or verification_outcome on the version does not by itself complete a facet; "
-    "verification_outcome and ship gates remain governed by ARCH-VERIFICATION and ARCH-VERIFICATION-GATE. "
-    "The parent stays incomplete while any of its facets has no completion marker."
+    "UAT or review records a completion marker for it (ARCH-CRITERION-RELEASE-UAT). Carried completion markers "
+    "count toward rollup completeness and shall be displayed as carried. A satisfies link, a closed work item, or "
+    "verification_outcome on the version does not by itself complete a facet; verification_outcome and ship gates "
+    "remain governed by ARCH-VERIFICATION and ARCH-VERIFICATION-GATE. The parent stays incomplete while any of its "
+    "facets has no completion marker."
 )
 UAT = (
-    "UAT and review of a release are the completeness gate for acceptance criteria. A completion marker shall "
-    "name the criterion, the release, the actor, and the time, and shall be recorded only for a criterion on a "
-    "version that release delivers. Work items do not complete criteria. A capability may be delivered in more "
-    "than one release; each release review may complete only criteria on versions listed in that release's "
-    "delivers snapshot. The capability's criteria are complete when each facet has a completion marker, which may "
-    "be recorded in a later release than the first delivery. Exception: when a user carries an unchanged criterion "
-    "onto a successor version (ARCH-CAP-REVIEW-COPY), the carried marker may appear on that successor even though "
-    "the mint act did not deliver the successor; the carried marker shall reference copied_from, carried_by, "
-    "carried_at, the source marker's by and at, and the release that originally completed the frozen criterion."
+    "UAT and review of a release are the completeness gate for acceptance criteria. Marking a criterion complete "
+    "shall require an authorized permission distinct from edit rights on the parent version. The actor who marks "
+    "a criterion complete shall not be the author of the parent requirement or capability version for that "
+    "criterion (separation of duties). Each completion shall append an audit event to the append-only audit log "
+    "naming the criterion, release, actor, and time, and shall apply only to a criterion on a version that release "
+    "delivers. Work items do not complete criteria. A capability may be delivered in more than one release; each "
+    "release review may complete only criteria on versions listed in that release's delivers snapshot. Exception: "
+    "when a user carries an unchanged criterion onto a successor version (ARCH-CAP-REVIEW-COPY), the carried "
+    "marker may appear on that successor even though the mint act did not deliver the successor; the carried marker "
+    "shall reference copied_from, carried_by, carried_at, the source marker's by and at, and the release that "
+    "originally completed the frozen criterion."
 )
 COPY = (
     "When a reviewed capability receives a new content version, each criterion on the reviewed version is copied "
@@ -200,18 +186,19 @@ COPY = (
     "and status open (incomplete). A copy of a criterion that was never complete on the source starts open "
     "(incomplete). An unchanged criterion may carry its prior completion only when the editor explicitly chooses "
     "carry for that criterion; the default when no choice is recorded is reset to open (incomplete). Carry is per "
-    "criterion within one capability revision, not all-or-nothing. A carried completion marker shall record "
-    "copied_from, carried_by, and carried_at separately from the source marker's by and at. Copied criteria on a "
-    "review-driven successor do not enter re-check (ARCH-TRACE-RECHECK.1); a user-chosen carry of an unchanged "
-    "criterion records the carry audit; a copy that is not carried is reset to open (incomplete)."
+    "criterion within one capability revision, not all-or-nothing. Carry shall require an authorized permission "
+    "distinct from completion and edit rights. Each carry choice shall append an audit event to the append-only "
+    "audit log with copied_from, carried_by, and carried_at. Carry is limited to the same project and the same "
+    "capability line. Copied criteria on a review-driven successor do not enter re-check (ARCH-TRACE-RECHECK.1)."
 )
 RECHECK_1 = (
     "Re-check (needs re-check) remains distinct from incomplete and open per ARCH-TRACE-RECHECK. When a capability "
-    "receives a review-driven content successor (ARCH-CAP-REVIEW-COPY), copied acceptance criteria on that "
-    "successor do not enter re-check. Each copied criterion either carries its done state (unchanged "
-    "statement_hash and an explicit editor carry choice with audit) or resets to open (incomplete). Re-check still "
-    "applies to criteria and other trace targets when a conforming capability changes content by other means, "
-    "loses verification, regresses, or when trace_suspect is set on inbound satisfies, refines, or uses edges."
+    "receives a review-driven content successor tied to a recorded review action (ARCH-CAP-REVIEW-COPY), copied "
+    "acceptance criteria on that successor do not enter re-check; each copy either carries done state (unchanged "
+    "statement_hash and an explicit editor carry choice) or resets to open (incomplete). Re-check still applies "
+    "when a conforming capability changes content by other means, loses verification, regresses, when "
+    "trace_suspect is set on inbound satisfies, refines, or uses edges, or when the provider of an inherited or "
+    "hybrid control changes."
 )
 J02_1 = (
     "The initial work-item act compiles a briefing from a capability, not a one-to-one sync from a requirement "
@@ -266,7 +253,7 @@ def draft_version(
         statement=statement,
         priority=15,
         iteration="iter-r1",
-        security=deepcopy(security or SEC_PROPOSED),
+        security=deepcopy(security or security_meta("CM-2")),
         statement_hash=statement_hash(statement),
         grooming_state="detailed",
     )
@@ -293,6 +280,8 @@ def apply_patch(data) -> None:
     remove_edge(edges, {"from": "CAP-CRITERIA-RELEASE-REVIEW", "to": "ARCH-WI-COMPILE", "kind": "satisfies"})
     remove_edge(edges, {"from": "CAP-CRITERIA-RELEASE-REVIEW", "to": "ARCH-WI-COMPILE.1", "kind": "satisfies"})
     remove_edge(edges, {"from": "ARCH-CAP-REVIEW-COPY", "to": "ARCH-TRACE-RECHECK", "kind": "refines"})
+    remove_outbound_conforms(edges, "ARCH-CRITERION-RELEASE-UAT")
+    remove_outbound_conforms(edges, "ARCH-CAP-REVIEW-COPY")
 
     product = find(data.get("contracts"), "id", "ctr-reqalm-product")
     if product is not None:
@@ -312,15 +301,39 @@ def apply_patch(data) -> None:
         ]
 
     proposals = [
-        ("ARCH-REQ-AC-FACET.1", "ARCH-REQ-AC-FACET", 1, FACET_1, "content", "requirement:tree:read", SEC_PROPOSED),
-        ("ARCH-REQ-AC-ROLLUP.1", "ARCH-REQ-AC-ROLLUP", 1, ROLLUP_1, "content", "requirement:tree:read", SEC_ROLLUP),
-        ("ARCH-TRACE-RECHECK.1", "ARCH-TRACE-RECHECK", 1, RECHECK_1, "content", "trace:suspect", SEC_RECHECK_1),
+        (
+            "ARCH-REQ-AC-FACET.1",
+            "ARCH-REQ-AC-FACET",
+            1,
+            FACET_1,
+            "content",
+            "requirement:tree:read",
+            security_meta("CM-2"),
+        ),
+        (
+            "ARCH-REQ-AC-ROLLUP.1",
+            "ARCH-REQ-AC-ROLLUP",
+            1,
+            ROLLUP_1,
+            "content",
+            "requirement:tree:read",
+            security_meta("CA-7"),
+        ),
+        (
+            "ARCH-TRACE-RECHECK.1",
+            "ARCH-TRACE-RECHECK",
+            1,
+            RECHECK_1,
+            "content",
+            "trace:suspect",
+            security_meta("CM-3"),
+        ),
     ]
-    for uid, base, n, statement, mint, rbac, sec in proposals:
+    for uid, base, n, statement, mint, rbac, row_sec in proposals:
         upsert(
             versions,
             "uid",
-            draft_version(uid, base, n, statement, mint=mint, rbac_op=rbac, security=sec),
+            draft_version(uid, base, n, statement, mint=mint, rbac_op=rbac, security=row_sec),
         )
 
     new_reqs = [
@@ -330,7 +343,7 @@ def apply_patch(data) -> None:
             "requirement",
             "Criterion completion is release UAT or review",
             UAT,
-            SEC_UAT,
+            security_meta("CA-2"),
         ),
         (
             "ARCH-CAP-REVIEW-COPY",
@@ -338,17 +351,25 @@ def apply_patch(data) -> None:
             "requirement",
             "Accepted review that still requires a change",
             COPY,
-            SEC_COPY,
+            security_meta("CM-3"),
         ),
     ]
-    for uid, parent, kind, title, statement, sec in new_reqs:
+    for uid, parent, kind, title, statement, row_sec in new_reqs:
         upsert(lines, "base_uid", cm(base_uid=uid, project_id="reqalm", parent=parent, kind=kind, title=title))
-        upsert(versions, "uid", draft_version(uid, uid, 0, statement, security=sec))
+        upsert(versions, "uid", draft_version(uid, uid, 0, statement, security=row_sec))
 
     upsert(
         versions,
         "uid",
-        draft_version("J02.1", "J02", 1, J02_1, mint="content", rbac_op="workitem:create"),
+        draft_version(
+            "J02.1",
+            "J02",
+            1,
+            J02_1,
+            mint="content",
+            rbac_op="workitem:create",
+            security=security_meta("AC-3", "AC-3 access enforcement; AU-2/3/12 where mutating."),
+        ),
     )
 
     upsert(
@@ -508,13 +529,6 @@ def apply_patch(data) -> None:
         ("FIX-CAP-REVIEW.1", "FIX-REQ-REVIEW", "satisfies"),
     ):
         ensure_edge(edges, {"from": frm, "to": to, "kind": kind})
-
-    ensure_conforms(
-        edges,
-        "ARCH-CRITERION-RELEASE-UAT",
-        ("AC-3", "AU-2", "AU-3", "AU-12", "CA-2", "SA-11"),
-    )
-    ensure_conforms(edges, "ARCH-CAP-REVIEW-COPY", ("AC-3", "AU-2", "AU-3", "AU-12", "CM-3"))
 
     if product is not None:
         insert_alpha(product.setdefault("in_scope_of", []), CAP)

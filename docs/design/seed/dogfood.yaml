@@ -9961,13 +9961,13 @@ requirement_versions:
   base_uid: ARCH-REQ-AC-ROLLUP
   version_n: 1
   status: draft
-  statement: Completeness of a requirement rolls up from that requirement version's own facets. Completeness of a capability rolls up from that capability version's own facets. A facet is complete only when a release UAT or review records a completion marker for it (ARCH-CRITERION-RELEASE-UAT). A satisfies link, a closed work item, or verification_outcome on the version does not by itself complete a facet; verification_outcome and ship gates remain governed by ARCH-VERIFICATION and ARCH-VERIFICATION-GATE. The parent stays incomplete while any of its facets has no completion marker.
+  statement: Completeness of a requirement rolls up from that requirement version's own facets. Completeness of a capability rolls up from that capability version's own facets. A facet is complete only when a release UAT or review records a completion marker for it (ARCH-CRITERION-RELEASE-UAT). Carried completion markers count toward rollup completeness and shall be displayed as carried. A satisfies link, a closed work item, or verification_outcome on the version does not by itself complete a facet; verification_outcome and ship gates remain governed by ARCH-VERIFICATION and ARCH-VERIFICATION-GATE. The parent stays incomplete while any of its facets has no completion marker.
   priority: 15
   iteration: iter-r1
   security:
     catalog_ref: CA-7
-    verification_note: 'Cyber 2026-10-10: CA-7 completeness rollup from facets; UAT gate ARCH-CRITERION-RELEASE-UAT.'
-  statement_hash: sha256:9fdc773c1073d9d6e4264987723c9b4f68c8fbf279c6a128fe3704d9c99917e0
+    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+  statement_hash: sha256:e701c23fb8c66cafaf89e93cd1c6671495cbc18eb31885d0bc3cbae816d8a2d9
   grooming_state: detailed
   mint_kind: content
   rbac_op: requirement:tree:read
@@ -9975,25 +9975,25 @@ requirement_versions:
   base_uid: ARCH-CRITERION-RELEASE-UAT
   version_n: 0
   status: draft
-  statement: "UAT and review of a release are the completeness gate for acceptance criteria. A completion marker shall name the criterion, the release, the actor, and the time, and shall be recorded only for a criterion on a version that release delivers. Work items do not complete criteria. A capability may be delivered in more than one release; each release review may complete only criteria on versions listed in that release's delivers snapshot. The capability's criteria are complete when each facet has a completion marker, which may be recorded in a later release than the first delivery. Exception: when a user carries an unchanged criterion onto a successor version (ARCH-CAP-REVIEW-COPY), the carried marker may appear on that successor even though the mint act did not deliver the successor; the carried marker shall reference copied_from, carried_by, carried_at, the source marker's by and at, and the release that originally completed the frozen criterion."
+  statement: "UAT and review of a release are the completeness gate for acceptance criteria. Marking a criterion complete shall require an authorized permission distinct from edit rights on the parent version. The actor who marks a criterion complete shall not be the author of the parent requirement or capability version for that criterion (separation of duties). Each completion shall append an audit event to the append-only audit log naming the criterion, release, actor, and time, and shall apply only to a criterion on a version that release delivers. Work items do not complete criteria. A capability may be delivered in more than one release; each release review may complete only criteria on versions listed in that release's delivers snapshot. Exception: when a user carries an unchanged criterion onto a successor version (ARCH-CAP-REVIEW-COPY), the carried marker may appear on that successor even though the mint act did not deliver the successor; the carried marker shall reference copied_from, carried_by, carried_at, the source marker's by and at, and the release that originally completed the frozen criterion."
   priority: 15
   iteration: iter-r1
   security:
     catalog_ref: CA-2
-    verification_note: 'Cyber 2026-10-10: CA-2/SA-11 release UAT/review completes criteria; AU-2/3/12 on markers and carry audit.'
-  statement_hash: sha256:b8766b176f61291f615f04ec112d6be5e11368a7ecdab1dcb31ac7e09e4b3477
+    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+  statement_hash: sha256:0738e83c64e88ed266e298c7d9e7827236d193e72127f7828c851eaf8e2843ca
   grooming_state: detailed
 - uid: ARCH-CAP-REVIEW-COPY
   base_uid: ARCH-CAP-REVIEW-COPY
   version_n: 0
   status: draft
-  statement: 'When a reviewed capability receives a new content version, each criterion on the reviewed version is copied onto the successor. Criteria on the reviewed version freeze: their statements and completion markers are not edited after the successor exists. Each copy is a new criterion id with copied_from pointing at the frozen criterion. Unchanged means the copy''s statement_hash equals the source criterion''s statement_hash (canonical shall-statement text). A changed criterion (different statement_hash) shall start with no completion marker and status open (incomplete). A copy of a criterion that was never complete on the source starts open (incomplete). An unchanged criterion may carry its prior completion only when the editor explicitly chooses carry for that criterion; the default when no choice is recorded is reset to open (incomplete). Carry is per criterion within one capability revision, not all-or-nothing. A carried completion marker shall record copied_from, carried_by, and carried_at separately from the source marker''s by and at. Copied criteria on a review-driven successor do not enter re-check (ARCH-TRACE-RECHECK.1); a user-chosen carry of an unchanged criterion records the carry audit; a copy that is not carried is reset to open (incomplete).'
+  statement: 'When a reviewed capability receives a new content version, each criterion on the reviewed version is copied onto the successor. Criteria on the reviewed version freeze: their statements and completion markers are not edited after the successor exists. Each copy is a new criterion id with copied_from pointing at the frozen criterion. Unchanged means the copy''s statement_hash equals the source criterion''s statement_hash (canonical shall-statement text). A changed criterion (different statement_hash) shall start with no completion marker and status open (incomplete). A copy of a criterion that was never complete on the source starts open (incomplete). An unchanged criterion may carry its prior completion only when the editor explicitly chooses carry for that criterion; the default when no choice is recorded is reset to open (incomplete). Carry is per criterion within one capability revision, not all-or-nothing. Carry shall require an authorized permission distinct from completion and edit rights. Each carry choice shall append an audit event to the append-only audit log with copied_from, carried_by, and carried_at. Carry is limited to the same project and the same capability line. Copied criteria on a review-driven successor do not enter re-check (ARCH-TRACE-RECHECK.1).'
   priority: 15
   iteration: iter-r1
   security:
     catalog_ref: CM-3
-    verification_note: 'Cyber 2026-10-10: CM-3 review-driven copy; per-criterion carry or reset; AU-2/3/12 on carry choice.'
-  statement_hash: sha256:03c79c43323c2862551719fd6d78f80c0e19bd419b5c4d92a4d156d970aa3146
+    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+  statement_hash: sha256:ad57c5d565ccd0bcfb559814d99fdb558c933ae7c7ffc1c826a523bd8b7218a9
   grooming_state: detailed
 - uid: CAP-CRITERIA-RELEASE-REVIEW
   base_uid: CAP-CRITERIA-RELEASE-REVIEW
@@ -10046,8 +10046,8 @@ requirement_versions:
   priority: 15
   iteration: iter-r1
   security:
-    catalog_ref: CM-2
-    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+    catalog_ref: AC-3
+    verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
   statement_hash: sha256:3c9375313958c7ff7a11ffc9db5cd7abcb757798d1935b64600afdd67ffc216a
   grooming_state: detailed
   mint_kind: content
@@ -10056,13 +10056,13 @@ requirement_versions:
   base_uid: ARCH-TRACE-RECHECK
   version_n: 1
   status: draft
-  statement: Re-check (needs re-check) remains distinct from incomplete and open per ARCH-TRACE-RECHECK. When a capability receives a review-driven content successor (ARCH-CAP-REVIEW-COPY), copied acceptance criteria on that successor do not enter re-check. Each copied criterion either carries its done state (unchanged statement_hash and an explicit editor carry choice with audit) or resets to open (incomplete). Re-check still applies to criteria and other trace targets when a conforming capability changes content by other means, loses verification, regresses, or when trace_suspect is set on inbound satisfies, refines, or uses edges.
+  statement: Re-check (needs re-check) remains distinct from incomplete and open per ARCH-TRACE-RECHECK. When a capability receives a review-driven content successor tied to a recorded review action (ARCH-CAP-REVIEW-COPY), copied acceptance criteria on that successor do not enter re-check; each copy either carries done state (unchanged statement_hash and an explicit editor carry choice) or resets to open (incomplete). Re-check still applies when a conforming capability changes content by other means, loses verification, regresses, when trace_suspect is set on inbound satisfies, refines, or uses edges, or when the provider of an inherited or hybrid control changes.
   priority: 15
   iteration: iter-r1
   security:
     catalog_ref: CM-3
-    verification_note: 'Cyber 2026-10-10: CM-3 review-driven successor; copy carry or reset (not re-check); AU-2/3/12 on carry audit.'
-  statement_hash: sha256:66c7997136250267399e6d379cc2b2162f4e0c62012401552f39bd4f68dfc8e0
+    verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
+  statement_hash: sha256:e7286bba0c5825c0156a46a39580bb7ed385540727d678e139afccd10a20736d
   grooming_state: detailed
   mint_kind: content
   rbac_op: trace:suspect
@@ -18176,50 +18176,6 @@ edges:
 - from: ARCH-TRACE-RECHECK.1
   to: ARCH-TRACE-RECHECK
   kind: refines
-- from: ARCH-CRITERION-RELEASE-UAT
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CRITERION-RELEASE-UAT
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CRITERION-RELEASE-UAT
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CRITERION-RELEASE-UAT
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CRITERION-RELEASE-UAT
-  to: CA-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CRITERION-RELEASE-UAT
-  to: SA-11
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-REVIEW-COPY
-  to: AC-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-REVIEW-COPY
-  to: AU-2
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-REVIEW-COPY
-  to: AU-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-REVIEW-COPY
-  to: AU-12
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
-- from: ARCH-CAP-REVIEW-COPY
-  to: CM-3
-  kind: conforms_to
-  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
