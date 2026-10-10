@@ -327,7 +327,8 @@ describe("seed reset", () => {
   it("pins FK-safe wipe of change_sets and iterations in seed-reset (mutant guard)", () => {
     const src = readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "seed-reset.ts"), "utf8");
     assert.match(src, /DELETE FROM change_sets WHERE project_id = ANY/);
-    assert.match(src, /DELETE FROM iterations WHERE project_id = ANY/);
+    assert.match(src, /\["work_item_links", "iterations"\]/);
+    assert.match(src, /DELETE FROM \$\{table\} WHERE project_id = ANY/);
   });
 
   it("wipes contract junction rows before releases (FK-safe)", async () => {
