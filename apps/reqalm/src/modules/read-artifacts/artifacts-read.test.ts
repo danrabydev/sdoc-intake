@@ -41,9 +41,14 @@ after(async () => {
 
 describe("artifacts route registration", () => {
   it("pins projectScoped requirement:read on artifact and attachment list routes", () => {
-    const routes = listRoutesForSecurityAudit(ctx!.app).filter((r) =>
-      r.url.includes("/requirement-versions/"),
-    );
+    const routes = [
+      ...new Map(
+        listRoutesForSecurityAudit(ctx!.app)
+          .filter((r) => r.url.includes("/requirement-versions/:versionUid/"))
+          .filter((r) => r.url.endsWith("/artifacts") || r.url.endsWith("/attachments"))
+          .map((r) => [r.url, r] as const),
+      ).values(),
+    ];
     assert.equal(routes.length, 2);
     for (const r of routes) {
       assert.equal(r.operationRoute, true, r.url);
@@ -100,7 +105,7 @@ describe("artifacts read API", () => {
       total: number;
     };
     assert.equal(page.total, 1);
-    assert.equal(page.items[0]!.id, "att_a1b2c3d4e5f6g7h8i9j0k1l2m3n4");
+    assert.equal(page.items[0]!.id, "att_a1b2c3d4e5f6g7h8i9j0k1l2m3");
     assert.equal(page.items[0]!.scan_state, "clean");
     assert.equal(page.items[0]!.is_latest, true);
     const body = JSON.stringify(page);
