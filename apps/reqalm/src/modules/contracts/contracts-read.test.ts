@@ -89,7 +89,7 @@ describe("contracts read API", () => {
     const product = list.items.find((i) => i.id === "ctr-reqalm-product")!;
     assert.equal(product.kind, "contract");
     assert.ok(product.scope_count >= 400);
-    assert.ok(product.release_count >= 32);
+    assert.ok(product.release_count >= 31);
     const detail = dataOf(await inject(DET("reqalm", "ctr-reqalm-maintenance"))) as Record<string, unknown>;
     assert.equal(detail.status, "active");
     assert.equal(detail.scope_count, 4);

@@ -3402,17 +3402,17 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: RELEASE-rel-r1-contracts-loader
-STATUS: Active
+STATUS: Draft
 TITLE: Release R1 — contracts loader (DB + seed)
 STATEMENT: >>>
-ReqALM release `R1 — contracts loader (DB + seed)` (status=shipped, planned_on=2026-10-10). delivers is a snapshot of requirement version UIDs.
+ReqALM release `R1 — contracts loader (DB + seed)` (status=planned, planned_on=2026-10-10). delivers is a snapshot of requirement version UIDs.
 <<<
 COMMENT: >>>
 KIND: release
 release_id: rel-r1-contracts-loader
 project_id: reqalm
-shipped_on: 2026-10-10
-raw_status: shipped
+shipped_on: None
+raw_status: planned
 delivers: CAP-CONTRACTS-LOADER
 delivers_count: 1
 <<<

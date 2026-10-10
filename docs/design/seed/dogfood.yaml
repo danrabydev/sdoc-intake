@@ -1466,7 +1466,7 @@ approval_records:
   status: unapproved
   by:
   at:
-  notes: 'Capability active with verification pass after PR #44 merge 0f471a90c244c98330d37478d92e9f12cbb96c77; formal approval record not filed in seed.'
+  notes: Planned for contracts storage/loader PR.
   approved_version_uid:
   approved_statement_hash:
 - id: ar-read-contracts
@@ -9754,16 +9754,15 @@ requirement_versions:
 - uid: CAP-CONTRACTS-LOADER
   base_uid: CAP-CONTRACTS-LOADER
   version_n: 0
-  status: active
+  status: draft
   statement: 'Dogfood loader persists contract overlays from dogfood.yaml into Postgres: contracts, contract_scope, and contract_releases (migration 012_contracts_read.sql). Validates in_scope_of version uids and covers_releases release ids; allows cross-project scope lines anchored on the contract project_id. Seed reset deletes contract junction rows before releases (FK-safe). No HTTP read API in this release.'
   priority: 10
   iteration: iter-r1
   security:
     catalog_ref: AC-3
-    verification_note: 'Shipped with contracts loader PR #44 (merge 0f471a90c244c98330d37478d92e9f12cbb96c77).'
+    verification_note: Planned until contracts loader PR merges.
   statement_hash: sha256:9b5a0e1259efdb862be084174f331ff49ec25da9d839213bc5e5b6e1143b5637
   grooming_state: detailed
-  verification_outcome: pass
 - uid: CAP-READ-CONTRACTS
   base_uid: CAP-READ-CONTRACTS
   version_n: 0
@@ -18967,12 +18966,12 @@ releases:
   project_id: reqalm
   name: R1 — contracts loader (DB + seed)
   planned_on: '2026-10-10'
-  shipped_on: '2026-10-10'
-  status: shipped
+  shipped_on:
+  status: planned
   delivers:
   - CAP-CONTRACTS-LOADER
   cyber_gate: false
-  notes: 'PR #44 merged as 0f471a90c244c98330d37478d92e9f12cbb96c77 on 2026-10-10. Migration 012 + dogfood loader for contract_scope / contract_releases; read API is PR #43.'
+  notes: Migration 012 + dogfood loader for contract_scope / contract_releases; no read API.
 - id: rel-r1-read-contracts
   project_id: reqalm
   name: R1 — contracts read API
@@ -18982,7 +18981,7 @@ releases:
   delivers:
   - CAP-READ-CONTRACTS
   cyber_gate: false
-  notes: Read-only contracts API (depends on shipped CAP-CONTRACTS-LOADER / rel-r1-contracts-loader).
+  notes: Read-only contracts API (depends on CAP-CONTRACTS-LOADER / rel-r1-contracts-loader).
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

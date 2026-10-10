@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Ship rel-r1-contracts-loader (#44 @ merge); add rel-r1-read-contracts / CAP-READ-CONTRACTS. Idempotent.
+"""Add rel-r1-read-contracts / CAP-READ-CONTRACTS (contracts read API). Idempotent.
 
-Requires PR #44 (migration + loader seed). Refreshes ctr-reqalm-product scope after edits.
+Requires PR #44 (migration + loader seed). Does not ship rel-r1-contracts-loader (ship after #44 squash-merge SHA).
+Refreshes ctr-reqalm-product scope after edits.
 Run: python3 patch_read_contracts_release.py && python3 yaml_to_strictdoc.py --validate
 """
 from __future__ import annotations
@@ -18,13 +19,9 @@ from ruamel.yaml.comments import CommentedMap
 SEED = Path(__file__).resolve().parent.parent
 DOGFOOD = SEED / "dogfood.yaml"
 REPO = "../../.."
-SHIPPED_DATE = "2026-10-10"
-LOADER_MERGE = "0f471a90c244c98330d37478d92e9f12cbb96c77"
 PLANNED = "2026-10-10"
 CAP = "CAP-READ-CONTRACTS"
 REL = "rel-r1-read-contracts"
-CAP_LOADER = "CAP-CONTRACTS-LOADER"
-REL_LOADER = "rel-r1-contracts-loader"
 CAP_BROWSE = "CAP-BROWSE-UI-CATALOGS"
 REL_BROWSE = "rel-r1-browse-ui-catalogs"
 MAINT_CONTRACT = "ctr-reqalm-maintenance"
@@ -37,8 +34,8 @@ DRAFT_SCOPE_EXCLUDE_UIDS = frozenset(
     }
 )
 
-BASELINE_RECORD_ALLOW_VERSIONS = frozenset({CAP_BROWSE, CAP_LOADER})
-BASELINE_RECORD_ALLOW_RELEASES = frozenset({REL_BROWSE, REL_LOADER})
+BASELINE_RECORD_ALLOW_VERSIONS = frozenset({CAP_BROWSE})
+BASELINE_RECORD_ALLOW_RELEASES = frozenset({REL_BROWSE})
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from seed_baseline_edges import (  # noqa: E402
@@ -86,36 +83,6 @@ def ensure_edge(edges, edge):
 def statement_hash(text: str) -> str:
     canon = "\n".join(line.rstrip() for line in text.strip().replace("\r\n", "\n").split("\n"))
     return "sha256:" + hashlib.sha256(canon.encode("utf-8")).hexdigest()
-
-
-def ship_contracts_loader_release(data) -> None:
-    """Ship PR #44 contracts loader at full merge SHA (this PR's seed patch)."""
-    rel = find(data.get("releases"), "id", REL_LOADER)
-    if rel:
-        rel["status"] = "shipped"
-        rel["shipped_on"] = SHIPPED_DATE
-        rel["notes"] = (
-            f"PR #44 merged as {LOADER_MERGE} on {SHIPPED_DATE}. "
-            "Migration 012 + dogfood loader for contract_scope / contract_releases; read API is PR #43."
-        )
-    ver = find(data.get("requirement_versions"), "uid", CAP_LOADER)
-    if ver:
-        catalog_ref = (ver.get("security") or {}).get("catalog_ref", "AC-3")
-        ver["status"] = "active"
-        ver["verification_outcome"] = "pass"
-        ver["security"] = {
-            "catalog_ref": catalog_ref,
-            "verification_note": f"Shipped with contracts loader PR #44 (merge {LOADER_MERGE}).",
-        }
-    ar = find(data.get("approval_records"), "id", "ar-contracts-loader")
-    if ar:
-        ar["status"] = "unapproved"
-        ar["notes"] = (
-            f"Capability active with verification pass after PR #44 merge {LOADER_MERGE}; "
-            "formal approval record not filed in seed."
-        )
-        ar["approved_version_uid"] = None
-        ar["approved_statement_hash"] = None
 
 
 STMT = (
@@ -215,13 +182,12 @@ def add_read_contracts_release(data) -> None:
             status="planned",
             delivers=[CAP],
             cyber_gate=False,
-            notes="Read-only contracts API (depends on shipped CAP-CONTRACTS-LOADER / rel-r1-contracts-loader).",
+            notes="Read-only contracts API (depends on CAP-CONTRACTS-LOADER / rel-r1-contracts-loader).",
         ),
     )
 
 
 def apply_patch(data) -> None:
-    ship_contracts_loader_release(data)
     add_read_contracts_release(data)
     refresh_product_contract(data)
     validate_baseline_records_preserved(
@@ -255,10 +221,7 @@ def main() -> None:
         yaml.dump(data, f)
     product = find(data.get("contracts"), "id", "ctr-reqalm-product")
     scope_n = len(product.get("in_scope_of") or []) if product else 0
-    print(
-        f"Patched dogfood.yaml: shipped {REL_LOADER} @ {LOADER_MERGE}, planned {REL} / {CAP} "
-        f"(product scope {scope_n} uids)"
-    )
+    print(f"Patched dogfood.yaml: planned {REL} / {CAP} (product scope {scope_n} uids)")
 
 
 if __name__ == "__main__":
