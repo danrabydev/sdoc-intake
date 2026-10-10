@@ -1523,6 +1523,15 @@ approval_records:
   notes: In progress on cloud agent bc-7132b537; approve after merge and verification.
   approved_version_uid:
   approved_statement_hash:
+- id: ar-reqalm-honesty
+  subject_kind: CapabilityLine
+  base_uid: CAP-REQALM-HONESTY
+  status: unapproved
+  by:
+  at:
+  notes: Planned seed-only honesty @ 341330fc8d43.
+  approved_version_uid:
+  approved_statement_hash:
 gate_signoffs:
 - id: gso-sample-r1-security
   subject_kind: Release
@@ -3849,6 +3858,11 @@ requirement_lines:
   parent: SEC-CP
   kind: capability
   title: hardening follow-up (no-project gate, fetchAllScope, test kit)
+- base_uid: CAP-REQALM-HONESTY
+  project_id: reqalm
+  parent: SEC-GROOM
+  kind: capability
+  title: ReqALM seed honesty (capability status vs code)
 requirement_versions:
 - uid: SEC-IA
   base_uid: SEC-IA
@@ -9089,7 +9103,7 @@ requirement_versions:
 - uid: CAP-RBAC.1
   base_uid: CAP-RBAC
   version_n: 1
-  status: active
+  status: superseded
   statement: Capability pack for API RBAC enforcement (subset of the full permission matrix). Shipped foundation covers OAuth routes, defineOperationRoute business reads, and auth-flow-smoke beds — not every ARCH-API-RBAC mutating operation. MCP and grant-management mutators remain planned in core-ALM.
   priority: 10
   iteration: iter-r1
@@ -9615,7 +9629,7 @@ requirement_versions:
 - uid: CAP-UI-FRAME.2
   base_uid: CAP-UI-FRAME
   version_n: 2
-  status: active
+  status: superseded
   statement: 'Web UI frame (shipped partial): internal-AS sign-in, HttpOnly session cookies, CSRF on cookie-mutating routes, and route guards that keep unauthenticated users off /app/*. Top header chrome only — no persistent sidebar rail (CAP-UI-HEADER-NAV). Implemented today: grant-scoped read-only browse for clients, projects, requirements (list, tree, detail, version history, relationships panel), and releases under the header. Not implemented in this frame: contract/version/trace/catalog/planning screens (see draft CAP-UI-VIEW-* and CAP-CONTRACT-UI.1 / CAP-VERSION-UI.1).'
   priority: 10
   iteration: iter-r1
@@ -9629,7 +9643,7 @@ requirement_versions:
 - uid: CAP-BROWSE-UI-CP.1
   base_uid: CAP-BROWSE-UI-CP
   version_n: 1
-  status: active
+  status: superseded
   statement: 'Read-only /app browse screens for grant-scoped clients and projects: paged clients list, client detail with projects, all-projects list with client name, and a project header stub (Requirements and Releases sections labelled coming next). Uses existing session/CSRF auth; API data rendered via safe DOM text only. Layout: Clients entry lists grant-scoped clients; row opens client detail with projects table; All projects lists cross-client projects with client name; project stub shows Requirements/Releases placeholders linking into project routes. Header uses global Clients/Projects nav outside project tabs.'
   priority: 10
   iteration: iter-r1
@@ -9908,6 +9922,60 @@ requirement_versions:
     catalog_ref: AC-3
     verification_note: Started 2026-10-10 (cloud agent bc-7132b537); not shipped.
   statement_hash: sha256:d5dafdbea5a4a3ff72e610aeac86192b0e8bfa7cc26894173011003d773a229a
+  grooming_state: detailed
+- uid: CAP-RBAC.2
+  base_uid: CAP-RBAC
+  version_n: 2
+  status: active
+  statement: Capability pack for API RBAC enforcement (subset of the full permission matrix). Shipped foundation covers OAuth routes, defineOperationRoute business reads, and auth-flow-smoke beds — not every ARCH-API-RBAC mutating operation. MCP and grant-management mutators remain planned in core-ALM.
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-3
+    verification_note: 'Honesty mint .2 @ main 341330f: partial verification only — OAuth + defineOperationRoute read routes verified; grant mutators and full matrix remain unverified (pending).'
+  statement_hash: sha256:0045c4227166008043b2ea36e012eeac13e7b88b408b7f98a79e490486d19697
+  grooming_state: detailed
+  mint_kind: content
+  verification_outcome: pending
+- uid: CAP-UI-FRAME.3
+  base_uid: CAP-UI-FRAME
+  version_n: 3
+  status: active
+  statement: 'Web UI frame (shipped partial): internal-AS sign-in, HttpOnly session cookies, CSRF on cookie-mutating routes, and route guards that keep unauthenticated users off /app/*. Top header chrome only — no persistent sidebar rail (CAP-UI-HEADER-NAV). Implemented today: grant-scoped read-only browse for clients, projects, requirements (list, tree, detail, version history, relationships panel), and releases under the header. Not implemented in this frame: contract/version/trace/catalog/planning screens (see draft CAP-UI-VIEW-* and CAP-CONTRACT-UI.1 / CAP-VERSION-UI.1).'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: AC-3
+    verification_note: 'Honesty mint .3 @ main 341330f: partial verification — header-only shell and grant-scoped browse reads shipped; full ARCH-UI / planning / trace surfaces not verified on this tip.'
+  statement_hash: sha256:ff19cce5263f59fb4a7f709c503ebe7100e450ddc8cd4e5bdce99f1af0fa19e4
+  grooming_state: detailed
+  mint_kind: content
+  verification_outcome: pending
+- uid: CAP-BROWSE-UI-CP.2
+  base_uid: CAP-BROWSE-UI-CP
+  version_n: 2
+  status: active
+  statement: 'Read-only /app browse screens for grant-scoped clients and projects: paged clients list, client detail with projects, all-projects list with client name, and a project landing page linking into Requirements (list and tree), Releases, and Catalogs browse routes (no longer stubbed as coming next). Uses existing session/CSRF auth; API data rendered via safe DOM text only. Layout: Clients entry lists grant-scoped clients; row opens client detail with projects table; All projects lists cross-client projects with client name; project page shows navigation links into shipped browse surfaces. Header uses global Clients/Projects nav outside project tabs.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: 'Honesty mint .2 @ main 341330f: project page links to shipped reqs/releases/catalogs browse.'
+  statement_hash: sha256:cee537c9e164b7cde3b525aa5778c44de8d01b5114384911f74588ec45de90e5
+  grooming_state: detailed
+  mint_kind: content
+  verification_outcome: pass
+- uid: CAP-REQALM-HONESTY
+  base_uid: CAP-REQALM-HONESTY
+  version_n: 0
+  status: draft
+  statement: 'Documentation-only seed pass on main @ 341330f: mints CAP-RBAC.2 and CAP-UI-FRAME.3 as pending partial tips, CAP-BROWSE-UI-CP.2 browse wording, without changing application code. Release state ships in a follow-on seed commit after merge.'
+  priority: 10
+  iteration: iter-r1
+  security:
+    catalog_ref: CM-2
+    verification_note: Planned until honesty seed PR merges; no verification pass in this patch.
+  statement_hash: sha256:7d9bed9229705e7de902f6dbda7d0d77d52be1af15d8ee3df049042c6695e75f
   grooming_state: detailed
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
@@ -10834,6 +10902,12 @@ capability_artifacts:
 - requirement_version_uid: CAP-SVC-HARDENING-FOLLOWUP
   kind: other
   uri: ../../../docs/design/seed/scripts/patch_r1_release_state_seed.py
+- requirement_version_uid: CAP-REQALM-HONESTY
+  kind: other
+  uri: ../../../docs/design/seed/dogfood.yaml
+- requirement_version_uid: CAP-REQALM-HONESTY
+  kind: other
+  uri: ../../../docs/design/seed/scripts/patch_reqalm_honesty_seed.py
 edges:
 - from: CAP-SSO
   to: A01
@@ -17974,6 +18048,89 @@ edges:
 - from: CAP-SVC-HARDENING-FOLLOWUP
   to: CAP-SVC-RBAC-NO-PROJECT
   kind: refines
+- from: CAP-RBAC.2
+  to: CAP-RBAC.1
+  kind: refines
+- to: A05
+  kind: satisfies
+  from: CAP-RBAC.2
+- to: A06
+  kind: satisfies
+  from: CAP-RBAC.2
+- to: A07
+  kind: satisfies
+  from: CAP-RBAC.2
+- to: A08
+  kind: satisfies
+  from: CAP-RBAC.2
+- to: A09
+  kind: satisfies
+  from: CAP-RBAC.2
+- to: A10
+  kind: satisfies
+  from: CAP-RBAC.2
+- to: A11
+  kind: satisfies
+  from: CAP-RBAC.2
+- to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-RBAC.2
+- to: AU-12
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-RBAC.2
+- to: AU-2
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-RBAC.2
+- to: AU-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-RBAC.2
+- to: ARCH-API-RBAC.1
+  kind: satisfies
+  from: CAP-RBAC.2
+- from: CAP-UI-FRAME.3
+  to: CAP-UI-FRAME.2
+  kind: refines
+- to: ARCH-UI
+  kind: satisfies
+  from: CAP-UI-FRAME.3
+- to: ARCH-UI-GUARD
+  kind: satisfies
+  from: CAP-UI-FRAME.3
+- to: AC-3
+  kind: conforms_to
+  catalog_imprint_id: nist-800-53@rev5-dogfood-20261006
+  from: CAP-UI-FRAME.3
+- to: CAP-SVC-OPERATION-EXECUTOR.1
+  kind: uses
+  from: CAP-UI-FRAME.3
+- to: CAP-AUTH-HARDEN.1
+  kind: uses
+  from: CAP-UI-FRAME.3
+- from: CAP-BROWSE-UI-CP.2
+  to: CAP-BROWSE-UI-CP.1
+  kind: refines
+- to: B07
+  kind: satisfies
+  from: CAP-BROWSE-UI-CP.2
+- to: B08
+  kind: satisfies
+  from: CAP-BROWSE-UI-CP.2
+- to: ARCH-UI
+  kind: satisfies
+  from: CAP-BROWSE-UI-CP.2
+- to: ARCH-UI-GUARD
+  kind: satisfies
+  from: CAP-BROWSE-UI-CP.2
+- to: CAP-BROWSE-CP
+  kind: satisfies
+  from: CAP-BROWSE-UI-CP.2
+- from: CAP-REQALM-HONESTY
+  to: K03
+  kind: satisfies
 contracts:
 - id: contract-design-2026-10
   client_id: raby-family
@@ -19244,6 +19401,16 @@ releases:
   - CAP-SVC-HARDENING-FOLLOWUP
   cyber_gate: false
   notes: Started 2026-10-10 on cloud agent bc-7132b537. One PR = one release; capability stays draft until that PR merges and verification passes.
+- id: rel-r1-reqalm-honesty-seed
+  project_id: reqalm
+  name: R1 — ReqALM seed honesty
+  planned_on: '2026-10-10'
+  shipped_on:
+  status: planned
+  delivers:
+  - CAP-REQALM-HONESTY
+  cyber_gate: false
+  notes: Planned seed-only PR; capability/release state documents honesty mints vs main @ 341330fc8d43f2144193f1008503eacb7cfea903. Ship in a separate seed commit after merge.
 change_sets:
 - id: cs-leaf-alex-draft-edit
   project_id: reqalm

@@ -1,5 +1,5 @@
 {
-  "baseline_main": "d54c5a67235fd56e49bdbc2a939dce89ff5a4f36",
+  "baseline_main": "341330fc8d43f2144193f1008503eacb7cfea903",
   "version_uids": [
     "A01",
     "A02",
@@ -244,8 +244,10 @@
     "CAP-PROD-SELFCHECK",
     "CAP-RBAC",
     "CAP-RBAC.1",
+    "CAP-READ-ARTIFACTS",
     "CAP-READ-CONTRACTS",
     "CAP-READ-HIERARCHY",
+    "CAP-READ-PLANNING",
     "CAP-READ-RELEASES",
     "CAP-READ-REQS",
     "CAP-READY-PROBES",
@@ -260,6 +262,7 @@
     "CAP-SSO.1",
     "CAP-SVC-AUDIT-APPEND",
     "CAP-SVC-BUSINESS-ROUTE-AUDIT",
+    "CAP-SVC-HARDENING-FOLLOWUP",
     "CAP-SVC-IMPLICIT-PUBLIC-EXACT",
     "CAP-SVC-MODULE-BOOTSTRAP",
     "CAP-SVC-NON-API-AUTH-AUDIT",
@@ -493,7 +496,7 @@
     "UI-APPROVE-TREE",
     "WANT-CHANGESET-FIELD-UNDO"
   ],
-  "edge_count": 1953,
+  "edge_count": 1959,
   "edges": [
     {
       "catalog_imprint_id": "asd-stig@v6r4",
@@ -10127,6 +10130,16 @@
       "to": "ARCH-API-RBAC.1"
     },
     {
+      "from": "CAP-READ-ARTIFACTS",
+      "kind": "refines",
+      "to": "CAP-ATTACH-READ"
+    },
+    {
+      "from": "CAP-READ-ARTIFACTS",
+      "kind": "satisfies",
+      "to": "ARCH-ATTACH-PIN-VERSION"
+    },
+    {
       "from": "CAP-READ-CONTRACTS",
       "kind": "satisfies",
       "to": "ARCH-CONTRACT.1"
@@ -10179,6 +10192,16 @@
       "from": "CAP-READ-HIERARCHY",
       "kind": "satisfies",
       "to": "CAP-SVC-OPERATION-ROUTE"
+    },
+    {
+      "from": "CAP-READ-PLANNING",
+      "kind": "satisfies",
+      "to": "ARCH-BROWSE-ROADMAP"
+    },
+    {
+      "from": "CAP-READ-PLANNING",
+      "kind": "satisfies",
+      "to": "ARCH-PLANNING-GATES"
     },
     {
       "from": "CAP-READ-RELEASES",
@@ -10376,6 +10399,16 @@
       "from": "CAP-SVC-BUSINESS-ROUTE-AUDIT",
       "kind": "satisfies",
       "to": "CAP-SVC-ROUTE-REGISTRY"
+    },
+    {
+      "from": "CAP-SVC-HARDENING-FOLLOWUP",
+      "kind": "refines",
+      "to": "CAP-SVC-RBAC-NO-PROJECT"
+    },
+    {
+      "from": "CAP-SVC-HARDENING-FOLLOWUP",
+      "kind": "satisfies",
+      "to": "ARCH-API-RBAC"
     },
     {
       "from": "CAP-SVC-IMPLICIT-PUBLIC-EXACT",

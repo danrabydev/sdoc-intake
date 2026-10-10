@@ -72,11 +72,12 @@ describe("releases read API", () => {
     const planned = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=planned&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ status: string; id: string }>; total: number } };
-    assert.equal(planned.data.total, 6);
-    assert.equal(planned.data.items.length, 6);
+    assert.equal(planned.data.total, 7);
+    assert.equal(planned.data.items.length, 7);
     assert.ok(planned.data.items.some((i) => i.id === "rel-r1-planning-read-api"));
     assert.ok(planned.data.items.some((i) => i.id === "rel-r1-artifacts-read-api"));
     assert.ok(planned.data.items.some((i) => i.id === "rel-r1-hardening-followup-1"));
+    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-reqalm-honesty-seed"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-rbac-authorize-fail-closed"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-read-contracts"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-browse-ui-contracts"));
@@ -118,6 +119,7 @@ describe("releases read API", () => {
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-read-releases"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-browse-ui-releases"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-reqalm-contracts"));
+    assert.ok(!shipped.data.items.some((i) => i.id === "rel-r1-reqalm-honesty-seed"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-trace-inherit-uses"));
     assert.ok(shipped.data.items.every((i) => i.status === "shipped"));
   });
@@ -127,7 +129,7 @@ describe("releases read API", () => {
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ id: string; planned_on: string | null }> } };
     const ids = list.data.items.map((i) => i.id);
-    assert.deepEqual(ids.slice(0, 12), [
+    assert.deepEqual(ids.slice(0, 13), [
       "rel-r1-core-alm",
       "rel-r1-platform-followups",
       "rel-r0-sequences",
@@ -138,6 +140,7 @@ describe("releases read API", () => {
       "rel-r1-planning-read-api",
       "rel-r1-rbac-authorize-fail-closed",
       "rel-r1-read-contracts",
+      "rel-r1-reqalm-honesty-seed",
       "rel-r1-seed-attach-figma",
       "rel-r1-ui-layout-capabilities",
     ]);
