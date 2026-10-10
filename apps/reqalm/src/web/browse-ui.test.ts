@@ -2045,6 +2045,40 @@ function ctrFetch(handler: (url: string) => { status: number; body?: unknown } |
   });
 }
 
+const ctrProductDetailPayload = {
+  id: CTR_PRODUCT,
+  title: "Product",
+  kind: "contract",
+  status: "active",
+  scope_count: 0,
+  release_count: 0,
+  project_id: "reqalm",
+  client_id: "reqalm-client",
+};
+
+const ctrScopeEmptyOk = {
+  status: 200,
+  body: { data: { items: [], total: 0, limit: 100, offset: 0 } },
+};
+const ctrReleasesEmptyOk = { status: 200, body: { data: { items: [] } } };
+
+/** Detail-route mocks: default contract + scope + releases 200 so each 404 branch fails alone. */
+function ctrDetailApiFetch(
+  overrides: {
+    contract?: { status: number; body?: unknown };
+    scope?: { status: number; body?: unknown };
+    releases?: { status: number; body?: unknown };
+  } = {},
+) {
+  const contractOk = { status: 200, body: { data: ctrProductDetailPayload } };
+  return mockFetchBare((url) => {
+    if (url === contractApiPath("reqalm", CTR_PRODUCT)) return overrides.contract ?? contractOk;
+    if (url === contractScopeApiPath("reqalm", CTR_PRODUCT, 100, 0)) return overrides.scope ?? ctrScopeEmptyOk;
+    if (url === contractReleasesApiPath("reqalm", CTR_PRODUCT)) return overrides.releases ?? ctrReleasesEmptyOk;
+    return { status: 404 };
+  });
+}
+
 describe("contract browse screens", () => {
   const contractsSrc = fs.readFileSync(
     path.join(path.dirname(fileURLToPath(import.meta.url)), "public/browse-contracts.js"),
@@ -2228,66 +2262,95 @@ describe("contract browse screens", () => {
   it("contract detail not-found when contract API 404", async () => {
     const main = document.createElement("main");
     await renderContractDetail(main, {
-      apiFn: ctrFetch((url) =>
-        url === contractApiPath("reqalm", CTR_PRODUCT) ? { status: 404, body: {} } : undefined,
-      ),
+      apiFn: ctrDetailApiFetch({ contract: { status: 404, body: {} } }),
       projectId: "reqalm",
       contractId: CTR_PRODUCT,
     });
     assert.equal(main.querySelector("h1")?.textContent, "Not found");
+    assert.doesNotMatch(main.textContent ?? "", /Covered releases/);
   });
 
   it("contract detail not-found when scope API 404 though contract ok", async () => {
-    const detail = {
-      id: CTR_PRODUCT,
-      title: "Product",
-      kind: "contract",
-      status: "active",
-      scope_count: 1,
-      release_count: 0,
-      project_id: "reqalm",
-      client_id: "c",
-    };
     const main = document.createElement("main");
     await renderContractDetail(main, {
-      apiFn: ctrFetch((url) => {
-        if (url === contractApiPath("reqalm", CTR_PRODUCT)) return { status: 200, body: { data: detail } };
-        if (url.includes("/contracts/ctr-reqalm-product/scope")) {
-          return { status: 404, body: {} };
-        }
-        return undefined;
-      }),
+      apiFn: ctrDetailApiFetch({ scope: { status: 404, body: {} } }),
       projectId: "reqalm",
       contractId: CTR_PRODUCT,
     });
     assert.equal(main.querySelector("h1")?.textContent, "Not found");
+    assert.equal(main.querySelector("h2"), null);
   });
 
   it("contract detail not-found when releases API 404 though contract and scope ok", async () => {
+    const main = document.createElement("main");
+    await renderContractDetail(main, {
+      apiFn: ctrDetailApiFetch({ releases: { status: 404, body: {} } }),
+      projectId: "reqalm",
+      contractId: CTR_PRODUCT,
+    });
+    assert.equal(main.querySelector("h1")?.textContent, "Not found");
+    assert.equal(main.querySelector("h2"), null);
+  });
+
+  it("contract detail omits scope and release links when ids fail validation", async () => {
     const detail = {
       id: CTR_PRODUCT,
       title: "Product",
       kind: "contract",
       status: "active",
-      scope_count: 0,
-      release_count: 0,
+      scope_count: 2,
+      release_count: 1,
       project_id: "reqalm",
-      client_id: "c",
+      client_id: "reqalm-client",
     };
     const main = document.createElement("main");
     await renderContractDetail(main, {
-      apiFn: ctrFetch((url) => {
+      apiFn: mockFetchBare((url) => {
         if (url === contractApiPath("reqalm", CTR_PRODUCT)) return { status: 200, body: { data: detail } };
         if (url === contractScopeApiPath("reqalm", CTR_PRODUCT, 100, 0)) {
-          return { status: 200, body: { data: { items: [], total: 0, limit: 100, offset: 0 } } };
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [
+                  { uid: "u1", base: "CAP-OK", kind: "capability", status: "active", version: 0 },
+                  { uid: "u2", base: "bad id", kind: "requirement", status: "active", version: 0 },
+                ],
+                total: 2,
+                limit: 100,
+                offset: 0,
+              },
+            },
+          };
         }
-        if (url === contractReleasesApiPath("reqalm", CTR_PRODUCT)) return { status: 404, body: {} };
-        return undefined;
+        if (url === contractReleasesApiPath("reqalm", CTR_PRODUCT)) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [
+                  { id: "rel-r1-read-contracts", name: "Good", status: "shipped", planned_on: null, shipped_on: "2026-10-10" },
+                  { id: "INVALID!", name: "Bad release", status: "planned", planned_on: "2026-10-10", shipped_on: null },
+                ],
+              },
+            },
+          };
+        }
+        return { status: 404 };
       }),
       projectId: "reqalm",
       contractId: CTR_PRODUCT,
     });
-    assert.equal(main.querySelector("h1")?.textContent, "Not found");
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/requirements/CAP-OK"]'));
+    assert.equal(main.querySelector('a[href="/app/projects/reqalm/requirements/bad id"]'), null);
+    const tables = main.querySelectorAll("table.data-table");
+    const scopeRows = [...tables[0].querySelectorAll("tbody tr")];
+    assert.equal(scopeRows[1]?.querySelector("td a"), null);
+    assert.equal(scopeRows[1]?.querySelector("td code")?.textContent, "bad id");
+    assert.ok(main.querySelector('a[href="/app/projects/reqalm/releases/rel-r1-read-contracts"]'));
+    const releaseRows = [...tables[1].querySelectorAll("tbody tr")];
+    assert.equal(releaseRows[1]?.querySelector("td a"), null);
+    assert.match(releaseRows[1]?.textContent ?? "", /Bad release/);
   });
 
   it("shell tab aria-current and breadcrumbs for contracts routes", () => {
