@@ -61,6 +61,7 @@ import {
   contractScopeApiPath,
   contractReleasesApiPath,
   isValidContractId,
+  fetchAllScope,
   renderContractsList,
   renderContractDetail,
 } from "./public/browse-contracts.js";
@@ -2063,6 +2064,15 @@ const ctrScopeEmptyOk = {
 const ctrReleasesEmptyOk = { status: 200, body: { data: { items: [] } } };
 
 /** Detail-route mocks: default contract + scope + releases 200 so each 404 branch fails alone. */
+function scopeOffsetFromPath(url: string) {
+  const q = url.split("?")[1] ?? "";
+  return Number(new URLSearchParams(q).get("offset") ?? "0");
+}
+
+function scopeLineAt(i: number) {
+  return { uid: `uid-${i}`, base: `CAP-SCOPE-${i}`, kind: "capability", status: "active", version: 0 };
+}
+
 function ctrDetailApiFetch(
   overrides: {
     contract?: { status: number; body?: unknown };
@@ -2152,6 +2162,24 @@ describe("contract browse screens", () => {
       projectId: "reqalm",
     });
     assert.equal(badRow.querySelector("tbody a"), null);
+  });
+
+  it("contract list shows summary when total exceeds page size", async () => {
+    const main = document.createElement("main");
+    const pageItems = Array.from({ length: 20 }, (_, i) => ctrSummary(`ctr-list-${i}`, `C-${i}`, 1, 0));
+    await renderContractsList(main, {
+      apiFn: mockFetchBare((url) =>
+        url === contractsApiPath("reqalm", 20, 0)
+          ? {
+              status: 200,
+              body: { data: { items: pageItems, total: 45, limit: 20, offset: 0 } },
+            }
+          : { status: 404 },
+      ),
+      projectId: "reqalm",
+    });
+    assert.equal(main.querySelector(".contracts-list-summary")?.textContent, "Showing 20 of 45");
+    assert.equal(main.querySelectorAll("tbody tr").length, 20);
   });
 
   it("contract list not-found when contracts API returns 404", async () => {
@@ -2290,6 +2318,168 @@ describe("contract browse screens", () => {
     });
     assert.equal(main.querySelector("h1")?.textContent, "Not found");
     assert.equal(main.querySelector("h2"), null);
+  });
+
+  it("fetchAllScope requests three pages for total 250 and renders every row", async () => {
+    const scopeOffsets: number[] = [];
+    const scopeBase = contractScopeApiPath("reqalm", CTR_PRODUCT, 100, 0)!.split("?")[0];
+    const apiFn = mockFetchBare((url) => {
+      if (!url.startsWith(scopeBase)) return { status: 404 };
+      const off = scopeOffsetFromPath(url);
+      scopeOffsets.push(off);
+      const sizes = [100, 100, 50];
+      const idx = off / 100;
+      if (idx > 2) return { status: 404 };
+      const n = sizes[idx];
+      const items = Array.from({ length: n }, (_, j) => scopeLineAt(off + j));
+      return {
+        status: 200,
+        body: { data: { items, total: 250, limit: 100, offset: off } },
+      };
+    });
+    const out = await fetchAllScope(apiFn, "reqalm", CTR_PRODUCT);
+    assert.equal(out.kind, "ok");
+    assert.equal(out.data?.items.length, 250);
+    assert.equal(out.data?.total, 250);
+    assert.deepEqual(scopeOffsets, [0, 100, 200]);
+    assert.equal(scopeOffsets.length, 3);
+    const main = document.createElement("main");
+    await renderContractDetail(main, {
+      apiFn: mockFetchBare((url) => {
+        if (url === contractApiPath("reqalm", CTR_PRODUCT)) {
+          return { status: 200, body: { data: { ...ctrProductDetailPayload, scope_count: 250 } } };
+        }
+        if (url.startsWith(scopeBase)) {
+          const off = scopeOffsetFromPath(url);
+          const sizes = [100, 100, 50];
+          const idx = off / 100;
+          const n = sizes[idx] ?? 0;
+          const items = Array.from({ length: n }, (_, j) => scopeLineAt(off + j));
+          return {
+            status: 200,
+            body: { data: { items, total: 250, limit: 100, offset: off } },
+          };
+        }
+        if (url === contractReleasesApiPath("reqalm", CTR_PRODUCT)) return ctrReleasesEmptyOk;
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+      contractId: CTR_PRODUCT,
+    });
+    assert.equal(main.querySelectorAll("table.data-table tbody tr").length, 250);
+  });
+
+  it("fetchAllScope stops on short final page without dropping rows", async () => {
+    const scopeOffsets: number[] = [];
+    const scopeBase = contractScopeApiPath("reqalm", CTR_PRODUCT, 100, 0)!.split("?")[0];
+    const apiFn = mockFetchBare((url) => {
+      if (!url.startsWith(scopeBase)) return { status: 404 };
+      const off = scopeOffsetFromPath(url);
+      scopeOffsets.push(off);
+      if (off === 0) {
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: Array.from({ length: 100 }, (_, j) => scopeLineAt(j)),
+              total: 125,
+              limit: 100,
+              offset: 0,
+            },
+          },
+        };
+      }
+      if (off === 100) {
+        return {
+          status: 200,
+          body: {
+            data: {
+              items: Array.from({ length: 25 }, (_, j) => scopeLineAt(100 + j)),
+              total: 125,
+              limit: 100,
+              offset: 100,
+            },
+          },
+        };
+      }
+      return { status: 404 };
+    });
+    const out = await fetchAllScope(apiFn, "reqalm", CTR_PRODUCT);
+    assert.equal(out.kind, "ok");
+    assert.equal(out.data?.items.length, 125);
+    assert.deepEqual(scopeOffsets, [0, 100]);
+  });
+
+  it("fetchAllScope middle-page 500 shows load error not partial scope table", async () => {
+    const main = document.createElement("main");
+    const scopeBase = contractScopeApiPath("reqalm", CTR_PRODUCT, 100, 0)!.split("?")[0];
+    await renderContractDetail(main, {
+      apiFn: mockFetchBare((url) => {
+        if (url === contractApiPath("reqalm", CTR_PRODUCT)) {
+          return { status: 200, body: { data: ctrProductDetailPayload } };
+        }
+        if (url.startsWith(scopeBase)) {
+          const off = scopeOffsetFromPath(url);
+          if (off === 0) {
+            return {
+              status: 200,
+              body: {
+                data: {
+                  items: Array.from({ length: 100 }, (_, j) => scopeLineAt(j)),
+                  total: 250,
+                  limit: 100,
+                  offset: 0,
+                },
+              },
+            };
+          }
+          return { status: 500, body: {} };
+        }
+        if (url === contractReleasesApiPath("reqalm", CTR_PRODUCT)) return ctrReleasesEmptyOk;
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+      contractId: CTR_PRODUCT,
+    });
+    assert.ok(main.querySelector(".contract-load-error"));
+    assert.equal(main.querySelector("h2"), null);
+    assert.equal(main.querySelectorAll("table.data-table tbody tr").length, 0);
+  });
+
+  it("fetchAllScope middle-page 404 shows not-found not partial scope table", async () => {
+    const main = document.createElement("main");
+    const scopeBase = contractScopeApiPath("reqalm", CTR_PRODUCT, 100, 0)!.split("?")[0];
+    await renderContractDetail(main, {
+      apiFn: mockFetchBare((url) => {
+        if (url === contractApiPath("reqalm", CTR_PRODUCT)) {
+          return { status: 200, body: { data: ctrProductDetailPayload } };
+        }
+        if (url.startsWith(scopeBase)) {
+          const off = scopeOffsetFromPath(url);
+          if (off === 0) {
+            return {
+              status: 200,
+              body: {
+                data: {
+                  items: Array.from({ length: 100 }, (_, j) => scopeLineAt(j)),
+                  total: 250,
+                  limit: 100,
+                  offset: 0,
+                },
+              },
+            };
+          }
+          return { status: 404, body: {} };
+        }
+        if (url === contractReleasesApiPath("reqalm", CTR_PRODUCT)) return ctrReleasesEmptyOk;
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+      contractId: CTR_PRODUCT,
+    });
+    assert.equal(main.querySelector("h1")?.textContent, "Not found");
+    assert.equal(main.querySelector("h2"), null);
+    assert.equal(main.querySelectorAll("table.data-table tbody tr").length, 0);
   });
 
   it("contract detail omits scope and release links when ids fail validation", async () => {

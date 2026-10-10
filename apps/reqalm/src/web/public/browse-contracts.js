@@ -77,7 +77,7 @@ export function contractReleasesApiPath(projectId, contractId) {
   return `/api/v1/projects/${encodeURIComponent(projectId)}/contracts/${encodeURIComponent(contractId)}/releases`;
 }
 
-async function fetchAllScope(apiFn, projectId, contractId, limit = 100) {
+export async function fetchAllScope(apiFn, projectId, contractId, limit = 100) {
   const items = [];
   let offset = 0;
   let total = 0;
@@ -118,8 +118,9 @@ export async function renderContractsList(container, { apiFn, projectId, offset 
   if (result.kind === "error") return renderLoadError(container);
   if (result.kind !== "ok") return renderNotFound(container);
   const page = result.data;
-  container.replaceChildren(el("h1", { text: "Contracts" }));
   const items = page.items ?? [];
+  const total = page.total ?? items.length;
+  container.replaceChildren(el("h1", { text: "Contracts" }));
   if (!items.length) {
     container.append(el("p", { className: "empty-state", text: "No contracts visible for this project." }));
     return;
@@ -144,6 +145,11 @@ export async function renderContractsList(container, { apiFn, projectId, offset 
   }
   table.append(tbody);
   container.append(table);
+  if (total > limit) {
+    container.append(
+      el("p", { className: "contracts-list-summary muted", text: `Showing ${items.length} of ${total}` }),
+    );
+  }
 }
 
 export async function renderContractDetail(container, { apiFn, projectId, contractId }) {
