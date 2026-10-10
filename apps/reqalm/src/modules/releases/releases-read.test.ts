@@ -72,9 +72,12 @@ describe("releases read API", () => {
     const planned = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=planned&limit=100", headers: bearer })
     ).json() as { data: { items: Array<{ status: string; id: string }>; total: number } };
-    assert.equal(planned.data.total, 4);
-    assert.equal(planned.data.items.length, 4);
-    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-rbac-authorize-fail-closed"));
+    assert.equal(planned.data.total, 6);
+    assert.equal(planned.data.items.length, 6);
+    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-planning-read-api"));
+    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-artifacts-read-api"));
+    assert.ok(planned.data.items.some((i) => i.id === "rel-r1-hardening-followup-1"));
+    assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-rbac-authorize-fail-closed"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-read-contracts"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-browse-ui-contracts"));
     assert.ok(!planned.data.items.some((i) => i.id === "rel-r1-contracts-loader"));
@@ -96,7 +99,8 @@ describe("releases read API", () => {
     const shipped = (
       await inject({ method: "GET", url: "/api/v1/projects/reqalm/releases?status=shipped&limit=100", headers: bearer })
     ).json() as { data: { total: number; items: Array<{ id: string; status: string }> } };
-    assert.equal(shipped.data.total, 34);
+    assert.equal(shipped.data.total, 35);
+    assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-rbac-authorize-fail-closed"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-read-contracts"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-browse-ui-contracts"));
     assert.ok(shipped.data.items.some((i) => i.id === "rel-r1-contracts-loader"));
@@ -127,15 +131,15 @@ describe("releases read API", () => {
       "rel-r1-core-alm",
       "rel-r1-platform-followups",
       "rel-r0-sequences",
+      "rel-r1-artifacts-read-api",
       "rel-r1-browse-ui-contracts",
       "rel-r1-contracts-loader",
+      "rel-r1-hardening-followup-1",
+      "rel-r1-planning-read-api",
       "rel-r1-rbac-authorize-fail-closed",
       "rel-r1-read-contracts",
       "rel-r1-seed-attach-figma",
       "rel-r1-ui-layout-capabilities",
-      "rel-r1-browse-ui-catalogs",
-      "rel-r1-browse-ui-relations",
-      "rel-r1-catalogs-api",
     ]);
     for (let i = 1; i < list.data.items.length; i++) {
       const a = list.data.items[i - 1]!;

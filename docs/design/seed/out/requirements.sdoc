@@ -3680,6 +3680,96 @@ RELATIONS:
   VALUE: RELEASE-rel-r1-browse-ui-contracts
   ROLE: Delivers
 
+[REQUIREMENT]
+UID: CAP-READ-PLANNING
+STATUS: Draft
+TITLE: planning read API
+STATEMENT: >>>
+Planning read API (grant-scoped GET routes for backlog / iteration / work-item views). Not implemented in this release; capability statement will tighten when the feature PR lands.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-READ-PLANNING
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Started 2026-10-10 (cloud agent bc-a71c6948); not shipped.
+delivered_by_release: R1 — planning read API
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: ARCH-BROWSE-ROADMAP
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: ARCH-PLANNING-GATES
+  ROLE: Satisfies
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-planning-read-api
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-READ-ARTIFACTS
+STATUS: Draft
+TITLE: capability artifacts read API
+STATEMENT: >>>
+Read API for capability_artifacts (list/detail by requirement version). Not implemented in this release; honest placeholder until artifacts read PR merges.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-READ-ARTIFACTS
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Started 2026-10-10 (cloud agent bc-72846206); not shipped.
+delivered_by_release: R1 — capability artifacts read API
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: ARCH-ATTACH-PIN-VERSION
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-ATTACH-READ
+  ROLE: Refines
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-artifacts-read-api
+  ROLE: Delivers
+
+[REQUIREMENT]
+UID: CAP-SVC-HARDENING-FOLLOWUP
+STATUS: Draft
+TITLE: hardening follow-up (no-project gate, fetchAllScope, test kit)
+STATEMENT: >>>
+Follow-up hardening after RBAC fail-closed: explicit !projectId gate on routes that must not infer scope, bound fetchAllScope pagination in browse test kits, and rename shared contract browse test helpers for clarity. Work in progress on cloud agent; not shipped.
+<<<
+COMMENT: >>>
+KIND: capability
+BASE_UID: CAP-SVC-HARDENING-FOLLOWUP
+VERSION_N: 0
+priority: 10
+iteration: iter-r1
+security.catalog_ref: AC-3
+security.verification_note: Started 2026-10-10 (cloud agent bc-7132b537); not shipped.
+delivered_by_release: R1 — hardening follow-up (no-project gate, fetchAllScope, test kit)
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: SEC-CP
+- TYPE: Parent
+  VALUE: ARCH-API-RBAC
+  ROLE: Satisfies
+- TYPE: Parent
+  VALUE: CAP-SVC-RBAC-NO-PROJECT
+  ROLE: Refines
+- TYPE: Child
+  VALUE: RELEASE-rel-r1-hardening-followup-1
+  ROLE: Delivers
+
 [[/SECTION]]
 
 [[SECTION]]
@@ -11504,6 +11594,7 @@ security.catalog_ref: CM-2
 security.verification_note: Groomed 2026-10-09; pre-write or UI track.
 edge: ← satisfies from CAP-SEED-GROOMING
 edge: ← satisfies from CAP-BROWSE-ROADMAP
+edge: ← satisfies from CAP-READ-PLANNING
 in_scope_of_contract: ReqALM product (build)
 <<<
 RELATIONS:
@@ -12142,6 +12233,7 @@ edge: ← refines from ARCH-API-RBAC.1
 edge: ← satisfies from CAP-CATALOGS-API
 edge: ← satisfies from CAP-SVC-OPERATION-EXECUTOR.1
 edge: ← satisfies from CAP-SVC-RBAC-NO-PROJECT
+edge: ← satisfies from CAP-SVC-HARDENING-FOLLOWUP
 in_scope_of_contract: Design-2026-10
 in_scope_of_contract: Security package
 delivered_by_release: R1 — foundation shell + internal auth
@@ -14999,6 +15091,7 @@ security.catalog_ref: CM-3
 security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Version pinning matches the mint rule (ARCH-MINT-KIND, ARCH-LOCKED): evidence is immutable once shipped.
 edge: ← satisfies from CAP-ATTACH-READ
 edge: ← satisfies from CAP-ATTACH-WRITE
+edge: ← satisfies from CAP-READ-ARTIFACTS
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to CM-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-9 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15614,6 +15707,7 @@ iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: Cyber 2026-10-09 attachments-figma mapping; Planned; phase 1.
 edge: ← uses from CAP-ATTACH-WRITE
+edge: ← refines from CAP-READ-ARTIFACTS
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-12 (pin imprint=nist-800-53@rev5-dogfood-20261006)
@@ -15718,7 +15812,7 @@ RELATIONS:
 
 [REQUIREMENT]
 UID: CAP-SVC-RBAC-NO-PROJECT
-STATUS: Draft
+STATUS: Active
 TITLE: RBAC authorize fails closed without project scope
 STATEMENT: >>>
 authorize() and listActiveRoles() fail closed when no project id is supplied: project_grants roles apply only when projectId matches; permissions other than platform Key custodian key:manage and audit:read are denied without a project scope, so a route that omits projectScoped cannot authorize via another project's grant.
@@ -15730,7 +15824,8 @@ VERSION_N: 0
 priority: 10
 iteration: iter-r1
 security.catalog_ref: AC-3
-security.verification_note: Planned until RBAC authorize fail-closed PR merges.
+security.verification_note: Shipped with RBAC authorize fail-closed PR #46 (merge d54c5a67235fd56e49bdbc2a939dce89ff5a4f36).
+edge: ← refines from CAP-SVC-HARDENING-FOLLOWUP
 delivered_by_release: R1 — RBAC authorize fail closed (no project scope)
 <<<
 RELATIONS:
@@ -19347,6 +19442,7 @@ priority: 15
 iteration: iter-r1
 security.catalog_ref: AC-3
 security.verification_note: AC-3 access enforcement; AU-2/3/12 where mutating.
+edge: ← satisfies from CAP-READ-PLANNING
 in_scope_of_contract: ReqALM product (build)
 edge: → conforms_to to AC-3 (pin imprint=nist-800-53@rev5-dogfood-20261006)
 edge: → conforms_to to AU-2 (pin imprint=nist-800-53@rev5-dogfood-20261006)
