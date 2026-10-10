@@ -8,6 +8,7 @@ import { registerRequirementRoutes } from "./requirements/routes.js";
 import { registerReleaseRoutes } from "./releases/routes.js";
 import { registerCatalogRoutes } from "./catalogs/routes.js";
 import { registerContractRoutes } from "./contracts/routes.js";
+import { registerPlanningRoutes } from "./planning/routes.js";
 
 /** Register feature modules (service + routes). Add new modules here. */
 export function registerFeatureModules(app: FastifyInstance, deps: RequestContextDeps): void {
@@ -18,5 +19,6 @@ export function registerFeatureModules(app: FastifyInstance, deps: RequestContex
   registerReleaseRoutes(app, deps);
   registerCatalogRoutes(app, deps);
   registerContractRoutes(app, deps);
+  registerPlanningRoutes(app, deps);
   registerGrantRoutes(app, deps);
 }
