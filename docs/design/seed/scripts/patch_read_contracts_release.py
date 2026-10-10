@@ -51,7 +51,7 @@ from patch_reqalm_contracts_release import (  # noqa: E402
 
 yaml = YAML()
 yaml.preserve_quotes = True
-yaml.width = 1200
+yaml.width = 4096
 yaml.indent(mapping=2, sequence=2, offset=0)
 
 

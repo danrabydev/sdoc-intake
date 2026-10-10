@@ -19,16 +19,20 @@ const inject = (url: string, headers = bearer) =>
   ctx.app.inject({ method: "GET", url, remoteAddress: "203.0.113.50", headers: { host: "localhost:3000", ...headers } } as never);
 const dataOf = (res: { statusCode: number; json: () => unknown }) => (assert.equal(res.statusCode, 200), (res.json() as { data: unknown }).data);
 const stripReqId = (b: Record<string, unknown>) => (({ request_id: _, ...r }) => r)(b);
-const problemHeaders = (res: { headers: Record<string, string | string[] | undefined> }) => ({
-  "content-type": res.headers["content-type"],
-});
-const assert404Parity = (
-  ref: { statusCode: number; headers: Record<string, string | string[] | undefined>; json: () => unknown },
-  res: typeof ref,
-  url: string,
-) => {
+type InjectResponse = Awaited<ReturnType<typeof inject>>;
+const VOLATILE_RESPONSE_HEADERS = new Set(["date", "request-id"]);
+const comparableResponseHeaders = (res: InjectResponse) => {
+  const out: Record<string, string | string[] | undefined> = {};
+  for (const [key, value] of Object.entries(res.headers)) {
+    if (VOLATILE_RESPONSE_HEADERS.has(key.toLowerCase())) continue;
+    if (value === undefined) continue;
+    out[key] = Array.isArray(value) ? value.map(String) : typeof value === "number" ? String(value) : value;
+  }
+  return out;
+};
+const assert404Parity = (ref: InjectResponse, res: InjectResponse, url: string) => {
   assert.equal(res.statusCode, 404, url);
-  assert.deepEqual(problemHeaders(res), problemHeaders(ref), url);
+  assert.deepEqual(comparableResponseHeaders(res), comparableResponseHeaders(ref), url);
   assert.deepEqual(stripReqId(res.json() as Record<string, unknown>), stripReqId(ref.json() as Record<string, unknown>), url);
 };
 const audit = (rid: string) =>
