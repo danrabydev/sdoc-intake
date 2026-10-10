@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -203,6 +204,11 @@ def validate(data: dict[str, Any]) -> list[str]:
     return errs
 
 
+def criterion_statement_hash(text: str) -> str:
+    canon = "\n".join(line.rstrip() for line in str(text or "").strip().replace("\r\n", "\n").split("\n"))
+    return "sha256:" + hashlib.sha256(canon.encode("utf-8")).hexdigest()
+
+
 def validate_acceptance_criteria(data: dict[str, Any], ver_uids: set, release_ids: set) -> list[str]:
     """Facets, release-review completions, and freeze-and-copy onto a successor."""
     errs: list[str] = []
@@ -239,6 +245,11 @@ def validate_acceptance_criteria(data: dict[str, Any], ver_uids: set, release_id
             errs.append(f"acceptance_criterion {cid}: empty statement")
         if not isinstance(c.get("position"), int):
             errs.append(f"acceptance_criterion {cid}: position must be an int")
+        sh = c.get("statement_hash")
+        if not sh:
+            errs.append(f"acceptance_criterion {cid}: missing statement_hash")
+        elif sh != criterion_statement_hash(c.get("statement") or ""):
+            errs.append(f"acceptance_criterion {cid}: statement_hash mismatch")
 
     for c in criteria:
         src = c.get("copied_from")
@@ -248,8 +259,10 @@ def validate_acceptance_criteria(data: dict[str, Any], ver_uids: set, release_id
         if prev is None:
             errs.append(f"acceptance_criterion {c.get('id')}: copied_from {src!r} is not a criterion")
             continue
-        if str(prev.get("statement") or "").strip() != str(c.get("statement") or "").strip():
-            errs.append(f"acceptance_criterion {c.get('id')}: statement differs from copied_from {src}")
+        if prev.get("statement_hash") != c.get("statement_hash"):
+            errs.append(
+                f"acceptance_criterion {c.get('id')}: statement_hash differs from copied_from {src} (changed copy)"
+            )
 
     identities = {i.get("id") for i in (data.get("identities") or []) if i.get("id")}
     delivers: dict[str, set[str]] = {}
@@ -289,7 +302,13 @@ def validate_acceptance_criteria(data: dict[str, Any], ver_uids: set, release_id
             errs.append(f"criterion_completion {m.get('id')}: copied_from {src_id!r} is not a completion")
             continue
         if m.get("release_id") != src.get("release_id"):
-            errs.append(f"criterion_completion {m.get('id')}: copied marker changed release")
+            errs.append(f"criterion_completion {m.get('id')}: carried marker changed release")
+        if not m.get("carried_by") or not m.get("carried_at"):
+            errs.append(
+                f"criterion_completion {m.get('id')}: carried marker requires carried_by and carried_at"
+            )
+        elif identities and m.get("carried_by") not in identities:
+            errs.append(f"criterion_completion {m.get('id')}: carried_by {m.get('carried_by')!r} is not an identity")
         crit = by_id.get(m.get("criterion_id"))
         if crit and crit.get("copied_from") != src.get("criterion_id"):
             errs.append(
@@ -318,11 +337,6 @@ def validate_acceptance_criteria(data: dict[str, Any], ver_uids: set, release_id
                     continue
                 src_marks = comps_by_criterion.get(oc.get("id")) or []
                 copy_marks = comps_by_criterion.get(found[0].get("id")) or []
-                if src_marks and not any(m.get("copied_from") for m in copy_marks):
-                    errs.append(
-                        f"criterion {found[0].get('id')}: accepted criterion reopened; "
-                        "copy the completion marker"
-                    )
                 if not src_marks and copy_marks:
                     errs.append(f"criterion {found[0].get('id')}: open criterion copied as complete")
     return errs

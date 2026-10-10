@@ -98,6 +98,33 @@ def remove_version(data, uid: str) -> None:
     vers[:] = [v for v in vers if v.get("uid") != uid]
 
 
+def remove_line(data, base_uid: str) -> None:
+    lines = data.get("requirement_lines")
+    if not lines:
+        return
+    lines[:] = [ln for ln in lines if ln.get("base_uid") != base_uid]
+
+
+def crit_row(
+    cid: str,
+    version_uid: str,
+    position: int,
+    statement: str,
+    *,
+    copied_from: str | None = None,
+) -> CommentedMap:
+    row = cm(
+        id=cid,
+        version_uid=version_uid,
+        position=position,
+        statement=statement,
+        statement_hash=statement_hash(statement),
+    )
+    if copied_from:
+        row["copied_from"] = copied_from
+    return row
+
+
 def remove_completions_for_release(data, release_id: str) -> None:
     data["criterion_completions"] = [
         c for c in data.get("criterion_completions") or [] if c.get("release_id") != release_id
@@ -132,32 +159,31 @@ UAT = (
     "delivers snapshot. The capability's criteria are complete when each facet has a completion marker, which may "
     "be recorded in a later release than the first delivery. Exception: when a user carries an unchanged criterion "
     "onto a successor version (ARCH-CAP-REVIEW-COPY), the carried marker may appear on that successor even though "
-    "the carrying release did not deliver the successor; the carried marker shall reference copied_from, the "
-    "original marker, and the release that originally completed the frozen criterion."
+    "the mint act did not deliver the successor; the carried marker shall reference copied_from, carried_by, "
+    "carried_at, the source marker's by and at, and the release that originally completed the frozen criterion."
 )
 COPY = (
     "When a reviewed capability receives a new content version, each criterion on the reviewed version is copied "
     "onto the successor. Criteria on the reviewed version freeze: their statements and completion markers are not "
     "edited after the successor exists. Each copy is a new criterion id with copied_from pointing at the frozen "
-    "criterion. A changed criterion (different statement text or statement_hash) shall start with no completion "
-    "marker and status open. An unchanged criterion may start open or may carry its prior completion only when "
+    "criterion. Unchanged means the copy's statement_hash equals the source criterion's statement_hash (canonical "
+    "shall-statement text). A changed criterion (different statement_hash) shall start with no completion marker "
+    "and status open (incomplete). A copy of a criterion that was never complete on the source starts open "
+    "(incomplete); that state is not re-check. An unchanged criterion may carry its prior completion only when "
     "the editor explicitly chooses carry for that criterion; the default when no choice is recorded is reset to "
-    "open. Carry is per criterion within one capability revision, not all-or-nothing. A carry choice shall record "
-    "who chose, when, and which source marker was carried, and shall be auditable. A user-chosen carry of an "
-    "unchanged criterion is an explicit, recorded exemption from re-check under ARCH-TRACE-RECHECK; every other "
-    "copied criterion follows re-check until a release UAT or review records a new completion marker."
+    "open (incomplete). Carry is per criterion within one capability revision, not all-or-nothing. A carried "
+    "completion marker shall record copied_from, carried_by, and carried_at separately from the source marker's "
+    "by and at. A user-chosen carry of an unchanged criterion is an explicit, recorded exemption from re-check "
+    "under ARCH-TRACE-RECHECK. A copy of a previously complete criterion that is not carried is reset to open "
+    "(incomplete), not re-check."
 )
-WI_1 = (
+J02_1 = (
     "The initial work-item act compiles a briefing from a capability, not a one-to-one sync from a requirement "
     "version (J02). The briefing shall list the capability's open acceptance criteria and the controls that apply "
     "to the capability (direct, inherited, and hybrid) for implementers. One capability may have many work items, "
     "including across releases, and a work item may cover only part of a capability. Closing, reopening, or "
     "editing a work item does not complete a criterion and does not change the capability statement. Two-way "
     "field push, pull, and conflict merge (J04–J06) are not this initial path."
-)
-WI_V0 = (
-    "Placeholder line for ARCH-WI-COMPILE.1 (draft successor refining J02). Do not activate v0; J02 remains the "
-    "active work-item-from-requirement rule until .1 is accepted."
 )
 CAP_STMT = (
     "Seed and schema only: capability acceptance criteria with completion markers separate from requirement "
@@ -186,7 +212,15 @@ CRIT_A = "The implementation shall record who attended the review."
 CRIT_B = "The implementation shall keep an unfinished criterion open until a later release review."
 
 
-def draft_version(uid: str, base: str, n: int, statement: str, *, mint: str | None = None) -> CommentedMap:
+def draft_version(
+    uid: str,
+    base: str,
+    n: int,
+    statement: str,
+    *,
+    mint: str | None = None,
+    rbac_op: str | None = None,
+) -> CommentedMap:
     row = cm(
         uid=uid,
         base_uid=base,
@@ -204,6 +238,8 @@ def draft_version(uid: str, base: str, n: int, statement: str, *, mint: str | No
     )
     if mint:
         row["mint_kind"] = mint
+    if rbac_op:
+        row["rbac_op"] = rbac_op
     return row
 
 
@@ -216,8 +252,12 @@ def apply_patch(data) -> None:
     remove_release(data, LEGACY_FIX_REL)
     remove_completions_for_release(data, LEGACY_FIX_REL)
     remove_version(data, "ARCH-WI-COMPILE")
+    remove_version(data, "ARCH-WI-COMPILE.1")
+    remove_line(data, "ARCH-WI-COMPILE")
     remove_edge(edges, {"from": "ARCH-WI-COMPILE", "to": "J02", "kind": "refines"})
+    remove_edge(edges, {"from": "ARCH-WI-COMPILE.1", "to": "J02", "kind": "refines"})
     remove_edge(edges, {"from": "CAP-CRITERIA-RELEASE-REVIEW", "to": "ARCH-WI-COMPILE", "kind": "satisfies"})
+    remove_edge(edges, {"from": "CAP-CRITERIA-RELEASE-REVIEW", "to": "ARCH-WI-COMPILE.1", "kind": "satisfies"})
 
     product = find(data.get("contracts"), "id", "ctr-reqalm-product")
     if product is not None:
@@ -231,15 +271,16 @@ def apply_patch(data) -> None:
                 "ARCH-CRITERION-RELEASE-UAT",
                 "ARCH-WI-COMPILE",
                 "ARCH-WI-COMPILE.1",
+                "J02.1",
             }
         ]
 
     proposals = [
-        ("ARCH-REQ-AC-FACET.1", "ARCH-REQ-AC-FACET", 1, FACET_1, "content"),
-        ("ARCH-REQ-AC-ROLLUP.1", "ARCH-REQ-AC-ROLLUP", 1, ROLLUP_1, "content"),
+        ("ARCH-REQ-AC-FACET.1", "ARCH-REQ-AC-FACET", 1, FACET_1, "content", "requirement:tree:read"),
+        ("ARCH-REQ-AC-ROLLUP.1", "ARCH-REQ-AC-ROLLUP", 1, ROLLUP_1, "content", "requirement:tree:read"),
     ]
-    for uid, base, n, statement, mint in proposals:
-        upsert(versions, "uid", draft_version(uid, base, n, statement, mint=mint))
+    for uid, base, n, statement, mint, rbac in proposals:
+        upsert(versions, "uid", draft_version(uid, base, n, statement, mint=mint, rbac_op=rbac))
 
     new_reqs = [
         ("ARCH-CRITERION-RELEASE-UAT", "SEC-RL", "requirement", "Criterion completion is release UAT or review", UAT),
@@ -250,39 +291,9 @@ def apply_patch(data) -> None:
         upsert(versions, "uid", draft_version(uid, uid, 0, statement))
 
     upsert(
-        lines,
-        "base_uid",
-        cm(
-            base_uid="ARCH-WI-COMPILE",
-            project_id="reqalm",
-            parent="SEC-WI",
-            kind="requirement",
-            title="Work item is a capability briefing, not completeness",
-        ),
-    )
-    upsert(
         versions,
         "uid",
-        cm(
-            uid="ARCH-WI-COMPILE",
-            base_uid="ARCH-WI-COMPILE",
-            version_n=0,
-            status="draft",
-            statement=WI_V0,
-            priority=15,
-            iteration="iter-r1",
-            security={
-                "catalog_ref": "CM-2",
-                "verification_note": "Placeholder only; active proposal is ARCH-WI-COMPILE.1 refining J02.",
-            },
-            statement_hash=statement_hash(WI_V0),
-            grooming_state="detailed",
-        ),
-    )
-    upsert(
-        versions,
-        "uid",
-        draft_version("ARCH-WI-COMPILE.1", "ARCH-WI-COMPILE", 1, WI_1, mint="content"),
+        draft_version("J02.1", "J02", 1, J02_1, mint="content", rbac_op="workitem:create"),
     )
 
     upsert(
@@ -411,23 +422,11 @@ def apply_patch(data) -> None:
 
     criteria = data.setdefault("acceptance_criteria", [])
     for row in (
-        cm(id="crit-fix-req", version_uid="FIX-REQ-REVIEW", position=0, statement=CRIT_REQ),
-        cm(id="crit-fix-cap-a", version_uid="FIX-CAP-REVIEW", position=0, statement=CRIT_A),
-        cm(id="crit-fix-cap-b", version_uid="FIX-CAP-REVIEW", position=1, statement=CRIT_B),
-        cm(
-            id="crit-fix-cap-a-1",
-            version_uid="FIX-CAP-REVIEW.1",
-            position=0,
-            statement=CRIT_A,
-            copied_from="crit-fix-cap-a",
-        ),
-        cm(
-            id="crit-fix-cap-b-1",
-            version_uid="FIX-CAP-REVIEW.1",
-            position=1,
-            statement=CRIT_B,
-            copied_from="crit-fix-cap-b",
-        ),
+        crit_row("crit-fix-req", "FIX-REQ-REVIEW", 0, CRIT_REQ),
+        crit_row("crit-fix-cap-a", "FIX-CAP-REVIEW", 0, CRIT_A),
+        crit_row("crit-fix-cap-b", "FIX-CAP-REVIEW", 1, CRIT_B),
+        crit_row("crit-fix-cap-a-1", "FIX-CAP-REVIEW.1", 0, CRIT_A, copied_from="crit-fix-cap-a"),
+        crit_row("crit-fix-cap-b-1", "FIX-CAP-REVIEW.1", 1, CRIT_B, copied_from="crit-fix-cap-b"),
     ):
         upsert(criteria, "id", row)
 
@@ -443,12 +442,12 @@ def apply_patch(data) -> None:
         ("ARCH-CRITERION-RELEASE-UAT", "ARCH-REQ-AC-ROLLUP.1", "refines"),
         ("ARCH-CAP-REVIEW-COPY", "ARCH-REQ-AC-FACET.1", "refines"),
         ("ARCH-CAP-REVIEW-COPY", "ARCH-TRACE-RECHECK", "refines"),
-        ("ARCH-WI-COMPILE.1", "J02", "refines"),
+        ("J02.1", "J02", "refines"),
         (CAP, "ARCH-REQ-AC-FACET.1", "satisfies"),
         (CAP, "ARCH-REQ-AC-ROLLUP.1", "satisfies"),
         (CAP, "ARCH-CRITERION-RELEASE-UAT", "satisfies"),
         (CAP, "ARCH-CAP-REVIEW-COPY", "satisfies"),
-        (CAP, "ARCH-WI-COMPILE.1", "satisfies"),
+        (CAP, "J02.1", "satisfies"),
         ("FIX-CAP-REVIEW", "FIX-REQ-REVIEW", "satisfies"),
         ("FIX-CAP-REVIEW.1", "FIX-REQ-REVIEW", "satisfies"),
     ):

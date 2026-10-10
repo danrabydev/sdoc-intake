@@ -3868,11 +3868,6 @@ requirement_lines:
   parent: SEC-RL
   kind: requirement
   title: Accepted review that still requires a change
-- base_uid: ARCH-WI-COMPILE
-  project_id: reqalm
-  parent: SEC-WI
-  kind: requirement
-  title: Work item is a capability briefing, not completeness
 - base_uid: CAP-CRITERIA-RELEASE-REVIEW
   project_id: reqalm
   parent: SEC-RL
@@ -9961,6 +9956,7 @@ requirement_versions:
   statement_hash: sha256:675b48d4aceb59586050568fe90f52df21b949114e34b0e07cca19e75e411a25
   grooming_state: detailed
   mint_kind: content
+  rbac_op: requirement:tree:read
 - uid: ARCH-REQ-AC-ROLLUP.1
   base_uid: ARCH-REQ-AC-ROLLUP
   version_n: 1
@@ -9974,29 +9970,30 @@ requirement_versions:
   statement_hash: sha256:9fdc773c1073d9d6e4264987723c9b4f68c8fbf279c6a128fe3704d9c99917e0
   grooming_state: detailed
   mint_kind: content
+  rbac_op: requirement:tree:read
 - uid: ARCH-CRITERION-RELEASE-UAT
   base_uid: ARCH-CRITERION-RELEASE-UAT
   version_n: 0
   status: draft
-  statement: "UAT and review of a release are the completeness gate for acceptance criteria. A completion marker shall name the criterion, the release, the actor, and the time, and shall be recorded only for a criterion on a version that release delivers. Work items do not complete criteria. A capability may be delivered in more than one release; each release review may complete only criteria on versions listed in that release's delivers snapshot. The capability's criteria are complete when each facet has a completion marker, which may be recorded in a later release than the first delivery. Exception: when a user carries an unchanged criterion onto a successor version (ARCH-CAP-REVIEW-COPY), the carried marker may appear on that successor even though the carrying release did not deliver the successor; the carried marker shall reference copied_from, the original marker, and the release that originally completed the frozen criterion."
+  statement: "UAT and review of a release are the completeness gate for acceptance criteria. A completion marker shall name the criterion, the release, the actor, and the time, and shall be recorded only for a criterion on a version that release delivers. Work items do not complete criteria. A capability may be delivered in more than one release; each release review may complete only criteria on versions listed in that release's delivers snapshot. The capability's criteria are complete when each facet has a completion marker, which may be recorded in a later release than the first delivery. Exception: when a user carries an unchanged criterion onto a successor version (ARCH-CAP-REVIEW-COPY), the carried marker may appear on that successor even though the mint act did not deliver the successor; the carried marker shall reference copied_from, carried_by, carried_at, the source marker's by and at, and the release that originally completed the frozen criterion."
   priority: 15
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
-  statement_hash: sha256:7eb73925331823282be2dfdc58c4e68c7b285dbf47f5b4890bb0e3a67f60312e
+  statement_hash: sha256:b8766b176f61291f615f04ec112d6be5e11368a7ecdab1dcb31ac7e09e4b3477
   grooming_state: detailed
 - uid: ARCH-CAP-REVIEW-COPY
   base_uid: ARCH-CAP-REVIEW-COPY
   version_n: 0
   status: draft
-  statement: 'When a reviewed capability receives a new content version, each criterion on the reviewed version is copied onto the successor. Criteria on the reviewed version freeze: their statements and completion markers are not edited after the successor exists. Each copy is a new criterion id with copied_from pointing at the frozen criterion. A changed criterion (different statement text or statement_hash) shall start with no completion marker and status open. An unchanged criterion may start open or may carry its prior completion only when the editor explicitly chooses carry for that criterion; the default when no choice is recorded is reset to open. Carry is per criterion within one capability revision, not all-or-nothing. A carry choice shall record who chose, when, and which source marker was carried, and shall be auditable. A user-chosen carry of an unchanged criterion is an explicit, recorded exemption from re-check under ARCH-TRACE-RECHECK; every other copied criterion follows re-check until a release UAT or review records a new completion marker.'
+  statement: 'When a reviewed capability receives a new content version, each criterion on the reviewed version is copied onto the successor. Criteria on the reviewed version freeze: their statements and completion markers are not edited after the successor exists. Each copy is a new criterion id with copied_from pointing at the frozen criterion. Unchanged means the copy''s statement_hash equals the source criterion''s statement_hash (canonical shall-statement text). A changed criterion (different statement_hash) shall start with no completion marker and status open (incomplete). A copy of a criterion that was never complete on the source starts open (incomplete); that state is not re-check. An unchanged criterion may carry its prior completion only when the editor explicitly chooses carry for that criterion; the default when no choice is recorded is reset to open (incomplete). Carry is per criterion within one capability revision, not all-or-nothing. A carried completion marker shall record copied_from, carried_by, and carried_at separately from the source marker''s by and at. A user-chosen carry of an unchanged criterion is an explicit, recorded exemption from re-check under ARCH-TRACE-RECHECK. A copy of a previously complete criterion that is not carried is reset to open (incomplete), not re-check.'
   priority: 15
   iteration: iter-r1
   security:
     catalog_ref: CM-2
     verification_note: Proposed 2026-10-10 for project-lead review. Not activated.
-  statement_hash: sha256:7cd268e7f786a2f4aa447493464f3659dcc564fda26a32b6726d6cd9299c41fb
+  statement_hash: sha256:df7ef7d1eed27ab518a1bf6c6619ef65f7bc356e77096cd42c9ede960e8a8a8e
   grooming_state: detailed
 - uid: CAP-CRITERIA-RELEASE-REVIEW
   base_uid: CAP-CRITERIA-RELEASE-REVIEW
@@ -10041,8 +10038,8 @@ requirement_versions:
     verification_note: Fixture successor. Not activated.
   statement_hash: sha256:fe7166f7fbadef7af71529313f7bc503736f00d0ae56145fddb84945a473fa79
   grooming_state: detailed
-- uid: ARCH-WI-COMPILE.1
-  base_uid: ARCH-WI-COMPILE
+- uid: J02.1
+  base_uid: J02
   version_n: 1
   status: draft
   statement: The initial work-item act compiles a briefing from a capability, not a one-to-one sync from a requirement version (J02). The briefing shall list the capability's open acceptance criteria and the controls that apply to the capability (direct, inherited, and hybrid) for implementers. One capability may have many work items, including across releases, and a work item may cover only part of a capability. Closing, reopening, or editing a work item does not complete a criterion and does not change the capability statement. Two-way field push, pull, and conflict merge (J04–J06) are not this initial path.
@@ -10054,18 +10051,7 @@ requirement_versions:
   statement_hash: sha256:3c9375313958c7ff7a11ffc9db5cd7abcb757798d1935b64600afdd67ffc216a
   grooming_state: detailed
   mint_kind: content
-- uid: ARCH-WI-COMPILE
-  base_uid: ARCH-WI-COMPILE
-  version_n: 0
-  status: draft
-  statement: Placeholder line for ARCH-WI-COMPILE.1 (draft successor refining J02). Do not activate v0; J02 remains the active work-item-from-requirement rule until .1 is accepted.
-  priority: 15
-  iteration: iter-r1
-  security:
-    catalog_ref: CM-2
-    verification_note: Placeholder only; active proposal is ARCH-WI-COMPILE.1 refining J02.
-  statement_hash: sha256:e94db6f865b5bbaad0bc90c58d4fce551d1e39e14f4e0e25424aeff97f14e3d9
-  grooming_state: detailed
+  rbac_op: workitem:create
 capability_artifacts:
 - requirement_version_uid: CAP-SSO
   kind: other
@@ -18167,11 +18153,11 @@ edges:
 - from: ARCH-CAP-REVIEW-COPY
   to: ARCH-TRACE-RECHECK
   kind: refines
-- from: ARCH-WI-COMPILE.1
+- from: J02.1
   to: J02
   kind: refines
 - from: CAP-CRITERIA-RELEASE-REVIEW
-  to: ARCH-WI-COMPILE.1
+  to: J02.1
   kind: satisfies
 contracts:
 - id: contract-design-2026-10
@@ -20077,22 +20063,27 @@ acceptance_criteria:
   version_uid: FIX-REQ-REVIEW
   position: 0
   statement: The need shall remain distinguishable from the capability's own criteria.
+  statement_hash: sha256:9405ed7ebd7dfa0431f9b06b88583541406c4143ebd2a71ee78b96f13921b91a
 - id: crit-fix-cap-a
   version_uid: FIX-CAP-REVIEW
   position: 0
   statement: The implementation shall record who attended the review.
+  statement_hash: sha256:8dac2bca3c283a7ba4fca56b206ee170f2241b7381a120117e58babd6d0e8df6
 - id: crit-fix-cap-b
   version_uid: FIX-CAP-REVIEW
   position: 1
   statement: The implementation shall keep an unfinished criterion open until a later release review.
+  statement_hash: sha256:9d6982b577d1a6016dd8c6c22a4741eeda0831c62bbc6903e3227b2647140b84
 - id: crit-fix-cap-a-1
   version_uid: FIX-CAP-REVIEW.1
   position: 0
   statement: The implementation shall record who attended the review.
   copied_from: crit-fix-cap-a
+  statement_hash: sha256:8dac2bca3c283a7ba4fca56b206ee170f2241b7381a120117e58babd6d0e8df6
 - id: crit-fix-cap-b-1
   version_uid: FIX-CAP-REVIEW.1
   position: 1
   statement: The implementation shall keep an unfinished criterion open until a later release review.
   copied_from: crit-fix-cap-b
+  statement_hash: sha256:9d6982b577d1a6016dd8c6c22a4741eeda0831c62bbc6903e3227b2647140b84
 criterion_completions: []

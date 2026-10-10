@@ -20,8 +20,8 @@ Target grammar: **StrictDoc 0.30**.
 
 | Entity | Count |
 |--------|------:|
-| requirement_lines | 467 |
-| requirement_versions | 504 |
+| requirement_lines | 466 |
+| requirement_versions | 503 |
 | edges | 1972 |
 | contracts | 7 |
 | releases | 42 |
@@ -37,7 +37,7 @@ Target grammar: **StrictDoc 0.30**.
 | Kind | Count |
 |------|------:|
 | section lines | 20 |
-| non-section lines → REQUIREMENT | 447 |
+| non-section lines → REQUIREMENT | 446 |
 | contracts | 7 |
 | releases | 42 |
 

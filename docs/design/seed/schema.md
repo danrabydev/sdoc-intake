@@ -221,6 +221,7 @@ A verifiable shall-statement attached to **exactly one** requirement version **o
 | `id` | string | yes | stable criterion id |
 | `version_uid` | string | yes | → requirement_version.uid |
 | `statement` | string | yes | testable shall-statement |
+| `statement_hash` | string | yes | `sha256:` digest of canonical statement text (trimmed lines, LF); **unchanged** copy ⇔ equal `statement_hash` (ARCH-CAP-REVIEW-COPY) |
 | `position` | int | yes | order on that version |
 | `copied_from` | string \| null | no | predecessor criterion id when minted by ARCH-CAP-REVIEW-COPY |
 
@@ -234,13 +235,17 @@ UAT or review of a **release** is the completeness gate (ARCH-CRITERION-RELEASE-
 |-------|------|----------|--------|
 | `id` | string | yes | |
 | `criterion_id` | string | yes | → acceptance_criterion.id |
-| `release_id` | string | yes | release whose UAT/review earned it |
-| `by` | string | yes | → identity.id |
-| `at` | string | yes | ISO-8601 |
-| `copied_from` | string \| null | no | set when the marker is copied onto a successor's criterion; not a new UAT decision |
+| `release_id` | string | yes | release whose UAT/review recorded the marker (original review, or the release named on a carried marker's source) |
+| `by` | string | yes | → identity.id (original UAT/review actor on the source marker) |
+| `at` | string | yes | ISO-8601 (original UAT/review time on the source marker) |
+| `copied_from` | string \| null | no | source `criterion_completion.id` when the marker is carried onto a successor's criterion |
+| `carried_by` | string \| null | no | required when `copied_from` is set → identity.id who chose carry |
+| `carried_at` | string \| null | no | required when `copied_from` is set → ISO-8601 when carry was recorded |
 | `notes` | string | no | |
 
-An original marker (no `copied_from`) is valid only for a criterion whose version that release `delivers`. When a review accepts the implementation and still requires a change, criteria on the reviewed version **freeze** and are **copied** onto the successor (new ids, same statement). Completion markers stay on the frozen criterion. A copy of an already-complete criterion is born with its own marker pointing at that completion and the same release, so the accepted criterion does not reopen. A copy of an open criterion starts with no marker.
+An original marker (no `copied_from`) is valid only for a criterion whose version that release `delivers`. When a review accepts the implementation and still requires a change, criteria on the reviewed version **freeze** and are **copied** onto the successor (new ids). Completion markers stay on the frozen criterion.
+
+Per ARCH-CAP-REVIEW-COPY, each copy starts **open (incomplete)** unless the editor explicitly **carries** an **unchanged** criterion's completion (same `statement_hash` as the source). The default when no carry choice is recorded is reset to open (incomplete). A **changed** criterion (different `statement_hash`) is always open (incomplete). A copy of a criterion that was **never** complete on the source is open (incomplete); that state is **not** re-check. A user-chosen carry records `copied_from`, `carried_by`, and `carried_at` and is an explicit exemption from re-check under ARCH-TRACE-RECHECK. A previously complete criterion that is copied but not carried is reset to open (incomplete), not re-check.
 
 ## edge
 
