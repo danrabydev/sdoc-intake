@@ -2095,6 +2095,20 @@ describe("catalog browse screens", () => {
     assert.equal(shellMain.textContent, "");
   });
 
+  it("invalid project slug skips catalogs API fetch", async () => {
+    let fetched = false;
+    const main = document.createElement("main");
+    await renderCatalogsList(main, {
+      apiFn: async () => {
+        fetched = true;
+        return null;
+      },
+      projectId: "BAD!",
+    });
+    assert.equal(fetched, false);
+    assert.match(main.textContent ?? "", /Not found/i);
+  });
+
   it("invalid catalog id in list uses plain title without imprint link", async () => {
     const main = document.createElement("main");
     await renderCatalogsList(main, {
