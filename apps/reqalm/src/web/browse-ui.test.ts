@@ -48,6 +48,7 @@ import {
   imprintControlApiPath,
   pickPrimaryImprint,
   conformingLineChip,
+  groupControlsByFamily,
   renderCatalogsList,
   renderCatalogImprintDetail,
   renderCatalogControlDetail,
@@ -1758,16 +1759,21 @@ describe("catalog browse screens", () => {
     assert.equal(pickPrimaryImprint([{ id: "only", status: "draft" }])?.id, "only");
   });
 
-  it("catalog hrefs encode path segments", () => {
-    assert.equal(catalogsListHref("a/b"), "/app/projects/a%2Fb/catalogs");
+  it("catalog hrefs encode path segments and reject invalid ids", () => {
+    assert.equal(catalogsListHref("reqalm-client"), "/app/projects/reqalm-client/catalogs");
+    assert.equal(catalogsListHref("a/b"), null);
+    assert.equal(catalogsListHref("INVALID!"), null);
     assert.equal(
       catalogImprintHref("reqalm", "cat-nist-global", "nist@x"),
       "/app/projects/reqalm/catalogs/cat-nist-global/imprints/nist%40x",
     );
+    assert.equal(catalogImprintHref("reqalm", "bad id", "nist@x"), null);
     assert.equal(
       catalogControlHref("reqalm", "cat-nist-global", NIST_IMP, "AC-3"),
       `/app/projects/reqalm/catalogs/cat-nist-global/imprints/${encodeURIComponent(NIST_IMP)}/controls/AC-3`,
     );
+    assert.equal(catalogControlHref("reqalm", "cat-nist-global", NIST_IMP, "bad/id"), null);
+    assert.equal(imprintControlApiPath("reqalm", "bad id", NIST_IMP, "AC-3"), null);
   });
 
   it("catalog list renders counts and empty state", async () => {
@@ -1812,6 +1818,47 @@ describe("catalog browse screens", () => {
       projectId: "reqalm",
     });
     assert.ok(empty.querySelector(".empty-state"));
+  });
+
+  it("imprint detail breadcrumb links and invalid control id renders plain text", async () => {
+    const main = document.createElement("main");
+    await renderCatalogImprintDetail(main, {
+      apiFn: mockFetchBare((url) => {
+        if (url === catalogsApiPath("reqalm")) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                catalogs: [{ id: NIST_CAT, title: "NIST", is_standard: true, imprints: [{ id: NIST_IMP, status: "published" }] }],
+              },
+            },
+          };
+        }
+        if (url.startsWith(imprintControlsApiPath("reqalm", NIST_CAT, NIST_IMP, 100, 0)!.split("?")[0])) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                items: [{ id: "bad/id", title: "Bad", family: "AC", conforming_count: 0 }],
+                total: 1,
+                limit: 100,
+                offset: 0,
+              },
+            },
+          };
+        }
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+      catalogId: NIST_CAT,
+      imprintId: NIST_IMP,
+    });
+    assert.deepEqual(
+      [...main.querySelectorAll(".breadcrumb a")].map((a) => a.getAttribute("href")),
+      ["/app/projects/reqalm", catalogsListHref("reqalm")],
+    );
+    assert.equal(main.querySelector("td a"), null);
+    assert.match(main.textContent ?? "", /bad\/id/);
   });
 
   it("imprint detail groups by family and shows conforming counts", async () => {
@@ -1917,22 +1964,174 @@ describe("catalog browse screens", () => {
     assert.match(blocked.textContent ?? "", /Not found/i);
   });
 
-  it("shell catalogs tab aria-current and breadcrumb labels", () => {
-    const path = "/app/projects/reqalm/catalogs";
-    installDom(`http://localhost${path}`);
-    renderAppShell(path, parseAppRoute(path), shellMeta);
-    const active = document.querySelector('#project-nav a.project-tab-active[aria-current="page"]');
-    assert.equal(active?.textContent, "Catalogs");
-    assert.equal(active?.getAttribute("href"), "/app/projects/reqalm/catalogs");
-    const segs = breadcrumbSegments(parseAppRoute(path), shellMeta);
-    assert.equal(segs[segs.length - 1]?.label, "Catalogs");
-    assert.equal(segs[segs.length - 1]?.current, true);
+  it("shell catalogs tab aria-current on list, imprint, and control routes", () => {
+    for (const path of [
+      "/app/projects/reqalm/catalogs",
+      `/app/projects/reqalm/catalogs/${NIST_CAT}/imprints/${encodeURIComponent(NIST_IMP)}`,
+      `/app/projects/reqalm/catalogs/${NIST_CAT}/imprints/${encodeURIComponent(NIST_IMP)}/controls/AC-3`,
+    ]) {
+      installDom(`http://localhost${path}`);
+      renderAppShell(path, parseAppRoute(path), shellMeta);
+      const active = document.querySelector('#project-nav a.project-tab-active[aria-current="page"]');
+      assert.equal(active?.textContent, "Catalogs", path);
+      assert.equal(active?.getAttribute("href"), "/app/projects/reqalm/catalogs", path);
+      assert.equal(document.querySelectorAll('#project-nav a[aria-current="page"]').length, 1, path);
+    }
+    const listPath = "/app/projects/reqalm/catalogs";
+    const listSegs = breadcrumbSegments(parseAppRoute(listPath), shellMeta);
+    assert.equal(listSegs[listSegs.length - 1]?.label, "Catalogs");
+    assert.equal(listSegs[listSegs.length - 1]?.current, true);
+    const controlSegs = breadcrumbSegments(
+      parseAppRoute(
+        `/app/projects/reqalm/catalogs/${NIST_CAT}/imprints/${encodeURIComponent(NIST_IMP)}/controls/AC-3`,
+      ),
+      shellMeta,
+    );
+    assert.equal(controlSegs[controlSegs.length - 1]?.label, "Control");
     for (const tabLabel of ["Traceability", "Capabilities", "Contracts", "Audit"]) {
+      installDom(`http://localhost${listPath}`);
+      renderAppShell(listPath, parseAppRoute(listPath), shellMeta);
       const tab = [...document.querySelectorAll("#project-nav .project-tab-disabled")].find((n) => n.textContent === tabLabel);
-      assert.ok(tab);
+      assert.ok(tab, tabLabel);
       assert.equal(tab?.getAttribute("aria-disabled"), "true");
     }
     assert.equal(PROJECT_TABS.filter((t) => !t.enabled).length, 4);
+  });
+
+  it("control detail breadcrumb links to imprint and project", async () => {
+    const main = document.createElement("main");
+    await renderCatalogControlDetail(main, {
+      apiFn: mockFetchBare((url) => {
+        if (url === catalogsApiPath("reqalm")) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                catalogs: [{ id: NIST_CAT, title: "NIST", is_standard: true, imprints: [{ id: NIST_IMP, status: "published" }] }],
+              },
+            },
+          };
+        }
+        if (url === imprintControlApiPath("reqalm", NIST_CAT, NIST_IMP, "AC-3")) {
+          return {
+            status: 200,
+            body: { data: { id: "AC-3", title: "Access", family: "AC", text: null, conforming_lines: [] } },
+          };
+        }
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+      catalogId: NIST_CAT,
+      imprintId: NIST_IMP,
+      controlId: "AC-3",
+    });
+    const hrefs = [...main.querySelectorAll(".breadcrumb a")].map((a) => a.getAttribute("href"));
+    assert.deepEqual(hrefs, [
+      "/app/projects/reqalm",
+      catalogsListHref("reqalm"),
+      catalogImprintHref("reqalm", NIST_CAT, NIST_IMP),
+    ]);
+  });
+
+  it("401 auth leaves catalog screens empty; API errors show alert", async () => {
+    for (const render of [
+      (m: HTMLElement) => renderCatalogsList(m, { apiFn: async () => null, projectId: "reqalm" }),
+      (m: HTMLElement) =>
+        renderCatalogImprintDetail(m, {
+          apiFn: async () => null,
+          projectId: "reqalm",
+          catalogId: NIST_CAT,
+          imprintId: NIST_IMP,
+        }),
+      (m: HTMLElement) =>
+        renderCatalogControlDetail(m, {
+          apiFn: async () => null,
+          projectId: "reqalm",
+          catalogId: NIST_CAT,
+          imprintId: NIST_IMP,
+          controlId: "AC-3",
+        }),
+    ]) {
+      const main = document.createElement("main");
+      await render(main);
+      assert.equal(main.textContent, "");
+    }
+
+    const errList = document.createElement("main");
+    await renderCatalogsList(errList, {
+      apiFn: mockFetchBare((url) => (url === catalogsApiPath("reqalm") ? { status: 500, body: {} } : { status: 404 })),
+      projectId: "reqalm",
+    });
+    assert.ok(errList.querySelector(".catalog-load-error[role=alert]"));
+    assert.match(errList.textContent ?? "", /Could not load/i);
+
+    const errImprint = document.createElement("main");
+    await renderCatalogImprintDetail(errImprint, {
+      apiFn: mockFetchBare((url) => {
+        if (url === catalogsApiPath("reqalm")) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                catalogs: [{ id: NIST_CAT, title: "NIST", is_standard: true, imprints: [{ id: NIST_IMP, status: "published" }] }],
+              },
+            },
+          };
+        }
+        if (url.startsWith(imprintControlsApiPath("reqalm", NIST_CAT, NIST_IMP, 100, 0)!.split("?")[0])) {
+          return { status: 503, body: {} };
+        }
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+      catalogId: NIST_CAT,
+      imprintId: NIST_IMP,
+    });
+    assert.ok(errImprint.querySelector(".catalog-load-error"));
+
+    const route = parseAppRoute("/app/projects/reqalm/catalogs");
+    const shellMain = document.createElement("main");
+    await mountBrowseView(shellMain, route, { apiFn: async () => null });
+    assert.equal(shellMain.textContent, "");
+  });
+
+  it("invalid catalog id in list uses plain title without imprint link", async () => {
+    const main = document.createElement("main");
+    await renderCatalogsList(main, {
+      apiFn: mockFetchBare((url) => {
+        if (url === catalogsApiPath("reqalm")) {
+          return {
+            status: 200,
+            body: {
+              data: {
+                catalogs: [
+                  {
+                    id: "INVALID!",
+                    title: "Hidden",
+                    is_standard: false,
+                    imprints: [{ id: NIST_IMP, version_label: "v1", status: "published" }],
+                  },
+                ],
+              },
+            },
+          };
+        }
+        return { status: 404 };
+      }),
+      projectId: "reqalm",
+    });
+    assert.equal(main.querySelector("tbody a"), null);
+    assert.match(main.textContent ?? "", /Hidden/);
+  });
+
+  it("groupControlsByFamily sorts families ascending", () => {
+    assert.deepEqual(
+      groupControlsByFamily([
+        { id: "AU-1", family: "AU" },
+        { id: "AC-1", family: "AC" },
+      ]).map(([f]) => f),
+      ["AC", "AU"],
+    );
   });
 
   it("conformingLineChip uses capability badge for CAP ids", () => {

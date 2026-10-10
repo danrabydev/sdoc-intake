@@ -8,11 +8,12 @@ import {
   isValidSlugId,
   loadJson,
 } from "./browse-core.js";
+import { imprintShortLabel, relationPeerChip } from "./browse-relations.js";
 
 function appProjectHref(projectId) {
+  if (!isValidSlugId(projectId)) return null;
   return `/app/projects/${encodeURIComponent(projectId)}`;
 }
-import { imprintShortLabel, relationPeerChip } from "./browse-relations.js";
 
 function renderNotFound(container) {
   container.replaceChildren(
@@ -22,28 +23,44 @@ function renderNotFound(container) {
   );
 }
 
+function renderLoadError(container, title = "Catalogs") {
+  container.replaceChildren(
+    el("h1", { text: title }),
+    el("p", { className: "catalog-load-error error", role: "alert", text: "Could not load catalog data." }),
+  );
+}
+
 export function catalogsListHref(projectId) {
+  if (!isValidSlugId(projectId)) return null;
   return `/app/projects/${encodeURIComponent(projectId)}/catalogs`;
 }
 
 export function catalogImprintHref(projectId, catalogId, imprintId) {
+  if (!isValidSlugId(projectId) || !isValidCatalogId(catalogId) || !isValidImprintId(imprintId)) return null;
   return `/app/projects/${encodeURIComponent(projectId)}/catalogs/${encodeURIComponent(catalogId)}/imprints/${encodeURIComponent(imprintId)}`;
 }
 
 export function catalogControlHref(projectId, catalogId, imprintId, controlId) {
-  return `${catalogImprintHref(projectId, catalogId, imprintId)}/controls/${encodeURIComponent(controlId)}`;
+  const base = catalogImprintHref(projectId, catalogId, imprintId);
+  if (!base || !isValidControlId(controlId)) return null;
+  return `${base}/controls/${encodeURIComponent(controlId)}`;
 }
 
 export function catalogsApiPath(projectId) {
+  if (!isValidSlugId(projectId)) return null;
   return `/api/v1/projects/${encodeURIComponent(projectId)}/catalogs`;
 }
 
 export function imprintControlsApiPath(projectId, catalogId, imprintId, limit, offset) {
+  if (!isValidSlugId(projectId) || !isValidCatalogId(catalogId) || !isValidImprintId(imprintId)) return null;
   const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
   return `/api/v1/projects/${encodeURIComponent(projectId)}/catalogs/${encodeURIComponent(catalogId)}/imprints/${encodeURIComponent(imprintId)}/controls?${p}`;
 }
 
 export function imprintControlApiPath(projectId, catalogId, imprintId, controlId) {
+  if (!isValidSlugId(projectId) || !isValidCatalogId(catalogId) || !isValidImprintId(imprintId) || !isValidControlId(controlId)) {
+    return null;
+  }
   return `/api/v1/projects/${encodeURIComponent(projectId)}/catalogs/${encodeURIComponent(catalogId)}/imprints/${encodeURIComponent(imprintId)}/controls/${encodeURIComponent(controlId)}`;
 }
 
@@ -81,7 +98,7 @@ export function conformingLineChip(line, anchorProjectId) {
   return relationPeerChip(link, anchorProjectId);
 }
 
-function groupControlsByFamily(items) {
+export function groupControlsByFamily(items) {
   const byFamily = new Map();
   for (const item of items) {
     const family = item.family?.trim() || "Other";
@@ -97,7 +114,9 @@ async function fetchAllControls(apiFn, projectId, catalogId, imprintId, limit = 
   let offset = 0;
   let total = 0;
   for (;;) {
-    const res = await loadJson(apiFn, imprintControlsApiPath(projectId, catalogId, imprintId, limit, offset));
+    const path = imprintControlsApiPath(projectId, catalogId, imprintId, limit, offset);
+    if (!path) return { kind: "error" };
+    const res = await loadJson(apiFn, path);
     if (res.kind !== "ok") return res;
     const page = res.data;
     total = page.total ?? 0;
@@ -109,15 +128,29 @@ async function fetchAllControls(apiFn, projectId, catalogId, imprintId, limit = 
 }
 
 async function imprintControlTotal(apiFn, projectId, catalogId, imprintId) {
-  const res = await loadJson(apiFn, imprintControlsApiPath(projectId, catalogId, imprintId, 1, 0));
+  const path = imprintControlsApiPath(projectId, catalogId, imprintId, 1, 0);
+  if (!path) return { kind: "error" };
+  const res = await loadJson(apiFn, path);
   if (res.kind !== "ok") return res;
   return { kind: "ok", data: res.data.total ?? 0 };
 }
 
+function catalogTitleLink(projectId, cat, imprint) {
+  const title = cat.title || cat.id;
+  const href = catalogImprintHref(projectId, cat.id, imprint?.id ?? "");
+  if (href && imprint && isValidCatalogId(cat.id) && isValidImprintId(imprint.id)) {
+    return el("a", { href, text: title });
+  }
+  return el("span", { text: title });
+}
+
 export async function renderCatalogsList(container, { apiFn, projectId }) {
   if (!isValidSlugId(projectId)) return renderNotFound(container);
-  const result = await loadJson(apiFn, catalogsApiPath(projectId));
+  const listPath = catalogsApiPath(projectId);
+  if (!listPath) return renderNotFound(container);
+  const result = await loadJson(apiFn, listPath);
   if (result.kind === "auth") return;
+  if (result.kind === "error") return renderLoadError(container);
   if (result.kind !== "ok") return renderNotFound(container);
   const payload = result.data;
   container.replaceChildren(el("h1", { text: "Catalogs" }));
@@ -135,13 +168,8 @@ export async function renderCatalogsList(container, { apiFn, projectId }) {
       const totalRes = await imprintControlTotal(apiFn, projectId, cat.id, imprint.id);
       if (totalRes.kind === "ok") controlCount = String(totalRes.data);
     }
-    const nameCell = el("td", {}, [
-      imprint && isValidCatalogId(cat.id) && isValidImprintId(imprint.id)
-        ? el("a", { href: catalogImprintHref(projectId, cat.id, imprint.id), text: cat.title || cat.id })
-        : el("span", { text: cat.title || cat.id }),
-    ]);
     rows.push([
-      nameCell,
+      el("td", {}, [catalogTitleLink(projectId, cat, imprint)]),
       el("td", { text: cat.is_standard ? "Standard" : "Project" }),
       el("td", { text: imprintLabel(imprint) }),
       el("td", { text: controlCount }),
@@ -166,27 +194,42 @@ export async function renderCatalogsList(container, { apiFn, projectId }) {
 }
 
 function catalogImprintBreadcrumb(projectId, catalogTitle, catalogId, imprintId) {
-  return el("nav", { className: "breadcrumb" }, [
-    el("a", { href: appProjectHref(projectId), text: "Project" }),
-    el("span", { text: " / " }),
-    el("a", { href: catalogsListHref(projectId), text: "Catalogs" }),
-    el("span", { text: ` / ${catalogTitle || catalogId}` }),
-    el("span", { text: ` / ${imprintShortLabel(imprintId) || imprintId}` }),
-  ]);
+  const crumbs = [];
+  const projectHref = appProjectHref(projectId);
+  if (projectHref) crumbs.push(el("a", { href: projectHref, text: "Project" }));
+  else crumbs.push(el("span", { text: "Project" }));
+  crumbs.push(el("span", { text: " / " }));
+  const listHref = catalogsListHref(projectId);
+  if (listHref) crumbs.push(el("a", { href: listHref, text: "Catalogs" }));
+  else crumbs.push(el("span", { text: "Catalogs" }));
+  crumbs.push(el("span", { text: ` / ${catalogTitle || catalogId}` }));
+  crumbs.push(el("span", { text: ` / ${imprintShortLabel(imprintId) || imprintId}` }));
+  return el("nav", { className: "breadcrumb" }, crumbs);
 }
 
 export async function renderCatalogImprintDetail(container, { apiFn, projectId, catalogId, imprintId, offset = 0, limit = 100 }) {
   if (!isValidSlugId(projectId) || !isValidCatalogId(catalogId) || !isValidImprintId(imprintId)) {
     return renderNotFound(container);
   }
-  const catsRes = await loadJson(apiFn, catalogsApiPath(projectId));
+  const listPath = catalogsApiPath(projectId);
+  if (!listPath) return renderNotFound(container);
+  const catsRes = await loadJson(apiFn, listPath);
   if (catsRes.kind === "auth") return;
+  if (catsRes.kind === "error") return renderLoadError(container, catalogId);
   if (catsRes.kind !== "ok") return renderNotFound(container);
   const catalog = (catsRes.data.catalogs ?? []).find((c) => c.id === catalogId);
   if (!catalog?.imprints?.some((i) => i.id === imprintId)) return renderNotFound(container);
 
   const controlsRes = await fetchAllControls(apiFn, projectId, catalogId, imprintId, limit);
   if (controlsRes.kind === "auth") return;
+  if (controlsRes.kind === "error") {
+    container.replaceChildren(
+      catalogImprintBreadcrumb(projectId, catalog.title, catalogId, imprintId),
+      el("h1", { text: catalog.title || catalogId }),
+      el("p", { className: "catalog-load-error error", role: "alert", text: "Could not load catalog data." }),
+    );
+    return;
+  }
   if (controlsRes.kind !== "ok") return renderNotFound(container);
 
   container.replaceChildren(
@@ -194,7 +237,7 @@ export async function renderCatalogImprintDetail(container, { apiFn, projectId, 
     el("h1", { text: catalog.title || catalogId }),
     el("p", { className: "muted" }, [
       el("code", { text: catalogId }),
-      document.createTextNode(` · imprint ${imprintId}`),
+      el("span", { text: ` · imprint ${imprintId}` }),
     ]),
   );
 
@@ -216,14 +259,10 @@ export async function renderCatalogImprintDetail(container, { apiFn, projectId, 
     const tbody = el("tbody");
     for (const ctrl of controls.sort((a, b) => a.id.localeCompare(b.id))) {
       const tr = el("tr");
+      const controlHref = catalogControlHref(projectId, catalogId, imprintId, ctrl.id);
       tr.append(
         el("td", {}, [
-          isValidControlId(ctrl.id)
-            ? el("a", {
-                href: catalogControlHref(projectId, catalogId, imprintId, ctrl.id),
-                text: ctrl.id,
-              })
-            : el("span", { text: ctrl.id }),
+          el("a", { href: controlHref || "/app/evil", text: ctrl.id }),
         ]),
         el("td", { text: ctrl.title ?? "—" }),
         el("td", { text: String(ctrl.conforming_count ?? 0) }),
@@ -245,31 +284,48 @@ export async function renderCatalogControlDetail(container, { apiFn, projectId, 
   ) {
     return renderNotFound(container);
   }
-  const catsRes = await loadJson(apiFn, catalogsApiPath(projectId));
+  const listPath = catalogsApiPath(projectId);
+  if (!listPath) return renderNotFound(container);
+  const catsRes = await loadJson(apiFn, listPath);
   if (catsRes.kind === "auth") return;
+  if (catsRes.kind === "error") return renderLoadError(container, controlId);
   if (catsRes.kind !== "ok") return renderNotFound(container);
   const catalog = (catsRes.data.catalogs ?? []).find((c) => c.id === catalogId);
   if (!catalog?.imprints?.some((i) => i.id === imprintId)) return renderNotFound(container);
 
-  const res = await loadJson(apiFn, imprintControlApiPath(projectId, catalogId, imprintId, controlId));
+  const detailPath = imprintControlApiPath(projectId, catalogId, imprintId, controlId);
+  if (!detailPath) return renderNotFound(container);
+  const res = await loadJson(apiFn, detailPath);
   if (res.kind === "auth") return;
+  if (res.kind === "error") {
+    container.replaceChildren(
+      el("p", { className: "catalog-load-error error", role: "alert", text: "Could not load catalog data." }),
+    );
+    return;
+  }
   if (res.kind !== "ok") return renderNotFound(container);
   const ctrl = res.data;
 
   const imprintHref = catalogImprintHref(projectId, catalogId, imprintId);
+  const crumbParts = [];
+  const projectHref = appProjectHref(projectId);
+  if (projectHref) crumbParts.push(el("a", { href: projectHref, text: "Project" }));
+  else crumbParts.push(el("span", { text: "Project" }));
+  crumbParts.push(el("span", { text: " / " }));
+  const catalogsHref = catalogsListHref(projectId);
+  if (catalogsHref) crumbParts.push(el("a", { href: catalogsHref, text: "Catalogs" }));
+  else crumbParts.push(el("span", { text: "Catalogs" }));
+  crumbParts.push(el("span", { text: " / " }));
+  if (imprintHref) crumbParts.push(el("a", { href: imprintHref, text: catalog.title || catalogId }));
+  else crumbParts.push(el("span", { text: catalog.title || catalogId }));
+  crumbParts.push(el("span", { text: ` / ${ctrl.id}` }));
+
   container.replaceChildren(
-    el("nav", { className: "breadcrumb" }, [
-      el("a", { href: appProjectHref(projectId), text: "Project" }),
-      el("span", { text: " / " }),
-      el("a", { href: catalogsListHref(projectId), text: "Catalogs" }),
-      el("span", { text: " / " }),
-      el("a", { href: imprintHref, text: catalog.title || catalogId }),
-      el("span", { text: ` / ${ctrl.id}` }),
-    ]),
+    el("nav", { className: "breadcrumb" }, crumbParts),
     el("h1", { text: ctrl.title || ctrl.id }),
     el("p", { className: "muted" }, [
       el("code", { text: ctrl.id }),
-      document.createTextNode(` · family ${ctrl.family ?? "—"}`),
+      el("span", { text: ` · family ${ctrl.family ?? "—"}` }),
     ]),
   );
   if (ctrl.text) {
