@@ -1,20 +1,15 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
 import { loadConfig } from "../config.js";
 import { createMigratedPglitePool } from "../test/pglite-pool.js";
 import { DOGFOOD_SEED_PATH, testConfigEnv } from "../test/harness.js";
+import { assertBaselineOutboundEdgesPreserved } from "./baseline-outbound-edges.js";
 import { SeedValidationError, loadDogfoodSeed, readDogfoodFile, type DogfoodSeed } from "./load-dogfood.js";
 
 describe("loadDogfoodSeed trace edges", () => {
-  it("preserves baseline outbound edges from the committed fixture", () => {
-    const patch = "docs/design/seed/scripts/patch_r1_release_state_seed.py";
-    const r = spawnSync("python3", [patch, "--validate-baseline-edges"], {
-      cwd: new URL("../../../../", import.meta.url).pathname,
-      encoding: "utf-8",
-    });
-    assert.equal(r.status, 0, r.stderr || r.stdout);
-    assert.match(r.stdout, /baseline edge preservation ok/);
+  it("preserves baseline outbound edges from the committed fixture", async () => {
+    const seed = await readDogfoodFile(DOGFOOD_SEED_PATH);
+    assertBaselineOutboundEdgesPreserved(seed);
   });
 
   it("persists dogfood edges and catalog labels", async () => {
