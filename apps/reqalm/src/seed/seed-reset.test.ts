@@ -20,8 +20,8 @@ import {
   SeedResetRefusedError,
   summarizeSeedReset,
 } from "./seed-reset.js";
-import { createMigratedPglitePool } from "../test/pglite-pool.js";
-import { seedAuthUsers, testConfigEnv } from "../test/harness.js";
+import { createMigratedPglitePool, type MigratedPglitePgPool } from "../test/pglite-pool.js";
+import { readDogfoodSeedOnce, seedAuthUsers, testConfigEnv } from "../test/harness.js";
 import { createMemoryKeyProvider } from "../key/memory-provider.js";
 import type pg from "pg";
 
@@ -36,6 +36,37 @@ async function countAll(pool: pg.Pool) {
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const dogfoodPath = path.join(repoRoot, "docs/design/seed/dogfood.yaml");
+const dogfoodSeedPromise = readDogfoodSeedOnce();
+
+/** Small seed for guard/refusal tests — avoids loading full dogfood.yaml on every allowlist case. */
+function minimalProbeDogfoodSeed(): DogfoodSeed {
+  return {
+    client: { id: "reqalm-client", name: "ReqALM" },
+    projects: [{ id: "reqalm", client_id: "reqalm-client", name: "ReqALM" }],
+    identities: [],
+    project_grants: [],
+    requirement_lines: [
+      {
+        base_uid: "SEC-DEVENV",
+        project_id: "reqalm",
+        parent: null,
+        kind: "section",
+        title: "Devenv section",
+      },
+    ],
+    requirement_versions: [
+      {
+        uid: "SEC-DEVENV",
+        base_uid: "SEC-DEVENV",
+        project_id: "reqalm",
+        version_n: 0,
+        status: "active",
+        statement: "probe",
+      },
+    ],
+    releases: [{ id: "rel-probe", project_id: "reqalm", name: "Probe release", status: "planned" }],
+  };
+}
 
 function writeDevenvMarker(): string {
   const dir = mkdtempSync(path.join(tmpdir(), "reqalm-devenv-"));
@@ -75,45 +106,57 @@ function harness(extra: Record<string, string> = {}) {
   return { env, config: loadConfig(env) };
 }
 
+async function withMigratedPool(run: (pg: MigratedPglitePgPool) => Promise<void>): Promise<void> {
+  const pg = await createMigratedPglitePool();
+  try {
+    await run(pg);
+  } finally {
+    await pg.close();
+  }
+}
+
 async function assertResetRefusedLeavesData(
   resetEnv: NodeJS.ProcessEnv,
   label: string,
   confirm = true,
 ): Promise<void> {
   const pg = await createMigratedPglitePool();
-  const config = loadConfig({
-    ...seedResetHarnessEnv(),
-    DATABASE_URL: resetEnv.DATABASE_URL ?? LOCAL_DEV_DATABASE_URL,
-  });
-  const seed = await readDogfoodFile(dogfoodPath);
-  await loadDogfoodSeed(pg.pool, config, seed);
-  await pg.pool.query(
-    `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)
-     VALUES ('FIX-GUARD-${label}', 'reqalm', 'SEC-DEVENV', 'requirement', 'guard probe')`,
-  );
-  const before = await dumpResetTables(pg.pool);
-  const auditBefore = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
+  try {
+    const config = loadConfig({
+      ...seedResetHarnessEnv(),
+      DATABASE_URL: resetEnv.DATABASE_URL ?? LOCAL_DEV_DATABASE_URL,
+    });
+    const seed = minimalProbeDogfoodSeed();
+    await loadDogfoodSeed(pg.pool, config, seed, { skipUnchangedCheck: true });
+    await pg.pool.query(
+      `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)
+       VALUES ('FIX-GUARD-${label}', 'reqalm', 'SEC-DEVENV', 'requirement', 'guard probe')`,
+    );
+    const before = await dumpResetTables(pg.pool);
+    const auditBefore = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
 
-  await assert.rejects(
-    () =>
-      resetDogfoodSeed(pg.pool, config, seed, {
-        confirm,
-        seedPath: dogfoodPath,
-        repoRoot,
-        env: resetEnv,
-      }),
-    SeedResetRefusedError,
-  );
+    await assert.rejects(
+      () =>
+        resetDogfoodSeed(pg.pool, config, seed, {
+          confirm,
+          seedPath: dogfoodPath,
+          repoRoot,
+          env: resetEnv,
+        }),
+      SeedResetRefusedError,
+    );
 
-  assert.deepEqual(await dumpResetTables(pg.pool), before);
-  const auditAfter = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
-  assert.equal(auditAfter.rows[0]?.c, auditBefore.rows[0]?.c);
-  const probe = await pg.pool.query(
-    `SELECT 1 FROM requirement_lines WHERE base_uid = $1`,
-    [`FIX-GUARD-${label}`],
-  );
-  assert.equal(probe.rowCount, 1);
-  await pg.close();
+    assert.deepEqual(await dumpResetTables(pg.pool), before);
+    const auditAfter = await pg.pool.query(`SELECT count(*)::int AS c FROM audit_events`);
+    assert.equal(auditAfter.rows[0]?.c, auditBefore.rows[0]?.c);
+    const probe = await pg.pool.query(
+      `SELECT 1 FROM requirement_lines WHERE base_uid = $1`,
+      [`FIX-GUARD-${label}`],
+    );
+    assert.equal(probe.rowCount, 1);
+  } finally {
+    await pg.close();
+  }
 }
 
 describe("seed reset allowlist", () => {
@@ -224,7 +267,7 @@ describe("seed reset", () => {
     const keyProvider = createMemoryKeyProvider();
     await seedAuthUsers(pg.pool, keyProvider);
     const { config, env } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     await loadDogfoodSeed(pg.pool, config, seed);
 
     await pg.pool.query(
@@ -274,7 +317,7 @@ describe("seed reset", () => {
   it("wipes contract junction rows before releases (FK-safe)", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     await loadDogfoodSeed(pg.pool, config, seed);
     const linked = await pg.pool.query<{ c: number }>(
       `SELECT count(*)::int AS c FROM contract_releases cr JOIN releases r ON r.id = cr.release_id WHERE r.project_id = 'reqalm'`,
@@ -295,7 +338,7 @@ describe("seed reset", () => {
   it("is idempotent on a second run", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     await resetDogfoodSeed(pg.pool, config, seed, {
       confirm: true,
       seedPath: dogfoodPath,
@@ -318,7 +361,7 @@ describe("seed reset", () => {
     const keyProvider = createMemoryKeyProvider();
     await seedAuthUsers(pg.pool, keyProvider);
     const { config, env } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     await loadDogfoodSeed(pg.pool, config, seed);
 
     await pg.pool.query(
@@ -460,7 +503,7 @@ describe("seed reset", () => {
   it("rolls back when the reload fails mid-load (broken record after the wipe)", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     await loadDogfoodSeed(pg.pool, config, seed);
     await pg.pool.query(
       `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)
@@ -491,7 +534,7 @@ describe("seed reset", () => {
   it("rolls back when the reloaded rows do not match the YAML counts", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     await loadDogfoodSeed(pg.pool, config, seed);
     // Not in the YAML: a committed wipe would remove it, so it proves the rollback (the failure is a JS throw, not SQL).
     await pg.pool.query(
@@ -526,7 +569,7 @@ describe("seed reset", () => {
   it("does not log a generated dev password when REQALM_DEV_ACCOUNT_PASSWORD is set", async () => {
     const pg = await createMigratedPglitePool();
     const { config } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     const lines: string[] = [];
     const orig = console.log;
     console.log = (...args: unknown[]) => {
@@ -544,7 +587,7 @@ describe("seed reset", () => {
   it("loads the full current dogfood.yaml (import-ready)", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     const yamlCounts = countDogfoodYamlEntities(seed);
     assert.ok(yamlCounts.requirement_lines > 300);
     assert.ok(yamlCounts.requirement_versions > 300);
@@ -576,7 +619,7 @@ describe("seed reset command (CLI body after the guard)", () => {
   it("--dry-run prints the plan and writes nothing, not even pending migrations", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     await loadDogfoodSeed(pg.pool, config, seed);
     await pg.pool.query(
       `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)
@@ -612,7 +655,7 @@ describe("seed reset command (CLI body after the guard)", () => {
   it("without --dry-run prints the plan, resets, and appends one audit row", async () => {
     const pg = await createMigratedPglitePool();
     const { config, env } = harness();
-    const seed = await readDogfoodFile(dogfoodPath);
+    const seed = await dogfoodSeedPromise;
     await loadDogfoodSeed(pg.pool, config, seed);
     await pg.pool.query(
       `INSERT INTO requirement_lines (base_uid, project_id, parent, kind, title)

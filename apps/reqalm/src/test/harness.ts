@@ -15,7 +15,7 @@ import { ProbeCache } from "../readiness/cache.js";
 import { defaultRoleAssets } from "../readiness/report.js";
 import type { ReadinessContext } from "../readiness/report.js";
 import { createMigratedPglitePool } from "./pglite-pool.js";
-import { loadDogfoodSeed, readDogfoodFile } from "../seed/load-dogfood.js";
+import { loadDogfoodSeed, readDogfoodFile, type DogfoodSeed } from "../seed/load-dogfood.js";
 
 export const TEST_PASSWORD = "test-harness-password-42";
 export const TEST_AGENT_SECRET = "agent-harness-secret-99";
@@ -48,6 +48,14 @@ export function testConfigEnv(): NodeJS.ProcessEnv {
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 export const DOGFOOD_SEED_PATH = path.join(repoRoot, "docs/design/seed/dogfood.yaml");
+
+let dogfoodSeedOnce: Promise<DogfoodSeed> | null = null;
+
+/** Parse committed dogfood.yaml once per test process (large file; many suites load it). */
+export function readDogfoodSeedOnce(): Promise<DogfoodSeed> {
+  dogfoodSeedOnce ??= readDogfoodFile(DOGFOOD_SEED_PATH);
+  return dogfoodSeedOnce;
+}
 
 export async function seedAuthUsers(pool: pg.Pool, keyProvider: KeyProvider): Promise<void> {
   await pool.query(
@@ -91,7 +99,7 @@ export async function createTestApp(options?: { roles?: string; dogfood?: boolea
   const keyProvider = createMemoryKeyProvider();
   await seedAuthUsers(pool, keyProvider);
   if (options?.dogfood) {
-    const seed = await readDogfoodFile(DOGFOOD_SEED_PATH);
+    const seed = await readDogfoodSeedOnce();
     await loadDogfoodSeed(pool, config, seed, { skipUnchangedCheck: true });
   }
 

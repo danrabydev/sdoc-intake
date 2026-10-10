@@ -167,3 +167,8 @@ When continuing inherit-uses in Cursor: read **`ARCH-TRACE-INHERIT-USES`** in `d
 - **Started (planned + note):** `rel-r1-planning-read-api` / **`CAP-READ-PLANNING`** (bc-a71c6948); `rel-r1-artifacts-read-api` / **`CAP-READ-ARTIFACTS`** (bc-72846206); `rel-r1-hardening-followup-1` / **`CAP-SVC-HARDENING-FOLLOWUP`** (bc-7132b537).
 - **Patch (idempotent):** `docs/design/seed/scripts/patch_r1_release_state_seed.py` — **`--validate-baseline-edges`**; regenerate **`docs/design/seed/out/`** after apply.
 - **Counts (post-patch):** 461 lines, 494 versions, **1959** edges, 41 releases.
+
+## Addendum — Cursor Cloud Agent environment (repo tooling)
+
+- **Agent guide:** [`docs/design/AGENTS.md`](./AGENTS.md) — typecheck/test/seed commands, typical durations, PGlite-in-process test contract (no Docker for `pnpm --filter @reqalm/app test`), and standing rules (`[skip ci]`, LF, additions-only HANDOFF, seed-only release rows).
+- **Environment config:** [`.cursor/environment.json`](../../.cursor/environment.json) — Node 22 base image, `pnpm install --frozen-lockfile`, Python 3 + PyYAML for seed scripts; install/start scripts are LF-safe shell entrypoints under `.cursor/`.
